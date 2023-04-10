@@ -1,0 +1,423 @@
+<?php
+    /**
+     * @file      部門別売上集計表 [M]
+     * @author    川橋
+     * @date      2019/06/11
+     * @version   1.00
+     * @note      帳票 - 部門別売上集計表の管理を行う
+     */
+
+    // BaseModel.phpを読み込む
+    require './Model/Common/BaseModel.php';
+    require '../modal/Model/Modal.php';
+
+    /**
+     * 表示項目設定クラス
+     * @note   表示項目設定マスタテーブルの管理を行う
+     */
+    class LedgerSheetProductClassification extends BaseModel
+    {
+        /**
+         * コンストラクタ
+         */
+        public function __construct()
+        {
+            // ModelBaseのコンストラクタ
+            parent::__construct();
+        }
+
+        /**
+         * デストラクタ
+         */
+        public function __destruct()
+        {
+            // ModelBaseのデストラクタ
+            parent::__destruct();
+        }
+
+        /**
+         * 表示項目設定マスタ一覧画面一覧表
+         * @param    $postArray   入力パラメータ(ledger_sheet_form_id/start_date/end_date/sort)
+         * @return   成功時：$displayItemList(帳票フォームデータ)  失敗：無
+         */
+        public function getFormListData( $postArray )
+        {
+            global $DBA, $Log; // グローバル変数宣言
+            $Log->trace("START getListData");
+
+            $searchArray = array();
+            $sql = $this->creatSQL( $postArray, $searchArray );
+            
+            $result = $DBA->executeSQL($sql, $searchArray);
+
+            $displayItemDataList = array();
+
+            if( $result === false )
+            {
+                $Log->trace("END getListData");
+                return $displayItemDataList;
+            }
+
+            while ( $data = $result->fetch(PDO::FETCH_ASSOC) )
+            {
+                array_push( $displayItemDataList, $data);
+            }
+
+            $Log->trace("END getListData");
+            return $displayItemDataList;
+        }
+
+        /**
+         * 帳票フォーム一覧取得SQL文作成
+         * @param    $postArray                 入力パラメータ(is_del/ledger_sheet_form_id)
+         * @param    $searchArray               検索条件用パラメータ
+         * @return   帳票フォーム一覧取得SQL文
+         */
+        private function creatSQL( $postArray, &$searchArray )
+        {
+            global $Log; // グローバル変数宣言
+            $Log->trace("START creatSQL");
+            
+            // 集計条件の設定 期間指定
+            $searchArray['proc_date_start'] = str_replace('/','',$postArray['start_date']);
+            $searchArray['proc_date_end'] = str_replace('/','',$postArray['end_date']);
+
+            $where = ""; 
+
+            // 集計条件の設定 分類条件指定
+            if($postArray['prodclass_cd'] !== 'false'){
+                if($postArray['middle_class_chk']){
+                    if( $postArray['prodclass_select'] === 'empty'){
+                        $where .= " and t_data.prod_t_cd1||'_'||coalesce(t_data.prod_t_cd2,'') in (".$postArray['prodclass_cd'].")";
+                    }else{
+                        $where .= " and t_data.prod_t_cd1||'_'||coalesce(t_data.prod_t_cd2,'') in ('".$postArray['prodclass_select']."')";
+                    }
+                }else{
+                    if( $postArray['prodclass_select'] === 'empty'){
+                        $where .= " and t_data.prod_t_cd1 in (".$postArray['prodclass_cd'].")";
+                    }else{
+                        $where .= " and t_data.prod_t_cd1 in ('".$postArray['prodclass_select']."')";
+                    }
+                }
+            }
+            
+            // 集計条件の設定 店舗指定
+            if($postArray['org_id'] !== 'false'){
+                if( $postArray['org_select'] === 'empty'){
+                    $where .= " and t_data.organization_id in (".$postArray['org_id'].")";
+                }else{
+                    $where .= " and t_data.organization_id in (".$postArray['org_select'].")";
+                }
+            }
+            
+            // 表示順指定
+            if($postArray['sort'] && $postArray['sort'] !== 'false'){
+                $array_sort = explode('#',$postArray['sort']);
+                $order =$array_sort[0];
+                if($array_sort[1] < 0 ){
+                    $order .= " desc ";
+                }
+            }else{
+                $order = " prod_t_cd1 ";               
+            }
+
+            // 中分類指定条件
+            if($postArray['middle_class_chk']){
+                $order  .= " ,prod_t_cd2 ";
+            } 
+
+            // SQL本体
+            $sql  .= " 		select  ";	
+            $sql  .= " 			t_data.prod_t_cd1, ";	
+            $sql  .= " 			t_data.prod_t_nm_1, ";
+            // 中分類指定されていたら
+            if($postArray['middle_class_chk']){
+                $sql  .= " 		t_data.prod_t_cd2, ";
+		$sql  .= " 		t_data.prod_t_nm_2,		 ";
+            }
+            $sql  .= " 			sum(t_data.genkin_amount) as genkin_amount, ";	
+//            $sql  .= " 			sum(t_data.genkin_pure_total - genkin_utax) as genkin_pure_total, ";	
+            $sql  .= " 			sum(t_data.genkin_pure_total) as genkin_pure_total, ";	
+            $sql  .= " 			sum(t_data.genkin_saleprofit) as genkin_saleprofit, ";	
+            $sql  .= " 			sum(t_data.kake_amount) as kake_amount, ";	
+            $sql  .= " 			sum(t_data.kake_pure_total) as kake_pure_total, ";	
+            $sql  .= " 			sum(t_data.kake_saleprofit) as kake_saleprofit, ";	
+            $sql  .= " 			sum(t_data.sale_amount) as sale_amount , ";	
+            $sql  .= " 			sum(t_data.sale_total) as sale_total , ";	
+            $sql  .= " 			sum(t_data.sale_profit) as sale_profit , ";	
+            $sql  .= " 			case ";	
+            $sql  .= " 				when coalesce(sum(t_data.sale_total), 0) = 0 then 0 ";	
+            $sql  .= " 				else coalesce(sum(t_data.sale_profit), 0)/ coalesce(sum(t_data.sale_total), 0)* 100  ";	
+            $sql  .= " 			end as sale_margin, ";	
+            $sql  .= " 			sum(t_data.genkin_amount_1) as genkin_amount_1, ";	
+//            $sql  .= " 			sum(t_data.genkin_pure_total_1 - genkin_utax_1) as genkin_pure_tota_1, ";	
+            $sql  .= " 			sum(t_data.genkin_pure_total_1) as genkin_pure_tota_1, ";	
+            $sql  .= " 			sum(t_data.genkin_saleprofit_1) as genkin_saleprofit_1, ";	
+            $sql  .= " 			sum(t_data.kake_amount_1) as kake_amount_1, ";	
+            $sql  .= " 			sum(t_data.kake_pure_total_1) as kake_pure_total_1, ";	
+            $sql  .= " 			sum(t_data.kake_saleprofit_1) as kake_saleprofit_1, ";	
+            $sql  .= " 			sum(t_data.sale_amount_1) as sale_amount_1 , ";	
+            $sql  .= " 			sum(t_data.sale_total_1) as sale_total_1 , ";	
+            $sql  .= " 			sum(t_data.sale_profit_1) as sale_profit_1, ";	
+            $sql  .= " 			case ";	
+            $sql  .= " 				when coalesce(sum(t_data.sale_total_1), 0) = 0 then 0 ";	
+            $sql  .= " 				else coalesce(sum(t_data.sale_profit_1), 0)/ coalesce(sum(t_data.sale_total_1), 0)* 100  ";	
+            $sql  .= " 			end as sale_margin_1, ";	
+            $sql  .= " 			case ";	
+            $sql  .= " 				when coalesce(sum(t_data.sale_profit_1), 0) = 0 then 0 ";	
+            $sql  .= " 				else coalesce(sum(t_data.sale_profit), 0)/ coalesce(sum (t_data.sale_profit_1), 0)* 100  ";	
+            $sql  .= " 			end as all_comp_1 ";	
+            $sql  .= " 		from (  ";	
+            $sql  .= " 		(	select  ";	
+            $sql  .= " 				t.organization_id, ";	
+            $sql  .= " 				coalesce(t.prod_t_cd1,'')as prod_t_cd1 , ";	
+            $sql  .= " 				coalesce(m2.prod_t_nm,'未設定') as prod_t_nm_1, ";
+            // 中分類指定されていたら
+            if($postArray['middle_class_chk']){
+                    $sql  .= " 		t.prod_t_cd2, ";
+                    $sql  .= " 		m3.prod_t_nm as prod_t_nm_2,		 ";
+            }			
+            $sql  .= " 				sum( t.utax) as genkin_utax, ";	
+            $sql  .= " 				coalesce(sum(t.amount		), 0) as genkin_amount, ";	
+            $sql  .= " 				coalesce(sum(t.pure_total	), 0) as genkin_pure_total, ";	
+            $sql  .= " 				coalesce(sum(t.profit_i	), 0) as genkin_saleprofit, ";	
+            $sql  .= " 				coalesce(sum(kake_amount2	), 0) as kake_amount, ";	
+            $sql  .= " 				coalesce(sum(kake_pure_total2), 0) as kake_pure_total, ";	
+            $sql  .= " 				coalesce(sum(kake_saleprofit2), 0) as kake_saleprofit, ";	
+            $sql  .= " 				coalesce(sum(t.amount		), 0) + coalesce(sum(kake_amount2), 0) as sale_amount , ";	
+            $sql  .= " 				coalesce(sum(t.pure_total	), 0) + coalesce(sum(kake_pure_total2), 0) as sale_total , ";	
+            $sql  .= " 				coalesce(sum(t.profit_i	), 0) + coalesce(sum(kake_saleprofit2), 0) as sale_profit , ";	
+            $sql  .= " 				0 as genkin_utax_1, ";	
+            $sql  .= " 				0 as genkin_amount_1, ";	
+            $sql  .= " 				0 as genkin_pure_total_1, ";	
+            $sql  .= " 				0 as genkin_saleprofit_1, ";	
+            $sql  .= " 				0 as kake_amount_1, ";	
+            $sql  .= " 				0 as kake_pure_total_1, ";	
+            $sql  .= " 				0 as kake_saleprofit_1, ";	
+            $sql  .= " 				0 as sale_amount_1, ";	
+            $sql  .= " 				0 as sale_total_1, ";	
+            $sql  .= " 				0 as sale_profit_1	 ";	
+            $sql  .= " 			from ( ";	
+            $sql  .= " 				select  ";	
+            $sql  .= " 					t1.organization_id, ";	
+            $sql  .= " 					coalesce(t2.prod_t_cd1,'') as prod_t_cd1 , ";
+            // 中分類指定されていたら
+            if($postArray['middle_class_chk']){			
+                $sql  .= " 		coalesce(t2.prod_t_cd2,'') as prod_t_cd2, ";
+            }
+            $sql  .= " 					sum(case  ";	
+            $sql  .= " 						when t2.tax_type = '2' then t2.itax ";	
+            $sql  .= " 						else 0  ";	
+            $sql  .= " 					end) as utax, ";	
+
+            $sql  .= " 					coalesce(sum(case when genkin > 0 then t2.amount else 0 end ), 0) as amount, ";	
+/* 現金の内訳用に修正 20210913 oota */
+//            $sql  .= " 					coalesce(sum(case when genkin > 0 then t2.pure_total else 0 end	), 0) as pure_total, ";	
+            $sql  .= " 					coalesce(sum(case when genkin > 0 then t2.pure_total_i else 0 end	), 0) as pure_total, ";	
+/* 現金の内訳用に修正 20210913 oota */
+            $sql  .= " 					coalesce(sum(case when genkin > 0 then t2.profit_i else 0 end	), 0) as profit_i, ";	
+
+            $sql  .= " 					coalesce(sum(case when genkin = 0 then t2.amount else 0 end ), 0) as kake_amount2, ";	
+/* 現金の内訳用に修正 20210913 oota */
+//            $sql  .= " 					coalesce(sum(case when genkin = 0 then t2.pure_total else 0 end	), 0) as kake_pure_total2, ";	
+            $sql  .= " 					coalesce(sum(case when genkin = 0 then t2.pure_total_i else 0 end	), 0) as kake_pure_total2, ";	
+/* 現金の内訳用に修正 20210913 oota */
+            $sql  .= " 					coalesce(sum(case when genkin = 0 then t2.profit_i else 0 end	), 0) as kake_saleprofit2 ";	
+            $sql  .= " 				from trn0101 t1	 ";	
+            $sql  .= " 				left join trn0102 t2 using (organization_id,hideseq) ";	
+/* 現金、売掛の内訳用に修正 20200128 oota */
+            $sql  .= " 				left join trn0203 t3 using (organization_id,hideseq) ";	
+/* 現金、売掛の内訳用に修正 20200128 oota */
+            $sql  .= " 				where 		proc_date between :proc_date_start and :proc_date_end ";	
+            $sql  .= " 						and t2.prod_cd is not null ";	
+            $sql  .= " 						and t2.cancel_kbn = '0' ";	
+            $sql  .= " 						and t1.stop_kbn = '0'		 ";	
+            $sql  .= " 				group by t1.organization_id, coalesce(t2.prod_t_cd1,'') ";	
+            // 中分類指定されていたら
+            if($postArray['middle_class_chk']){	
+                $sql  .= " 		,coalesce(t2.prod_t_cd2,'')";				
+            }			
+            $sql  .= " 			)t ";	
+            $sql  .= " 			left join mst0801 m2 on t.organization_id = m2.organization_id and t.prod_t_cd1 = m2.prod_t_cd1 and m2.prod_t_cd2 =''";
+            // 中分類指定されていたら
+            if($postArray['middle_class_chk']){			
+                $sql  .= " 	left join mst0801 m3 on t.organization_id = m3.organization_id and t.prod_t_cd1 = m3.prod_t_cd1 and t.prod_t_cd2 = m3.prod_t_cd2 ";
+            }			
+            $sql  .= " 			left join ( ";	
+            $sql  .= " 				select ";	
+            $sql  .= " 					j1.organization_id, ";	
+            $sql  .= " 					sum(j1.amount) as kake_amount, ";	
+            $sql  .= " 					sum(case when j1.tax_type = '2' then (j1.pure_total)/((100+j1.tax_rate)/100)::int ";	
+            $sql  .= " 					else j1.pure_total ";	
+            $sql  .= " 					end) as kake_pure_total, ";	
+            $sql  .= " 					sum(j1.pure_total-j1.amount*j1.saleprice) as kake_saleprofit, ";	
+            $sql  .= " 					coalesce(m1.prod_t_cd1,'') as prod_t_cd1 ";
+            // 中分類指定されていたら
+            if($postArray['middle_class_chk']){
+                $sql  .= " 			,m1.prod_t_cd2 ";
+            }			
+            $sql  .= " 				from ";	
+            $sql  .= " 					jsk4160 j1 ";	
+            $sql  .= " 				left join mst0201 m1 on ";	
+            $sql  .= " 					j1.organization_id = m1.organization_id ";	
+            $sql  .= " 					and j1.prod_cd = m1.prod_cd ";	
+            $sql  .= " 				where  ";	
+            $sql  .= " 					 j1.proc_date between :proc_date_start and :proc_date_end		 ";				
+            $sql  .= " 				group by ";	
+            $sql  .= " 					m1.prod_t_cd1, ";	
+            $sql  .= " 					j1.organization_id ";
+            // 中分類指定されていたら
+            if($postArray['middle_class_chk']){
+                $sql  .= " 			,m1.prod_t_cd2 ";
+            }
+            $sql  .= " 				) e on e.prod_t_cd1 = t.prod_t_cd1 and e.organization_id = t.organization_id ";
+            // 中分類指定されていたら
+            if($postArray['middle_class_chk']){
+                $sql  .= "      and e.prod_t_cd2 = t.prod_t_cd2 ";
+            } 		
+            $sql  .= " 			group by  ";	
+            $sql  .= " 				t.organization_id, ";	
+            $sql  .= " 				t.prod_t_cd1, ";	
+            $sql  .= " 				prod_t_nm_1 ";
+            // 中分類指定されていたら
+            if($postArray['middle_class_chk']){
+                    $sql  .= " 		,t.prod_t_cd2, ";
+                    $sql  .= " 		prod_t_nm_2 ";
+            }
+            // -------------------------------------------------------------前年分SQL-----------------------------------------------------------------------------
+            $sql  .= " 		)union( ";	
+            $sql  .= " 	select  ";	
+            $sql  .= " 				t.organization_id, ";	
+            $sql  .= " 				coalesce(t.prod_t_cd1,'')as prod_t_cd1 , ";	
+            $sql  .= " 				coalesce(m2.prod_t_nm,'未設定') as prod_t_nm_1, ";
+            // 中分類指定されていたら
+            if($postArray['middle_class_chk']){			
+                $sql  .= " 		t.prod_t_cd2, ";
+                $sql  .= " 		m3.prod_t_nm as prod_t_nm_2,		 ";
+            }	
+            $sql  .= " 				0 as genkin_utax , ";	
+            $sql  .= " 				0 as genkin_amount , ";	
+            $sql  .= " 				0 as genkin_pure_total , ";	
+            $sql  .= " 				0 as genkin_saleprofit , ";	
+            $sql  .= " 				0 as kake_amount , ";	
+            $sql  .= " 				0 as kake_pure_total , ";	
+            $sql  .= " 				0 as kake_saleprofit , ";	
+            $sql  .= " 				0 as sale_amount , ";	
+            $sql  .= " 				0 as sale_total , ";	
+            $sql  .= " 				0 as sale_profit ,	 ";
+            $sql  .= " 				sum( t.utax) as genkin_utax_1, ";	
+            $sql  .= " 				coalesce(sum(t.amount		), 0) as genkin_amount_1 , ";	
+            $sql  .= " 				coalesce(sum(t.pure_total ), 0) as genkin_pure_total_1 , ";	
+            $sql  .= " 				coalesce(sum(t.profit_i	), 0) as genkin_saleprofit_1 , ";	
+            $sql  .= " 				coalesce(sum(kake_amount2	), 0) as kake_amount_1 , ";	
+            $sql  .= " 				coalesce(sum(kake_pure_total2), 0) as kake_pure_total_1 , ";	
+            $sql  .= " 				coalesce(sum(kake_saleprofit2), 0) as kake_saleprofit_1 , ";	
+            $sql  .= " 				coalesce(sum(t.amount		), 0) + coalesce(sum(kake_amount2), 0) as sale_amount_1 , ";	
+            $sql  .= " 				coalesce(sum(t.pure_total	), 0) + coalesce(sum(kake_pure_total2), 0) as sale_total_1 , ";	
+            $sql  .= " 				coalesce(sum(t.profit_i	), 0) + coalesce(sum(kake_saleprofit2), 0) as sale_profit_1  ";	
+	
+            $sql  .= " 			from ( ";	
+            $sql  .= " 				select  ";	
+            $sql  .= " 					t1.organization_id, ";	
+            $sql  .= " 					coalesce(t2.prod_t_cd1,'') as prod_t_cd1 , ";
+            // 中分類指定されていたら
+            if($postArray['middle_class_chk']){
+                $sql  .= " 		coalesce(t2.prod_t_cd2,'') as prod_t_cd2, ";
+            }
+            $sql  .= " 					sum(case  ";	
+            $sql  .= " 						when t2.tax_type = '2' then t2.itax ";	
+            $sql  .= " 						else 0  ";	
+            $sql  .= " 					end) as utax, ";	
+            $sql  .= " 					coalesce(sum(case when genkin > 0 then t2.amount else 0 end ), 0) as amount, ";	
+/* 現金の内訳用に修正 20210913 oota */
+//            $sql  .= " 					coalesce(sum(case when genkin > 0 then t2.pure_total else 0 end	), 0) as pure_total, ";	
+            $sql  .= " 					coalesce(sum(case when genkin > 0 then t2.pure_total_i else 0 end	), 0) as pure_total, ";	
+/* 現金の内訳用に修正 20210913 oota */
+            $sql  .= " 					coalesce(sum(case when genkin > 0 then t2.profit_i else 0 end	), 0) as profit_i, ";	
+            $sql  .= " 					coalesce(sum(case when genkin = 0 then t2.amount else 0 end ), 0) as kake_amount2, ";	
+/* 現金の内訳用に修正 20210913 oota */
+//            $sql  .= " 					coalesce(sum(case when genkin = 0 then t2.pure_total else 0 end	), 0) as kake_pure_total2, ";	
+            $sql  .= " 					coalesce(sum(case when genkin = 0 then t2.pure_total_i else 0 end	), 0) as kake_pure_total2, ";	
+/* 現金の内訳用に修正 20210913 oota */
+            $sql  .= " 					coalesce(sum(case when genkin = 0 then t2.profit_i else 0 end	), 0) as kake_saleprofit2 ";	
+            $sql  .= " 				from trn0101 t1	 ";	
+            $sql  .= " 				left join trn0102 t2 using (organization_id,hideseq) ";	
+/* 現金、売掛の内訳用に修正 20200128 oota */
+            $sql  .= " 				left join trn0203 t3 using (organization_id,hideseq) ";	
+/* 現金、売掛の内訳用に修正 20200128 oota */
+            $sql  .= " 				where 		proc_date between (:proc_date_start::int -10000)::text and (:proc_date_end::int -10000)::text ";	
+            $sql  .= " 						and t2.prod_cd is not null ";	
+            $sql  .= " 						and t2.cancel_kbn = '0' ";	
+            $sql  .= " 						and t1.stop_kbn = '0'		 ";	
+            $sql  .= " 				group by t1.organization_id, coalesce(t2.prod_t_cd1,'') ";
+            // 中分類指定されていたら
+            if($postArray['middle_class_chk']){	
+                $sql  .= " 		,coalesce(t2.prod_t_cd2,'')";				
+            }
+            $sql  .= " 			)t ";	
+            $sql  .= " 			left join mst0801 m2 on t.organization_id = m2.organization_id and t.prod_t_cd1 = m2.prod_t_cd1 and m2.prod_t_cd2 =''";
+            // 中分類指定されていたら
+            if($postArray['middle_class_chk']){			
+                $sql  .= " 	left join mst0801 m3 on t.organization_id = m3.organization_id and t.prod_t_cd1 = m3.prod_t_cd1 and t.prod_t_cd2 = m3.prod_t_cd2 ";
+            }
+            $sql  .= " 			left join ( ";	
+            $sql  .= " 				select ";	
+            $sql  .= " 					j1.organization_id, ";	
+            $sql  .= " 					sum(j1.amount) as kake_amount, ";	
+            $sql  .= " 					sum(case when j1.tax_type = '2' then (j1.pure_total)/(1+j1.tax_rate/100)::int ";	
+            $sql  .= " 					else j1.pure_total ";	
+            $sql  .= " 					end) as kake_pure_total, ";	
+            $sql  .= " 					sum(j1.pure_total-j1.amount*j1.saleprice) as kake_saleprofit, ";	
+            $sql  .= " 					coalesce(m1.prod_t_cd1,'') as prod_t_cd1 ";
+            // 中分類指定されていたら
+            if($postArray['middle_class_chk']){
+                $sql  .= " 			,m1.prod_t_cd2 ";
+            }
+            $sql  .= " 				from ";	
+            $sql  .= " 					jsk4160 j1 ";	
+            $sql  .= " 				left join mst0201 m1 on ";	
+            $sql  .= " 					j1.organization_id = m1.organization_id ";	
+            $sql  .= " 					and j1.prod_cd = m1.prod_cd ";	
+            $sql  .= " 				where  ";	
+            $sql  .= " 					 j1.proc_date between (:proc_date_start::int -10000)::text and (:proc_date_end::int -10000)::text		 ";				
+            $sql  .= " 				group by ";	
+            $sql  .= " 					m1.prod_t_cd1, ";	
+            $sql  .= " 					j1.organization_id ";
+            // 中分類指定されていたら
+            if($postArray['middle_class_chk']){
+                $sql  .= " 			,m1.prod_t_cd2 ";
+            }
+            $sql  .= " 				) e on e.prod_t_cd1 = t.prod_t_cd1 and e.organization_id = t.organization_id ";
+            // 中分類指定されていたら
+            if($postArray['middle_class_chk']){
+                $sql  .= "      and e.prod_t_cd2 = t.prod_t_cd2 ";
+            } 			
+            $sql  .= " 			group by  ";	
+            $sql  .= " 				t.organization_id, ";	
+            $sql  .= " 				t.prod_t_cd1, ";	
+            $sql  .= " 				prod_t_nm_1 ";
+            // 中分類指定されていたら
+            if($postArray['middle_class_chk']){
+                    $sql  .= " 		,t.prod_t_cd2, ";
+                    $sql  .= " 		prod_t_nm_2 ";
+            }	
+            $sql  .= " 		) ";	
+            $sql  .= " 		)t_data ";
+            $sql  .= " where 1=1 ".$where;			
+            $sql  .= " 		group by ";	
+            $sql  .= " 			t_data.prod_t_cd1, ";	
+            $sql  .= " 			t_data.prod_t_nm_1 ";	
+            // 中分類指定されていたら
+            if($postArray['middle_class_chk']){
+                $sql  .= "	,t_data.prod_t_cd2 ";
+                $sql  .= "	,t_data.prod_t_nm_2 ";  
+            }			
+            $sql  .= " order by  ".$order;
+        
+            $Log->trace("END creatSQL");
+            return $sql;
+        }
+
+    }
+    
+?>

@@ -1,0 +1,65 @@
+<?php
+    /**
+     * @file        グループマスタ画面(View)
+     * @author      millionet oota
+     * @date        2017/01/26
+     * @version     1.00
+     * @note        グループマスタ画面
+     */
+?>
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-ajax">
+
+            <!-- PageMoveArea -->
+            <?php include("../FwCommon/View/PagingArea.php"); ?>
+
+            <?php if( $isScrollBar ) { ?>
+                <div class="serchListArea" style=" clear:both; width:99%; margin:0px auto !important; overflow-y:auto; height:25px;">
+            <?php } else { ?>
+                <div class="serchListArea" style=" clear:both; width:99%; margin:5px auto !important;">
+            <?php } ?>
+            <!-- ---------------------- -->
+                    <table>
+                        <tbody>
+                            <tr>
+                                <th width="20px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?></u><?php hsc($headerArray['groupNoSortMark']); ?></span></th><!-- No -->
+                                <th width="20px"><span onClick="setColumnInfo('表示順');"><u>表示順</u><?php hsc($headerArray['dispOrderSortMark']); ?></span></th>
+                                <th width="50px"><span onClick="setColumnInfo('グループ名');"><u>グループ名</u><?php hsc($headerArray['groupNameSortMark']); ?></span></th>
+                                <th width="80px"><span onClick="setColumnInfo('メンバー名');"><u>メンバー名</u><?php hsc($headerArray['menberNameMark']); ?></span></th>
+                                <th width="62px"><span onClick="setColumnInfo('作成日');"><u>作成日</u><?php hsc($headerArray['registrationTimeSortMark']); ?></span></th>
+                                <!-- ---------------------- -->
+                            </tr>
+                </table>
+            <?php if( $isScrollBar ) { ?>
+                </div>
+                <div class="serchListArea" style="width:99%; margin: 0px auto; overflow-y:auto; height:400px; !important;">
+            <?php } ?>
+                <table id="nameTable" style="background-color: #ffffff">
+                            <?php foreach($groupList as $group) { ?>
+                                <?php $group_no++; ?>
+                                <?php if(!$groupNoSortFlag) { ?>
+                                    <?php $display_no++; ?>
+                                <?php } ?>
+                                <tr>
+                                    <td align="right" style="width:20px;"><?php hsc($display_no); ?></td>
+                                    <?php 
+                                        if(!empty($group['updateDisabled'])){
+                                            $isUpdateDisabled = 1;
+                                        }else{
+                                            $isUpdateDisabled = 0;
+                                        }
+                                    ?>
+                                    <td align="center" style="width:20px;"><?php hsc($group['disp_order']); ?></td>
+                                    <td align="center" style="width:50px;"><span onClick="editPanelTransition(<?php hsc($group['group_id']); ?>, <?php hsc($isUpdateDisabled); ?>)"><a href="#"><?php hsc($group['group_name']); ?></a></span></td>
+                                    <td align="center" style="width:80px;"><?php hsc($group['menber_name']); ?></td>
+                                    <td align="center" style="width:62px;"><?php hsc($group['registration_time']); ?></td>
+                                </tr>
+                                <?php if($groupNoSortFlag) { ?>
+                                      <?php $display_no--; ?>
+                                <?php } ?>
+                            <?php } ?>
+                        </tbody>
+                    </table>
+                </div><!-- /.serchListArea -->
+           </div><!-- /.jquery-replace-ajax -->

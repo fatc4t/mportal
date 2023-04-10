@@ -1,0 +1,91 @@
+<?php
+    /**
+     * @file      日次マッピングマスタ画面(View)
+     * @author    millionet oota
+     * @date      2016/07/14
+     * @version   1.00
+     * @note      日次マッピングマスタ画面(新規登録部分)
+     */
+?>
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-input-ajax">
+                <div class="serchListArea">
+                    <table id="addTable">
+                        <tr>
+                            <!-- No -->
+                            <td width="5%">-</td>
+                            <!-- 表示順 -->
+                            <td width="5%">
+                                <input type="text" pattern="[1-9][0-9]*" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" id="newDispOrder" name="newDispOrder" size="5" maxlength="5" value="" class="En" required>
+                            </td>
+                            <!-- POS種別名リスト -->
+                            <td width="10%">
+                                <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="posBrandNewId" name="posBrandNewId" style="width: 150px" required>
+                                    <?php foreach($abbPosBrandList as $abbPosBrand) { ?>
+                                        <option value="<?php hsc($abbPosBrand['pos_brand_id']); ?>"><?php hsc($abbPosBrand['pos_brand_name']); ?></option>
+                                    <?php } ?>
+                                </select>
+                            </td>
+                            <!-- Mコード -->
+                            <td width="5%">-</td>
+                            <!-- POSマッピング名リスト -->
+                            <td width="10%">
+                                <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="mappingNewNameId" name="mappingNewNameId" style="width: 150px" required>
+                                    <?php foreach($abbMappingNameList as $abbMappingName) { ?>
+                                        <option value="<?php hsc($abbMappingName['mapping_name_id']); ?>"><?php hsc($abbMappingName['mapping_name']); ?></option>
+                                    <?php } ?>
+                                </select>
+                            </td>
+                            <!-- タイプリスト -->
+                            <td width="5%">
+                                <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="logicNewType" name="logicNewType" style="width: 50px" required>
+                                    <?php foreach($abbTypeList as $abbType) { ?>
+                                        <option value="<?php hsc($abbType['logic_type']); ?>"><?php hsc($abbType['logic_name']); ?></option>
+                                    <?php } ?>
+                                </select>
+                            </td>
+                            <!-- ロジック -->
+                            <td width="10%">
+                                <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0302')); ?>" id="logicNew" name="logicNew" size="10" maxlength="20" value="" class="Em" required>
+                            </td>
+                            <!-- キーファイル名リスト -->
+                            <td width="10%">
+                                <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="posKeyNewFileId" name="posKeyNewFileId" style="width: 150px" required>
+                                    <?php foreach($abbPosKeyFileList as $abbPosKeyFile) { ?>
+                                        <option value="<?php hsc($abbPosKeyFile['pos_key_file_id']); ?>"><?php hsc($abbPosKeyFile['pos_key_file_name']); ?></option>
+                                    <?php } ?>
+                                </select>
+                            </td>
+                            <!-- 端数処理 桁数 -->
+                            <td width="5%">
+                                <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="ketaNew" name="ketaNew" size="6" maxlength="20" value="" class="Em" required>
+                            </td>
+                            <!-- 端数処理 タイプ -->
+                            <td width="5%">
+                                <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="roundNewType" name="roundNewType" style="width: 50px">
+                                    <?php foreach($abbRoundTypeList as $abbRoundType) { ?>
+                                        <option value="<?php hsc($abbRoundType['round_type']); ?>"><?php hsc($abbRoundType['round_type_name']); ?></option>
+                                    <?php } ?>
+                                </select>
+                            </td>
+                            <!-- 単位 -->
+                            <td width="5%">
+                                <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="symbolNew" name="symbolNew" size="6" maxlength="20" value="">
+                            </td>
+                            <!-- 初回登録日 -->
+                            <td width="10%">-</td>
+                            <!-- 更新日 -->
+                            <td width="10%">-</td>
+                            <!-- 状態 -->
+                            <td width=5%">-</td>
+                            <td width="10%" align="center">
+                                <div class="logicButtonArea">
+                                    <input type="submit" id="add" name="add" value="<?php hsc($Log->getMsgLog('MSG_BASE_0800')); ?>" class="add">
+                                </div><!-- /.logicButtonArea -->
+                            </td>
+                        </tr>
+                    </table>
+                </div><!-- /.serchListArea -->
+            </div><!-- /.jquery-replace-input-ajax -->
+

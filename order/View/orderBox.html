@@ -1,0 +1,35 @@
+<?php
+require_once( SystemParameters::$SANITIZE_SETTING_FILE );
+?>
+<div class="box" id="box<?php hsc($tag_no);?>">
+    <input type="hidden" name="kbn_<?php hsc($tag_no);?>" id="kbn_<?php hsc($tag_no);?>">
+    <input type="hidden" name="free_kin<?php hsc($tag_no);?>" id="free_kin<?php hsc($tag_no);?>" value="<?php hsc($free_kin);?>">
+    <input type="hidden" name="soryo<?php hsc($tag_no);?>" id="soryo<?php hsc($tag_no);?>" value="<?php hsc($postage);?>">
+    <table id="listTable" style="height:410px;width:1120px;">
+        <?php include("OrderList.html");?>
+   </table>
+   <div class="footArea">
+        <table style="width:260px;margin-left:auto;">
+            <tr>
+                <th style="width:120px;">小計</th>
+                <td class="goukei" id="syokeiKin<?php hsc($tag_no);?>" style="background:#FFF;">0</td>
+            </tr>
+            <tr>
+                <th style="width:120px;">送料</th>
+                <td class="goukei" id="postage<?php hsc($tag_no);?>" style="background:#FFF;"><?php hsc($postage);?></td>
+            </tr>
+            <tr>
+                <th style="width:120px;">合計</th>
+                <td class="goukei" id="totalKin<?php hsc($tag_no);?>" style="background:#FFF;"><?php hsc($kin);?></td>
+            </tr>
+            <tr>
+                <th>送料無料まで</th>
+                <td class="goukei" id="made<?php hsc($tag_no);?>" style="background:#FFF;"><?php hsc($free_kin);?></td>
+            </tr>
+        </table>
+<?php if(!$disabled) {?>
+        <div class="button_order" id="cancel">ｷｬﾝｾﾙ</div>
+<?php }?>
+        <div class="button_order" id="order">注文する</div>
+    </div>
+</div>

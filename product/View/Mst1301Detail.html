@@ -1,0 +1,743 @@
+<?php header('X-Frame-Options: SAMEORIGIN'); ?>
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+    <?php $fileNames = array(); include("../home/View/Common/HtmlHeader.php"); ?>
+    <script type="text/javascript" src="../js/customer/common.js" ></script>    
+    <script type="text/javascript" src="../js/customer/jquery-ui.min.js" ></script>
+    <script type="text/javascript" src="../js/customer/jquery/datepicker-ja.js" ></script>
+    <link rel="stylesheet" href="../css/customer/jquery-ui.css" >	
+    <link rel="stylesheet" href="../css/customer/default.css" >	
+    <script type="text/javascript" src="../../FwCommon/js/common.js" ></script>
+    <!--ADDSTR 20201118 kanderu    -->
+<!--        Enterキーを押すと、次のフィールドに移動します-->
+        <script type="text/javascript" src="../../FwCommon/js/EnterFocus.js" ></script>
+<!--ADDEND 20201118 kanderu    -->
+    <script type="text/javascript">
+        $.datepicker.setDefaults( $.datepicker.regional[ "ja" ] );
+        $(function()
+        {
+            $( "#txt_SALE_STR_DT1, #txt_SALE_END_DT1, #txt_SALE_STR_DT2, #txt_SALE_END_DT2" ).datepicker({
+                showButtonPanel: true,
+                beforeShow: function( input ) {
+                    setTimeout(function() {
+                        var buttonPane = $( input )
+                            .datepicker( "widget" )
+                            .find( ".ui-datepicker-buttonpane" );
+
+                        $( "<button>", {
+                            text: "クリア",
+                            click: function() {
+                                //Code to clear your date field (text box, read only field etc.) I had to remove the line below and add custom code here
+                                $.datepicker._clearDate( input );
+                            }
+                        }).appendTo( buttonPane ).addClass("ui-datepicker-clear ui-state-default ui-priority-primary ui-corner-all");
+                    }, 1 );
+                },
+                onChangeMonthYear: function( year, month, instance ) {
+                    setTimeout(function() {
+                        var buttonPane = $( instance )
+                            .datepicker( "widget" )
+                            .find( ".ui-datepicker-buttonpane" );
+
+                        $( "<button>", {
+                            text: "クリア",
+                            click: function() {
+                                //Code to clear your date field (text box, read only field etc.) I had to remove the line below and add custom code here
+                                $.datepicker._clearDate( instance.input );
+                            }
+                        }).appendTo( buttonPane ).addClass("ui-datepicker-clear ui-state-default ui-priority-primary ui-corner-all");
+                    }, 1 );
+                }
+            });
+        });
+
+        //
+        pmst1301            = '<?php echo json_encode(json_encode($mst1301_getdata)); ?>';
+        pmst0201            = '<?php echo json_encode(json_encode($mst0201_alldata)); ?>';
+        //pmst0010            = '<?php echo json_encode(json_encode($mst0010_getdata)); ?>';
+        //
+        ptypmst1301         = JSON.parse(pmst1301.slice(1,-1));
+        ptypmst0201         = JSON.parse(pmst0201.slice(1,-1));
+        //ptypmst0010         = JSON.parse(pmst0010.slice(1,-1));
+
+        iorgn_id            = ptypmst1301["organization_id"];
+        iplan_id            = ptypmst1301["sale_plan_cd"];
+        line                = "<?php echo $line; ?>";
+        prod_cd_load        = ptypmst1301["prod_cd"];
+
+        /**
+        * 数値の3桁カンマ区切り
+        * 入力値をカンマ区切りにして返却
+        * [引数]   numVal: 入力数値
+        * [引数]   decFlag: 小数入力フラグ(0:整数/1:小数)
+        * [返却値] String(): カンマ区切りされた文字列
+        */
+        function addFigure(numVal, decFlag = 0) {
+            // 空の場合そのまま返却
+            if (numVal == ''){
+                return '';
+            }
+            // 既にカンマが入力されていたら事前に削除
+            numVal = numVal.toString().replace(/,/g, "").trim();
+
+            // 数値でなければそのまま返却→空を返却
+            if ( !/^[+|-]?(\d*)(\.\d+)?$/.test(numVal) ){
+                //return numVal;
+                return '';
+            }
+            // 整数部分と小数部分に分割
+            var numData = numVal.toString().split('.');
+            // 小数点が2つ以上入力されている場合は不正な入力として空を返却
+            if (numData.length > 2){
+                return '';
+            }
+
+            // 整数部分桁数チェック
+            if (numData[0].length > 7){
+                alert('※入力桁数オーバーです。');
+                // 空を返却
+                return '';
+            }
+            // 整数入力
+            if (decFlag === 0){
+                if (numData.length === 2){
+                    // 配列末尾を削除
+                    numData.pop();
+                }
+            }
+            // 小数入力
+            else{
+                if (numData.length === 1){
+                    numData[1] = '';
+                }
+                numData[1] = (numData[1] + '00').substr(0,2);
+            }
+
+            // 整数部分を3桁カンマ区切りへ
+            numData[0] = Number(numData[0]).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            // 小数部分と結合して返却
+            return numData.join('.');
+
+            // 整数値でなければアラートを出して空を返却
+            if ( !/^[0-9]+$/.test(numVal) ){
+                alert('※数値チェックエラー');
+                return '';
+            }
+            return Number(numVal).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+        /**
+         * カンマ外し
+         * 入力値のカンマを取り除いて返却
+         * [引数]   strVal: 半角でカンマ区切りされた数値
+         * [返却値] String(): カンマを削除した数値
+         */
+        function delFigure(strVal){
+            return strVal.replace( /,/g , "" );
+        }
+    </script>
+    <style>
+    body {
+      /*font-family: MS Gothic;*/
+        background-color: whitesmoke;
+    }
+    label {
+      background-color: #0B0B61;
+      color: white;
+      font-weight: bold;
+      padding: 2px;
+      text-transform: uppercase;
+      font-size: 12pt;
+      margin: 1px;
+    }
+    div{
+      margin: 0px;  
+    }
+
+    label.new {
+      background-color: #FF0000;
+      color: #FFFFFF;
+    }
+    
+    /* Style the tab */
+    .tab {
+      overflow: hidden;
+      border: 1px solid #ccc;
+      background-color: #f1f1f1;
+    }
+
+    /* Style the buttons inside the tab */
+    .tab button {
+      background-color: inherit;
+      float: left;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      padding: 14px 16px;
+      transition: 0.3s;
+      font-size: 17px;
+    }
+
+    /* Change background color of buttons on hover */
+    .tab button:hover {
+      background-color: #ddd;
+    }
+
+    /* Create an active/current tablink class */
+    .tab button.active {
+      background-color: #ccc;
+    }
+
+    /* Style the tab content */
+    .tabcontent {
+      display: none;
+      padding: 6px 12px;
+      border: 1px solid #ccc;
+      border-top: none; 
+    }
+
+    .blocline_left {
+      float : left;
+      padding-left: 1em;
+      vertical-align: middle;
+    }
+    .group_no_float{
+      clear: both;
+      
+    }
+    .parent{
+        overflow: hidden;
+    }
+    .blocline_right{
+       float : right;
+       padding-right: 1em;
+       vertical-align: middle;
+       max-width: 50%;
+    }
+    .test_class{
+        width: 15em;
+        height: 20pt;
+        padding: 0;
+        vertical-align: bottom;
+        border: 1px solid #ccc;
+    }
+    .label_pro{
+        width: 9em;
+    }
+    .lbl_BIRTH1{
+        width: 4em;
+        height: 19pt;
+        padding: 0;
+        vertical-align: bottom;        
+        text-align: -webkit-center;
+    }
+    .label_base{
+        width: 14em;   
+    }
+    .input_long{
+        width: 30em
+    }
+    .input_middle{
+        width: 20em;
+    }
+    .input_middle1{
+        width: 30%;
+    }
+    .input_middle2{
+        width: 20%;
+    }    
+    .input_small{
+        width: 2em;
+    }
+    .input_small2{
+        width: 7em;
+    }     
+    .input_small3{
+        width: 8em;
+    }    
+    thead th {
+        background-color: #0B0B61;
+        border: 1px solid #AAA;
+        color: white;
+        text-align: -webkit-center; 
+    }
+    tbody {
+        background-color: #fff;
+    }
+    .input_num {
+        text-align: right;
+    }
+    </style>
+ 
+    <title>特売マスタ明細</title>
+  </head>
+  <body id="test">
+        <?php
+        /*
+            if( isset($_GET['home']) ) {
+                if( "1" ==  $_GET['home'] ){
+                include("../home/View/Common/PageHeader.php");
+                }else{
+                    include("Common/PageHeader.php");
+                }
+            }else{
+                include("Common/PageHeader.php");
+            }
+        */
+        ?>
+    <!-- Site -->
+    <div id="sb-site" style="overflow: auto;">
+  
+      <div>
+    <!--
+        <br /><br /><br />
+    -->
+        <div class="group_no_float">
+          <!--
+          <div class="blocline_left">
+              <label for="cmb_ORGANIZATION_ID">組織名</label>
+              <select id="cmb_ORGANIZATION_ID" name="cmb_ORGANIZATION_ID">
+                <?php foreach($abbreviatedNameList as $abbreviated) { ?>
+                    <option value="<?php hsc($abbreviated['organization_id']); ?>" <?php hsc($selected); ?>><?php hsc($abbreviated['abbreviated_name']); ?></option>
+                <?php } ?>
+              </select>
+          </div>
+          -->
+            <div class="blocline_left">
+                <label for="txt_SALE_PLAN_CD">特売企画コード</label>
+                <input type="text" class="input_small2" id="txt_SALE_PLAN_CD" disabled></div>
+        </div>
+        <div class="group_no_float"> 
+          <div class="blocline_left">
+            <label class="label_base" for="txt_SALE_PLAN_NM">特売企画名</label>
+            <input type="text" class="input_long" id="txt_SALE_PLAN_NM" disabled><br />
+            <label class="label_base" for="txt_SALE_PLAN_STR_DT">特売期間</label>
+            <input type="text" class="input_small2" id="txt_SALE_PLAN_STR_DT" disabled>&nbsp;～&nbsp;<input type="text" class="input_small2" id="txt_SALE_PLAN_END_DT" disabled><br />
+          </div>
+        </div>
+
+        <br />
+        <div class="group_no_float">
+          <div class="blocline_left">
+            <label class="label_base" for="txt_PROD_CD">商品コード</label>
+            <input type="text" class="input_small2" id="txt_PROD_CD" maxlength="13">&nbsp;<label id="lbl_MODE" style="text-align:center; vertical-align:middle; display:none;"></label>
+          </div>
+          <div class="blocline_right"><button type="button" id="bt_search" onclick="searchdata()">検索</button></div>
+        </div>
+        <div class="group_no_float">
+          <div class="blocline_left">
+            <label class="label_base" for="txt_PROD_NM">商品名</label>
+            <input type="text" class="input_long" id="txt_PROD_NM" disabled><br />
+            <label class="label_base" for="txt_PROD_CAPA_NM">商品容量</label>
+            <input type="text" class="input_middle3" id="txt_PROD_CAPA_NM" disabled><br />
+            <label class="label_base" for="txt_COSTPRICE">定番原価</label>
+            <input type="text" class="input_small2 input_num" id="txt_COSTPRICE" disabled><br />
+            <label class="label_base" for="txt_SALEPRICE">定番売価</label>
+            <input type="text" class="input_small2 input_num" id="txt_SALEPRICE" disabled><br /><br />
+
+            <fieldset>
+                <legend>期間1</legend>
+                <label class="label_base" for="txt_SALE_STR_DT1">販売期間</label>
+                <input type="text" class="input_small2" id="txt_SALE_STR_DT1" readonly>&nbsp;～&nbsp;<input type="text" class="input_small2" id="txt_SALE_END_DT1" readonly><br />
+                <label class="label_base" for="txt_COSTPRICE1">原価</label>
+                <input type="text" class="input_small2 input_num" id="txt_COSTPRICE1" maxlength="10"><br />
+                <label class="label_base" for="txt_SALEPRICE1">売価</label>
+                <input type="text" class="input_small2 input_num" id="txt_SALEPRICE1" maxlength="7"><br />
+                <label class="label_base" for="txt_CUST_SALEPRICE1">会員売価</label>
+                <input type="text" class="input_small2 input_num" id="txt_CUST_SALEPRICE1" maxlength="7"><br />
+                <label class="label_base" for="cmb_POINT_KBN1">得点区分</label>
+                <select id="cmb_POINT_KBN1">
+                    <option value="0">対象</option>
+                    <option value="1">対象外</option>
+                </select>
+            </fieldset>
+            <br />
+            <fieldset>
+                <legend>期間2</legend>
+                <label class="label_base" for="txt_SALE_STR_DT2">販売期間</label>
+                <input type="text" class="input_small2" id="txt_SALE_STR_DT2" readonly>&nbsp;～&nbsp;<input type="text" class="input_small2" id="txt_SALE_END_DT2" readonly><br />
+                <label class="label_base" for="txt_COSTPRICE2">原価</label>
+                <input type="text" class="input_small2 input_num" id="txt_COSTPRICE2" maxlength="10"><br />
+                <label class="label_base" for="txt_SALEPRICE2">売価</label>
+                <input type="text" class="input_small2 input_num" id="txt_SALEPRICE2" maxlength="7"><br />
+                <label class="label_base" for="txt_CUST_SALEPRICE2">会員売価</label>
+                <input type="text" class="input_small2 input_num" id="txt_CUST_SALEPRICE2" maxlength="7"><br />
+                <label class="label_base" for="cmb_POINT_KBN2">得点区分</label>
+                <select id="cmb_POINT_KBN2">
+                    <option value="0">対象</option>
+                    <option value="1">対象外</option>
+                </select>
+            </fieldset>
+          </div>
+        </div>
+      </div>
+   
+      <div class="group_no_float" id="bt_function">
+        <input type="text" id="txt_updins" hidden >
+        <button type="button" id="bt_updins" onclick="savedata()">登録</button>
+        <!--
+        <button type="button" id="bt_delete" onclick="deldata()">削除</button>
+        <button type="button" id="bt_reset"  onclick="reset()">取消</button>
+        -->
+      </div>
+    </div><!-- /#sb-site -->
+    <script type="text/javascript">
+
+//        document.getElementById('cmb_ORGANIZATION_ID').addEventListener("change",function(){
+//            iorgn_id = document.getElementById("cmb_ORGANIZATION_ID").value;
+//            spath = window.location.href;
+//            spath = spath.split('?'); 
+//            spath = spath[0]+'?param=Mst1201/show&orgnid='+iorgn_id;
+//            window.location.replace(spath);
+//        });    
+
+        document.getElementById("txt_PROD_CD").addEventListener("keydown",function(e){
+            if(e.which == 13 || e.keycode == 13) {  
+                document.getElementById("txt_PROD_CD").blur();
+            }
+            else if(document.getElementById("txt_PROD_CD").value.length > 13){
+                document.getElementById("txt_PROD_CD").value = document.getElementById("txt_PROD_CD").value.substring(0,13);
+            }
+        });
+
+        document.getElementById("txt_PROD_CD").addEventListener("blur",function(){
+            // 参照項目初期化
+            document.getElementById("txt_PROD_NM").value = "";
+            document.getElementById("txt_PROD_CAPA_NM").value = "";
+            document.getElementById("txt_COSTPRICE").value = "";
+            document.getElementById("txt_SALEPRICE").value = "";
+            document.getElementById("bt_function").setAttribute("hidden", true); 
+            // 入力値
+            iprod_cd  = document.getElementById("txt_PROD_CD").value;
+            if (iprod_cd){
+                if(!isNaN(iprod_cd)){
+                    iprod_cd = parseInt(iprod_cd);
+                    iprod_cd = ("0000000000000" + iprod_cd).slice(-13);
+                    String(iprod_cd);
+                    document.getElementById("txt_PROD_CD").value = iprod_cd ;
+                    //console.log("iprod_cd: "+iprod_cd);
+                    var mst0201_idx = 0;
+                    for (var i = 0; i < ptypmst0201.length; i ++)
+                    {
+                        if (ptypmst0201[i].prod_cd === iprod_cd){
+                            mst0201_idx = i;
+                            break;
+                        }
+                    }
+                    if (mst0201_idx === 0){
+                        alert("※商品コードがマスタにありません。");
+                        document.getElementById("txt_PROD_CD").value = "";
+                        document.getElementById("txt_PROD_CD").focus();
+                    }
+                    else {
+                        // 重複チェック
+                        prodList = parent.document.getElementsByName('prod_cd');
+                        //console.log(prodList)
+                        for (var i = 0; i < prodList.length; i ++){
+                            if (prodList[i].value === iprod_cd){
+                                mst0201_idx = 0;
+                                break;
+                            }
+                        }
+                        if (mst0201_idx === 0){
+                            alert("※商品コードがすでに登録されています。");
+                            document.getElementById("txt_PROD_CD").value = "";
+                            document.getElementById("txt_PROD_CD").focus();
+                        }
+                        else{
+                            document.getElementById("txt_PROD_NM").value        = ptypmst0201[mst0201_idx].prod_nm;
+                            document.getElementById("txt_PROD_CAPA_NM").value   = ptypmst0201[mst0201_idx].prod_capa_nm;
+                            document.getElementById("txt_COSTPRICE").value      = ptypmst0201[mst0201_idx].costprice;
+                            document.getElementById("txt_SALEPRICE").value      = ptypmst0201[mst0201_idx].saleprice;
+                            //
+                            document.getElementById("bt_function").removeAttribute("hidden");
+                            document.getElementById('txt_SALE_STR_DT1').focus();
+                        }
+                    }
+                }
+                else{
+                    alert("※商品コードは数字で入力してください。");
+                    document.getElementById("bt_function").removeAttribute("hidden");
+                    document.getElementById("txt_PROD_CD").focus();
+                }
+            }
+        });
+
+        // 期間1原価
+        document.getElementById("txt_COSTPRICE1").addEventListener('blur', function(){ this.value = addFigure(this.value,1) }, false);
+        document.getElementById("txt_COSTPRICE1").addEventListener('focus', function(){ this.value = delFigure(this.value) }, false);
+        // 期間1売価
+        document.getElementById("txt_SALEPRICE1").addEventListener('blur', function(){ this.value = addFigure(this.value) }, false);
+        document.getElementById("txt_SALEPRICE1").addEventListener('focus', function(){ this.value = delFigure(this.value) }, false);
+        // 期間1会員売価
+        document.getElementById("txt_CUST_SALEPRICE1").addEventListener('blur', function(){ this.value = addFigure(this.value) }, false);
+        document.getElementById("txt_CUST_SALEPRICE1").addEventListener('focus', function(){ this.value = delFigure(this.value) }, false);
+        // 期間2原価
+        document.getElementById("txt_COSTPRICE2").addEventListener('blur', function(){ this.value = addFigure(this.value,1) }, false);
+        document.getElementById("txt_COSTPRICE2").addEventListener('focus', function(){ this.value = delFigure(this.value) }, false);
+        // 期間2売価
+        document.getElementById("txt_SALEPRICE2").addEventListener('blur', function(){ this.value = addFigure(this.value) }, false);
+        document.getElementById("txt_SALEPRICE2").addEventListener('focus', function(){ this.value = delFigure(this.value) }, false);
+        // 期間2会員売価
+        document.getElementById("txt_CUST_SALEPRICE2").addEventListener('blur', function(){ this.value = addFigure(this.value) }, false);
+        document.getElementById("txt_CUST_SALEPRICE2").addEventListener('focus', function(){ this.value = delFigure(this.value) }, false);
+
+        function savedata(){
+
+            var elem;
+            // 未入力時既定値設定
+            elem = document.getElementById("txt_COSTPRICE1");
+            if (elem.value === ""){
+                elem.value = "0.0";
+            }
+            elem = document.getElementById("txt_SALEPRICE1");
+            if (elem.value === ""){
+                elem.value = "0";
+            }
+            elem = document.getElementById("txt_CUST_SALEPRICE1");
+            if (elem.value === ""){
+                elem.value = "0";
+            }
+            elem = document.getElementById("txt_COSTPRICE2");
+            if (elem.value === ""){
+                elem.value = "0.0";
+            }
+            elem = document.getElementById("txt_SALEPRICE2");
+            if (elem.value === ""){
+                elem.value = "0";
+            }
+            elem = document.getElementById("txt_CUST_SALEPRICE2");
+            if (elem.value === ""){
+                elem.value = "0";
+            }
+            // 数値の妥当性チェックはエディットblur時のAddFigure()にて
+
+            // 販売期間1妥当性チェック
+            var str_dt1 = document.getElementById("txt_SALE_STR_DT1");
+            if (str_dt1.value === ""){
+                alert("※販売期間1(開始)を入力してください");
+                str_dt1.focus();
+                return false;
+            }
+            var end_dt1 = document.getElementById("txt_SALE_END_DT1");
+            if (end_dt1.value === ""){
+                alert("※販売期間1(終了)を入力してください");
+                end_dt1.focus();
+                return false;
+            }
+            //console.log(ptypmst1301["sale_plan_str_dt"]);
+            //console.log(ptypmst1301["sale_plan_end_dt"]);
+            // 販売期間1(開始)
+            if (DateDiff(str_dt1.value, ptypmst1301["sale_plan_end_dt"]) < 0 || DateDiff(str_dt1.value, ptypmst1301["sale_plan_str_dt"]) > 0){
+                alert("※販売期間1(開始)は特売期間内の期間を入力してください。");
+                str_dt1.focus();
+                return false;
+            }
+            // 販売期間1(終了)
+            if (DateDiff(end_dt1.value, ptypmst1301["sale_plan_end_dt"]) < 0 || DateDiff(end_dt1.value, ptypmst1301["sale_plan_str_dt"]) > 0){
+                alert("※販売期間1(終了)は特売期間内の期間を入力してください。");
+                end_dt1.focus();
+                return false;
+            }
+            if (DateDiff(str_dt1.value, end_dt1.value) < 0){
+                alert("※販売期間1(開始)が終了日を超えています。");
+                end_dt1.focus();
+                return false;
+            }
+            // 販売期間2
+            var str_dt2 = document.getElementById("txt_SALE_STR_DT2");
+            var end_dt2 = document.getElementById("txt_SALE_END_DT2");
+            // 販売期間2(開始)
+            if (str_dt2.value !== "" && end_dt2.value === ""){
+                alert("※販売期間2(終了)を入力してください。");
+                end_dt2.focus();
+                return false;
+            }
+            // 販売期間2(終了)
+            if (end_dt2.value !== "" && str_dt2.value === ""){
+                alert("※販売期間2(開始)を入力してください。");
+                str_dt2.focus();
+                return false;
+            }
+            if (str_dt2.value !== "" && end_dt2.value !== ""){
+                // 販売期間2は未入力可だが、期間以外が既定値より変更されていたら
+                // 未入力およぶ妥当性のチェックをすべし
+                // 販売期間2(開始)
+                if (DateDiff(str_dt2.value, end_dt1.value) < 0 || DateDiff(str_dt2.value, str_dt1.value) > 0){
+                    alert("※販売期間2(開始)は販売期間1内の期間を入力してください。");
+                    str_dt2.focus();
+                    return false;
+                }
+                // 販売期間2(終了)
+                if (DateDiff(end_dt2.value, end_dt1.value) < 0 || DateDiff(end_dt2.value, str_dt1.value) > 0){
+                    alert("※販売期間2(終了)は販売期間1内の期間を入力してください。");
+                    end_dt2.focus();
+                    return false;
+                }
+                if (DateDiff(str_dt2.value, end_dt2.value) < 0){
+                    alert("※販売期間1(開始)が終了日を超えています。");
+                    str_dt2.focus();
+                    return false;
+                }
+            }        
+        
+            var data = new Object;
+            allinput = document.getElementsByTagName ("INPUT");
+            for(var i=0;i < allinput.length;i++){
+                if(allinput[i].id !== ""){
+                    //data[allinput[i].id.substring(4)] = allinput[i].value;
+                    var id = allinput[i].id.substring(4).toLowerCase();
+                    data[id] = allinput[i].value;
+                }
+            }
+            var allselect = document.getElementsByTagName ("SELECT");
+            for(var i=0;i < allselect.length;i++){
+                if(allselect[i].id !== ""){
+                    data[allselect[i].id.substring(4).toLowerCase()] = allselect[i].value; 
+                }
+            }
+            //console.log(data);
+//            var path = 'index.php?param=Mst1201/addInput&home=1';
+
+//            setDataForAjax( data, path,'ajaxScreenUpdate' );
+
+            // 親画面(Mst1301template1.html)の一覧を更新したい
+            data['line'] = line;
+
+            //alert(JSON.stringify(data));
+            parent.document.getElementById('hid_detail_values').value = JSON.stringify(data);
+            //parent.document.getElementById('hid_detail_values').value = data;
+            parent.closeDialog();
+        }
+        function deldata(){
+//            if(ptypjsk4120.length > 0){
+//                if (!confirm("既に売上が存在します。削除してもよろしですか。")) {
+//                    //console.log("not deleted");
+//                    return;
+//                }
+//            }
+            //console.log("deleted");
+            iorgn_id    = document.getElementById("cmb_ORGANIZATION_ID").value;
+            isect_cd    = document.getElementById("txt_SECT_CD").value;
+            spath       = window.location.href;
+            spath       = spath.split('?'); 
+            //spath       = spath[0]+'?param=Mst1201/del&sectcd='+isect_cd;
+            spath       = spath[0]+'?param=Mst1201/del&orgnid='+iorgn_id+'&sectcd='+isect_cd;
+            window.location.replace(spath);             
+
+        }
+        function reset(){
+            spath = window.location.href;
+            spath = spath.split('?'); 
+            spath = spath[0]+'?param=Mst1301/show&home=1';
+            window.location.replace(spath);
+        }
+        function searchdata(){
+            spath       = window.location.href;
+            spath       = spath.split('?'); 
+            spath       = spath[0]+'?param=Mst1301/search&type=p&orgnid='+iorgn_id;
+            //window.location.replace(spath);
+            openDialog(spath);
+        }
+        function openDialog(url) {
+            var iframeStyle = 'min-width     : 100%; ' +
+                              'height        : 100%; ' +
+                              'padding-top   : 0.2em; ' +
+                              'padding-right : 0; ' +
+                              'padding-bottom: 0.8em; ' +
+                              'padding-left  : 0;';
+            //var iframe = $('<iframe frameborder="0" src="' + url + '" style="' + iframeStyle + '"></iframe>');
+            var iframe = $('<iframe id="searchDialog" frameborder="0" src="' + url + '" style="' + iframeStyle + '"></iframe>');
+            var dialogOptions = {
+                //width : 640,
+                //height: 480,
+                width : 1080,
+                height: 960,
+                title : '商品検索',
+                modal : true
+            };
+            iframe.dialog(dialogOptions);
+        }
+        function closeDialog(ref){
+            // 閉じる
+            $('#searchDialog').dialog('close');
+            // 破棄
+            $('#searchDialog').dialog('destroy');
+            // 一旦商品コードにフォーカス
+            $('#txt_PROD_CD').focus();
+            // フォーカス外しonblur処理発動
+            $('#txt_PROD_CD').blur();
+            return false;
+        }
+        /**
+         * ２つの日付の差を日数で求める
+         */
+        function DateDiff(strDay1, strDay2)
+        {
+            //比較する日付オブジェクトを２つ定義する
+            var day1 = new Date(strDay1);
+            var day2 = new Date(strDay2);
+
+            //差日を求める（86,400,000ミリ秒＝１日）
+            return Math.ceil((day2 - day1) / 86400000);
+        }
+
+        // エディット項目
+        document.getElementById("txt_SALE_PLAN_CD").value       = ptypmst1301["sale_plan_cd"];
+        document.getElementById("txt_SALE_PLAN_NM").value       = ptypmst1301["sale_plan_nm"];
+        document.getElementById("txt_SALE_PLAN_STR_DT").value   = ptypmst1301["sale_plan_str_dt"];
+        document.getElementById("txt_SALE_PLAN_END_DT").value   = ptypmst1301["sale_plan_end_dt"];
+        if(ptypmst1301["prod_cd"]){
+            document.getElementById("txt_PROD_CD").value    = ptypmst1301["prod_cd"];
+            document.getElementById("txt_PROD_CD").setAttribute("disabled", true);
+            // 商品検索ボタンを無効に
+            document.getElementById("bt_search").setAttribute("disabled", true);
+            
+
+            document.getElementById('lbl_MODE').style.display = '';
+            document.getElementById('lbl_MODE').style.background = '#0000FF';
+            document.getElementById('lbl_MODE').style.color = '#FFFFFF';
+            document.getElementById('lbl_MODE').innerHTML = '更新';
+
+            if(ptypmst1301["prod_nm"])          { document.getElementById("txt_PROD_NM").value          = ptypmst1301["prod_nm"]; }
+            if(ptypmst1301["prod_capa_nm"])     { document.getElementById("txt_PROD_CAPA_NM").value     = ptypmst1301["prod_capa_nm"]; }
+            if(ptypmst1301["costprice"])        { document.getElementById("txt_COSTPRICE").value        = ptypmst1301["costprice"]; }
+            if(ptypmst1301["saleprice"])        { document.getElementById("txt_SALEPRICE").value        = ptypmst1301["saleprice"]; }
+            if(ptypmst1301["sale_str_dt1"])     { document.getElementById("txt_SALE_STR_DT1").value     = ptypmst1301["sale_str_dt1"]; }
+            if(ptypmst1301["sale_end_dt1"])     { document.getElementById("txt_SALE_END_DT1").value     = ptypmst1301["sale_end_dt1"]; }
+            if(ptypmst1301["costprice1"])       { document.getElementById("txt_COSTPRICE1").value       = ptypmst1301["costprice1"]; }
+            if(ptypmst1301["saleprice1"])       { document.getElementById("txt_SALEPRICE1").value       = ptypmst1301["saleprice1"]; }
+            if(ptypmst1301["cust_saleprice1"])  { document.getElementById("txt_CUST_SALEPRICE1").value  = ptypmst1301["cust_saleprice1"]; }
+            if(ptypmst1301["sale_str_dt2"])     { document.getElementById("txt_SALE_STR_DT2").value     = ptypmst1301["sale_str_dt2"]; }
+            if(ptypmst1301["sale_end_dt2"])     { document.getElementById("txt_SALE_END_DT2").value     = ptypmst1301["sale_end_dt2"]; }
+            if(ptypmst1301["costprice2"])       { document.getElementById("txt_COSTPRICE2").value       = ptypmst1301["costprice2"]; }
+            if(ptypmst1301["saleprice2"])       { document.getElementById("txt_SALEPRICE2").value       = ptypmst1301["saleprice2"]; }
+            if(ptypmst1301["cust_saleprice2"])  { document.getElementById("txt_CUST_SALEPRICE2").value  = ptypmst1301["cust_saleprice2"]; }
+
+            // プルダウン項目
+            if(ptypmst1301["point_kbn1"])       { document.getElementById("cmb_POINT_KBN1").value       = ptypmst1301["point_kbn1"]; }
+            if(ptypmst1301["point_kbn2"])       { document.getElementById("cmb_POINT_KBN2").value       = ptypmst1301["point_kbn2"]; }
+            
+            document.getElementById('lbl_MODE').style.display = '';
+            document.getElementById('lbl_MODE').style.background = '#0000FF';
+            document.getElementById('lbl_MODE').style.color = '#FFFFFF';
+            document.getElementById('lbl_MODE').innerHTML = '更新';
+
+            document.getElementById("txt_updins").value                                                     =   "upd";
+            document.getElementById("bt_function").removeAttribute("hidden");
+        }
+        else{
+            document.getElementById('lbl_MODE').style.display = '';
+            document.getElementById('lbl_MODE').style.background = '#FF0000';
+            document.getElementById('lbl_MODE').style.color = '#FFFFFF';
+            document.getElementById('lbl_MODE').innerHTML = '新規';
+        }
+
+        if(document.getElementById("txt_PROD_CD").value == ""){
+            document.getElementById("bt_function").setAttribute("hidden", true);
+        }
+    </script>
+  </body>
+</html>

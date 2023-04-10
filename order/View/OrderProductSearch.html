@@ -1,0 +1,519 @@
+<?php
+    /**
+     * @file      発注品マスタ画面(View)
+     * @author    尉
+     * @date      2019/07/04
+     * @version   1.00
+     * @note      発注品マスタ
+     */
+?>
+<!DOCTYPE html>
+<html>
+<head>
+<?php
+    $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述
+    $add = ''; //
+    include("Common/HtmlHeader.php");
+?>
+<script type="text/javascript" src="../js/order/common.js"></script>
+<script type="text/javascript" src="../js/order/jquery-ui.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../css/order/jquery-ui.css">
+<script src="../js/order/jquery/datepicker-ja.js" ></script>
+<script src="../js/autofil.js" ></script>
+<!-- modal script-->
+<script src="../js/modal/modal.js" ></script>
+<link rel="stylesheet" href="../css/modal/modal.css" >
+<script type="text/javascript">
+    var displayPageNo = 1;
+    var displayRecordCnt = '<?php hsc($_SESSION["DISPLAY_RECORD_CNT"]); ?>';
+    var orderProductItemInfo = null;
+    var orderProductSort = null;
+    var prod_cd_click_cnt = 0;
+    var prod_name_click_cnt = 0;
+    Sizelist       = '<?php echo json_encode(json_encode($Sizelist)); ?>';
+    A_Sizelist     = JSON.parse(Sizelist.slice(1,-1));
+    ptypsect_detail     = '<?php echo json_encode($sect_detail); ?>';
+    data_sect           = JSON.parse(ptypsect_detail);
+    ptypprod_detail     = '<?php echo json_encode($prod_detail); ?>';
+    ptypprod_detail     = ptypprod_detail.replace(/\\n/g, "")  
+                           .replace(/\\'/g, "")
+                           .replace(/\\"/g, '')
+                           .replace(/\\&/g, "")
+                           .replace(/\\r/g, "")
+                           .replace(/\\t/g, "")
+                           .replace(/\\b/g, "")
+                           .replace(/\\f/g, "");  
+    ptypprod_detail     = ptypprod_detail.replace(/[\u0000-\u001F]+/g,"");                   
+    data_prod           = JSON.parse(ptypprod_detail);  
+    
+    maker_list    = '<?php echo json_encode(json_encode($makerList)); ?>';
+    A_maker_list  = JSON.parse(maker_list.slice(1,-1));
+    ma_cd_self         = "<?php hsc($ma_cd); ?>";
+    ma_name_self         = "<?php hsc($ma_name); ?>";
+    
+    var sect_list = "";       
+    var prod_list = "";
+
+/**
+ * 新規、削除、選択、検索ボタンクリック
+ */
+$(function()
+{
+    //選択ボタン押下処理
+    $(document).on('click','.selected',function()
+    {
+	var prod_cd = $(this).attr('param');
+	$("#prod_cd").val(prod_cd);
+	var path = "./index.php?param=OrderProduct/input&home=1";
+	$("#searchForm").attr('action',path);
+	$("#searchForm").submit();
+    });
+    
+     //削除ボタン押下処理
+    $(document).on('click','.deleted',function()
+    {
+        var flg = confirm("削除してもいいですか?");
+        if(flg) {
+            var prod_cd = $(this).attr('param');
+            //ajax
+            var path = "./index.php?param=OrderProduct/delete";
+            $.ajax({
+  		url: path,
+  		type: "POST",
+  		data: {prod_cd:prod_cd,
+                        ma_cd:document.getElementById('cmb_ma_cd').value
+                    },  // 検索など引数を渡す必要があるときこれを使う
+  		success: function(rtnData) {
+                    //$("#jquery-replace-ajax").html(rtnData);
+                    displayPage(1);
+                    document.getElementById("dialog").textContent='データを削除しました。';
+                    $("#dialog").dialog('open'); 
+  		},
+                error:function(xhr, textStatus, error) {
+                    alert("データ削除失敗しました。");
+  		}
+            });
+        }
+    });
+    
+    //検索ボタン押下処理    
+    $(document).on('click','.search',function()
+    {  
+        search_prod_list = [];
+        search_sect_list = [];
+        prod_name = "";
+        //elem_sect = document.querySelector('input[name="sect_r"]:checked');
+        elem_prod = document.querySelector('input[name="prod_r"]:checked');
+        //sect_select_val = document.getElementById("sect_select").value;
+        prod_select_val = document.getElementById("prod_select").value;
+//        if(elem_sect.value === ""){
+//            if(sect_list===""){
+//                alert("部門を入力してください。");
+//                return;
+//            }
+//            if($("#sect_select").val() === 'empty'){
+//                search_sect_list = sect_list;
+//            }
+//        }
+        if(elem_prod.value === ""){
+            if(prod_list===""){
+                alert("商品を入力してください。");
+                return;
+            }
+            search_prod_list = prod_list;
+        }
+        if(elem_prod.value === "one"){
+            prod_name = $("#prod_name").val();
+        }
+
+        //ajax
+        var path = "./index.php?param=OrderProduct/search";
+        $.ajax({
+		url: path,
+		type: "POST",
+		data: { prod_name:prod_name,
+                        //sect_list:search_sect_list,
+                        prod_list:search_prod_list,
+                },  // 検索など引数を渡す必要があるときこれを使う
+		success: function(rtnData) {
+                    $("#jquery-replace-ajax").html(rtnData);
+		},
+		error:function(xhr, textStatus, error) {
+                    alert("通信エラー");
+            }
+        });
+    });
+    
+    //新規登録ボタン押下処理
+    $("#create").click(function()
+    {
+        var url = "./index.php?param=OrderProduct/input&home=1";
+        location.href=url;
+    });       
+});
+
+ /**
+* ソート処理
+*/
+function setColumnInfo(thisItemInfo)
+{
+    orderProductItemInfo = thisItemInfo;
+    orderProductSort = 0;
+    
+    if(orderProductItemInfo == "仕入商品CD")
+    {
+        prod_cd_click_cnt++;
+        if((prod_cd_click_cnt % 2) != 0)
+        {
+            orderProductSort = 1;
+        }
+        else
+        {
+            orderProductSort = 2;
+        }
+    }
+    else if(orderProductItemInfo == "仕入商品名")
+    {
+        prod_name_click_cnt++;
+        if((prod_name_click_cnt % 2) != 0)
+        {
+            orderProductSort = 3;
+        }
+        else
+        {
+            orderProductSort = 4;
+        }
+    } 
+    // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+    var data = {
+                    displayPageNo : displayPageNo,
+                    displayRecordCnt : displayRecordCnt,
+                    searchOrderProductName : $('#prod_name').val(),
+                    sortConditions : orderProductSort,
+                    ma_cd:document.getElementById('cmb_ma_cd').value
+                };
+    var path = 'index.php?param=OrderProduct/search&home=1';
+    // データ更新
+    setDataForAjax( data, path );
+}
+
+ /**
+* 表示ページ数選択
+*/
+function displayPage(pageCnt)
+{ 
+    // データ更新
+    displayPageNo = pageCnt;
+
+    // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+    var data = {
+        displayPageNo : displayPageNo,
+        displayRecordCnt : displayRecordCnt,
+        searchOrderProductName : $('#prod_name').val(),
+        sortConditions : orderProductSort,
+        ma_cd:document.getElementById('cmb_ma_cd').value
+        };
+      
+    var path = 'index.php?param=OrderProduct/search&home=1';
+
+    setDataForAjax( data, path );
+
+    //サブミット後、ページをリロードしないようにする
+    return false;
+}
+
+/**
+* 表示レコード数選択
+*/
+function displayRecord(recordCnt)
+{
+    displayRecordCnt = recordCnt;
+    displayPageNo = 1;
+
+    // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+    var data = {
+                    displayPageNo : displayPageNo,
+                    displayRecordCnt : displayRecordCnt,
+                    searchOrderProductName : $('#prod_name').val(),
+                    sortConditions : orderProductSort,
+                    ma_cd:document.getElementById('cmb_ma_cd').value
+                };
+    var path = 'index.php?param=OrderProduct/search&home=1';
+    // データ更新
+    setDataForAjax( data, path );
+
+    //サブミット後、ページをリロードしないようにする
+    return false;
+}
+
+/**
+* 画面更新処理
+*/
+function initView(){
+    var url = "./index.php?param=OrderProduct/show&home=1";
+    location.href=url;
+}
+
+/**
+* CSV出力
+*/
+function csv_print(e){
+    prod_cd_list = document.getElementsByName("prod_cd_send");
+    data_send = [];
+    var csv_data_o = {};
+    var row_nb = 0;
+    for(i=0;i<prod_cd_list.length;i++){
+        looprow = prod_cd_list[i];
+        row_nb += 1; 
+        csv_data_o['"'+row_nb+'"'] = looprow.value;
+    }
+
+    data_send["csv_data"] = JSON.stringify(csv_data_o);
+    data_send["ma_cd"] = document.getElementById('cmb_ma_cd').value; 
+    //data_sendを送ります。
+    spath       = 'index.php?param=OrderProduct/csvoutput';
+    //console.log(spath);
+    setDataForAjax( data_send, spath ,'ajaxScreenUpdate' );                
+}
+
+/**
+* ラジオボタン切り替え処理
+*/
+function radio_change_management(){
+    var prev = [];
+    document.getElementById("search_erea").addEventListener('change', function(e) {
+        if(e.target.name === "sect_r"){
+            if(!prev[e.target.name]){
+                prev[e.target.name]={value:""};
+            }                        
+            document.getElementById("sect_select").disabled=true;
+            if(e.target.value === "" ){
+                document.getElementById("sect_select").disabled=false;
+            }
+        }else if(e.target.name === "prod_r"){
+            if(!prev[e.target.name]){
+                prev[e.target.name]={value:""};
+            }                        
+            document.getElementById("prod_select").disabled=true;
+            document.getElementById("prod_name").disabled=true;
+            if(e.target.value === "" ){
+                document.getElementById("prod_select").disabled=false;
+            }
+            if(e.target.value === "one" ){
+                document.getElementById("prod_name").disabled=false;
+            }
+        }
+        prev[e.target.name] = e.target;
+    });
+}
+
+/**
+* 初期処理
+*/
+window.onload = function () {
+    creat_listener();
+    radio_change_management();
+    var empty_array = [];
+    //modal_create_select("sect_select",empty_array);
+    modal_create_select("prod_select",empty_array);     
+    
+    //業者リスト設定
+                var x = document.getElementById("cmb_ma_cd");
+                $('#cmb_ma_cd').empty();
+                var op = document.createElement("option");
+                op.text = ma_name_self;
+                op.value = ma_cd_self;
+                x.add(op,1); 
+                for(var i=0;i<A_maker_list.length;i++){
+                    if(A_maker_list[i]['ma_name'] == null || A_maker_list[i]['ma_name'] == ""){
+                        continue;
+                    }
+                    var op = document.createElement("option");
+                    op.text = A_maker_list[i]['ma_name'];
+                    op.value = A_maker_list[i]['ma_cd'];
+                    x.add(op,1); 
+                };
+                document.getElementById('cmb_ma_cd').value = ma_cd_self;
+                
+    // Pulldown change event procedure
+    document.getElementById('cmb_ma_cd').addEventListener("change",function(){
+        document.getElementById('prod_name').value = "";
+        document.getElementById('prod_name').disabled = true;
+        document.getElementById('prod_select').disabled = true;
+        modal_create_select("prod_select",empty_array);   
+        document.getElementById('all_prod').checked = true;
+
+        //ajax
+        ma_cd = document.getElementById('cmb_ma_cd').value;        
+        var path = "./index.php?param=OrderProduct/search";
+        $.ajax({
+            url: path,
+            type: "POST",
+            data: { ma_cd:ma_cd,
+            },  // 検索など引数を渡す必要があるときこれを使う
+            success: function(rtnData) {
+                    
+                    $("#jquery-replace-ajax").html(rtnData);
+            },
+            error:function(xhr, textStatus, error) {
+                    alert("通信エラー");
+            }
+        });
+        ptypprod_detail     = '<?php echo json_encode($prod_detail); ?>';
+                    ptypprod_detail     = ptypprod_detail.replace(/\\n/g, "")  
+                           .replace(/\\'/g, "")
+                           .replace(/\\"/g, '')
+                           .replace(/\\&/g, "")
+                           .replace(/\\r/g, "")
+                           .replace(/\\t/g, "")
+                           .replace(/\\b/g, "")
+                           .replace(/\\f/g, "");  
+                    ptypprod_detail     = ptypprod_detail.replace(/[\u0000-\u001F]+/g,"");                   
+                    data_prod           = JSON.parse(ptypprod_detail); 
+                    
+    });
+};
+
+</script>
+</head>
+<body>
+<?php
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+<!-- Site -->
+<style type="text/css">
+#searchForm table {
+    margin:10px auto;
+}
+#searchForm table th {
+    background-color:#FF6928;
+    color:#FFF;
+    width:150px;
+    text-align:center;
+    border:1px solid #FFF;
+}
+#searchForm table td {
+    background-color:#FFF;
+    border:1px solid #FFF;
+}
+#searchForm table td.btnArea {
+    background:none;
+    border:none;
+    text-align:right;
+}
+.listTable {
+    margin:10px auto;
+    border-collapse:collapse;
+}
+.listTable thead th {
+    background-color:#FF6928;
+    color:#FFF;
+    text-align:center;
+    border:1px solid #FFF;
+}
+.listTable tbody td {
+    background-color:#FFF;
+    border:1px solid #FFF;
+}
+.no_overflow{
+    float: left; 
+}
+.field_title {
+    float: left;
+    /*display:flex;*/
+    align-items:center;
+    background: #FF6928;
+    height: 6.5em;
+    color: white;
+    text-align: center;
+    padding: 5px;
+    padding-top: 35px;
+    border: 1px solid #FFF;
+    min-width: 4em;
+}
+.field_data {
+    padding: 5px 20px 5px 20px;
+    float : left;
+    height: 6.5em;
+    border: 1px solid #FFF;
+}
+select{
+    min-width: 363px;
+}
+.search_erea{
+    margin:0px auto !important;
+    clear:both;
+    width:825px;
+}
+#sb-site .menuNameArea h2{
+    text-align:left; 
+}
+#sb-site{
+    overflow: auto;
+}
+</style>
+<div id="sb-site">
+    <!-- パンくずリスト -->
+    <?php include("Common/Breadcrumb.php"); ?>
+    <form id="searchForm" name="searchForm" action="index.php?param=OrderProduct/search&home=1" method="post">
+        <div class="search_erea" style="height:50px;width:1024px;">
+            <label for="cmb_ma_cd" style="text-align: center;margin-left:228px;background: #FF6928;color:white;border: 1px solid #FFF;width:68px;">　
+                業者&nbsp;&nbsp;&nbsp;&nbsp;
+            </label>
+            <select id="cmb_ma_cd" name="cmb_ma_cd">  
+            </select>
+        </div>
+        <div class="search_erea" id="search_erea" style="width:768px;">
+            <input type="hidden" id="prod_cd" value="" name="prod_cd">
+            <div class="no_overflow">
+                <div id="product_t" class="field_title">
+                    商品選択	
+                </div>
+                <div id="product_t_d" class="field_data">
+                    <input type="radio" id = "all_prod" name="prod_r" value="all" checked> 全商品<br />
+                    <input type="radio" name="prod_r" value="one"> 商品名入力&nbsp; 
+                    <input type="text" size="25" name="prod_name" id="prod_name" value="" disabled><br />
+                    <input type="radio" name="prod_r" value=""> 商品指定&nbsp;&nbsp;&nbsp;&nbsp;
+                    <select id="prod_select" name="prod_select" disabled onchange="modal_select_mgt(event)">
+                        <option value="no">&nbsp;</option>
+                    </select>
+                </div>
+            </div>
+            <div class="no_overflow">
+                <div id="btn_t_d" class="field_data">
+                    <input type="button" id="search" name="search" class="search" value="　検索　"><br />
+                    <input type="button" value="新規登録" id="create"><br />
+                    <input type="button" value="CSV出力" id="btn_csv" onclick="csv_print(event)" >
+                </div>
+            </div>
+        </div>     
+    </form>
+    <br /><br /><br /><br /><br />
+    <form id="modForm" name="modForm" >
+        <?php include("OrderProductList.html");?>
+    </form>
+</div>
+<!-- The Modal -->
+<div id="modal_sect" class="modal">
+    <!-- Modal content -->
+    <div class="modal-content">
+        <?php include("../modal/View/Modaldepartment.html"); ?>
+    </div>
+</div>            
+<div id="modal_prod" class="modal">
+    <!-- Modal content -->
+    <div class="modal-content">
+        <?php include("../modal/View/ModalOrderproduct.html"); ?>
+    </div>
+</div>            
+<?php include("../FwCommon/View/Dialog.php"); ?>
+</body>
+</html>

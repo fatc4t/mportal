@@ -1,0 +1,2542 @@
+<?php
+    /**
+     * @file      POS予約商品マスタ入力画面(View)
+     * @author    川橋
+     * @date      2019/01/21
+     * @version   1.00
+     * @note      POS予約商品マスタ入力画面
+     */
+?>
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <?php
+//            $fileNames = array( 'default.css', 'common.js', 'jquery-ui.min.js', 'jquery-ui.css' );    // cssまたはｊｓファイルを拡張子付きで配列に記述
+            $fileNames = array( 'default.css', 'common.js', 'jquery-ui.min.js', 'jquery-ui.css', 'viewpos.js' );    // cssまたはｊｓファイルを拡張子付きで配列に記述
+            include("Common/HtmlHeader.php");
+        ?>
+        <script src="../js/profit/jquery/datepicker-ja.js" /></script>
+        <script type="text/javascript">
+            $.datepicker.setDefaults( $.datepicker.regional[ "ja" ] );
+            $(function()
+            {
+                $( "#change_dt" ).datepicker({
+                    showButtonPanel: true,
+                    dateFormat: 'yy/mm/dd'
+                });
+            });
+
+            var lineInfo = null;
+            var btnInfo  = null;
+            var appCnt = 0;
+
+            $(document).ready(function()
+            {
+
+                /**
+                 * 削除ボタン押下時処理
+                 */
+                $('#del').click(function()
+                
+                {
+                    event.preventDefault();
+
+                    document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$DELETE_DIALOG_MSG); ?>';
+                    $("#dialog_mod").dialog('open');
+
+                    // サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+                /**
+                 * 戻るボタン押下時処理
+                 */
+                $('#back').click(function()
+                {
+                    // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                    var data = {
+                                back : $('#back').val(),
+                                searchOrganizationID    : $('#searchOrganizationID').val(),
+                                searchProdCode          : $('#searchProdCode').val(),
+                                searchsectcd            : $('#searchsectcd').val(),
+                                searchProdName          : $('#searchProdName').val(),
+                                searchProdKana          : $('#searchProdKana').val(),
+                                sortConditions          : $('#sortConditions').val(),
+                                token                   : $('#token').val()
+                            };
+                    var path = 'index.php?param=Mst0211/show&home=1';
+
+                    // データ更新
+                    setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+                    // サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+                // 登録系ボタン押下時
+                $('#addForm').submit(function(event)
+                {
+                    event.preventDefault();
+
+                    if(btnInfo !== '<?php hsc($Log->getMsgLog("MSG_BASE_0803")); ?>')
+                    {
+                        //// ブロック1・ブロック2チェック
+                        //checkShelfBlock();
+                        
+                        if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0800")); ?>')
+                        {
+                            // 一覧画面新規作成ボタンから遷移してきた場合
+                            document.getElementById("dialog_add").textContent='<?php hsc(SystemParameters::$NEW_DIALOG_MSG); ?>';
+                            $("#dialog_add").dialog('open');
+
+                        }
+                        else if(btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>')
+                        {
+                            document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$UPDATE_DIALOG_MSG); ?>';
+                            $("#dialog_mod").dialog('open');
+                        }
+                        else if(btnInfo === '<?php hsc(一括配信); ?>')
+                        {
+                            document.getElementById("dialog_add").textContent='<?php hsc(一括配信で登録してもよろしいでしょうか？); ?>';
+                            $("#dialog_add").dialog('open');
+                        }
+                    }
+                    else
+                    {
+                        document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$DELETE_DIALOG_MSG); ?>';
+                        $("#dialog_mod").dialog('open');
+                    }
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+            });
+
+            /**
+             * 新規作成データの設定
+             */
+            function setAddData()
+            {
+
+                if( btnInfo === '<?php hsc(一括配信); ?>' )
+                {
+                    // 更新
+                    path = 'index.php?param=Mst0211/allAdd&home=1';
+                }
+                else
+                {
+                    // 削除
+                    path = 'index.php?param=Mst0211/add&home=1';
+                }
+                
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                            searchOrganizationID    : $('#searchOrganizationID').val(),
+                            searchProdCode          : $('#searchProdCode').val(),
+                            searchsectcd            : $('#searchsectcd').val(),
+                            searchProdName          : $('#searchProdName').val(),
+                            searchProdKana          : $('#searchProdKana').val(),
+                            sortConditions          : $('#sortConditions').val(),
+                            organization_id         : $('#organization').val(),
+                            prod_cd                 : $('#prod_cd').val(),
+                            change_dt               : $('#change_dt').val(),
+                            jan_cd                  : $('#jan_cd').val(),
+                            itf_cd                  : $('#itf_cd').val(),
+                            prod_nm                 : $('#prod_nm').val(),
+                            prod_kn                 : $('#prod_kn').val(),
+                            prod_kn_rk              : $('#prod_kn_rk').val(),
+                            prod_capa_kn            : $('#prod_capa_kn').val(),
+                            prod_capa_nm            : $('#prod_capa_nm').val(),
+                            disp_prod_nm1           : $('#disp_prod_nm1').val(),
+                            disp_prod_nm2           : $('#disp_prod_nm2').val(),
+                            case_piece              : $('#case_piece').val(),
+                            case_bowl               : $('#case_bowl').val(),
+                            bowl_piece              : $('#bowl_piece').val(),
+                            sect_cd                 : $('#sect_cd').val(),
+                            priv_class_cd           : $('#priv_class_cd').val(),
+                            jicfs_class_cd          : $('#jicfs_class_cd').val(),
+                            maker_cd                : $('#maker_cd').val(),
+//                           head_supp_cd            : $('#head_supp_cd').val(), 2020/07/15 oota add start
+                            head_supp_cd            : $('#supp_cd').val(),
+                            shop_supp_cd            : $('#shop_supp_cd').val(),
+                            serial_no               : $('#serial_no').val(),
+                            prod_note               : $('#prod_note').val(),
+                            priv_prod_cd            : $('#priv_prod_cd').val(),
+                            alcohol_cd              : $('#alcohol_cd').val(),
+                            alcohol_capa_amount     : $('#alcohol_capa_amount').val(),
+                            order_lot               : $('#order_lot').val(),
+                            return_lot              : $('#return_lot').val(),
+                            just_stock_amout        : $('#just_stock_amout').val(),
+                            appo_prod_kbn           : $('#appo_prod_kbn').val(),
+                            appo_medi_kbn           : $('#appo_medi_kbn').val(),
+                            tax_type                : $('#tax_type').val(),
+                            order_stop_kbn          : $('#order_stop_kbn').val(),
+                            noreturn_kbn            : $('#noreturn_kbn').val(),
+                            point_kbn               : $('#point_kbn').val(),
+                            point_magni             : $('#point_magni').val(),
+                            p_calc_prod_point       : $('#p_calc_prod_point').val(),
+//ADDSTR kanderu 20201021                            
+//                            dir_del_kbn             : $('#dir_del_kbn ').val(),一時的に封印
+//                            sale_kbn                : $('#sale_kbn').val(),一時的に封印
+//ADDEND kanderu 20201021   
+                            p_calc_prod_money       : $('#p_calc_prod_money').val(),
+                            auto_order_kbn          : $('#auto_order_kbn').val(),
+                            risk_type_kbn           : $('#risk_type_kbn').val(),
+                            order_fin_kbn           : $('#order_fin_kbn').val(),
+                            resale_kbn              : $('#resale_kbn').val(),
+                            investiga_kbn           : $('#investiga_kbn').val(),
+                            disc_not_kbn            : $('#disc_not_kbn').val(),
+                            regi_duty_kbn           : $('#regi_duty_kbn').val(),
+                            set_prod_kbn            : $('#set_prod_kbn').val(),
+                            bundle_kbn              : $('#bundle_kbn').val(),
+                            mixture_kbn             : $('#mixture_kbn').val(),
+                            sale_period_kbn         : $('#sale_period_kbn').val(),
+                            delete_kbn              : $('#delete_kbn').val(),
+                            order_can_kbn           : $('#order_can_kbn').val(),
+                            order_can_date          : $('#order_can_date').val(),
+                            prod_t_cd1              : $('#prod_t_cd1').val(),
+                            prod_t_cd2              : $('#prod_t_cd2').val(),
+                            prod_t_cd3              : $('#prod_t_cd3').val(),
+                            prod_t_cd4              : $('#prod_t_cd4').val(),
+                            prod_k_cd1              : $('#prod_k_cd1').val(),
+                            prod_k_cd2              : $('#prod_k_cd2').val(),
+                            prod_k_cd3              : $('#prod_k_cd3').val(),
+                            prod_k_cd4              : $('#prod_k_cd4').val(),
+                            prod_k_cd5              : $('#prod_k_cd5').val(),
+                            prod_k_cd6              : $('#prod_k_cd6').val(),
+                            prod_k_cd7              : $('#prod_k_cd7').val(),
+                            prod_k_cd8              : $('#prod_k_cd8').val(),
+                            prod_k_cd9              : $('#prod_k_cd9').val(),
+                            prod_k_cd10             : $('#prod_k_cd10').val(),
+                            prod_res_cd1            : $('#prod_res_cd1').val(),
+                            prod_res_cd2            : $('#prod_res_cd2').val(),
+                            prod_res_cd3            : $('#prod_res_cd3').val(),
+                            prod_res_cd4            : $('#prod_res_cd4').val(),
+                            prod_res_cd5            : $('#prod_res_cd5').val(),
+                            prod_res_cd6            : $('#prod_res_cd6').val(),
+                            prod_res_cd7            : $('#prod_res_cd7').val(),
+                            prod_res_cd8            : $('#prod_res_cd8').val(),
+                            prod_res_cd9            : $('#prod_res_cd9').val(),
+                            prod_res_cd10           : $('#prod_res_cd10').val(),
+                            prod_comment            : $('#prod_comment').val(),
+                            shelf_block1_1          : $('#shelf_block1_1').val(),
+                            shelf_block1_2          : $('#shelf_block1_2').val(),
+                            shelf_block1_3          : $('#shelf_block1_3').val(),
+                            shelf_block2_1          : $('#shelf_block2_1').val(),
+                            shelf_block2_2          : $('#shelf_block2_2').val(),
+                            shelf_block2_3          : $('#shelf_block2_3').val(),
+                            fixeprice               : $('#fixeprice').val(),
+                            saleprice               : $('#saleprice').val(),
+                            saleprice_ex            : $('#saleprice_ex').val(),
+                            base_saleprice          : $('#base_saleprice').val(),
+                            base_saleprice_ex       : $('#base_saleprice_ex').val(),
+                            cust_saleprice          : $('#cust_saleprice').val(),
+                            head_costprice          : $('#head_costprice').val(),
+                            shop_costprice          : $('#shop_costprice').val(),
+                            contract_price          : $('#contract_price').val(),
+                            empl_saleprice          : $('#empl_saleprice').val(),
+                            spcl_saleprice1         : $('#spcl_saleprice1').val(),
+                            spcl_saleprice2         : $('#spcl_saleprice2').val(),
+                            saleprice_limit         : $('#saleprice_limit').val(),
+                            saleprice_ex_limit      : $('#saleprice_ex_limit').val(),
+                            time_saleprice          : $('#time_saleprice').val(),
+                            time_saleamount         : $('#time_saleamount').val(),
+                            smp1_str_dt             : $('#smp1_str_dt').val(),
+                            smp1_end_dt             : $('#smp1_end_dt').val(),
+                            smp1_saleprice          : $('#smp1_saleprice').val(),
+                            smp1_cust_saleprice     : $('#smp1_cust_saleprice').val(),
+                            smp1_costprice          : $('#smp1_costprice').val(),
+                            smp1_point_kbn          : $('#smp1_point_kbn').val(),
+                            smp2_str_dt             : $('#smp2_str_dt').val(),
+                            smp2_end_dt             : $('#smp2_end_dt').val(),
+                            smp2_saleprice          : $('#smp2_saleprice').val(),
+                            smp2_cust_saleprice     : $('#smp2_cust_saleprice').val(),
+                            smp2_costprice          : $('#smp2_costprice').val(),
+                            smp2_point_kbn          : $('#smp2_point_kbn').val(),
+                            sales_talk_kbn          : $('input[name=sales_talk_kbn]:checked').val(),
+                            sales_talk              : $('#sales_talk').val(),
+                            switch_otc_kbn          : $('#switch_otc_kbn').val(),
+                            prod_tax                : $('#prod_tax').val(),
+                            bb_date_kbn             : $('#bb_date_kbn').val(),
+                            cartone                 : $('#cartone').val(),
+                            bb_days                 : $('#bb_days').val(),
+                            order_prod_cd1          : $('#order_prod_cd1').val(),
+                            order_prod_cd2          : $('#order_prod_cd2').val(),
+                            order_prod_cd3          : $('#order_prod_cd3').val(),
+                            case_costprice          : $('#case_costprice').val(),
+                            total_stock_amout       : $('#total_stock_amout').val(),
+                            fill_amount             : $('#fill_amount').val(),
+                            total_stock_amout_load  : $('#total_stock_amout_load').val(),
+                            fill_amount_load        : $('#fill_amount_load').val(),
+                            case_stock_amout_load   : $('#case_stock_amout_load').val(),
+                            bowl_stock_amout_load   : $('#bowl_stock_amout_load').val(),
+                            piece_stock_amout_load  : $('#piece_stock_amout_load').val(),
+                            endmon_amount_load      : $('#endmon_amount_load').val(),
+                            nmondiff_amount_load    : $('#nmondiff_amount_load').val(),
+                            emondiff_amount_load    : $('#emondiff_amount_load').val(),
+                            shelf_no1_1             : $('#shelf_no1_1').val(),
+                            shelf_no1_2             : $('#shelf_no1_2').val(),
+                            shelf_no1_3             : $('#shelf_no1_3').val(),
+                            shelf_no2_1             : $('#shelf_no2_1').val(),
+                            shelf_no2_2             : $('#shelf_no2_2').val(),
+                            shelf_no2_3             : $('#shelf_no2_3').val(),
+                            shelf_no3_1             : $('#shelf_no3_1').val(),
+                            shelf_no3_2             : $('#shelf_no3_2').val(),
+                            shelf_no3_3             : $('#shelf_no3_3').val(),
+                            shop_cd                 : $('#shop_cd').val(),
+                            token                   : $('#token').val(),
+                        };
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+            }
+
+            /**
+             * データ更新の設定
+             */
+            function setModData()
+            {
+
+                if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>' )
+                {
+                    // 更新
+                    path = 'index.php?param=Mst0211/mod&home=1';
+                }
+                else
+                {
+                    // 削除
+                    path = 'index.php?param=Mst0211/del&home=1';
+                }
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                            searchOrganizationID    : $('#searchOrganizationID').val(),
+                            searchProdCode          : $('#searchProdCode').val(),
+                            searchsectcd            : $('#searchsectcd').val(),
+                            searchProdName          : $('#searchProdName').val(),
+                            searchProdKana          : $('#searchProdKana').val(),
+                            sortConditions          : $('#sortConditions').val(),
+                            keyOrganizationID       : $('#keyOrganizationID').val(),
+                            keyProdCode             : $('#keyProdCode').val(),
+                            keyChangeDT             : $('#keyChangeDT').val(),
+                            organization_id         : $('#organization').val(),
+                            prod_cd                 : $('#prod_cd').val(),
+                            change_dt               : $('#change_dt').val(),
+                            jan_cd                  : $('#jan_cd').val(),
+                            itf_cd                  : $('#itf_cd').val(),
+                            prod_nm                 : $('#prod_nm').val(),
+                            prod_kn                 : $('#prod_kn').val(),
+                            prod_kn_rk              : $('#prod_kn_rk').val(),
+                            prod_capa_kn            : $('#prod_capa_kn').val(),
+                            prod_capa_nm            : $('#prod_capa_nm').val(),
+                            disp_prod_nm1           : $('#disp_prod_nm1').val(),
+                            disp_prod_nm2           : $('#disp_prod_nm2').val(),
+                            case_piece              : $('#case_piece').val(),
+                            case_bowl               : $('#case_bowl').val(),
+                            bowl_piece              : $('#bowl_piece').val(),
+                            sect_cd                 : $('#sect_cd').val(),
+                            priv_class_cd           : $('#priv_class_cd').val(),
+                            jicfs_class_cd          : $('#jicfs_class_cd').val(),
+                            maker_cd                : $('#maker_cd').val(),
+ //                           head_supp_cd            : $('#head_supp_cd').val(), 2020/07/15 oota add start
+                            head_supp_cd            : $('#supp_cd').val(),
+                            shop_supp_cd            : $('#shop_supp_cd').val(),
+                            serial_no               : $('#serial_no').val(),
+                            prod_note               : $('#prod_note').val(),
+                            priv_prod_cd            : $('#priv_prod_cd').val(),
+                            alcohol_cd              : $('#alcohol_cd').val(),
+                            alcohol_capa_amount     : $('#alcohol_capa_amount').val(),
+                            order_lot               : $('#order_lot').val(),
+                            return_lot              : $('#return_lot').val(),
+                            just_stock_amout        : $('#just_stock_amout').val(),
+                            appo_prod_kbn           : $('#appo_prod_kbn').val(),
+                            appo_medi_kbn           : $('#appo_medi_kbn').val(),
+                            tax_type                : $('#tax_type').val(),
+                            order_stop_kbn          : $('#order_stop_kbn').val(),
+                            noreturn_kbn            : $('#noreturn_kbn').val(),
+                            point_kbn               : $('#point_kbn').val(),
+                            point_magni             : $('#point_magni').val(),
+                            p_calc_prod_point       : $('#p_calc_prod_point').val(),
+                            
+//ADDSTR kanderu 20201021                            
+//                            dir_del_kbn             : $('#dir_del_kbn ').val(),一時的に封印
+//                            sale_kbn                : $('#sale_kbn').val(),一時的に封印
+//ADDEND kanderu 20201021   
+                            
+                            p_calc_prod_money       : $('#p_calc_prod_money').val(),
+                            auto_order_kbn          : $('#auto_order_kbn').val(),
+                            risk_type_kbn           : $('#risk_type_kbn').val(),
+                            order_fin_kbn           : $('#order_fin_kbn').val(),
+                            resale_kbn              : $('#resale_kbn').val(),
+                            investiga_kbn           : $('#investiga_kbn').val(),
+                            disc_not_kbn            : $('#disc_not_kbn').val(),
+                            regi_duty_kbn           : $('#regi_duty_kbn').val(),
+                            set_prod_kbn            : $('#set_prod_kbn').val(),
+                            bundle_kbn              : $('#bundle_kbn').val(),
+                            mixture_kbn             : $('#mixture_kbn').val(),
+                            sale_period_kbn         : $('#sale_period_kbn').val(),
+                            delete_kbn              : $('#delete_kbn').val(),
+                            order_can_kbn           : $('#order_can_kbn').val(),
+                            order_can_date          : $('#order_can_date').val(),
+                            prod_t_cd1              : $('#prod_t_cd1').val(),
+                            prod_t_cd2              : $('#prod_t_cd2').val(),
+                            prod_t_cd3              : $('#prod_t_cd3').val(),
+                            prod_t_cd4              : $('#prod_t_cd4').val(),
+                            prod_k_cd1              : $('#prod_k_cd1').val(),
+                            prod_k_cd2              : $('#prod_k_cd2').val(),
+                            prod_k_cd3              : $('#prod_k_cd3').val(),
+                            prod_k_cd4              : $('#prod_k_cd4').val(),
+                            prod_k_cd5              : $('#prod_k_cd5').val(),
+                            prod_k_cd6              : $('#prod_k_cd6').val(),
+                            prod_k_cd7              : $('#prod_k_cd7').val(),
+                            prod_k_cd8              : $('#prod_k_cd8').val(),
+                            prod_k_cd9              : $('#prod_k_cd9').val(),
+                            prod_k_cd10             : $('#prod_k_cd10').val(),
+                            prod_res_cd1            : $('#prod_res_cd1').val(),
+                            prod_res_cd2            : $('#prod_res_cd2').val(),
+                            prod_res_cd3            : $('#prod_res_cd3').val(),
+                            prod_res_cd4            : $('#prod_res_cd4').val(),
+                            prod_res_cd5            : $('#prod_res_cd5').val(),
+                            prod_res_cd6            : $('#prod_res_cd6').val(),
+                            prod_res_cd7            : $('#prod_res_cd7').val(),
+                            prod_res_cd8            : $('#prod_res_cd8').val(),
+                            prod_res_cd9            : $('#prod_res_cd9').val(),
+                            prod_res_cd10           : $('#prod_res_cd10').val(),
+                            prod_comment            : $('#prod_comment').val(),
+                            shelf_block1_1          : $('#shelf_block1_1').val(),
+                            shelf_block1_2          : $('#shelf_block1_2').val(),
+                            shelf_block1_3          : $('#shelf_block1_3').val(),
+                            shelf_block2_1          : $('#shelf_block2_1').val(),
+                            shelf_block2_2          : $('#shelf_block2_2').val(),
+                            shelf_block2_3          : $('#shelf_block2_3').val(),
+                            fixeprice               : $('#fixeprice').val(),
+                            saleprice               : $('#saleprice').val(),
+                            saleprice_ex            : $('#saleprice_ex').val(),
+                            base_saleprice          : $('#base_saleprice').val(),
+                            base_saleprice_ex       : $('#base_saleprice_ex').val(),
+                            cust_saleprice          : $('#cust_saleprice').val(),
+                            head_costprice          : $('#head_costprice').val(),
+                            shop_costprice          : $('#shop_costprice').val(),
+                            contract_price          : $('#contract_price').val(),
+                            empl_saleprice          : $('#empl_saleprice').val(),
+                            spcl_saleprice1         : $('#spcl_saleprice1').val(),
+                            spcl_saleprice2         : $('#spcl_saleprice2').val(),
+                            saleprice_limit         : $('#saleprice_limit').val(),
+                            saleprice_ex_limit      : $('#saleprice_ex_limit').val(),
+                            time_saleprice          : $('#time_saleprice').val(),
+                            time_saleamount         : $('#time_saleamount').val(),
+                            smp1_str_dt             : $('#smp1_str_dt').val(),
+                            smp1_end_dt             : $('#smp1_end_dt').val(),
+                            smp1_saleprice          : $('#smp1_saleprice').val(),
+                            smp1_cust_saleprice     : $('#smp1_cust_saleprice').val(),
+                            smp1_costprice          : $('#smp1_costprice').val(),
+                            smp1_point_kbn          : $('#smp1_point_kbn').val(),
+                            smp2_str_dt             : $('#smp2_str_dt').val(),
+                            smp2_end_dt             : $('#smp2_end_dt').val(),
+                            smp2_saleprice          : $('#smp2_saleprice').val(),
+                            smp2_cust_saleprice     : $('#smp2_cust_saleprice').val(),
+                            smp2_costprice          : $('#smp2_costprice').val(),
+                            smp2_point_kbn          : $('#smp2_point_kbn').val(),
+                            sales_talk_kbn          : $('input[name=sales_talk_kbn]:checked').val(),
+                            sales_talk              : $('#sales_talk').val(),
+                            switch_otc_kbn          : $('#switch_otc_kbn').val(),
+                            prod_tax                : $('#prod_tax').val(),
+                            bb_date_kbn             : $('#bb_date_kbn').val(),
+                            cartone                 : $('#cartone').val(),
+                            bb_days                 : $('#bb_days').val(),
+                            order_prod_cd1          : $('#order_prod_cd1').val(),
+                            order_prod_cd2          : $('#order_prod_cd2').val(),
+                            order_prod_cd3          : $('#order_prod_cd3').val(),
+                            case_costprice          : $('#case_costprice').val(),
+                            total_stock_amout       : $('#total_stock_amout').val(),
+                            fill_amount             : $('#fill_amount').val(),
+                            total_stock_amout_load  : $('#total_stock_amout_load').val(),
+                            fill_amount_load        : $('#fill_amount_load').val(),
+                            case_stock_amout_load   : $('#case_stock_amout_load').val(),
+                            bowl_stock_amout_load   : $('#bowl_stock_amout_load').val(),
+                            piece_stock_amout_load  : $('#piece_stock_amout_load').val(),
+                            endmon_amount_load      : $('#endmon_amount_load').val(),
+                            nmondiff_amount_load    : $('#nmondiff_amount_load').val(),
+                            emondiff_amount_load    : $('#emondiff_amount_load').val(),
+                            shelf_no1_1             : $('#shelf_no1_1').val(),
+                            shelf_no1_2             : $('#shelf_no1_2').val(),
+                            shelf_no1_3             : $('#shelf_no1_3').val(),
+                            shelf_no2_1             : $('#shelf_no2_1').val(),
+                            shelf_no2_2             : $('#shelf_no2_2').val(),
+                            shelf_no2_3             : $('#shelf_no2_3').val(),
+                            shelf_no3_1             : $('#shelf_no3_1').val(),
+                            shelf_no3_2             : $('#shelf_no3_2').val(),
+                            shelf_no3_3             : $('#shelf_no3_3').val(),
+                            shop_cd                 : $('#shop_cd').val(),
+                            token                   : $('#token').val(),
+                        };
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+            }
+
+            /**
+             * 更新キャンセル
+             */
+            function cancel()
+            {
+                //var data = null;
+                //var path = '';
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                            searchOrganizationID    : $('#searchOrganizationID').val(),
+                            searchProdCode          : $('#searchProdCode').val(),
+                            searchsectcd            : $('#searchsectcd').val(),
+                            searchProdName          : $('#searchProdName').val(),
+                            searchProdKana          : $('#searchProdKana').val(),
+                            sortConditions          : $('#sortConditions').val(),
+                            keyOrganizationID       : $('#keyOrganizationID').val(),
+                            keyProdCode             : $('#keyProdCode').val(),
+                            keyChangeDT             : $('#keyChangeDT').val(),
+                            token                   : $('#token').val()
+                        };
+                var path = 'index.php?param=Mst0211/show&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+                // サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 行情報を設定
+             */
+            function setLineInfo(thisLineInfo, thisBtnInfo)
+            {
+                lineInfo = thisLineInfo;
+                btnInfo  = thisBtnInfo;
+                return true;
+            }
+
+            /**
+             * 遷移先の設定
+             */
+            function moveRedirect()
+            {
+                cancel();
+            }
+
+            /**
+             * 組織プルダウン変更時処理
+             * 部門、仕入先、商品区分のプルダウンを更新する
+             */
+            function changeOrganization()
+            {
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                //var data = {
+                //                organization_id : $('#organization').val()
+                //           };
+
+                // データ更新中ダイアログ表示
+                //document.getElementById("notification_dialog").textContent = 'データリスト更新中・・・';
+                //$("#notification_dialog").dialog('open');
+
+                // POS商品部門情報更新
+                changeMst1201Option();
+                // POS商品仕入先情報更新
+                changeMst1101Option();
+                // POS商品区分情報更新
+                changeMstProdKbnOptions();
+                // POS商品分類情報更新
+                changeMst0801Options(null);
+            }
+            
+            /**
+             * 仕入先プルダウン更新処理
+             * 組織プルダウン変更時に実行される
+             */
+            function changeMst1101Option() {
+                var mst1101Array = JSON.parse('<?php echo addslashes($json_mst1101DataList); ?>');
+
+                var organizationID = Number(document.getElementById('organization').value);
+
+                var select = document.getElementById('supp_cd');
+                select.options.length = 0;
+                var j = 0;
+                select.options[j ++] = new Option('','');
+                for (var i = 0; i < mst1101Array.length; i ++) {
+                    if (mst1101Array[i]['organization_id'] === organizationID) {
+                        select.options[j ++] = new Option(mst1101Array[i]['supp_nm'], mst1101Array[i]['supp_cd']);
+                    }
+                }
+            }
+            
+            /**
+             * 部門プルダウン更新処理
+             * 組織プルダウン変更時に実行される
+             */
+            function changeMst1201Option() {
+                var mst1201Array = JSON.parse('<?php echo addslashes($json_mst1201DataList); ?>');
+
+                var organizationID = Number(document.getElementById('organization').value);
+
+                var select = document.getElementById('sect_cd');
+                select.options.length = 0;
+                var j = 0;
+                select.options[j ++] = new Option('','');
+                for (var i = 0; i < mst1201Array.length; i ++) {
+                    if (mst1201Array[i]['organization_id'] === organizationID) {
+                        select.options[j ++] = new Option(mst1201Array[i]['sect_nm'], mst1201Array[i]['sect_cd']);
+                    }
+                }
+                sect_cd_onChange(select);
+            }
+            
+            /**
+             * 部門プルダウン変更時処理
+             * 部門情報(税区分・税率)を更新する
+             */
+            function sect_cd_onChange(obj)
+            {
+                var mst1201Array = JSON.parse('<?php echo addslashes($json_mst1201DataList); ?>');
+                var organizationID = Number(document.getElementById('organization').value);
+
+                var selectedIndex = obj.selectedIndex;
+                var sect_tax_type   = '';
+                var sect_tax        = '';
+                if (selectedIndex > 0) {
+                    var selectedValue = obj.options[selectedIndex].value;
+                    for (var i = 0; i < mst1201Array.length; i ++){
+                        if (mst1201Array[i]['organization_id'] === organizationID) {
+                            if (mst1201Array[i]['sect_cd'] === selectedValue) {
+                                sect_tax_type   = mst1201Array[i]['sect_tax_type'];
+                                sect_tax        = number_format(mst1201Array[i]['sect_tax']);
+                            }
+                        }
+                    }
+                }
+
+                var lbl_sect_tax = '';
+                if (sect_tax_type === '1') {    // 外税
+                    lbl_sect_tax = "外税（" + sect_tax + '％）';
+                }
+                else if (sect_tax_type === '2') {    // 内税
+                    lbl_sect_tax = "内税（" + sect_tax + '％）';
+                }
+                else if (sect_tax_type === '9') {    // 非課税
+                    lbl_sect_tax = "非課税";
+                }
+                document.getElementById('lbl_sect_tax').innerHTML = lbl_sect_tax;
+                document.getElementById('sect_tax_type').value = sect_tax_type;
+                document.getElementById('sect_tax').value = sect_tax;
+
+                // 外税 or 非課税
+                if (sect_tax_type === '1' || sect_tax_type === '9'){
+                    // 売価(税込)編集不可
+                    document.getElementById('saleprice').disabled = true;
+                    // 売価(税抜)編集可能
+                    document.getElementById('saleprice_ex').disabled = false;
+                    // 基準売価(税込)編集不可
+                    document.getElementById('base_saleprice').disabled = true;
+                    // 基準売価(税抜)編集可能
+                    document.getElementById('base_saleprice_ex').disabled = false;
+                    // 金額下限値(税込)編集不可
+                    document.getElementById('saleprice_limit').disabled = true;
+                    // 金額下限値(税抜)編集可能
+                    document.getElementById('saleprice_ex_limit').disabled = false;
+                    // 売価(税込)自動更新
+                    saleprice_ex_onBlur();
+                    // 基準価格(税込)自動更新
+                    base_saleprice_ex_onBlur();
+                    // 金額下限値(税込)自動更新
+                    saleprice_ex_limit_onBlur();
+                }
+                // 内税 or 未設定
+                else {
+                    // 売価(税込)編集可能
+                    document.getElementById('saleprice').disabled = false;
+                    // 売価(税抜)編集不可
+                    document.getElementById('saleprice_ex').disabled = true;
+                    // 基準売価(税込)編集可能
+                    document.getElementById('base_saleprice').disabled = false;
+                    // 基準売価(税抜)編集不可
+                    document.getElementById('base_saleprice_ex').disabled = true;
+                    // 金額下限値(税込)編集可能
+                    document.getElementById('saleprice_limit').disabled = false;
+                    // 金額下限値(税抜)編集不可
+                    document.getElementById('saleprice_ex_limit').disabled = true;
+                    // 売価(税抜)自動更新
+                    saleprice_onBlur();
+                    // 基準価格(税抜)自動更新
+                    base_saleprice_onBlur();
+                    // 金額下限値(税抜)自動更新
+                    saleprice_limit_onBlur();
+                }
+            }
+
+            /**
+             * 税区分プルダウン変更時処理
+             * 税率、金額入力欄のdisabled属性を変更する
+             */
+            function tax_type_onChange()
+            {
+                var tax_type = document.getElementById('tax_type').value;
+                if (tax_type === ''){
+                    // (商品)税率編集不可
+                    document.getElementById('prod_tax').disabled = true;
+                    // (部門)税区分
+                    tax_type = document.getElementById('sect_tax_type').value;
+                }
+                else {
+                    if (tax_type === '1' || tax_type === '2') {     // 外税 or 内税
+                        // (商品)税率編集可能
+                        document.getElementById('prod_tax').disabled = false;
+                    }
+                    else {
+                        // (商品)税率編集不可
+                        document.getElementById('prod_tax').disabled = true;
+                    }
+                }
+
+                // 外税 or 非課税
+                if (tax_type === '1' || tax_type === '9'){
+                    // 売価(税込)編集不可
+                    document.getElementById('saleprice').disabled = true;
+                    // 売価(税抜)編集可能
+                    document.getElementById('saleprice_ex').disabled = false;
+                    // 基準売価(税込)編集不可
+                    document.getElementById('base_saleprice').disabled = true;
+                    // 基準売価(税抜)編集可能
+                    document.getElementById('base_saleprice_ex').disabled = false;
+                    // 金額下限値(税込)編集不可
+                    document.getElementById('saleprice_limit').disabled = true;
+                    // 金額下限値(税抜)編集可能
+                    document.getElementById('saleprice_ex_limit').disabled = false;
+                    // 売価(税込)自動更新
+                    saleprice_ex_onBlur();
+                    // 基準価格(税込)自動更新
+                    base_saleprice_ex_onBlur();
+                    // 金額下限値(税込)自動更新
+                    saleprice_ex_limit_onBlur();
+                }
+                // 内税 or 未設定
+                else {
+                    // 売価(税込)編集可能
+                    document.getElementById('saleprice').disabled = false;
+                    // 売価(税抜)編集不可
+                    document.getElementById('saleprice_ex').disabled = true;
+                    // 基準売価(税込)編集可能
+                    document.getElementById('base_saleprice').disabled = false;
+                    // 基準売価(税抜)編集不可
+                    document.getElementById('base_saleprice_ex').disabled = true;
+                    // 金額下限値(税込)編集可能
+                    document.getElementById('saleprice_limit').disabled = false;
+                    // 金額下限値(税抜)編集不可
+                    document.getElementById('saleprice_ex_limit').disabled = true;
+                    // 売価(税抜)自動更新
+                    saleprice_onBlur();
+                    // 基準価格(税抜)自動更新
+                    base_saleprice_onBlur();
+                    // 金額下限値(税抜)自動更新
+                    saleprice_limit_onBlur();
+                }
+            }
+
+            /**
+             * 商品区分プルダウン更新処理
+             * 組織プルダウン変更時に実行される
+             */
+            function changeMstProdKbnOptions() {
+                // 自社分類コード
+                var mst5501Array = JSON.parse('<?php echo addslashes($json_mst5501DataList); ?>');
+                // JICFS分類コード
+                var mst5401Array = JSON.parse('<?php echo addslashes($json_mst5401DataList); ?>');
+                // メーカーコード
+                var mst1001Array = JSON.parse('<?php echo addslashes($json_mst1001DataList); ?>');
+                // 商品区分
+                var mst0901Array = JSON.parse('<?php echo addslashes($json_mst0901DataList); ?>');
+
+                var organizationID = Number(document.getElementById('organization').value);
+
+                var select;
+                var j;
+
+                // 自社分類コードプルダウン
+                select = document.getElementById('priv_class_cd');
+                select.options.length = 0;
+                j = 0;
+                select.options[j ++] = new Option('','');
+                for (var i = 0; i < mst5501Array.length; i ++) {
+                    if (mst5501Array[i]['organization_id'] === organizationID) {
+                        select.options[j ++] = new Option(mst5501Array[i]['priv_class_nm'], mst5501Array[i]['priv_class_cd']);
+                    }
+                }
+
+                // JICFS分類コードプルダウン
+                select = document.getElementById('jicfs_class_cd');
+                select.options.length = 0;
+                j = 0;
+                select.options[j ++] = new Option('','');
+                for (var i = 0; i < mst5401Array.length; i ++) {
+                    if (mst5401Array[i]['organization_id'] === organizationID) {
+                        select.options[j ++] = new Option(mst5401Array[i]['jicfs_class_nm'], mst5401Array[i]['jicfs_class_cd']);
+                    }
+                }
+                // メーカーコードプルダウン
+                select = document.getElementById('maker_cd');
+                select.options.length = 0;
+                j = 0;
+                select.options[j ++] = new Option('','');
+                for (var i = 0; i < mst1001Array.length; i ++) {
+                    if (mst1001Array[i]['organization_id'] === organizationID) {
+                        select.options[j ++] = new Option(mst1001Array[i]['maker_nm'], mst1001Array[i]['maker_cd']);
+                    }
+                }
+                // 商品区分1プルダウン
+                select = document.getElementById('prod_k_cd1');
+                select.options.length = 0;
+                j = 0;
+                select.options[j ++] = new Option('','');
+                for (var i = 0; i < mst0901Array.length; i ++) {
+                    if (mst0901Array[i]['organization_id'] === organizationID &&
+                        mst0901Array[i]['prod_k_type'] === '01') {
+                        select.options[j ++] = new Option(mst0901Array[i]['prod_k_nm'], mst0901Array[i]['prod_k_cd']);
+                    }
+                }
+
+                // 商品区分2プルダウン
+                select = document.getElementById('prod_k_cd2');
+                select.options.length = 0;
+                j = 0;
+                select.options[j ++] = new Option('','');
+                for (var i = 0; i < mst0901Array.length; i ++) {
+                    if (mst0901Array[i]['organization_id'] === organizationID &&
+                        mst0901Array[i]['prod_k_type'] === '02') {
+                        select.options[j ++] = new Option(mst0901Array[i]['prod_k_nm'], mst0901Array[i]['prod_k_cd']);
+                    }
+                }
+
+                // 商品区分3プルダウン
+                select = document.getElementById('prod_k_cd3');
+                select.options.length = 0;
+                j = 0;
+                select.options[j ++] = new Option('','');
+                for (var i = 0; i < mst0901Array.length; i ++) {
+                    if (mst0901Array[i]['organization_id'] === organizationID &&
+                        mst0901Array[i]['prod_k_type'] === '03') {
+                        select.options[j ++] = new Option(mst0901Array[i]['prod_k_nm'], mst0901Array[i]['prod_k_cd']);
+                    }
+                }
+
+                // 商品区分4プルダウン
+                select = document.getElementById('prod_k_cd4');
+                select.options.length = 0;
+                j = 0;
+                select.options[j ++] = new Option('','');
+                for (var i = 0; i < mst0901Array.length; i ++) {
+                    if (mst0901Array[i]['organization_id'] === organizationID &&
+                        mst0901Array[i]['prod_k_type'] === '04') {
+                        select.options[j ++] = new Option(mst0901Array[i]['prod_k_nm'], mst0901Array[i]['prod_k_cd']);
+                    }
+                }
+
+                // 商品区分5プルダウン
+                select = document.getElementById('prod_k_cd5');
+                select.options.length = 0;
+                j = 0;
+                select.options[j ++] = new Option('','');
+                for (var i = 0; i < mst0901Array.length; i ++) {
+                    if (mst0901Array[i]['organization_id'] === organizationID &&
+                        mst0901Array[i]['prod_k_type'] === '05') {
+                        select.options[j ++] = new Option(mst0901Array[i]['prod_k_nm'], mst0901Array[i]['prod_k_cd']);
+                    }
+                }
+            }
+            /**
+             * 商品分類プルダウン更新処理
+             * 組織プルダウン変更時／上位分類プルダウン変更時に実行される
+             * 組織変更　→大分類のプルダウンを更新、中分類以下のプルダウンを初期化
+             * 大分類変更→中分類のプルダウンを更新、小分類以下のプルダウンを初期化
+             * 中分類変更→小分類のプルダウンを更新、クラスのプルダウンを初期化
+             * 小分類変更→クラスのプルダウンを更新
+             */
+            function changeMst0801Options(obj){
+                var mst0801Array = JSON.parse('<?php echo addslashes($json_mst0801DataList); ?>');
+
+                var organizationID = Number(document.getElementById('organization').value);
+                var select1 = document.getElementById('prod_t_cd1');
+                var select2 = document.getElementById('prod_t_cd2');
+                var select3 = document.getElementById('prod_t_cd3');
+                var select4 = document.getElementById('prod_t_cd4');
+
+                var selectedValue1 = select1.options[select1.selectedIndex].value;
+                var selectedValue2 = select2.options[select2.selectedIndex].value;
+                var selectedValue3 = select3.options[select3.selectedIndex].value;
+
+                // 組織変更時
+                if (obj === null) {
+                    select1.options.length = 0;
+                    select2.options.length = 0;
+                    select3.options.length = 0;
+                    select4.options.length = 0;
+                    
+                    // 商品大分類プルダウン
+                    var j = 0;
+                    select1.options[j ++] = new Option('','');
+                    for (var i = 0; i < mst0801Array.length; i ++) {
+                        if (mst0801Array[i]['organization_id'] === organizationID &&
+                            mst0801Array[i]['prod_t_type'] === '1') {
+                            select1.options[j ++] = new Option(mst0801Array[i]['prod_t_nm'], mst0801Array[i]['prod_t_cd1']);
+                        }
+                    }
+                    // 商品中分類プルダウン
+                    select2.options[0] = new Option('', '');
+                    // 商品小分類プルダウン
+                    select3.options[0] = new Option('', '');
+                    // 商品クラスプルダウン
+                    select4.options[0] = new Option('', '');
+                }
+                // 商品大分類
+                else if (obj.name === 'prod_t_cd1'){
+                    select2.options.length = 0;
+                    select3.options.length = 0;
+                    select4.options.length = 0;
+
+                    // 商品中分類プルダウン
+                    var j = 0;
+                    select2.options[j ++] = new Option('','');
+                    for (var i = 0; i < mst0801Array.length; i ++) {
+                        if (mst0801Array[i]['organization_id'] === organizationID &&
+                            mst0801Array[i]['prod_t_type'] === '2' &&
+                            mst0801Array[i]['prod_t_cd1'] === selectedValue1) {
+                            select2.options[j ++] = new Option(mst0801Array[i]['prod_t_nm'], mst0801Array[i]['prod_t_cd2']);
+                        }
+                    }
+                    // 商品小分類プルダウン
+                    select3.options[0] = new Option('', '');
+                    // 商品クラスプルダウン
+                    select4.options[0] = new Option('', '');
+                }
+                // 商品中分類
+                else if (obj.name === 'prod_t_cd2'){
+                    select3.options.length = 0;
+                    select4.options.length = 0;
+                    
+                    // 商品中分類プルダウン
+                    var j = 0;
+                    select3.options[j ++] = new Option('','');
+                    for (var i = 0; i < mst0801Array.length; i ++) {
+                        if (mst0801Array[i]['organization_id'] === organizationID &&
+                            mst0801Array[i]['prod_t_type'] === '3' &&
+                            mst0801Array[i]['prod_t_cd1'] === selectedValue1 &&
+                            mst0801Array[i]['prod_t_cd2'] === selectedValue2) {
+                            select3.options[j ++] = new Option(mst0801Array[i]['prod_t_nm'], mst0801Array[i]['prod_t_cd3']);
+                        }
+                    }
+                    // 商品クラスプルダウン
+                    select4.options[0] = new Option('', '');
+                }
+                // 商品小分類
+                else if (obj.name === 'prod_t_cd3'){
+                    select4.options.length = 0;
+
+                    // 商品クラスプルダウン
+                    var j = 0;
+                    select4.options[j ++] = new Option('','');
+                    for (var i = 0; i < mst0801Array.length; i ++) {
+                        if (mst0801Array[i]['organization_id'] === organizationID &&
+                            mst0801Array[i]['prod_t_type'] === '4' &&
+                            mst0801Array[i]['prod_t_cd1'] === selectedValue1 && 
+                            mst0801Array[i]['prod_t_cd2'] === selectedValue2 &&
+                            mst0801Array[i]['prod_t_cd3'] === selectedValue3) {
+                            select4.options[j ++] = new Option(mst0801Array[i]['prod_t_nm'], mst0801Array[i]['prod_t_cd4']);
+                        }
+                    }
+                }
+            }
+
+//            /**
+//             * 
+//             */
+//            function checkShelfBlock(){
+//                var obj1, obj2, obj3;
+//                // ブロック1
+//                obj1 = document.getElementById('shelf_block1_1');
+//                obj2 = document.getElementById('shelf_block1_2');
+//                obj3 = document.getElementById('shelf_block1_3');
+//                if (obj1.value !== "" || obj2.value !== "" || obj3.value !== "") {
+//                    zeroExtension(obj1,3,true);
+//                    zeroExtension(obj2,3,true);
+//                    zeroExtension(obj3,3,true);
+//                }
+//                // ブロック2
+//                obj1 = document.getElementById('shelf_block2_1');
+//                obj2 = document.getElementById('shelf_block2_2');
+//                obj3 = document.getElementById('shelf_block2_3');
+//                if (obj1.value !== "" || obj2.value !== "" || obj3.value !== "") {
+//                    zeroExtension(obj1,3,true);
+//                    zeroExtension(obj2,3,true);
+//                    zeroExtension(obj3,3,true);
+//                }
+//            }
+            
+            /**
+             * 初期表示
+             */
+            function initScreen(){
+
+                // 税区分プルダウンの切替により税率、金額入力欄の属性を変える
+                tax_type_onChange();
+
+                // 折りたたみ
+                document.getElementById('tabPage1').style.display = 'block';
+                document.getElementById('tabPage2').style.display = 'none';
+                document.getElementById('tabPage3').style.display = 'none';
+                //document.getElementById('tabPage4').style.display = 'none';
+                document.getElementById('tabPage5').style.display = 'none';
+//ADDSTR 20201203 kanderu  
+                 document.getElementById('test1').style.display = 'none';
+//ADDEND 20201203 kanderu  
+                document.getElementById('tabLink1').textContent   = 'クリックで隠す▲';
+                document.getElementById('tabLink2').textContent   = 'クリックで展開▼';
+                document.getElementById('tabLink3').textContent   = 'クリックで展開▼';
+                //document.getElementById('tabLink4').textContent   = 'クリックで展開▼';
+               document.getElementById('tabLink5').textContent   = 'クリックで展開▼';
+//ADDSTR 20201203 kanderu               
+                document.getElementById('tabLink6').textContent   = 'クリックで展開▼';
+//ADDEND 20201203 kanderu  
+            }
+
+            /**
+             * 税抜←→税込金額計算
+             */
+            function calcAnotherSalePrice(obj, strProcKbn){
+                // 金額
+                var dmlTotal = Number(obj.value.replace(/,/g, ''));
+                // (商品)税区分
+                var tax_type = document.getElementById('tax_type').value;
+                // (商品)税率
+                var dmlTaxRate = Number(document.getElementById('prod_tax').value);
+                if (tax_type === ''){
+                    // (部門)税区分
+                    tax_type = document.getElementById('sect_tax_type').value;
+                    // (部門)税率
+                    dmlTaxRate = Number(document.getElementById('sect_tax').value);
+                }
+                if (tax_type === '9') {     // 非課税
+                    // 金額をそのまま返却する
+                    return dmlTotal;
+                }
+                // 税額
+                var dmlTaxTotal;
+                // 処理区分
+                if (strProcKbn === '1'){
+                    // 税込より算出
+                    dmlTaxTotal = dmlTotal * dmlTaxRate / (dmlTaxRate + 100);
+                }
+                else{
+                    // 税抜より算出
+                    dmlTaxTotal = dmlTotal * dmlTaxRate / 100;
+                }
+                // 消費税端数処理区分(0:切り捨て/1:四捨五入/2:切り上げ)
+                var strTaxFracKbn = document.getElementById('tax_frac_kbn').value;
+                if (strTaxFracKbn === '0'){
+                    // 切り捨て
+                    dmlTaxTotal = Math.floor(dmlTaxTotal);
+                }
+                else if (strTaxFracKbn === '1'){
+                    // 四捨五入
+                    dmlTaxTotal = Math.round(dmlTaxTotal);
+                }
+                else if (strTaxFracKbn === '2'){
+                    // 切り上げ
+                    dmlTaxTotal = Math.ceil(dmlTaxTotal);
+                }
+                else {
+                    dmlTaxTotal = 0;
+                }
+                // 処理区分
+                if (strProcKbn === '1'){
+                    // 税込より算出：本体価格を返却する
+                    return dmlTotal - dmlTaxTotal;
+                }
+                else{
+                    // 税抜より算出：税込価格を返却する
+                    return dmlTotal + dmlTaxTotal;
+                }
+            }
+
+            /**
+             * 売価(税込)フォーカス喪失時(onBlur)処理
+             * 売価(税抜)を更新する
+             * 税区分 = 内税 or 未設定
+             */
+            function saleprice_onBlur(){
+                document.getElementById('saleprice_ex').value = calcAnotherSalePrice(document.getElementById('saleprice'), '1');
+                checkNumFormat(document.getElementById('saleprice_ex'));
+            }
+
+            /**
+             * 売価(税抜)フォーカス喪失時(onBlur)処理
+             * 売価(税込)を更新する
+             * 税区分 = 外税 or 非課税
+             */
+            function saleprice_ex_onBlur(){
+                document.getElementById('saleprice').value = calcAnotherSalePrice(document.getElementById('saleprice_ex'), '0');
+                checkNumFormat(document.getElementById('saleprice'));
+            }
+
+            /**
+             * 基準売価(税込)フォーカス喪失時(onBlur)処理
+             * 基準売価(税抜)を更新する
+             * 税区分 = 内税 or 未設定
+             */
+            function base_saleprice_onBlur(){
+                document.getElementById('base_saleprice_ex').value = calcAnotherSalePrice(document.getElementById('base_saleprice'), '1');
+                checkNumFormat(document.getElementById('base_saleprice_ex'));
+            }
+
+            /**
+             * 基準売価(税抜)フォーカス喪失時(onBlur)処理
+             * 基準売価(税込)を更新する
+             * 税区分 = 外税 or 非課税
+             */
+            function base_saleprice_ex_onBlur(){
+                document.getElementById('base_saleprice').value = calcAnotherSalePrice(document.getElementById('base_saleprice_ex'), '0');
+                checkNumFormat(document.getElementById('base_saleprice'));
+            }
+
+            /**
+             * 金額下限値(税込)フォーカス喪失時(onBlur)処理
+             * 金額下限値(税抜)を更新する
+             * 税区分 = 内税 or 未設定
+             */
+            function saleprice_limit_onBlur(){
+                document.getElementById('saleprice_ex_limit').value = calcAnotherSalePrice(document.getElementById('saleprice_limit'), '1');
+                checkNumFormat(document.getElementById('saleprice_ex_limit'));
+            }
+
+            /**
+             * 金額下限値(税抜)フォーカス喪失時(onBlur)処理
+             * 金額下限値(税込)を更新する
+             * 税区分 = 外税 or 非課税
+             */
+            function saleprice_ex_limit_onBlur(){
+                document.getElementById('saleprice_limit').value = calcAnotherSalePrice(document.getElementById('saleprice_ex_limit'), '0');
+                checkNumFormat(document.getElementById('saleprice_limit'));
+            }
+
+            /**
+             * 税率フォーカス喪失時(onBlur)処理
+             */
+            function prod_tax_onBlur(obj){
+                // (商品)税区分
+                var tax_type = document.getElementById('tax_type').value;
+                if (tax_type === ''){
+                    // (部門)税区分
+                    tax_type = document.getElementById('sect_tax_type').value;
+                }
+                // 外税 or 非課税：税抜→税込算出
+                if (tax_type === '1' || tax_type === '9'){
+                    // 売価(税込)
+                    saleprice_ex_onBlur();
+                    // 基準価格(税込)
+                    base_saleprice_ex_onBlur();
+                    // 金額下限値(税込)
+                    saleprice_ex_limit_onBlur();
+                }
+                // 内税 or 未設定：税込→税抜算出
+                else {
+                    // 売価(税抜)
+                    saleprice_onBlur();
+                    // 基準価格(税抜)
+                    base_saleprice_onBlur();
+                    // 金額下限値(税抜)
+                    saleprice_limit_onBlur();
+                }
+            }
+                        /**
+            *
+            * スクロール制御
+            *
+            */
+               function SyncScroll(/* elem1, elem2, ... */) {
+                   this._elements = [];
+                   this._elementOnscroll = this._elementOnscroll.bind(this);
+                   this.addElement.apply(this, arguments);
+               }
+               SyncScroll.prototype = {
+                   enableHorizontal: true,
+                   enableVertical: true,
+                   addElement: function (/* elem1, elem2, ... */) {
+                       var elem, i;
+                       for (i = 0; i < arguments.length; i += 1) {
+                           elem = arguments[i];
+                           elem.addEventListener('scroll', this._elementOnscroll, false);
+                           this._elements.push(elem);
+                       }
+                   },
+                   removeElement: function (/* elem1, elem2, ... */) {
+                       var elem, i, j;
+                       for (i = 0; i < arguments.length; i += 1) {
+                           elem = arguments[i];
+                           elem.removeEventListener('scroll', this._elementOnscroll, false);
+                           j = this._elements.indexOf(elem);
+                           if (j >= 0) {
+                               this._elements.splice(j, 1);
+                           }
+                       }
+                   },
+                   _elementOnscroll: function (event) {
+                       var i,
+                           elems = this._elements,
+                           elem = event.target,
+                           x = elem.scrollLeft,
+                           y = elem.scrollTop;
+                       if (this.enableHorizontal) {
+                           for (i = 0; i < elems.length; i += 1) {
+                               elem = elems[i];
+                               if (elem === event.target || elem.scrollLeft === x) {
+                                   continue;
+                               }
+                               elem.scrollLeft = x;
+                               if (elem.scrollLeft !== x) {
+                                   elem.scrollLeft = x + x - elem.scrollLeft;
+                               }
+                           }
+                       }
+
+                   },
+                   destroy: function () {
+                       this.removeElement.apply(this, this._elements);
+                   }
+               }; 
+              window.onload = function () {
+                // 縦方向のみ
+                var sample2_1 = document.getElementById('header_h');
+                var sample2_2 = document.getElementById('test1');
+                var syncScroll2 = new SyncScroll(sample2_1, sample2_2);
+                syncScroll3.enableVertical = false; 
+            }; 
+            //ADDSTR 2020/09/16 kanderu        
+        function catchi (){ 
+        var arr = new Array();
+            $('#maker_cd option').each(function(){
+            arr.push($(this).val());
+            });
+        //console.log(arr)
+        var string = document.getElementById("prod_cd").value;
+        var substring = string.substring(0,7);
+        //console.log(substring);
+            /* check whether the value is exist in array*/
+            for (var i = 0; i < arr.length; i++) {
+            if (arr[i] === substring) {
+                //alert('Value exist');
+                document.getElementById('maker_cd').options[i].selected = true; 
+            }else{
+               //alert('Value exist');
+                document.getElementById('maker_cd').options[i].selected = false; 
+            }   
+        } 
+    }
+//ADDEND 2020/09/02 kanderu
+        </script>
+<!--        ADDSTR KANDERU css-->
+        <style>
+            #test1 {
+               width:100%;
+               overflow-x:scroll;overflow-y:scroll;
+               table-layout: fixed;
+               }
+        </style> 
+        <!--        ADDEND KANDERU css-->
+    </head>
+    <body onload="initScreen()">
+<?php
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site">
+            <!-- パンくずリスト -->
+            <?php include("Common/Breadcrumb.php"); ?>
+
+            <!-- serchButtonArea -->
+            <div class="logicButtonArea">
+                <p align=center>
+                    <input type="button" id="back" name="back" value="戻る" class="return" data-href="index.php?param=Mst0211/show&home=1">
+                </p>
+            </div><!-- /.serchButtonArea -->
+
+            <!-- serchEditArea -->
+            <form id="addForm" name="addForm" method="POST">
+                <!-- 以下、hiddenの値は修正/削除時の条件に使用 -->
+                <input type="hidden" id="token" name="token" value="<?php hsc($TokenID); ?>">
+                <input type="hidden" id="keyOrganizationID" name="keyOrganizationID" value="<?php hsc($mst0211DataList['organization_id']); ?>">
+                <input type="hidden" id="keyProdCode" name="keyProdCode" value="<?php hsc($mst0211DataList['prod_cd']); ?>">
+                <input type="hidden" id="keyChangeDT" name="keyChangeDT" value="<?php hsc($mst0211DataList['change_dt']); ?>">
+                <input type="hidden" id="updateTime" name="updateTime" value="<?php hsc($mst0211DataList['update_time']); ?>">
+                <!-- 以下、hiddenの値は在庫更新に使用 -->
+                <input type="hidden" id="total_stock_amout_load" name="total_stock_amout_load" value="<?php hsc($mst0211DataList['total_stock_amout']); ?>">
+                <input type="hidden" id="fill_amount_load" name="fill_amount_load" value="<?php hsc($mst0211DataList['fill_amount']); ?>">
+                <input type="hidden" id="case_stock_amout_load" name="case_stock_amout_load" value="<?php hsc($mst0211DataList['case_stock_amout']); ?>">
+                <input type="hidden" id="bowl_stock_amout_load" name="bowl_stock_amout_load" value="<?php hsc($mst0211DataList['bowl_stock_amout']); ?>">
+                <input type="hidden" id="piece_stock_amout_load" name="piece_stock_amout_load" value="<?php hsc($mst0211DataList['piece_stock_amout']); ?>">
+                <input type="hidden" id="endmon_amount_load" name="endmon_amount_load" value="<?php hsc($mst0211DataList['endmon_amount']); ?>">
+                <input type="hidden" id="nmondiff_amount_load" name="nmondiff_amount_load" value="<?php hsc($mst0211DataList['nmondiff_amount']); ?>">
+                <input type="hidden" id="emondiff_amount_load" name="emondiff_amount_load" value="<?php hsc($mst0211DataList['emondiff_amount']); ?>">
+                <input type="hidden" id="shop_cd" name="shop_cd" value="<?php hsc($mst0211DataList['shop_cd']); ?>">
+                <!-- 以下、hiddenの値は一覧表の検索条件保持のため、使用 -->
+                <input type="hidden" id="searchOrganizationID" name="searchOrganizationID" value="<?php hsc($_POST['searchOrganizationID']); ?>">
+                <input type="hidden" id="searchProdCode" name="searchProdCode" value="<?php hsc($_POST['searchProdCode']); ?>">
+                <input type="hidden" id="searchsectcd" name="searchsectcd" value="<?php hsc($_POST['searchsectcd']); ?>">
+                <input type="hidden" id="searchProdName" name="searchProdName" value="<?php hsc($_POST['searchProdName']); ?>">
+                <input type="hidden" id="searchProdKana" name="searchProdKana" value="<?php hsc($_POST['searchProdKana']); ?>">
+                <input type="hidden" id="sortConditions" name="sortConditions" value="<?php hsc($_POST['sortConditions']); ?>">
+                <input type="hidden" id="allFlg" name="allFlg" value="<?php hsc($_POST['allFlg']); ?>">
+                <div class="serchEditArea">
+                    <div style="width:900px; margin:0 auto;">
+                        <table style="margin-top:0px; margin-left:0px; margin-bottom:0px; margin-right:auto; table-layout:fixed;">
+                            <tbody>
+                                <tr>
+                                    <td style="width:80px;  height:0px; border-style:none;"></td>
+                                    <td style="width:210px; height:0px; border-style:none;"></td>
+                                    <td style="width:110px; height:0px; border-style:none;"></td>
+                                    <td style="width:120px; height:0px; border-style:none;"></td>
+                                    <td style="width:110px; height:0px; border-style:none;"></td>
+                                    <td style="width:90px;  height:0px; border-style:none;"></td>
+                                    <td style="border-style:none;"></td>
+                                </tr>
+                                 <!-- インジケーター処理 -->
+                                <div id='modal_lording' hidden >
+                                    <div class="css_lording">
+                                        <div class="little_box">
+                                            <div class="loader" >
+                                            </div>
+                                        </div>
+                                        <div class="float_rigth">
+                                             <span id='lording_message'>検索しています。。。。</span><br />お待ちください。。。。
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                
+                                <tr>
+                                    <th>店舗&nbsp;<span style="color:#ff0000;">＊</span></th>
+                                    <td>
+                                        <select title="店舗" id="organization" name="organization" style="width: 200px" onchange="changeOrganization();" required tabindex="1">
+                                            <?php foreach($abbreviatedList as $abbreviated) { ?>
+                                                <?php
+                                                    $selected = '';
+                                                    if($abbreviated['organization_id'] == $mst0211DataList['organization_id']) {
+                                                        $selected = 'selected=""';
+                                                    }
+                                                ?>
+                                                <option value="<?php hsc($abbreviated['organization_id']); ?>" <?php hsc($selected); ?>><?php hsc($abbreviated['abbreviated_name']); ?></option>
+                                            <?php } ?>
+                                        </select>
+                                    </td>
+                                    <th>商品コード&nbsp;<span style="color:#ff0000;">＊</span></th>
+                                    <td>
+                                        <?php
+//                                            $readonly = '';
+//                                            if ($mst0211DataList['prod_cd'] !== '') {
+//                                                $readonly = 'readonly';
+//                                            }
+                                        ?>
+                                        <input type="text" title="商品コード" id="prod_cd" name="prod_cd" pattern="^\d*" oncopy="return true" onpaste="return true" oninput="return checkNumInput(this,13)"  onblur="catchi()" style="width: 110px" maxlength="13" value="<?php hsc($mst0211DataList['prod_cd']); ?>" <?php hsc($readonly); ?> class="En" required tabindex="2">
+                                    </td>
+                                    <th>変更実施日&nbsp;<span style="color:#ff0000;">＊</span></th>
+                                    <td>
+                                        <?php
+                                            $strChangeDT = '';
+//                                            $readonly = '';
+                                            if ($mst0211DataList['change_dt'] !== ''){
+                                                // YYYYMMDD → YYYY/MM/DD
+                                                $strChangeDT = substr($mst0211DataList['change_dt'],0,4).'/'.substr($mst0211DataList['change_dt'],4,2).'/'.substr($mst0211DataList['change_dt'],6,2);
+//                                                $readonly = 'readonly';
+                                            }
+                                        ?>
+                                        <input type="text" title="変更実施日" id="change_dt" name="change_dt" maxlength="10" style="width:80px;" pattern="^(\d{4})/(0[1-9]|1[0-2])/(0[1-9]|[12][0-9]|3[01])$" value="<?php hsc($strChangeDT); ?>" <?php hsc($readonly); ?> class="En" required tabindex="3">
+                                    </td>
+                                    <td style=" virtical-align:middle; border-style:none;"><span style="color:#ff0000;">＊</span> は必須項目です。</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <table style="margin-top:0px; margin-left:0px; margin-bottom:0px; margin-right:auto; table-layout:fixed;">
+                            <tbody>
+                                <tr>
+                                    <td style="width:150px; height:0px; border-style:none;"></td>
+                                    <td style="width:150px; height:0px; border-style:none;"></td>
+                                    <td style="width:150px; height:0px; border-style:none;"></td>
+                                    <td style="width:150px; height:0px; border-style:none;"></td>                                    
+                                    <td style="width:180px; height:0px; border-style:none;"></td>
+                                </tr>
+                                <tr>
+                                    <th>商品カナ</th>
+                                    <td colspan="4">
+                                        <input type="text" title="商品カナ" id="prod_kn" name="prod_kn" pattern="^[\uFF65-\uFF9F\x20-\x26\x28-\x7E]*$" maxlength="40" style="width: 320px" value="<?php hsc($mst0211DataList['prod_kn']); ?>" class="Em"  tabindex="4">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>商品名</th>
+                                    <td colspan="4">
+                                        <input type="text" title="商品名" id="prod_nm" name="prod_nm" pattern="[^\x27]*$" maxlength="50" style="width: 620px" value="<?php hsc($mst0211DataList['prod_nm']); ?>" class="Em" tabindex="5">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>商品カナ（略）</th>
+                                    <td colspan="4">
+                                        <input type="text" title="商品カナ（略）" id="prod_kn_rk" name="prod_kn_rk"  maxlength="15" style="width: 320px" value="<?php hsc($mst0211DataList['prod_kn_rk']); ?>" class="Em" tabindex="6">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>規格容量（カナ）</th>
+                                    <td>
+                                        <input type="text" title="規格容量カナ" id="prod_capa_kn" name="prod_capa_kn" pattern="^[\uFF66-\uFF9D\x20-\x26\x28-\x7E]*$" maxlength="10" style="width: 140px" value="<?php hsc($mst0211DataList['prod_capa_kn']); ?>" class="Em" tabindex="7">
+                                    </td>
+                                    
+                                    <th>規格容量</th>
+                                    <td>
+                                        <input type="text" title="規格容量" id="prod_capa_nm" name="prod_capa_nm" pattern="[^\x27]*$" maxlength="12" style="width: 140px" value="<?php hsc($mst0211DataList['prod_capa_nm']); ?>" class="Em" tabindex="8">
+                                    </td>
+                                    <td style="border-style:none;">&nbsp;</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <?php /*include('Common/SearchMst1201Option.php');*/ ?><!-- tabindex="9" -->
+                        <table style="margin-top:5px; margin-bottom:0px; margin-left:0px; margin-right:auto; table-layout:fixed;">
+                            <tbody>
+                                <tr>
+                                    <th style="width:150px;">部門&nbsp;<span style="color:#ff0000;">＊</span></th>
+                                    <td style="width:350px; border-width:1px 1px 1px 1px;">
+                                        <select title="部門" id="sect_cd" name="sect_cd" style="width:340px;" required  tabindex="9" onchange="sect_cd_onChange(this);">
+                                            <option value=""></option>
+                                        <?php foreach($mst1201DataList as $mst1201) { ?>
+                                            <?php
+                                                $selected = '';
+                                                if ($mst1201['organization_id'] !== $mst0211DataList['organization_id']) {
+                                                    continue;
+                                                }
+                                                if ($mst1201['sect_cd'] == $mst0211DataList['sect_cd']) {
+                                                    $selected = 'selected=""';
+
+                                                    $sect_tax_type  = $mst1201['sect_tax_type'];
+                                                    $sect_tax       = $mst1201['sect_tax'];
+                                                    switch ($sect_tax_type) {
+                                                        case '1':
+                                                            $lbl_sect_tax = '外税（'.number_format($sect_tax).'％）';
+                                                            break;
+                                                        case '2':
+                                                            $lbl_sect_tax = '内税（'.number_format($sect_tax).'％）';
+                                                            break;
+                                                        case '9':
+                                                            $lbl_sect_tax = '非課税';
+                                                            break;
+                                                        default:
+                                                            $lbl_sect_tax = '';
+                                                            break;
+                                                    }
+                                                }
+                                            ?>
+                                            <option value="<?php hsc($mst1201['sect_cd']); ?>" <?php hsc($selected); ?>><?php hsc($mst1201['sect_nm']); ?></option>
+                                        <?php } ?>
+                                        </select>
+                                    </td>
+                                    <td style="width:100px; text-align:center; border-width:1px 1px 1px 1px; color:#FFFFFF; font-weight:bold; background-color:#0D0D70;">
+                                        <div id="lbl_sect_tax" name="lbl_sect_tax"><?php hsc($lbl_sect_tax); ?></div>
+                                    </td>
+                                    <input type="hidden" id="sect_tax_type" name="sect_tax_type" value="<?php hsc($sect_tax_type); ?>">
+                                    <input type="hidden" id="sect_tax" name="sect_tax" value="<?php hsc($sect_tax); ?>">
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <?php /*include('Common/SearchMst1101Option.php');*/ ?><!-- tabindex="10" -->
+                        <table style="margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:auto; table-layout:fixed;">
+                            <tbody>
+                                <tr>
+                                    <th style="width:150px;">仕入先</th>
+                                    <td style="width:350px; border-width:0px 1px 1px 1px;">
+                                        <select title="仕入先" id="supp_cd" name="supp_cd" style="width:340px;" tabindex="10">
+                                            <option value=""></option>
+                                            <?php foreach($mst1101DataList as $mst1101) { ?>
+                                                <?php
+                                                    $selected = '';
+                                                    if ($mst1101['organization_id'] !== $mst0211DataList['organization_id']) {
+                                                        continue;
+                                                    }
+                                                    if ($mst1101['supp_cd'] == $mst0211DataList['head_supp_cd']) {
+                                                        $selected = 'selected=""';
+                                                    }
+                                                ?>
+                                                <option value="<?php hsc($mst1101['supp_cd']); ?>" <?php hsc($selected); ?>><?php hsc($mst1101['supp_nm']); ?></option>
+                                            <?php } ?>
+                                        </select>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <table style="margin-top:0px; margin-left:0px; margin-bottom:15px; margin-right:auto; table-layout:fixed;">
+                            <tbody>
+                                <tr>
+                                    <td style="width:150px; height:0px; border-style:none;"></td>
+                                    <td style="width:100px; height:0px; border-style:none;"></td>
+                                    <td style="width:150px; height:0px; border-style:none;"></td>
+                                    <td style="width:100px; height:0px; border-style:none;"></td>
+                                    <td style="width:10px;  height:0px; border-style:none;"></td>
+                                    <td style="width:150px; height:0px; border-style:none;"></td>
+                                    <td style="width:120px; height:0px; border-style:none;"></td>
+                                </tr>
+                                <tr>
+                                    <th>売価（税込）</th>
+                                    <td>
+                                        <input type="text" title="売価（税込）" id="saleprice" name="saleprice" pattern="^(0|[1-9]\d{0,2}(,\d{3})*(,\d{3})*)$" maxlength="7" oncopy="return false" onpaste="return false" oninput="return checkNumInput(this,7)" onfocus="commaRemove(this)" onblur="checkNumFormat(this); saleprice_onBlur();" style="width: 90px" value="<?php hsc($mst0211DataList['saleprice']); ?>" class="R En" tabindex="11">
+                                    </td>
+                                    <th>原価</th>
+                                    <td>
+                                        <input type="text" title="原価" id="head_costprice" name="head_costprice" pattern="^(0|[1-9]\d{0,2}(,\d{3})*(,\d{3})*)(\.\d{2})$" maxlength="10" oncopy="return false" onpaste="return false" oninput="return checkNumInput(this,10,true)" onfocus="commaRemove(this)" onblur="checkNumFormat(this,true)" style="width: 90px" value="<?php hsc($mst0211DataList['head_costprice']); ?>" class="R En" tabindex="14">
+                                    </td>
+                                    <td style="border-style:none;">&nbsp;</td>
+                                    <td style="border-style:none;">&nbsp;</td>
+                                    <td style="border-style:none;">&nbsp;</td>
+                                </tr>
+                                <tr>
+                                    <th>売価（税抜）</th>
+                                    <td>
+                                        <input type="text" title="売価（税抜）" id="saleprice_ex" name="saleprice_ex" pattern="^(0|[1-9]\d{0,2}(,\d{3})*(,\d{3})*)$" maxlength="7" oncopy="return false" onpaste="return false" oninput="return checkNumInput(this,7)" onfocus="commaRemove(this)" onblur="checkNumFormat(this); saleprice_ex_onBlur();" style="width: 90px" value="<?php hsc($mst0211DataList['saleprice_ex']); ?>" class="R En" tabindex="12">
+                                    </td>
+                                    <th>粗利額</th>
+                                    <td>
+                                        <input type="text" title="粗利額" id="profit" name="profit" style="width: 90px" value="<?php hsc($mst0211DataList['profit']); ?>" class="R En" disabled="">
+                                    </td>
+                                    <td style="border-style:none;">&nbsp;</td>
+                                    <th>賞味期限利用区分</th>
+                                    <td>
+                                        <select title="賞味期限利用区分" id="bb_kbn" name="bb_kbn" style="width: 90px" tabindex="15">
+                                            <?php foreach($selopt_bb_date_kbn as $bb_date_kbn) { ?>
+                                                <?php
+                                                    $selected = '';
+                                                    if ($bb_date_kbn['value'] == $mst0211DataList['bb_date_kbn']) {
+                                                        $selected = 'selected=""';
+                                                    }
+                                                ?>
+                                                <option value="<?php hsc($bb_date_kbn['value']); ?>" <?php hsc($selected); ?>><?php hsc($bb_date_kbn['name']); ?></option>
+                                            <?php } ?>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>会員価格</th>
+                                    <td>
+                                        <input type="text" title="会員価格" id="cust_saleprice" name="cust_saleprice" pattern="^(0|[1-9]\d{0,2}(,\d{3})*(,\d{3})*)$" maxlength="7" oncopy="return false" onpaste="return false" oninput="return checkNumInput(this,7)" onfocus="commaRemove(this)" onblur="checkNumFormat(this)" style="width: 90px" value="<?php hsc($mst0211DataList['cust_saleprice']); ?>" class="R En" tabindex="13">
+                                    </td>
+                                    <th>粗利率</th>
+                                    <td>
+                                        <input type="text" title="粗利率" id="profit_per" name="profit_per" style="width: 90px" value="<?php hsc($mst0211DataList['profit_per']); ?>" class="R En" disabled="">
+                                    </td>
+                                    <td style="border-style:none;">&nbsp;</td>
+                                    <th>賞味期限日数</th>
+                                    <td>
+                                        <input type="text" title="賞味期限日数" id="bb_days" name="bb_days" pattern="^(0|[1-9](,\d{3}|\d{0,2})*)$" maxlength="4" oncopy="return false" onpaste="return false" oninput="return checkNumInput(this,4)" onfocus="commaRemove(this)" onblur="checkNumFormat(this)" style="width: 90px" value="<?php hsc($mst0211DataList['bb_days']); ?>" class="R En" tabindex="16">
+                                    </td>
+                            </tbody>
+                        </table>
+                        <!-- 折りたたみ展開ボタン -->
+                        <div onclick="obj=document.getElementById('tabPage1').style; obj.display=(obj.display=='none')?'block':'none'; document.getElementById('tabLink1').textContent=(obj.display=='none')?'クリックで展開▼':'クリックで隠す▲';">
+                            【価格関連】<a style="cursor:pointer;"><span id="tabLink1"></span></a>
+                        </div>
+                        <!--// 折りたたみ展開ボタン -->
+                        <!-- ここから先を折りたたむ -->
+                        <div id="tabPage1" style="display:none;clear:both;">
+                            <table style="margin-top:0px; margin-left:0px; margin-bottom:15px; margin-right:auto; table-layout:fixed;">
+                                <tbody>
+                                    <tr>
+                                        <td style="width:150px; height:0px; border-style:none;"></td>
+                                        <td style="width:100px; height:0px; border-style:none;"></td>
+                                        <td style="width:10px;  height:0px; border-style:none;"></td>
+                                        <td style="width:150px; height:0px; border-style:none;"></td>
+                                        <td style="width:130px; height:0px; border-style:none;"></td>
+                                        <td style="width:10px;  height:0px; border-style:none;"></td>
+                                        <td style="width:80px;  height:0px; border-style:none;"></td>
+                                        <td style="width:100px; height:0px; border-style:none;"></td>
+                                        <td style="width:30px;  height:0px; border-style:none;"></td>
+                                        <td style="width:100px; height:0px; border-style:none;"></td>
+                                    </tr>
+                                    <tr>
+                                        <th>基準価格（税込）</th>
+                                        <td>
+                                            <input type="text" title="基準価格（税込）" id="base_saleprice" name="base_saleprice" pattern="^(0|[1-9]\d{0,2}(,\d{3})*(,\d{3})*)$" maxlength="7" oncopy="return false" onpaste="return false" oninput="return checkNumInput(this,7)" onfocus="commaRemove(this)" onblur="checkNumFormat(this); base_saleprice_onBlur();" style="width: 90px" value="<?php hsc($mst0211DataList['base_saleprice']); ?>" class="R En" tabindex="17">
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <th>指定商品区分</th>
+                                        <td>
+                                            <select title="指定商品区分" id="appo_prod_kbn" name="appo_prod_kbn" style="width:90px;" tabindex="26">
+                                                <?php foreach($selopt_appo_prod_kbn as $appo_prod_kbn) { ?>
+                                                    <?php
+                                                        $selected = '';
+                                                        if ($appo_prod_kbn['value'] == $mst0211DataList['appo_prod_kbn']) {
+                                                            $selected = 'selected=""';
+                                                        }
+                                                    ?>
+                                                    <option value="<?php hsc($appo_prod_kbn['value']); ?>" <?php hsc($selected); ?>><?php hsc($appo_prod_kbn['name']); ?></option>
+                                                <?php } ?>
+                                            </select>
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <th colspan="4">簡易特売1</th>
+                                    </tr>
+                                    <tr>
+                                        <th>基準価格（税抜）</th>
+                                        <td>
+                                            <input type="text" title="基準価格（税抜）" id="base_saleprice_ex" name="base_saleprice_ex" pattern="^(0|[1-9]\d{0,2}(,\d{3})*(,\d{3})*)$" maxlength="7" oncopy="return false" onpaste="return false" oninput="return checkNumInput(this,7)" onfocus="commaRemove(this)" onblur="checkNumFormat(this); base_saleprice_ex_onBlur();" style="width: 90px" value="<?php hsc($mst0211DataList['base_saleprice_ex']); ?>" class="R En" tabindex="18">
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <th>指定医薬品区分</th>
+                                        <td>
+                                            <select title="指定医薬品区分" id="appo_medi_kbn" name="appo_medi_kbn" style="width:90px;" tabindex="27">
+                                                <?php foreach($selopt_appo_medi_kbn as $appo_medi_kbn) { ?>
+                                                    <?php
+                                                        $selected = '';
+                                                        if ($appo_medi_kbn['value'] == $mst0211DataList['appo_medi_kbn']) {
+                                                            $selected = 'selected=""';
+                                                        }
+                                                    ?>
+                                                    <option value="<?php hsc($appo_medi_kbn['value']); ?>" <?php hsc($selected); ?>><?php hsc($appo_medi_kbn['name']); ?></option>
+                                                <?php } ?>
+                                            </select>
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <th>期間</th>
+                                        <td>
+                                            <input type="text" pattern="\d{4}/\d{2}/\d{2}" title="簡易特売1期間（開始）" id="smp1_str_dt" name="smp1_str_dt" maxlength="10" oncopy="return false" onpaste="return false" oninput="return checkDateInput(this,10)" onblur="checkDateFormat(this)" style="width:80px" value="<?php hsc($mst0211DataList['smp1_str_dt']); ?>" tabindex="37">
+                                        </td>
+                                        <th>～</th>
+                                        <td>
+                                            <input type="text" pattern="\d{4}/\d{2}/\d{2}" title="簡易特売1期間（修了）" id="smp1_end_dt" name="smp1_end_dt" maxlength="10" oncopy="return false" onpaste="return false" oninput="return checkDateInput(this,10)" onblur="checkDateFormat(this)" style="width:80px" value="<?php hsc($mst0211DataList['smp1_end_dt']); ?>" tabindex="38">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>契約単価</th>
+                                        <td>
+                                            <input type="text" title="契約単価" id="contract_price" name="contract_price" pattern="^(0|[1-9]\d{0,2}(,\d{3})*(,\d{3})*)(\.\d{2})$" maxlength="10" oncopy="return false" onpaste="return false" oninput="return checkNumInput(this,7,true)" onfocus="commaRemove(this)" onblur="checkNumFormat(this,true)" style="width: 90px" value="<?php hsc($mst0211DataList['contract_price']); ?>" class="R En" tabindex="19">
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <th>税区分</th>
+                                        <td>
+                                            <select title="税区分" id="tax_type" name="tax_type" style="width:90px;" onChange="tax_type_onChange();" tabindex="28">
+                                                <?php foreach($selopt_tax_type as $tax_type) { ?>
+                                                    <?php
+                                                        $selected = '';
+                                                        if ($tax_type['value'] == $mst0211DataList['tax_type']) {
+                                                            $selected = 'selected=""';
+                                                        }
+                                                    ?>
+                                                    <option value="<?php hsc($tax_type['value']); ?>" <?php hsc($selected); ?>><?php hsc($tax_type['name']); ?></option>
+                                                <?php } ?>
+                                            </select>
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <th>売価</th>
+                                        <td>
+                                            <input type="text" title="簡易特売1売価" id="smp1_saleprice" name="smp1_saleprice" pattern="^(0|[1-9]\d{0,2}(,\d{3})*(,\d{3})*)$" maxlength="7" oncopy="return false" onpaste="return false" oninput="return checkNumInput(this,7)" onfocus="commaRemove(this)" onblur="checkNumFormat(this)" style="width: 90px" value="<?php hsc($mst0211DataList['smp1_saleprice']); ?>" class="R En" tabindex="39">
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                    </tr>
+                                    <tr>
+                                        <th>転送単価</th>
+                                        <td>
+                                            <input type="text" title="転送単価" id="shop_costprice" name="shop_costprice" pattern="^(0|[1-9]\d{0,2}(,\d{3})*(,\d{3})*)$" maxlength="7" oncopy="return false" onpaste="return false" oninput="return checkNumInput(this,7)" onfocus="commaRemove(this)" onblur="checkNumFormat(this)" style="width: 90px" value="<?php hsc($mst0211DataList['shop_costprice']); ?>" class="R En" tabindex="20">
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <th>税率</th>
+                                        <td>
+                                            <input type="text" title="税率" id="prod_tax" name="prod_tax" pattern="^(0|[1-9]\d{0,2})(\.\d{2})$" maxlength="6" oncopy="return false" onpaste="return false" oninput="return checkNumInput(this,6,true)" onblur="checkNumFormat(this,true); prod_tax_onBlur(this);" style="width:90px" value="<?php hsc($mst0211DataList['prod_tax']); ?>" class="R En" tabindex="29">
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <th>会員売価</th>
+                                        <td>
+                                            <input type="text" title="簡易特売1会員売価" id="smp1_cust_saleprice" name="smp1_cust_saleprice" pattern="^(0|[1-9]\d{0,2}(,\d{3})*(,\d{3})*)$" maxlength="7" oncopy="return false" onpaste="return false" oninput="return checkNumInput(this,7)" onfocus="commaRemove(this)" onblur="checkNumFormat(this)" style="width: 90px" value="<?php hsc($mst0211DataList['smp1_cust_saleprice']); ?>" class="R En" tabindex="40">
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                    </tr>
+                                    <tr>
+                                        <th>定価</th>
+                                        <td>
+                                            <input type="text" title="定価" id="fixeprice" name="fixeprice" pattern="^(0|[1-9]\d{0,2}(,\d{3})*(,\d{3})*)$" maxlength="7" oncopy="return false" onpaste="return false" oninput="return checkNumInput(this,7)" onfocus="commaRemove(this)" onblur="checkNumFormat(this)" style="width: 90px" value="<?php hsc($mst0211DataList['fixeprice']); ?>" class="R En" tabindex="21">
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <th>ｽｲｯﾁOTC薬控除</th>
+                                        <td>
+                                            <select title="ｽｲｯﾁOTC薬控除" id="switch_otc_kbn" name="switch_otc_kbn" style="width:90px;" tabindex="30">
+                                                <?php foreach($selopt_switch_otc_kbn as $switch_otc_kbn) { ?>
+                                                    <?php
+                                                        $selected = '';
+                                                        if ($switch_otc_kbn['value'] == $mst0211DataList['switch_otc_kbn']) {
+                                                            $selected = 'selected=""';
+                                                        }
+                                                    ?>
+                                                    <option value="<?php hsc($switch_otc_kbn['value']); ?>" <?php hsc($selected); ?>><?php hsc($switch_otc_kbn['name']); ?></option>
+                                                <?php } ?>
+                                            </select>
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <th>原価</th>
+                                        <td>
+                                            <input type="text" title="簡易特売1原価" id="smp1_costprice" name="smp1_costprice" pattern="^(0|[1-9]\d{0,2}(,\d{3})*(,\d{3})*)(\.\d{2})$" maxlength="10" oncopy="return false" onpaste="return false" oninput="return checkNumInput(this,10,true)" onfocus="commaRemove(this)" onblur="checkNumFormat(this,true)" style="width: 90px" value="<?php hsc($mst0211DataList['smp1_costprice']); ?>" class="R En" tabindex="41">
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                    </tr>
+                                    <tr>
+                                        <th>特殊定価1</th>
+                                        <td>
+                                            <input type="text" title="特殊定価1" id="spcl_saleprice1" name="spcl_saleprice1" pattern="^(0|[1-9]\d{0,2}(,\d{3})*(,\d{3})*)$" maxlength="7" oncopy="return false" onpaste="return false" oninput="return checkNumInput(this,7)" onfocus="commaRemove(this)" onblur="checkNumFormat(this)" style="width: 90px" value="<?php hsc($mst0211DataList['spcl_saleprice1']); ?>" class="R En" tabindex="22">
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <th>リスク分類</th>
+                                        <td>
+                                            <select title="リスク分類" id="risk_type_kbn" name="risk_type_kbn" style="width:120px;" tabindex="31">
+                                                <?php foreach($selopt_risk_type_kbn as $risk_type_kbn) { ?>
+                                                    <?php
+                                                        $selected = '';
+                                                        if ($risk_type_kbn['value'] == $mst0211DataList['risk_type_kbn']) {
+                                                            $selected = 'selected=""';
+                                                        }
+                                                    ?>
+                                                    <option value="<?php hsc($risk_type_kbn['value']); ?>" <?php hsc($selected); ?>><?php hsc($risk_type_kbn['name']); ?></option>
+                                                <?php } ?>
+                                            </select>
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <th>得点区分</th>
+                                        <td>
+                                            <select title="簡易特売1得点区分" id="smp1_point_kbn" name="smp1_point_kbn" style="width:90px;" tabindex="42">
+                                                <?php foreach($selopt_point_kbn as $point_kbn) { ?>
+                                                    <?php
+                                                        $selected = '';
+                                                        if ($point_kbn['value'] == $mst0211DataList['smp1_point_kbn']) {
+                                                            $selected = 'selected=""';
+                                                        }
+                                                    ?>
+                                                    <option value="<?php hsc($point_kbn['value']); ?>" <?php hsc($selected); ?>><?php hsc($point_kbn['name']); ?></option>
+                                                <?php } ?>
+                                            </select>
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                    </tr>
+                                    <tr>
+                                        <th>特殊定価2</th>
+                                        <td>
+                                            <input type="text" title="特殊定価2" id="spcl_saleprice2" name="spcl_saleprice1" pattern="^(0|[1-9]\d{0,2}(,\d{3})*(,\d{3})*)$" maxlength="7" oncopy="return false" onpaste="return false" oninput="return checkNumInput(this,7)" onfocus="commaRemove(this)" onblur="checkNumFormat(this)" style="width: 90px" value="<?php hsc($mst0211DataList['spcl_saleprice2']); ?>" class="R En" tabindex="23">
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <th>返品不可区分</th>
+                                        <td>
+                                            <select title="返品不可区分" id="noreturn_kbn" name="noreturn_kbn" style="width:90px;" tabindex="32">
+                                                <?php foreach($selopt_noreturn_kbn as $noreturn_kbn) { ?>
+                                                    <?php
+                                                        $selected = '';
+                                                        if ($noreturn_kbn['value'] == $mst0211DataList['noreturn_kbn']) {
+                                                            $selected = 'selected=""';
+                                                        }
+                                                    ?>
+                                                    <option value="<?php hsc($noreturn_kbn['value']); ?>" <?php hsc($selected); ?>><?php hsc($noreturn_kbn['name']); ?></option>
+                                                <?php } ?>
+                                            </select>
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <th colspan="4">簡易特売2</th>
+                                    </tr>
+                                    <tr>
+                                        <th>金額下限値（税込）</th>
+                                        <td>
+                                            <input type="text" title="金額下限値（税込）" id="saleprice_limit" name="saleprice_limit" pattern="^(0|[1-9]\d{0,2}(,\d{3})*(,\d{3})*)$" maxlength="7" oncopy="return false" onpaste="return false" oninput="return checkNumInput(this,7)" onfocus="commaRemove(this)" onblur="checkNumFormat(this); saleprice_limit_onBlur();" style="width: 90px" value="<?php hsc($mst0211DataList['saleprice_limit']); ?>" class="R En" tabindex="24">
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <th>値引不可区分</th>
+                                        <td>
+                                            <select title="値引不可区分" id="disc_not_kbn" name="disc_not_kbn" style="width:90px;" tabindex="33">
+                                                <?php foreach($selopt_disc_not_kbn as $disc_not_kbn) { ?>
+                                                    <?php
+                                                        $selected = '';
+                                                        if ($disc_not_kbn['value'] == $mst0211DataList['disc_not_kbn']) {
+                                                            $selected = 'selected=""';
+                                                        }
+                                                    ?>
+                                                    <option value="<?php hsc($disc_not_kbn['value']); ?>" <?php hsc($selected); ?>><?php hsc($disc_not_kbn['name']); ?></option>
+                                                <?php } ?>
+                                            </select>
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <th>期間</th>
+                                        <td>
+                                            <input type="text" pattern="\d{4}/\d{2}/\d{2}" title="簡易特売2期間（開始）" id="smp2_str_dt" name="smp2_str_dt" maxlength="10" oncopy="return false" onpaste="return false" oninput="return checkDateInput(this,10)" onblur="checkDateFormat(this)" style="width:80px" value="<?php hsc($mst0211DataList['smp2_str_dt']); ?>" tabindex="43">
+                                        </td>
+                                        <th>～</th>
+                                        <td>
+                                            <input type="text" pattern="\d{4}/\d{2}/\d{2}" title="簡易特売2期間（修了）" id="smp2_end_dt" name="smp2_end_dt" maxlength="10" oncopy="return false" onpaste="return false" oninput="return checkDateInput(this,10)" onblur="checkDateFormat(this)" style="width:80px" value="<?php hsc($mst0211DataList['smp2_end_dt']); ?>" tabindex="44">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>金額下限値（税抜）</th>
+                                        <td>
+                                            <input type="text" title="金額下限値（税抜）" id="saleprice_ex_limit" name="saleprice_ex_limit" pattern="^(0|[1-9]\d{0,2}(,\d{3})*(,\d{3})*)$" maxlength="7" oncopy="return false" onpaste="return false" oninput="return checkNumInput(this,7)" onfocus="commaRemove(this)" onblur="checkNumFormat(this); saleprice_ex_limit_onBlur();" style="width: 90px" value="<?php hsc($mst0211DataList['saleprice_ex_limit']); ?>" class="R En" tabindex="25">
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <th>得点区分</th>
+                                        <td>
+                                            <select title="得点区分" id="point_kbn" name="point_kbn" style="width:90px;" tabindex="34">
+                                                <?php foreach($selopt_point_kbn as $point_kbn) { ?>
+                                                    <?php
+                                                        $selected = '';
+                                                        if ($point_kbn['value'] == $mst0211DataList['point_kbn']) {
+                                                            $selected = 'selected=""';
+                                                        }
+                                                    ?>
+                                                    <option value="<?php hsc($point_kbn['value']); ?>" <?php hsc($selected); ?>><?php hsc($point_kbn['name']); ?></option>
+                                                <?php } ?>
+                                            </select>
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <th>売価</th>
+                                        <td>
+                                            <input type="text" title="簡易特売2売価" id="smp2_saleprice" name="smp2_saleprice" pattern="^(0|[1-9]\d{0,2}(,\d{3})*(,\d{3})*)$" maxlength="7" oncopy="return false" onpaste="return false" oninput="return checkNumInput(this,7)" onfocus="commaRemove(this)" onblur="checkNumFormat(this)" style="width: 90px" value="<?php hsc($mst0211DataList['smp2_saleprice']); ?>" class="R En" tabindex="45">
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                    </tr> 
+                                    <tr>
+                                        <td colspan="2" style="border-style:none;">&nbsp;</td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <th>付与得点</th>
+                                        <td>
+                                            <input type="text" title="付与得点" id="p_calc_prod_point" name="p_calc_prod_point" pattern="^(0|[1-9](,\d{3}|\d{0,2})*)$" maxlength="4" oncopy="return false" onpaste="return false" oninput="return checkNumInput(this,4)" onfocus="commaRemove(this)" onblur="checkNumFormat(this)" style="width: 90px" value="<?php hsc($mst0211DataList['p_calc_prod_point']); ?>" class="R En" tabindex="35">
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <th>会員売価</th>
+                                        <td>
+                                            <input type="text" title="簡易特売2会員売価" id="smp2_cust_saleprice" name="smp2_cust_saleprice" pattern="^(0|[1-9]\d{0,2}(,\d{3})*(,\d{3})*)$" maxlength="7" oncopy="return false" onpaste="return false" oninput="return checkNumInput(this,4)" onfocus="commaRemove(this)" onblur="checkNumFormat(this)" style="width: 90px" value="<?php hsc($mst0211DataList['smp2_cust_saleprice']); ?>" class="R En" tabindex="46">
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2" style="border-style:none;">&nbsp;</td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <th>付与金額</th>
+                                        <td>
+                                            <input type="text" title="付与金額" id="p_calc_prod_money" name="p_calc_prod_money" pattern="^(0|[1-9](,\d{3}|\d{0,2})*)$" maxlength="4" oncopy="return false" onpaste="return false" oninput="return checkNumInput(this,4)" onfocus="commaRemove(this)" onblur="checkNumFormat(this)" style="width: 90px" value="<?php hsc($mst0211DataList['p_calc_prod_money']); ?>" class="R En" tabindex="36">
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <th>原価</th>
+                                        <td>
+                                            <input type="text" title="簡易特売2原価" id="smp2_costprice" name="smp2_costprice" pattern="^(0|[1-9]\d{0,2}(,\d{3})*(,\d{3})*)(\.\d{2})$" maxlength="7" oncopy="return false" onpaste="return false" oninput="return checkNumInput(this,7,true)" onfocus="commaRemove(this)" onblur="checkNumFormat(this,true)" style="width: 90px" value="<?php hsc($mst0211DataList['smp2_costprice']); ?>" class="R En" tabindex="47">
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="6" style="border-style:none;">&nbsp;</td>
+                                        <th>得点区分</th>
+                                        <td>
+                                            <select title="簡易特売2得点区分" id="smp2_point_kbn" name="smp2_point_kbn" style="width:90px;" tabindex="48">
+                                                <?php foreach($selopt_point_kbn as $point_kbn) { ?>
+                                                    <?php
+                                                        $selected = '';
+                                                        if ($point_kbn['value'] == $mst0211DataList['smp2_point_kbn']) {
+                                                            $selected = 'selected=""';
+                                                        }
+                                                    ?>
+                                                    <option value="<?php hsc($point_kbn['value']); ?>" <?php hsc($selected); ?>><?php hsc($point_kbn['name']); ?></option>
+                                                <?php } ?>
+                                            </select>
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- 折りたたみ展開ボタン -->
+                        <div onclick="obj=document.getElementById('tabPage2').style; obj.display=(obj.display=='none')?'block':'none'; document.getElementById('tabLink2').textContent=(obj.display=='none')?'クリックで展開▼':'クリックで隠す▲';">
+                            【発注関連】<a style="cursor:pointer;"><span id="tabLink2"></span></a>
+                        </div>
+                        <!--// 折りたたみ展開ボタン -->
+                        <!-- ここから先を折りたたむ -->
+                        <div id="tabPage2" style="display:none;clear:both;">
+                            <table style="margin-top:0px; margin-left:0px; margin-bottom:15px; margin-right:auto; table-layout:fixed;">
+                                <tbody>
+                                    <tr>
+                                        <td style="width:150px; height:0px; border-style:none;"></td>
+                                        <td style="width:100px; height:0px; border-style:none;"></td>
+                                        <td style="width:10px;  height:0px; border-style:none;"></td>
+                                        <td style="width:150px; height:0px; border-style:none;"></td>
+                                        <td style="width:100px; height:0px; border-style:none;"></td>
+                                        <td style="width:10px;  height:0px; border-style:none;"></td>
+                                        <td style="width:180px; height:0px; border-style:none;"></td>
+                                        <td style="width:100px; height:0px; border-style:none;"></td>
+                                    </tr>
+                                    <tr>
+                                        <th>発注点</th>
+                                        <td>
+                                            <input type="text" title="発注点" id="just_stock_amout" name="just_stock_amout" pattern="^(0|[1-9]\d{0,1}(,\d{3})*)$" maxlength="5" oncopy="return false" onpaste="return false" oninput="return checkNumInput(this,5)" onfocus="commaRemove(this)" onblur="checkNumFormat(this)" style="width: 90px" value="<?php hsc($mst0211DataList['just_stock_amout']); ?>" class="R En" tabindex="49">
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <th>発注ロット</th>
+                                        <td>
+                                            <input type="text" title="発注ロット" id="order_lot" name="order_lot" pattern="^(0|[1-9]\d{0,1}(,\d{3})*)$" maxlength="5" oncopy="return false" onpaste="return false" oninput="return checkNumInput(this,5)" onfocus="commaRemove(this)" onblur="checkNumFormat(this)" style="width: 90px" value="<?php hsc($mst0211DataList['order_lot']); ?>" class="R En" tabindex="52">
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <th>返品ロット</th>
+                                        <td>
+                                            <input type="text" title="返品ロット" id="return_lot" name="return_lot" pattern="^(0|[1-9]\d{0,1}(,\d{3})*)$" maxlength="5" oncopy="return false" onpaste="return false" oninput="return checkNumInput(this,5)" onfocus="commaRemove(this)" onblur="checkNumFormat(this)" style="width: 90px" value="<?php hsc($mst0211DataList['return_lot']); ?>" class="R En" tabindex="52">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>発注停止区分</th>
+                                        <td>
+                                            <select title="発注停止区分" id="order_stop_kbn" name="order_stop_kbn" style="width:90px;" tabindex="50">
+                                                <?php foreach($selopt_order_stop_kbn as $order_stop_kbn) { ?>
+                                                    <?php
+                                                        $selected = '';
+                                                        if ($order_stop_kbn['value'] == $mst0211DataList['order_stop_kbn']) {
+                                                            $selected = 'selected=""';
+                                                        }
+                                                    ?>
+                                                    <option value="<?php hsc($order_stop_kbn['value']); ?>" <?php hsc($selected); ?>><?php hsc($order_stop_kbn['name']); ?></option>
+                                                <?php } ?>
+                                            </select>
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <th>入数</th>
+                                        <td>
+                                            <input type="text" title="入数" id="case_piece" name="case_piece" style="width:90px" maxlength="4" pattern="^(0|[1-9](,\d{3}|\d{0,2})*)$" oncopy="return false" onpaste="return false" oninput="return checkNumInput(this,4)" onfocus="commaRemove(this)" onblur="checkNumFormat(this)" value="<?php hsc($mst0211DataList['case_piece']); ?>" class="R En" tabindex="53">
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <th>直送区分</th>
+                                        <td>
+                                            <select title="直送区分" id="resale_kbn" name="resale_kbn" style="width:90px;" tabindex="50">
+                                                <?php foreach($selopt_resale_kbn as $resale_kbn) { ?>
+                                                    <?php
+                                                        $selected = '';
+                                                        if ($resale_kbn['value'] == $mst0211DataList['resale_kbn']) {
+                                                            $selected = 'selected=""';
+                                                        }
+                                                    ?>
+                                                    <option value="<?php hsc($resale_kbn['value']); ?>" <?php hsc($selected); ?>><?php hsc($resale_kbn['name']); ?></option>
+                                                <?php } ?>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>自動発注区分</th>
+                                        <td>
+                                            <select title="自動発注区分" id="auto_order_kbn" name="auto_order_kbn" style="width:90px;" tabindex="51">
+                                                <?php foreach($selopt_auto_order_kbn as $auto_order_kbn) { ?>
+                                                    <?php
+                                                        $selected = '';
+                                                        if ($auto_order_kbn['value'] == $mst0211DataList['auto_order_kbn']) {
+                                                            $selected = 'selected=""';
+                                                        }
+                                                    ?>
+                                                    <option value="<?php hsc($auto_order_kbn['value']); ?>" <?php hsc($selected); ?>><?php hsc($auto_order_kbn['name']); ?></option>
+                                                <?php } ?>
+                                            </select>
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <th>ケース原価</th>
+                                        <td>
+                                            <input type="text" title="ケース原価" id="case_costprice" name="case_costprice" pattern="^(0|[1-9]\d{0,2}(,\d{3})*(,\d{3})*)(\.\d{2})$" maxlength="10" oncopy="return false" onpaste="return false" oninput="return checkNumInput(this,10,true)" onfocus="commaRemove(this)" onblur="checkNumFormat(this,true)" style="width: 90px" value="<?php hsc($mst0211DataList['case_costprice']); ?>" class="R En" tabindex="54">
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        
+                                    </tr>
+                                    
+<!--                                    ADDSTR kanderu 直送区分一時的に封印
+                                        <tr>
+                                        <th>直送区分</th>
+                                        <td>
+                                        <select title="得点区分" id="dir_del_kbn" name="point_kbn" style="width:90px; height:20px;" tabindex="34">
+                                    <?php foreach($direct_kbn as $dir_del_kbn) { ?>
+                                        <?php
+                                            $selected = '';
+                                            if ($dir_del_kbn['value'] == $mst0211DataList['dir_del_kbn']) {
+                                                $selected = 'selected=""';
+                                            }
+                                        ?>
+                                        <option value="<?php hsc($dir_del_kbn['value']); ?>" <?php hsc($selected); ?>><?php hsc($dir_del_kbn['name']); ?></option>
+                                    <?php } ?>
+                                        </select>
+                                        </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                         <th>特売区分</th>
+                                    <td>
+                                     <select title="得点区分" id="sale_kbn" name="point_kbn" style="width:90px; height:20px;" tabindex="34">
+                                    <?php foreach($sale_kbn as $salekbn) { ?>
+                                        <?php
+                                            $selected = '';
+                                            if ($salekbn['value'] == $mst0211DataList['sale_kbn']) {
+                                                $selected = 'selected=""';
+                                            }
+                                        ?>
+                                        <option value="<?php hsc($salekbn['value']); ?>" <?php hsc($selected); ?>><?php hsc($salekbn['name']); ?></option>
+                                    <?php } ?>
+                                      </select>
+                                    </td>
+                                        <td style="border-style:none;">&nbsp;</td>
+                                        <td style="border-style:none;">&nbsp;</td>  
+                                    </tr>
+ <!--                                    ADDend kanderu 直送区分-->
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- 折りたたみ展開ボタン -->
+                        <div onclick="obj=document.getElementById('tabPage3').style; obj.display=(obj.display=='none')?'block':'none'; document.getElementById('tabLink3').textContent=(obj.display=='none')?'クリックで展開▼':'クリックで隠す▲';">
+                            【その他情報1】<a style="cursor:pointer;"><span id="tabLink3"></span></a>
+                        </div>
+                        <!--// 折りたたみ展開ボタン -->
+                        <!-- ここから先を折りたたむ -->
+                        <div id="tabPage3" style="display:none;clear:both;">
+                            <table style="margin-top:0px; margin-left:0px; margin-bottom:15px; margin-right:auto; table-layout:fixed;">
+                                <tbody>
+                                    <tr>
+                                        <td style="width:150px; height:0px; border-style:none;"></td>
+                                        <td style="width:750px; height:0px; border-style:none;"></td>
+                                    </tr>
+                                    <tr>
+                                        <th>商品コメント</th>
+                                        <td>
+                                            <input type="text" title="商品コメント" id="prod_comment" name="prod_comment" style="width:740px" maxlength="100" value="<?php hsc($mst0211DataList['prod_comment']); ?>" class="Em" tabindex="55">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>販売トークフラグ</th>
+                                        <td>
+                                            <?php $checked = $mst0211DataList['sales_talk_kbn'] === '1' ? 'checked=checked' : ''; ?>
+                                            &nbsp;<input type="radio" id="sales_talk_kbn" name="sales_talk_kbn" value="1" <?php hsc($checked); ?> tabindex="56">表示
+                                            <?php $checked = $mst0211DataList['sales_talk_kbn'] !== '1' ? 'checked=checked' : ''; ?>
+                                            &nbsp;<input type="radio" id="sales_talk_kbn" name="sales_talk_kbn" value="0" <?php hsc($checked); ?> tabindex="56">非表示
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>販売トーク</th>
+                                        <td>
+                                            <textarea id="sales_talk" name="sales_talk" style="width:740px; height:50px;" class="Em" tabindex="57"><?php hsc($mst0211DataList['sales_talk']); ?></textarea>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- 折りたたみ展開ボタン -->
+                        <div onclick="obj=document.getElementById('tabPage5').style; obj.display=(obj.display=='none')?'block':'none'; document.getElementById('tabLink5').textContent=(obj.display=='none')?'クリックで展開▼':'クリックで隠す▲';">
+                            【商品区分】<a style="cursor:pointer;"><span id="tabLink5"></span></a>
+                        </div>
+                        <!--// 折りたたみ展開ボタン -->
+                        <!-- ここから先を折りたたむ -->
+                        <div id="tabPage5" style="display:none;clear:both;">
+                            <table style="margin-top:0px; margin-left:0px; margin-bottom:15px; margin-right:auto; table-layout:fixed;">
+                                <tbody>
+                                    <tr>
+                                        <td style="width:410px; height:0px; border-style:none;"></td>
+                                        <td style="width:10px;  height:0px; border-style:none;"></td>
+                                        <td style="width:410px; height:0px; border-style:none;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="border-style:none; vertical-align:top; margin-top:0;">
+                                            <?php /*include('Common/SearchMstProdKbnOption.php');*/ ?>
+                                            <table style="margin-top:0; margin-left:0; margin-bottom:0; margin-right:0; table-layout:fixed;">
+                                                <tbody>
+                                                    <tr>
+                                                        <td style="width:150px; height:0px; border-style:none;"></td>
+                                                        <td style="width:160px; height:0px; border-style:none;"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>自社分類</th>
+                                                        <td>
+                                                            <select title="自社分類コード" id="priv_class_cd" name="priv_class_cd" style="width:90px;" tabindex="58">
+                                                                <option value=""></option>
+                                                                <?php foreach($mst5501DataList as $mst5501) { ?>
+                                                                <?php
+                                                                $selected = '';
+                                                                if ($mst5501['organization_id'] !== $productmasterDataList['organization_id']) {
+                                                                continue;
+                                                                }
+                                                                if ($mst5501['priv_class_cd'] == $productmasterDataList['priv_class_cd']) {
+                                                                $selected = 'selected=""';
+                                                                }
+                                                                ?>
+                                                                <option value="<?php hsc($mst5501['priv_class_cd']); ?>" <?php hsc($selected); ?>><?php hsc($mst5501['priv_class_nm']); ?></option>
+                                                                <?php } ?>
+                                                            </select>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>メーカー</th>
+                                                        <td>
+                                                            <select title="メーカーコード" id="maker_cd" name="maker_cd" style="width:90px;" tabindex="59">
+                                                                <option value=""></option>
+                                                                <?php foreach($mst1001DataList as $mst1001) { ?>
+                                                                    <?php
+                                                                        $selected = '';
+                                                                        if ($mst1001['organization_id'] !== $mst0211DataList['organization_id']) {
+                                                                            continue;
+                                                                        }
+                                                                        if ($mst1001['maker_cd'] == $mst0211DataList['maker_cd']) {
+                                                                            $selected = 'selected=""';
+                                                                        }
+                                                                    ?>
+                                                                    <option value="<?php hsc($mst1001['maker_cd']); ?>" <?php hsc($selected); ?>><?php hsc($mst1001['maker_nm']); ?></option>
+                                                                <?php } ?>
+                                                            </select>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>JICFS分類</th>
+                                                        <td>
+                                                            <select title="JICFS分類コード" id="jicfs_class_cd" name="jicfs_class_cd" style="width:250px;" tabindex="60">
+                                                                <option value=""></option>
+                                                                <?php foreach($mst5401DataList as $mst5401) { ?>
+                                                                    <?php
+                                                                        $selected = '';
+                                                                        if ($mst5401['organization_id'] !== $mst0211DataList['organization_id']) {
+                                                                            continue;
+                                                                        }
+                                                                        if ($mst5401['jicfs_class_cd'] == $mst0211DataList['jicfs_class_cd']) {
+                                                                            $selected = 'selected=""';
+                                                                        }
+                                                                    ?>
+                                                                    <option value="<?php hsc($mst5401['jicfs_class_cd']); ?>" <?php hsc($selected); ?>><?php hsc($mst5401['jicfs_class_nm']); ?></option>
+                                                                <?php } ?>
+                                                            </select>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>商品区分1</th>
+                                                        <td>
+                                                            <select title="商品区分1" id="prod_k_cd1" name="prod_k_cd1" style="width:250px;" tabindex="61">
+                                                                <option value=""></option>
+                                                                <?php foreach($mst0901DataList as $mst0901) { ?>
+                                                                    <?php
+                                                                        if ($mst0901['organization_id'] !== $mst0211DataList['organization_id'] ||
+                                                                            $mst0901['prod_k_type'] !== '01') {
+                                                                            continue;
+                                                                        }
+                                                                        $selected = '';
+                                                                        if ($mst0901['prod_k_cd'] == $mst0211DataList['prod_k_cd1']) {
+                                                                            $selected = 'selected=""';
+                                                                        }
+                                                                    ?>
+                                                                    <option value="<?php hsc($mst0901['prod_k_cd']); ?>" <?php hsc($selected); ?>><?php hsc($mst0901['prod_k_nm']); ?></option>
+                                                                <?php } ?>
+                                                            </select>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>商品区分2</th>
+                                                        <td>
+                                                            <select title="商品区分2" id="prod_k_cd2" name="prod_k_cd2" style="width:250px;" tabindex="62">
+                                                                <option value=""></option>
+                                                                <?php foreach($mst0901DataList as $mst0901) { ?>
+                                                                    <?php
+                                                                        if ($mst0901['organization_id'] !== $mst0211DataList['organization_id'] ||
+                                                                            $mst0901['prod_k_type'] !== '02') {
+                                                                            continue;
+                                                                        }
+                                                                        $selected = '';
+                                                                        if ($mst0901['prod_k_cd'] == $mst0211DataList['prod_k_cd2']) {
+                                                                            $selected = 'selected=""';
+                                                                        }
+                                                                    ?>
+                                                                    <option value="<?php hsc($mst0901['prod_k_cd']); ?>" <?php hsc($selected); ?>><?php hsc($mst0901['prod_k_nm']); ?></option>
+                                                                <?php } ?>
+                                                            </select>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>商品区分3</th>
+                                                        <td>
+                                                            <select title="商品区分3" id="prod_k_cd3" name="prod_k_cd3" style="width:250px;" tabindex="63">
+                                                                <option value=""></option>
+                                                                <?php foreach($mst0901DataList as $mst0901) { ?>
+                                                                    <?php
+                                                                        if ($mst0901['organization_id'] !== $mst0211DataList['organization_id'] ||
+                                                                            $mst0901['prod_k_type'] !== '03') {
+                                                                            continue;
+                                                                        }
+                                                                        $selected = '';
+                                                                        if ($mst0901['prod_k_cd'] == $mst0211DataList['prod_k_cd3']) {
+                                                                            $selected = 'selected=""';
+                                                                        }
+                                                                    ?>
+                                                                    <option value="<?php hsc($mst0901['prod_k_cd']); ?>" <?php hsc($selected); ?>><?php hsc($mst0901['prod_k_nm']); ?></option>
+                                                                <?php } ?>
+                                                            </select>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>商品区分4</th>
+                                                        <td>
+                                                            <select title="商品区分4" id="prod_k_cd4" name="prod_k_cd4" style="width:250px;" tabindex="64">
+                                                                <option value=""></option>
+                                                                <?php foreach($mst0901DataList as $mst0901) { ?>
+                                                                    <?php
+                                                                        if ($mst0901['organization_id'] !== $mst0211DataList['organization_id'] ||
+                                                                            $mst0901['prod_k_type'] !== '04') {
+                                                                            continue;
+                                                                        }
+                                                                        $selected = '';
+                                                                        if ($mst0901['prod_k_cd'] == $mst0211DataList['prod_k_cd4']) {
+                                                                            $selected = 'selected=""';
+                                                                        }
+                                                                    ?>
+                                                                    <option value="<?php hsc($mst0901['prod_k_cd']); ?>" <?php hsc($selected); ?>><?php hsc($mst0901['prod_k_nm']); ?></option>
+                                                                <?php } ?>
+                                                            </select>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>商品区分5</th>
+                                                        <td>
+                                                            <select title="商品区分5" id="prod_k_cd5" name="prod_k_cd5" style="width:250px;" tabindex="65">
+                                                                <option value=""></option>
+                                                                <?php foreach($mst0901DataList as $mst0901) { ?>
+                                                                    <?php
+                                                                        if ($mst0901['organization_id'] !== $mst0211DataList['organization_id'] ||
+                                                                            $mst0901['prod_k_type'] !== '05') {
+                                                                            continue;
+                                                                        }
+                                                                        $selected = '';
+                                                                        if ($mst0901['prod_k_cd'] == $mst0211DataList['prod_k_cd5']) {
+                                                                            $selected = 'selected=""';
+                                                                        }
+                                                                    ?>
+                                                                    <option value="<?php hsc($mst0901['prod_k_cd']); ?>" <?php hsc($selected); ?>><?php hsc($mst0901['prod_k_nm']); ?></option>
+                                                                <?php } ?>
+                                                            </select>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                        <td style="border-style:none; margin-top:0;">&nbsp;</td>
+                                        <td style="border-style:none; vertical-align:top; margin-top:0;">
+                                            <?php /*include('Common/SearchMst0801Option.php');*/ ?>
+                                            <table style="margin-top:0; margin-left:0; margin-bottom:0; margin-right:0; table-layout:fixed;">
+                                                <tbody>
+                                                    <tr>
+                                                        <th style="width:150px;">商品大分類</th>
+                                                        <td style="width:160px; border-width:1px 1px 1px 1px;">
+                                                            <select title="商品大分類コード" id="prod_t_cd1" name="prod_t_cd1" style="width:150px;" onChange="changeMst0801Options(this);" tabindex="66"><!-- mst0801 -->
+                                                                <option value=""></option>
+                                                                <?php foreach($mst0801DataList as $mst0801) { ?>
+                                                                    <?php
+                                                                        if ($mst0801['organization_id'] !== $mst0211DataList['organization_id'] ||
+                                                                            $mst0801['prod_t_type'] !== '1') {
+                                                                            continue;
+                                                                        }
+                                                                        $selected = '';
+                                                                        if ($mst0801['prod_t_cd1'] == $mst0211DataList['prod_t_cd1']) {
+                                                                            $selected = 'selected=""';
+                                                                        }
+                                                                    ?>
+                                                                    <option value="<?php hsc($mst0801['prod_t_cd1']); ?>" <?php hsc($selected); ?>><?php hsc($mst0801['prod_t_nm']); ?></option>
+                                                                <?php } ?>
+                                                            </select>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th style="width:150px;">商品中分類</th>
+                                                        <td style="width:160px; border-width:0px 1px 1px 1px;">
+                                                            <select title="商品中分類コード" id="prod_t_cd2" name="prod_t_cd2" style="width:150px;" onChange="changeMst0801Options(this);" tabindex="67"><!-- mst0801 -->
+                                                                <option value=""></option>
+                                                                <?php foreach($mst0801DataList as $mst0801) { ?>
+                                                                    <?php
+                                                                        if ($mst0801['organization_id'] !== $mst0211DataList['organization_id'] ||
+                                                                            $mst0801['prod_t_type'] !== '2' || 
+                                                                            $mst0801['prod_t_cd1'] !== $mst0211DataList['prod_t_cd1']) {
+                                                                            continue;
+                                                                        }
+                                                                        $selected = '';
+                                                                        if ($mst0801['prod_t_cd2'] == $mst0211DataList['prod_t_cd2']) {
+                                                                            $selected = 'selected=""';
+                                                                        }
+                                                                    ?>
+                                                                    <option value="<?php hsc($mst0801['prod_t_cd2']); ?>" <?php hsc($selected); ?>><?php hsc($mst0801['prod_t_nm']); ?></option>
+                                                                <?php } ?>
+                                                            </select>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th style="width:150px;">商品小分類</th>
+                                                        <td style="width:160px; border-width:0px 1px 1px 1px;">
+                                                            <select title="商品小分類コード" id="prod_t_cd3" name="prod_t_cd3" style="width:150px;" onChange="changeMst0801Options(this);" tabindex="68"><!-- mst0801 -->
+                                                                <option value=""></option>
+                                                                <?php foreach($mst0801DataList as $mst0801) { ?>
+                                                                    <?php
+                                                                        if ($mst0801['organization_id'] !== $mst0211DataList['organization_id'] ||
+                                                                            $mst0801['prod_t_type'] !== '3' || 
+                                                                            $mst0801['prod_t_cd1'] !== $mst0211DataList['prod_t_cd1'] || 
+                                                                            $mst0801['prod_t_cd2'] !== $mst0211DataList['prod_t_cd2']) {
+                                                                            continue;
+                                                                        }
+                                                                        $selected = '';
+                                                                        if ($mst0801['prod_t_cd3'] == $mst0211DataList['prod_t_cd3']) {
+                                                                            $selected = 'selected=""';
+                                                                        }
+                                                                    ?>
+                                                                    <option value="<?php hsc($mst0801['prod_t_cd3']); ?>" <?php hsc($selected); ?>><?php hsc($mst0801['prod_t_nm']); ?></option>
+                                                                <?php } ?>
+                                                            </select>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th style="width:150px;">商品クラス</th>
+                                                        <td style="width:160px; border-width:0px 1px 1px 1px;">
+                                                            <select title="商品クラスコード" id="prod_t_cd4" name="prod_t_cd4" style="width:150px;" tabindex="69"><!-- mst0801 -->
+                                                                <option value=""></option>
+                                                                <?php foreach($mst0801DataList as $mst0801) { ?>
+                                                                    <?php
+                                                                        if ($mst0801['organization_id'] !== $mst0211DataList['organization_id'] ||
+                                                                            $mst0801['prod_t_type'] !== '4' || 
+                                                                            $mst0801['prod_t_cd1'] !== $mst0211DataList['prod_t_cd1'] || 
+                                                                            $mst0801['prod_t_cd2'] !== $mst0211DataList['prod_t_cd2'] || 
+                                                                            $mst0801['prod_t_cd3'] !== $mst0211DataList['prod_t_cd3']) {
+                                                                            continue;
+                                                                        }
+                                                                        $selected = '';
+                                                                        if ($mst0801['prod_t_cd4'] == $mst0211DataList['prod_t_cd4']) {
+                                                                            $selected = 'selected=""';
+                                                                        }
+                                                                    ?>
+                                                                    <option value="<?php hsc($mst0801['prod_t_cd4']); ?>" <?php hsc($selected); ?>><?php hsc($mst0801['prod_t_nm']); ?></option>
+                                                                <?php } ?>
+                                                            </select>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- 画面入力しない項目、あるいは未使用項目 -->
+                        <input type="hidden" id="jan_cd" name="jan_cd" value="">
+                        <input type="hidden" id="itf_cd" name="itf_cd" value="">
+		<!--EDITSTR KANDERU 20210607 -->
+                        <input type="hidden" id="disp_prod_nm1" name="disp_prod_nm1" value="<?php hsc($mst0211DataList['disp_prod_nm1']); ?>">
+                        <input type="hidden" id="disp_prod_nm2" name="disp_prod_nm2" value="<?php hsc($mst0211DataList['disp_prod_nm2']); ?>">
+		<!--EDITEND KANDERU 20210607 -->
+                        <input type="hidden" id="case_bowl" name="case_bowl" value="0">
+                        <input type="hidden" id="bowl_piece" name="bowl_piece" value="0">
+                        <input type="hidden" id="shop_supp_cd" name="shop_supp_cd" value="">
+                        <input type="hidden" id="serial_no" name="serial_no" value="">
+                        <input type="hidden" id="prod_note" name="prod_note" value="">
+                        <input type="hidden" id="priv_prod_cd" name="priv_prod_cd" value="">
+                        <input type="hidden" id="alcohol_cd" name="alcohol_cd" value="">
+                        <input type="hidden" id="alcohol_capa_amount" name="alcohol_capa_amount" value="0">
+                        <input type="hidden" id="investiga_kbn" name="investiga_kbn" value="">
+                        <input type="hidden" id="regi_duty_kbn" name="regi_duty_kbn" value="">
+                        <input type="hidden" id="sale_period_kbn" name="sale_period_kbn" value="">
+                        <input type="hidden" id="delete_kbn" name="delete_kbn" value="">
+                        <input type="hidden" id="order_can_date" name="order_can_date" value="">
+                        <input type="hidden" id="prod_k_cd6" name="prod_k_cd6" value="">
+                        <input type="hidden" id="prod_k_cd7" name="prod_k_cd7" value="">
+                        <input type="hidden" id="prod_k_cd8" name="prod_k_cd8" value="">
+                        <input type="hidden" id="prod_k_cd9" name="prod_k_cd9" value="">
+                        <input type="hidden" id="prod_k_cd10" name="prod_k_cd10" value="">
+                        <input type="hidden" id="prod_res_cd1" name="prod_res_cd1" value="">
+                        <input type="hidden" id="prod_res_cd2" name="prod_res_cd2" value="">
+                        <input type="hidden" id="prod_res_cd3" name="prod_res_cd3" value="">
+                        <input type="hidden" id="prod_res_cd4" name="prod_res_cd4" value="">
+                        <input type="hidden" id="prod_res_cd5" name="prod_res_cd5" value="">
+                        <input type="hidden" id="prod_res_cd6" name="prod_res_cd6" value="">
+                        <input type="hidden" id="prod_res_cd7" name="prod_res_cd7" value="">
+                        <input type="hidden" id="prod_res_cd8" name="prod_res_cd8" value="">
+                        <input type="hidden" id="prod_res_cd9" name="prod_res_cd9" value="">
+                        <input type="hidden" id="prod_res_cd10" name="prod_res_cd01" value="">
+                        <input type="hidden" id="empl_saleprice" name="empl_saleprice" value="0">
+                        <input type="hidden" id="time_saleprice" name="time_saleprice" value="0">
+                        <input type="hidden" id="time_saleamount" name="time_saleamount" value="0">
+                        <input type="hidden" id="total_stock_amout" name="total_stock_amout" value="0">
+                        <input type="hidden" id="total_stock_amout" name="total_stock_amout" value="0">
+                        <input type="hidden" id="fill_amount" name="fill_amount" value="0">
+                        <input type="hidden" id="order_fin_kbn" name="order_fin_kbn" value="">
+                        <input type="hidden" id="order_can_kbn" name="order_can_kbn" value="">
+                        <input type="hidden" id="order_prod_cd1" name="order_prod_cd1" value="">
+                        <input type="hidden" id="order_prod_cd2" name="order_prod_cd2" value="">
+                        <input type="hidden" id="order_prod_cd3" name="order_prod_cd3" value="">
+                        <input type="hidden" id="shelf_block1_1" name="shelf_block1_1" value="">
+                        <input type="hidden" id="shelf_block1_2" name="shelf_block1_2" value="">
+                        <input type="hidden" id="shelf_block1_3" name="shelf_block1_3" value="">
+                        <input type="hidden" id="shelf_block2_1" name="shelf_block2_1" value="">
+                        <input type="hidden" id="shelf_block2_2" name="shelf_block2_2" value="">
+                        <input type="hidden" id="shelf_block2_3" name="shelf_block2_3" value="">
+                        <input type="hidden" id="shelf_no1_1" name="shelf_no1_1" value="">
+                        <input type="hidden" id="shelf_no1_2" name="shelf_no1_2" value="">
+                        <input type="hidden" id="shelf_no1_3" name="shelf_no1_3" value="">
+                        <input type="hidden" id="shelf_no2_1" name="shelf_no2_1" value="">
+                        <input type="hidden" id="shelf_no2_2" name="shelf_no2_2" value="">
+                        <input type="hidden" id="shelf_no2_3" name="shelf_no2_3" value="">
+                        <input type="hidden" id="shelf_no3_1" name="shelf_no3_1" value="">
+                        <input type="hidden" id="shelf_no3_2" name="shelf_no3_2" value="">
+                        <input type="hidden" id="shelf_no3_3" name="shelf_no3_3" value="">
+<!--                       //ADDSTR 20201203 kanderu  -->
+                        <!-- POSシステムマスタ -->
+                        <input type="hidden" id="shop_cd" name="shop_cd" value="<?php hsc($mst0211DataList['shop_cd']); ?>">
+                                       <!-- 折りたたみ展開ボタン -->
+                        <div onclick="obj=document.getElementById('test1').style; obj.display=(obj.display=='none')?'block':'none'; document.getElementById('tabLink6').textContent=(obj.display=='none')?'クリックで展開▼':'クリックで隠す▲';">
+                            【店舗別】<a style="cursor:pointer;"><span id="tabLink6"></span></a>
+                        </div>         <input type="hidden" id="tax_frac_kbn" name="tax_frac_kbn" value="<?php hsc($mst0211DataList['tax_frac_kbn']); ?>">
+ 
+ <!--                       //ADDEND 20201203 kanderu  -->                       
+                    </div><!-- /. width:900px; margin:0 auto; -->
+                    <DIV width=1024px; id ='test1'>
+
+                        <!-- 水平ヘッダ -->
+                        <div  id="header_h">
+                            <table width=1024px; id="table_id">
+                                <tbody>
+                                <tr>
+                                <th id='viewList' align='center' width="100">店舗名</th>
+<!--                                 <th id='viewList' align='center' width="100">商品コード</th>-->
+                               <th id='viewList' align='center'  width="100" >売価（税込）</th>
+                               <th id='viewList' align='center'  width="100" >売価（税抜）</th>
+                               <th id='viewList' align='center'  width="100" >会員価格</th>
+                               <th id='viewList' align='center'  width="100" >原価</th>
+                               <th id='viewList' align='center'  width="100" >粗利額</th>
+                               <th id='viewList' align='center'  width="100" >粗利率</th>
+                               
+                                <th id='viewList' align='center'  width="120" >基準価格（税込）</th>
+                                <th id='viewList' align='center'  width="120">基準価格（税抜）</th>
+                                <th id='viewList' align='center'  width="80">契約単価</th>    
+                              　<th id='viewList' align='center'  width="80">税区分</th>
+                                <th id='viewList' align='center'  width="80">税率</th> 
+                                <th id='viewList' align='center'  width="80">転送単価</th> 
+                                <th id='viewList' align='center'  width="100">定価</th>
+                                <th id='viewList' align='center'  width="80">特殊定価1</th>
+                                <th id='viewList' align='center'  width="80">特殊定価2</th>
+                                <th id='viewList' align='center'  width="120">金額下限値（税込</th>
+                                <th id='viewList' align='center'  width="120">金額下限値（税抜）</th>
+                                <th id='viewList' align='center'  width="80">発注点</th>
+                                <th id='viewList' align='center'  width="80">発注停止区分</th>
+                                <th id='viewList' align='center'  width="80">自動発注区分</th>
+                                <th id='viewList' align='center'  width="80">直送区分</th>
+                                <th id='viewList' align='center'  width="80">発注ロット</th>
+                                <th id='viewList' align='center'  width="80">返品ロット</th>
+                                <th id='viewList' align='center'  width="60">入数</th> 
+                              　<th id='viewList' align='center'  width="60">ケース原価</th>
+                                <th id='viewList' align='center'  width="80">指定商品区分</th>
+                                <th id='viewList' align='center'  width="80">指定医薬品区分</th> 
+                                <th id='viewList' align='center'  width="80">ｽｲｯﾁOTC薬控除</th>
+                                <th id='viewList' align='center'  width="80">リスク分類</th>
+                                <th id='viewList' align='center'  width="80">返品不可区分</th>
+                                <th id='viewList' align='center'  width="80">値引不可区分</th>
+                                 <th id='viewList' align='center'  width="80">得点区分</th>
+                                <th id='viewList' align='center'  width="80">付与金額</th>
+                                <th id='viewList' align='center'  width="80">付与得点</th>
+<!--                               <th id='viewList' align='center'  width="80">直送区分</th>一時的に封印
+                                <th id='viewList' align='center'  width="80">特売区分</th>-->
+                                    </tr>
+                                </tbody>
+                            </table>
+                            
+                        </div>
+        
+                        <!-- データ部分  -->
+                        <div  id="data1">
+                            <table width=1024px; id="t_body_data">             
+                                <tbody id="table_body">
+                                     <?php foreach ($gettenpolist as  $data ) { ?>
+                                    <tr>
+                                    <td   style="background-color:transparent;" align='left'    width="100"><?php hsc($data['org_nm']); ?></td> 
+                                    
+<!--                                    <td  style="background-color:transparent;" align='left'    width="100"><?php hsc($data['prod_cd']); ?></td> -->
+                                   <td  style="background-color:transparent;" align='left'    width="100"><?php hsc($data['saleprice']); ?></td>
+                                   <td  style="background-color:transparent;" align='left'    width="100"><?php hsc($data['saleprice_ex']); ?></td>
+                                   <td  style="background-color:transparent;" align='left'    width="100"><?php hsc($data['cust_saleprice']); ?></td>
+                                   <td  style="background-color:transparent;" align='left'    width="100"><?php hsc($data['head_costprice']); ?></td>
+                                   <td  style="background-color:transparent;" align='left'    width="100"><?php hsc(number_format(floatval(str_replace(',','',$data['saleprice_ex'])) - floatval(str_replace(',','',$data['head_costprice'])))) ; ?></td>
+                                   <td  style="background-color:transparent;" align='left'    width="100"><?php hsc(round((floatval(str_replace(',','',$data['saleprice_ex'])) - floatval(str_replace(',','',$data['head_costprice'])))/floatval(str_replace(',','',$data['saleprice_ex'])),2)) ; ?></td>
+                                   <td  style="background-color:transparent;" align='left'    width="120"><?php hsc($data['base_saleprice']); ?></td> 
+                                   <td  style="background-color:transparent;" align='left'    width="120"><?php hsc($data['base_saleprice_ex']); ?></td> 
+                                   <td  style="background-color:transparent;" align='left'    width="80" ><?php hsc($data['contract_price']); ?></td>    
+                                   <td  style="background-color:transparent;" align='left'    width="80" ><?php hsc($data['tax_type']);?></td> 
+                                   <td  style="background-color:transparent;" align='left'    width="80" ><?php hsc($data['prod_tax']);?></td> 
+                                   <td  style="background-color:transparent;" align='left'    width="80" ><?php hsc($data['shop_costprice']);?></td> 	
+                                   <td  style="background-color:transparent;" align='left'    width="100"><?php hsc($data['fixeprice']);?></td>  
+                                   <td  style="background-color:transparent;" align='left'    width="80" ><?php hsc($data['spcl_saleprice1']);?></td>         	 
+                                   <td  style="background-color:transparent;" align='left'    width="80" ><?php hsc($data['spcl_saleprice2']);?></td>    
+                                   <td  style="background-color:transparent;" align='left'    width="120"><?php hsc($data['saleprice_limit']);?></td> 		 
+                                   <td  style="background-color:transparent;" align='left'    width="120"><?php hsc($data['saleprice_ex_limit']);?></td>  
+                                   <td  style="background-color:transparent;" align='left'    width="80" ><?php hsc($data['just_stock_amout']);?></td>         	 
+                                   <td  style="background-color:transparent;" align='left'    width="80" ><?php hsc($data['order_stop_kbn']);?></td>    
+                                   <td  style="background-color:transparent;" align='left'    width="80" ><?php hsc($data['auto_order_kbn']);?></td> 		 
+                                   <td  style="background-color:transparent;" align='left'    width="80" ><?php hsc($data['resale_kbn']);?></td> 		 
+                                   <td  style="background-color:transparent;" align='left'    width="80" ><?php hsc($data['order_lot']);?></td>         		 
+                                   <td  style="background-color:transparent;" align='left'    width="80" ><?php hsc($data['return_lot']);?></td>         		 
+                                   <td  style="background-color:transparent;" align='left'    width="60" ><?php hsc($data['cartone']);?></td>
+                                   <td  style="background-color:transparent;" align='left'    width="60" ><?php hsc($data['case_costprice']);?></td>    
+                                   <td  style="background-color:transparent;" align='left'    width="80" ><?php hsc($data['appo_prod_kbn']);?></td> 		 
+                                   <td  style="background-color:transparent;" align='left'    width="80" ><?php hsc($data['appo_medi_kbn']);?></td>  
+                                   <td  style="background-color:transparent;" align='left'    width="80" ><?php hsc($data['switch_otc_kbn']);?></td>         	 
+                                   <td  style="background-color:transparent;" align='left'    width="80" ><?php hsc($data['risk_type_kbn']);?></td>       
+                                   <td  style="background-color:transparent;" align='left'    width="80" ><?php hsc($data['noreturn_kbn']);?></td> 
+                                   <td  style="background-color:transparent;" align='left'    width="80" ><?php hsc($data['noreturn_kbn']);?></td>         		 
+                                   <td  style="background-color:transparent;" align='left'    width="80" ><?php hsc($data['point_kbn']);?></td>         	 
+                                   <td  style="background-color:transparent;" align='left'    width="80" ><?php hsc($data['p_calc_prod_money']);?></td>
+                                   <td  style="background-color:transparent;" align='left'    width="80" ><?php hsc($data['p_calc_prod_point']);?></td>  
+<!--                                   <td  style="background-color:transparent;" align='left'    width="80" ><?php hsc($data['dir_del_kbn']);?></td>一時的に封印
+                                   <td  style="background-color:transparent;" align='left'    width="80" ><?php hsc($data['sale_kbn']);?></td>                -->            
+                                    </tr> 
+                                    <?php } ?>
+                                </tbody>
+                            </table>
+                        </div>
+               
+         </DIV>
+            
+                <input type="hidden" id="btnid" name="btnid" value=""/>
+
+                <!-- logicButtonArea -->
+                <br>
+                <div class="logicButtonArea">
+                    <p align=center>
+                        <?php $add_disabled = ""; ?>
+                        <?php if (!empty($_POST['disabledID'])) { ?>
+                            <?php $add_disabled = "disabled"; ?>
+                            <?php $del_disabled = "disabled"; ?>
+                        <?php } ?>
+                        <?php if($allFlg) { ?>
+<!--                          //  <input   id="add" name="add"  onclick="setLineInfo(this, '<?php hsc(一括配信); ?>')" class="add"  <?php hsc($add_disabled); ?> >-->
+                        <?php } ?>
+                        <?php if($CorrectionFlag) { ?>
+<!--                            <input type="submit" id="newadd" name="newadd" value="<?php hsc($Log->getMsgLog('MSG_BASE_0805')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0800')); ?>')" class="add" <?php hsc($add_disabled); ?>>-->
+                            <input type="submit" id="mod" name="mod" value="<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>')" class="update" <?php hsc($add_disabled); ?>>
+                            <input type="submit" id="del" name="del" value="<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>')" class="delete" <?php hsc($del_disabled); ?>>
+                        <?php } else { ?>
+                            <input type="submit" id="add" name="add" value="一括配信" onclick="setLineInfo(this, '<?php hsc(一括配信); ?>')" class="add" <?php hsc($add_disabled); ?>>
+                        <?php } ?>
+                   
+                        
+                    </p>
+                </div><!-- /.logicButtonArea -->
+                
+            </form>
+
+        </div><!-- /#sb-site -->
+        <div id="jquery-replace-ajax">
+
+        </div><!-- /#jquery-replace-ajax -->
+
+        <?php include("../FwCommon/View/Dialog.php"); ?>
+    </body>
+</html>

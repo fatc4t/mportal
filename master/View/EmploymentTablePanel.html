@@ -1,0 +1,106 @@
+<?php
+    /**
+     * @file      雇用形態マスタ画面(View)
+     * @author    USE K.Narita
+     * @date      2016/06/09
+     * @version   1.00
+     * @note      雇用形態マスタ画面(一覧部分)
+     */
+?>
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-ajax">
+
+                <!-- PageMoveArea -->
+                <?php include("../FwCommon/View/PagingArea.php"); ?>
+
+                <!-- serchListArea -->
+                <!-- 2016/09/19 Y.Sugou -->
+                <?php if( $isScrollBar ) { ?>
+                    <div class="serchListArea" style=" clear:both; width:99%; margin:0px auto !important; overflow-y:auto; height:25px;">
+                <?php } else { ?>
+                    <div class="serchListArea" style=" clear:both; width:99%; margin:5px auto !important;">
+                <?php } ?>
+                <!-- ---------------------- -->
+                    <input type="hidden" id="token" name="token" value="<?php hsc($TokenID); ?>">
+                    <table>
+                        <tr>
+                            <th width="62px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?></u><?php hsc($headerArray['employmentNoSortMark']); ?></span></th>
+                            <th width="62px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0849')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0849')); ?></u><?php hsc($headerArray['employmentStateSortMark']); ?></span></th>
+                            <th width="123px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0851')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0851')); ?></u><?php hsc($headerArray['employmentCodeSortMark']); ?></span></th>
+                            <th width="246px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?></u><?php hsc($headerArray['employmentOrganizationSortMark']); ?></span></th>
+                            <th width="246px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0861')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0861')); ?></u><?php hsc($headerArray['employmentNameSortMark']); ?></span></th>
+                            <th width="246px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0859')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0859')); ?></u><?php hsc($headerArray['employmentLaborRegulationsSortMark']); ?></span></th>
+                            <th width="123px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0852')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0852')); ?></u><?php hsc($headerArray['employmentDispOrderSortMark']); ?></span></th>
+                            <th width="123px"></th>
+                        </tr>
+                    </table>
+            <?php if( $isScrollBar ) { ?>
+                </div>
+                <div class="serchListArea" style="width:99%; margin: 0px auto; overflow-y:auto; height:300px; !important;">
+            <?php } ?>
+                    <table id="nameTable" style="background-color: #ffffff">
+                        <?php foreach($employmentList as $employment) { ?>
+                            <?php $employment_no++; ?>
+                            <?php if(!$employmentNoSortFlag) { ?>
+                                <?php $display_no++; ?>
+                            <?php } ?>
+                            <tr>
+                                <input type="hidden" id="employmentIdMod<?php hsc($employment_no); ?>" name="employmentId<?php hsc($employment_no); ?>" value="<?php hsc($employment['employment_id']); ?>">
+                                <input type="hidden" id="updateTime<?php hsc($employment_no); ?>" name="updateTime<?php hsc($employment_no); ?>" value="<?php hsc($employment['update_time']); ?>">
+                                <td align = "right" style="width:62px;"><?php hsc($display_no); ?></td>
+                                <?php $del_state = ""; ?>
+                                <?php if(!empty($employment['is_del'])) { ?>
+                                    <?php $del_state = "削除"; ?>
+                                <?php } ?>
+                                <td align = "center" style="width:62px;"><?php hsc($del_state); ?></td>
+                                <td id="sCode<?php hsc($employment_no); ?>" style="width:123px;"><?php hsc($employment['code']); ?></td>
+                                <td id="sCode-edit<?php hsc($employment_no); ?>" style="display : none; width:123px;" align = "center">
+                                    <input type="text" pattern="^[0-9A-Za-z]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0301')); ?>" id="employmentCodeMod<?php hsc($employment_no); ?>" name="sCode<?php hsc($employment_no); ?>" style="width: 110px" maxlength="20" value="<?php hsc($employment['code']); ?>" class="En" required>
+                                </td>
+                                <td id="sOrganization<?php hsc($employment_no); ?>" style="width:246px;"><?php hsc($employment['abbreviated_name']); ?></td>
+                                <td id="sOrganization-edit<?php hsc($employment_no); ?>" style="display : none; width:246px;" align = "center">
+                                    <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="employmentOrganizationMod<?php hsc($employment_no); ?>" name="sOrganization<?php hsc($employment_no); ?>" style="width: 230px" >
+                                        <?php foreach($abbreviatedList as $abbreviated) { ?>
+                                            <?php $selected = ""; ?>
+                                            <?php if($abbreviated['organization_id'] == $employment['organization_id']) { ?>
+                                                <?php $selected = "selected"; ?>
+                                            <?php } ?>
+                                            <option value="<?php hsc($abbreviated['organization_id']); ?>" <?php hsc($selected); ?>><?php hsc($abbreviated['abbreviated_name']); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </td>
+                                <td id="sEmployment<?php hsc($employment_no); ?>" style="width:246px;"><?php hsc($employment['employment_name']); ?></td>
+                                <td id="sEmployment-edit<?php hsc($employment_no); ?>" style="display : none; width:246px;" align = "center">
+                                    <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0302')); ?>" id="employmentNameMod<?php hsc($employment_no); ?>" name="sEmployment<?php hsc($employment_no); ?>" style="width: 230px" maxlength="20" value="<?php hsc($employment['employment_name']); ?>" class="Em" required>
+                                <td id="sLaborRegulations<?php hsc($employment_no); ?>" style="width:246px;"><?php hsc($employment['labor_regulations_name']); ?></td>
+                                <td id="sLaborRegulations-edit<?php hsc($employment_no); ?>" style="display : none; width:246px;" align = "center">
+                                    <select id="employmentLaborRegulationsMod<?php hsc($employment_no); ?>" name="sLaborRegulations<?php hsc($employment_no); ?>" style="width: 230px" >
+                                        <?php foreach($laborRegulationsList as $laborRegulations) { ?>
+                                            <?php $selected = ""; ?>
+                                            <?php if($laborRegulations['labor_regulations_id'] == $employment['labor_regulations_id']) { ?>
+                                                <?php $selected = "selected"; ?>
+                                            <?php } ?>
+                                            <option value="<?php hsc($laborRegulations['labor_regulations_id']); ?>" <?php hsc($selected); ?>><?php hsc($laborRegulations['labor_regulations_name']); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </td>
+                                <td id="sDisp<?php hsc($employment_no); ?>" align = "right" style="width:123px;"><?php hsc($employment['disp_order']); ?></td>
+                                <td id="sDisp-edit<?php hsc($employment_no); ?>" style="display : none; width:123px;" align = "center">
+                                    <input type="text" pattern="[1-9][0-9]*" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" id="modDispOrder<?php hsc($employment_no); ?>" name="sDisp<?php hsc($employment_no); ?>" style="width: 100px" maxlength="5" value="<?php hsc($employment['disp_order']); ?>" class="En" required>
+                                </td>
+                                <td align="center" style="width:123px;">
+                                    <?php if(empty($employment['is_del'])) { ?>
+                                        <input type="button" id="edtBtn<?php hsc($employment_no); ?>" value="<?php hsc($Log->getMsgLog('MSG_BASE_0801')); ?>" onclick="editRow(this)" <?php hsc($employment['cor_disabled']); ?>>
+                                        <input type="submit" id="edtBtn-mod<?php hsc($employment_no); ?>" name="mod<?php hsc($employment_no); ?>" style="display : none" value="<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>')" <?php hsc($employment['mod_disabled']); ?>>
+                                        <input type="button" id="edtBtn-del<?php hsc($employment_no); ?>" name="del<?php hsc($employment_no); ?>" style="display : none" value="<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>')" <?php hsc($employment['del_disabled']); ?>>
+                                    <?php } ?>
+                                </td>
+                            </tr>
+                            <?php if($employmentNoSortFlag) { ?>
+                                <?php $display_no--; ?>
+                            <?php } ?>
+                        <?php } ?>
+                    </table>
+                </div><!-- /.serchListArea -->
+            </div><!-- /.jquery-replace-ajax -->

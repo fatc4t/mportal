@@ -1,0 +1,276 @@
+<?php
+    /**
+     * @file      テンプレート画面(View)
+     * @author    millionet oota
+     * @date      2016/07/20
+     * @version   1.00
+     * @note      テンプレート画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述 
+            include("../home/View/Common/HtmlHeader.php"); 
+        ?>
+<style type="text/css">
+.tdb {
+background: -webkit-gradient(linear, left top, left bottom, color-stop(0.00, #c3d9ff), color-stop(1.00, #97b0d9));
+background: -webkit-linear-gradient(#c3d9ff, #97b0d9);
+background: -moz-linear-gradient(#c3d9ff, #97b0d9);
+background: -o-linear-gradient(#c3d9ff, #97b0d9);
+background: -ms-linear-gradient(#c3d9ff, #97b0d9);
+background: linear-gradient(#c3d9ff, #97b0d9);
+}
+.tdo {
+background: -webkit-gradient(linear, left top, left bottom, color-stop(0.00, #fee4c8), color-stop(0.98, #ff7400));
+background: -webkit-linear-gradient(top, #fee4c8 0%, #ff7400 98%);
+background: -moz-linear-gradient(top, #fee4c8 0%, #ff7400 98%);
+background: -o-linear-gradient(top, #fee4c8 0%, #ff7400 98%);
+background: -ms-linear-gradient(top, #fee4c8 0%, #ff7400 98%);
+background: linear-gradient(to bottom, #fee4c8 0%, #ff7400 98%);
+}
+.tdm {
+background: -webkit-gradient(linear, left top, left bottom, color-stop(0.00, #bcffbe), color-stop(0.50, #69ff6d), color-stop(0.50, #34f438), color-stop(1.00, #34f438));
+background: -webkit-linear-gradient(top, #bcffbe 0%, #69ff6d 50%, #34f438 50%, #34f438 100%);
+background: -moz-linear-gradient(top, #bcffbe 0%, #69ff6d 50%, #34f438 50%, #34f438 100%);
+background: -o-linear-gradient(top, #bcffbe 0%, #69ff6d 50%, #34f438 50%, #34f438 100%);
+background: -ms-linear-gradient(top, #bcffbe 0%, #69ff6d 50%, #34f438 50%, #34f438 100%);
+background: linear-gradient(to bottom, #bcffbe 0%, #69ff6d 50%, #34f438 50%, #34f438 100%);
+}
+.tdy {
+background: -webkit-gradient(linear, left top, left bottom, color-stop(0.00, #eaf2b1), color-stop(0.50, #d1e637), color-stop(0.50, #c3d825), color-stop(1.00, #def246));
+background: -webkit-linear-gradient(top, #eaf2b1 0%, #d1e637 50%, #c3d825 50%, #def246 100%);
+background: -moz-linear-gradient(top, #eaf2b1 0%, #d1e637 50%, #c3d825 50%, #def246 100%);
+background: -o-linear-gradient(top, #eaf2b1 0%, #d1e637 50%, #c3d825 50%, #def246 100%);
+background: -ms-linear-gradient(top, #eaf2b1 0%, #d1e637 50%, #c3d825 50%, #def246 100%);
+background: linear-gradient(to bottom, #eaf2b1 0%, #d1e637 50%, #c3d825 50%, #def246 100%);
+}
+
+#dir_tree ul {
+	list-style-type: none;
+	padding-left: 15px;
+	font-size:12px;
+}
+#dir_tree a, #dir_tree li {
+	text-decoration: none;
+	margin-bottom: 3px;
+	font-size:12px;
+}
+#dir_tree a {
+	font-size:12px;
+	background-color:#f7f7f7;
+	border-bottom:1px solid #f1f1f1;
+	margin-left: 15px;
+}
+
+</style>
+
+<script type="text/javascript" src="../js/profit/jquery/Chart.js"></script>
+<script type="text/javascript">
+
+$(function() {
+	$("span.dir").css("cursor", "pointer").prepend("+ ").click(function() {
+		$(this).next().toggle("fast");
+		
+		var v = $(this).html().substring( 0, 1 );
+		if ( v == "+" )
+			$(this).html( "-" + $(this).html().substring( 1 ) );
+		else if ( v == "-" )
+			$(this).html( "+" + $(this).html().substring( 1 ) );
+	}).next().hide();
+	
+    $("#dir_tree a, #dir_tree span.dir").hover(function() {
+        $(this).css("font-weight", "bold");
+    }, function() {
+        $(this).css("font-weight", "normal");
+    });
+});
+</script>
+    </head>
+    <body>
+        <?php include("Common/PageHeader.php");
+        ?>
+        <!-- Site -->
+        <div id="sb-site">
+            <!-- menuNameArea -->
+<table class="list_table_bk" width=100%>
+<tr><td align=center>
+<table class="list_table_bk" width=100%>
+<tr><td align=center>
+	<table class="top-menu-list_table">
+<tr valign=top>
+<td width=800>
+	<table class="top-menu-list_table" width=100%>
+		<tr>
+		<td colspan=2>
+<table width=100%>
+<tr height=25>
+<th class="caption"><img src="../img/group/calendar.png" width=20 height=20 align=top>　シフト</th>
+</tr>
+<tr>
+<td class="telop">
+<table class="top-menu-list_table" width="100%">
+<tr height=20 style='border-bottom:1px solid #ccc;'>
+<td align=left width=85>スタッフ</td>
+<td align=left width=55>16</td>
+<td align=left width=55>17</td>
+<td align=left width=55>18</td>
+<td align=left width=55>19</td>
+<td align=left width=55>20</td>
+<td align=left width=55>21</td>
+<td align=left width=55>22</td>
+<td align=left width=55>23</td>
+<td align=left width=55> 0</td>
+<td align=left width=55> 1</td>
+<td align=left width=55> 2</td>
+<td align=left width=55> 3</td>
+<td align=left width=55> 4</td>
+</tr>
+<tr height=20 style='border-bottom:1px solid #ccc;'>
+<td align=left width=85>柏原芳恵</td>
+<td class="tdy" align=left width=55 colspan=13></td>
+</tr>
+<tr height=20 style='border-bottom:1px solid #ccc;'>
+<td align=left width=85>ビルゲイツ</td>
+<td align=left width=55>　</td>
+<td class="tdb" align=left width=55 colspan=5></td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+</tr>
+<tr height=20 style='border-bottom:1px solid #ccc;'>
+<td align=left width=85>早見優</td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td class="tdm" align=left width=55 colspan=5></td>
+<td align=left width=55> </td>
+<td class="tdb" align=left width=55 colspan=2></td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+</tr>
+<tr height=20 style='border-bottom:1px solid #ccc;'>
+<td align=left width=85>堀ちえみ</td>
+<td class="tdo" align=left width=55 colspan=3></td>
+<td align=left width=55> </td>
+<td class="tdb" align=left colspan=2></td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+		</td>
+		</tr>
+		<tr>
+		<td width=400 valign=top>
+	<table class="top-menu-list_table" width=100%>
+            <tr>
+                <td>
+                    　
+                </td>
+            </tr>
+        </table>
+	<table class="top-menu-list_table" width=100%>
+<tr>
+<td>
+<table width=100%>
+<tr>
+<th class="caption"><img src="../img/group/coco.png" width=20 height=20 align=top>　本日の出勤状況</th>
+</tr>
+<tr>
+<td class="telop">
+<table class="top-menu-list_table" width="100%">
+<tr style='border-bottom:1px solid #ccc;' height=20>
+<td align=left><img src="../img/group/coco16.png" width=15 height=15 align=top>&nbsp;&nbsp;<?php $today = date("Y年n月j日 "); echo $today;?> 12:00～15:00</td>
+<td align=left><font color=black>伊藤つかさ</font></td>
+<td align=left><font color=black>退勤済み</font></td>
+</tr>
+<tr style='border-bottom:1px solid #ccc;' height=20>
+<td align=left><img src="../img/group/coco16.png" width=15 height=15 align=top>&nbsp;&nbsp;<?php $today = date("Y年n月j日 "); echo $today;?> 12:00～</td>
+<td align=left><font color=black>堀ちえみ</font></td>
+<td align=left><font color=red>遅刻</font></td>
+</tr>
+<tr style='border-bottom:1px solid #ccc;' height=20>
+<td align=left><img src="../img/group/coco16.png" width=15 height=15 align=top>&nbsp;&nbsp;<?php $today = date("Y年n月j日 "); echo $today;?> 15:00～</td>
+<td align=left><font color=black>柏原芳恵</font></td>
+<td align=left><font color=blue>出勤中</font></td>
+</tr>
+<tr style='border-bottom:1px solid #ccc;' height=20>
+<td align=left><img src="../img/group/coco16.png" width=15 height=15 align=top>&nbsp;&nbsp;<?php $today = date("Y年n月j日 "); echo $today;?> 17:00～</td>
+<td align=left><font color=black>早見優</font></td>
+<td align=left><font color=blue>出勤中</font></td>
+</tr>
+<tr height=20>
+<td align=left><img src="../img/group/coco16.png" width=15 height=15 align=top>&nbsp;&nbsp;<?php $today = date("Y年n月j日 "); echo $today;?> 17:00～</td>
+<td align=left><font color=black>ビルゲイツ</font></td>
+<td align=left><font color=blue>出勤中</font></td>
+</tr>
+<tr>
+<td>
+</table>
+</td>
+</tr>
+		</td>
+		</tr>
+		</td>
+	</table>
+		<td width=400 valign=top>
+<table width=100%>
+<tr>
+<th class="caption"><img src="../img/group/new.png" width=20 height=20 align=top>　打刻漏れ</th>
+</tr>
+<tr>
+<td class="telop">
+<table class="top-menu-list_table" width="100%">
+<tr style='border-bottom:1px solid #ccc;'>
+<td align=left><font color=black>2016-06-20</font></td>
+<td align=left><font color=black>指原莉乃</font></td>
+<td align=left><font color=black>出勤 18:00</font></td>
+<td align=left><font color=red><a href="#">退勤　 - </a></font></td>
+</tr>
+<tr style='border-bottom:1px solid #ccc;'>
+<td align=left><font color=black>2016-06-20</font></td>
+<td align=left><font color=black>AKIRA</font></td>
+<td align=left><font color=red><a href="#">出勤　 - </a></font></td>
+<td align=left><font color=black>退勤 23:30</font></td>
+</tr>
+<tr style='border-bottom:1px solid #ccc;'>
+<td align=left><font color=black>2016-07-01</font></td>
+<td align=left><font color=black>くまモン</font></td>
+<td align=left><font color=red><a href="#">出勤　 - </a></font></td>
+<td align=left><font color=red><a href="#">退勤　 - </a></font></td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+		</tr>
+	</table>
+</td>
+</tr>
+</table>
+</td></tr>
+</table>
+        </div><!-- /#sb-site -->
+<script type="text/javascript" src="jquery/js/scrolltopcontrol.js"></script> <!--スクロールしながらページのトップに戻る-->
+
+        <script src="../js/home/slidebars/slidebars.min.js"></script>
+        <script src="../js/home/slidebars/mp_silde.js"></script>
+
+    </body>
+</html>

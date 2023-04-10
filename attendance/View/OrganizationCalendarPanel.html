@@ -1,0 +1,348 @@
+<?php
+    /**
+     * @file      組織カレンダマスタ画面(View)
+     * @author    USE Y.Sugou
+     * @date      2016/06/30
+     * @version   1.00
+     * @note      組織カレンダマスタ画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array( 'default.css',
+                                'common.js', 
+                                'jquery-ui.min.js', 
+                                'jquery-ui.css' );    // cssまたはｊｓファイルを拡張子付きで配列に記述 
+
+            include("Common/HtmlHeader.php");
+        ?>
+
+    <!-- 年月のDatePickerを使用する為のInclude Start -->
+    <script src="../js/attendance/jquery/jquery.ui.ympicker.js" /></script>
+    <script src="../js/attendance/jquery/jquery-migrate-1.0.0.js" /></script>
+    <!-- 年月のDatePickerを使用する為のInclude End -->
+    <script type="text/javascript">
+        var cellCoordinates = null;
+        var btnInfo  = null;
+        
+        $(document).ready(function() 
+        {
+            /**
+             * 検索ボタンクリック
+             */
+            $('#search').click(function()
+            {
+                event.preventDefault();
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                                searchOrganizationID : $('#organizationName').val(),
+                                searchTarget : $('#datetext').val(),
+                            }
+                var path = 'index.php?param=OrganizationCalendar/search&home=1';
+                
+                // 検索実行
+                setDataForAjax( data, path );
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            });
+            
+            // 登録ボタン押下時
+            $('#modForm').submit(function(event)
+            {
+                event.preventDefault();
+                document.getElementById("dialog_add").textContent='<?php hsc(SystemParameters::$UPDATE_DIALOG_MSG); ?>';
+                
+                $("#dialog_add").dialog('open');
+                
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            });
+            
+        });
+        
+        /**
+          * 画面生成時自動読み込み
+          * @author 2016/06/30 Y.Sugou
+          */
+        $(function() {
+            /*
+             * DatePickerInisilizer
+             * @author 2016/06/30 Y.Sugou
+             */
+            $("#datetext").ympicker({
+                altField: "#datetext" //リターンセットUI IDorCLASS名
+                ,altFormat: "yy/mm" //リターン日付形式
+                ,monthNamesShort: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"]  //カレンダー表示月形式
+                ,showAnim: "slideDown" //表示アニメーション形式
+                ,yearRange: "c-2:c+3" //プルダウン年範囲
+            });
+        });
+        
+        /**
+         * 新規作成データの設定
+         */
+        function setAddData()
+        {
+            var path = 'index.php?param=OrganizationCalendar/mod&home=1';
+            // 更新用データ送信
+            updatedSendData( path );
+        }
+
+        /**
+         * 更新キャンセル
+         */
+        function cancel()
+        {
+            var data = null;
+            var path = '';
+
+            // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+            var data = {
+                            searchOrganizationID : $('#organizationName').val(),
+                            searchTarget : $('#datetext').val(),
+                            token : $('#token').val()
+                        }
+            var path = 'index.php?param=OrganizationCalendar/show&home=1';
+
+            // データ更新
+            setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+            // サブミット後、ページをリロードしないようにする
+            return false;
+        }
+        
+        /**
+         * 更新なしデータ送信メソッド
+         */
+        function nonUpdatedSendData( path, btn )
+        {
+            var data = null;
+
+            // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+            var data = {
+                            organizationCalendarID : $('#organizationCalendarID').val(),
+                            searchOrganizationID : $('#organizationName').val(),
+                            searchTarget : $('#datetext').val(),
+                            token : $('#token').val()
+                       }
+
+            // データ更新
+            setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+            // サブミット後、ページをリロードしないようにする
+            return false;
+        }
+
+        /**
+         * 更新データ送信メソッド
+         */
+        function updatedSendData( path )
+        {
+            var isDateArray = $(".is_date").map(function()
+            {
+                return $(this).val();
+            }).get();
+            var isHolidayArray = $(".is_holiday").map(function()
+            {
+                return $(this).val();
+            }).get();
+            
+            // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+            var data = {
+                            organizationCalendarID : $('#organizationCalendarID').val(),
+                            updateTime : $('#updateTime').val(),
+                            add_organization_id : $('#add_organization_id').val(),
+                            add_datetext : $('#add_datetext').val(),
+                            searchOrganizationID : $('#organizationName').val(),
+                            searchTarget : $('#datetext').val(),
+                            organization_id : $('#organizationName').val(),
+                            is_sunday_h : document.getElementById("chk1-1").checked,
+                            is_public_holiday_h : document.getElementById("chk1-2").checked,
+                            is_saturday_1_h : document.getElementById("chk1-3").checked,
+                            is_saturday_2_h : document.getElementById("chk1-4").checked,
+                            is_saturday_3_h : document.getElementById("chk1-5").checked,
+                            is_saturday_4_h : document.getElementById("chk1-6").checked,
+                            is_saturday_5_h : document.getElementById("chk1-7").checked,
+                            is_sunday_p : document.getElementById("chk2-1").checked,
+                            is_public_holiday_p : document.getElementById("chk2-2").checked,
+                            is_saturday_1_p : document.getElementById("chk2-3").checked,
+                            is_saturday_2_p : document.getElementById("chk2-4").checked,
+                            is_saturday_3_p : document.getElementById("chk2-5").checked,
+                            is_saturday_4_p : document.getElementById("chk2-6").checked,
+                            is_saturday_5_p : document.getElementById("chk2-7").checked,
+                            allowance_id : $('#addAllowanceName').val(),
+                            isDateArrayList : isDateArray,
+                            isHolidayArrayList : isHolidayArray,
+                            token : $('#token').val()
+                        };
+
+            // データ更新
+            setDataForAjax( data, path );
+        }
+
+        /**
+         * 対象の対となるチェックボックスのチェックを外す
+         * ＠author 206/06/30 Y.Sugou
+         */
+        function chkBoxUnCheck(ui)
+        {
+            var chkBoxId; //チェックボックスID名
+            var chkBoxObj; //チェックボックスオブジェクト
+            //Value値をSplitで切り分ける
+            var chkVal = ui.value.split("-");
+            //Splitした配列の0番目を参照して、取得するUIオブジェクトを切り替える
+            if (chkVal[0] == 1) 
+            {
+                //『公休日設定』のID名を生成して、UIを取得
+                chkBoxId = "chk2-" + chkVal[1];
+                chkBoxObj = document.getElementById(chkBoxId);  
+            } else if (chkVal[0] == 2)
+            {
+                //『法定休暇設定』のID名を生成して、UIを取得
+                chkBoxId = "chk1-" + chkVal[1];
+                chkBoxObj = document.getElementById(chkBoxId);  
+            }
+            //取得したオブジェクトが未定義じゃなければチェック状態をは外す
+            if (chkBoxObj !== undefined)
+            {
+                chkBoxObj.checked = false;
+            }
+        }
+        
+        /**
+         * 右クリック押下時にテーブルの位置を取得
+         */
+        function changeCell( lCellCoordinates )
+        {
+            // セルの座標位置を取得
+            cellCoordinates = lCellCoordinates;
+        }
+        
+        /**
+         * 前月/翌月データの設定
+         */
+        function dateMoved(dateCheck)
+        {
+            // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+            var dateTarget = $('#target_date_next').val();
+            if(dateCheck == 0)
+            {
+                dateTarget = $('#target_date_prev').val();
+            }
+
+            var data = {
+                            searchOrganizationID : $('#organizationName').val(),
+                            searchTarget : dateTarget,
+                       };
+            var path = 'index.php?param=OrganizationCalendar/search&home=1';
+            // データ更新
+            setDataForAjax( data, path );
+
+            //サブミット後、ページをリロードしないようにする
+            return false;
+        }
+        
+    </script>
+    <!-- ***** 当画面CSS呼び出し ***** -->
+    <link rel="stylesheet" href="../css/attendance/organizationCalendar.css" />
+    <style type="text/css">
+    /* ===================================
+    カレンダーテーブルDiv
+    (CSSファイルに記載すると2重リンクになり、効かなくなる為)
+    =================================== */
+    #jquery-replace-SearchOrganizationName-ajax 
+    {
+        display:inline;
+        width:200px!important;
+    }
+    </style>
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site" style="overflow: auto;">
+            <!-- パンくずリスト -->
+            <?php include("Common/Breadcrumb.php"); ?>
+            <form id="searchForm" name="searchForm" method="POST" action="index.php?param=OrganizationCalendar/search&home=1">
+                <div class="serchBoardArea" style="width:99%; margin:5px auto !important;">
+                    <div class="searchElement">
+                        <table>
+                            <tr>
+                                <th style="width:110px">組織</th>
+                                <td style="width:220px; background-color: #ffffff">
+                                    <?php include("../FwCommon/View/SearchOrganizationName.php"); ?></nobr>
+                                </td>
+                                <th style="width:110px">対象</th>
+                                <td style="width:110px; background-color: #ffffff">
+                                    <input type="text" id="datetext"  name="datetext" value="<?php echo $toYm; ?>" style="width:90px" />
+                                </td>
+                            </tr>
+                        </table>
+                    </div><!-- /.searchElement -->
+                    <div class="searchElement" style="padding-left:150px"  >
+                        <table id="clrDicriptionTbl">
+                            <tr>
+                                <td id="hoteiKyujitsuCell" style="width:50px"><p class="noMarginCenterText">法定休日</p></td>
+                                <td id="kokyuBiCell" style="width:50px"><p class="noMarginCenterText">公休日</p></td>
+                                <td id="warimashiTeateCell" style="width:50px"><p class="noMarginCenterText">割増手当</p></td>
+                            </tr>
+                        </table>
+                    </div><!-- /.searchElement -->
+                    <br>
+                    <br>
+                </div><!-- /.serchBoardArea -->
+                <div class="serchButtonArea">
+                    <p align="center">
+                            <?php $src_disabled = ""; ?>
+                                <?php if(empty($regFlag)) { ?>
+                                    <?php $src_disabled = "disabled"; ?>
+                                <?php } ?>
+                        <input type="submit" id="search" name="search" href="#" value="検索" class="serch" style="width: 100px" <?php hsc($src_disabled); ?> />
+                    </p>
+                </div><!-- /.serchButtonArea -->
+            </form>
+            <div id="warimashiContentsDiv" align="right" class="screenSize">
+                <select name="addAllowanceName" id="addAllowanceName" style="width: 150px">
+                    <?php foreach($addAllowanceList as $addAllowance) { ?>
+                        <?php $selected = ""; ?>
+                        <?php if($addAllowance['allowance_id'] == $searchArray['allowance_id']) { ?>
+                            <?php $selected = "selected"; ?>
+                        <?php } ?>
+                            <option value="<?php hsc($addAllowance['allowance_id']); ?>" <?php hsc($selected); ?>><?php hsc($addAllowance['allowance_name']); ?></option>
+                    <?php } ?>
+                </select>
+                <p>※割増手当の上記のリストから手当名を選択してください。</p>
+            </div><!-- /.screenSize -->
+            <!-- カレンダー部のInclude Start -->
+            <form id="modForm" name="modForm" method="POST" >
+                <input type="hidden" id="tstVal" name="tstVal" class="tstVal" />
+                <?php include("OrganizationCalendarTablePanel.html"); ?>
+            </form>
+            <!-- カレンダー部のInclude End -->
+        </div><!-- /.sb-site -->
+    <!-- コンテキストメニュー用コンテキストオブジェクト Start -->
+    <div class="contextMenu" id="myMenu1" >
+        <ul>
+            <li id="HoteKyuJItsu">法定休日</li>
+            <li id="KoukyuBi">公休日</li>
+            <li id="WarimashiTeate">割増手当</li>
+            <li id="Cancel">キャンセル</li>
+        </ul>
+    </div><!-- /.contextMenu -->
+    <!-- コンテキストメニュー用コンテキストオブジェクト End -->
+    <?php include("../FwCommon/View/Dialog.php"); ?>
+    </body>
+</html>

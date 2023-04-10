@@ -1,0 +1,211 @@
+<?php
+    /**
+     * @file      TOP画面(View)
+     * @author    oota
+     * @date      2016/06/24
+     * @version   1.00
+     * @note      TOP画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述
+            include("Common/HtmlHeader.php");
+        ?>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/css/lightbox.css" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/js/lightbox.min.js" type="text/javascript"></script>
+<style type="text/css">
+p.title
+{
+  margin-left:10px;
+  padding:3px;
+  background:#FFF;
+  border-left:5px solid #FF6928;
+  padding-left:10px;
+  width:1000px;
+}
+#listTable {
+  margin-left:10px;
+  border-collapse: collapse;
+}
+th {
+  background:#FF6928;
+  color:#FFF;
+  border-left:1px solid #FFF;
+  border-right:1px solid #FFF;
+  text-align:center;
+}
+td {
+
+  padding:5px;
+  border-left:1px solid #eee;
+  border-right:1px solid #eee;
+}
+td.products {
+  font-size:14px;
+  line-height:2.4;
+}
+tr {
+  background:#FFF;
+}
+a {
+  color:#00f;
+}
+a:hover {
+  color:#00f;
+}
+a:visited {
+  color:#00f;
+}
+/*
+tr:hover {
+  background:#FFE2D7;
+}
+tr.selected {
+  background:#FFE2D7;
+}
+*/
+</style>
+<script type="text/javascript" src="../js/profit/jquery/Chart.js"></script>
+<script type="text/javascript">
+
+</script>
+</head>
+    <body id="top">
+        <?php include("Common/PageHeader.php"); ?>
+
+    <div id="sb-site" align="center">
+
+    <!-- menuNameArea -->
+
+      <p class="title">最近追加された発注先</p>
+      <table id="listTable" style="width:1000px;">
+          <thead class="meisai" style="width:980px;">
+              <tr class="maker">
+                  <th style="width:250px;">発注先
+                  <th>取扱商品
+                  <th style="width:60px;">送料
+                  <th style="width:180px;">メールアドレス
+                  <th style="width:80px;">HP
+                  <th style="width:80px;">動画
+              </tr>
+          </thead>
+          <tbody class="meisai">
+              <?php
+              $index = 1;
+              foreach($makerArr as $key => $value) {
+                $style = "background:#fff;";
+                if($index%2==0) {
+                  $style = "background:#ddd;";
+                }
+              ?>
+              <tr style="border-bottom:1px solid #ccc;<?php echo $style;?>" class="maker">
+                  <td><?php hsc($value['ma_name']);?>
+                  <td title="<?php hsc($value['description']);?>"><?php hsc($value['description']);?>
+                  <td style="text-align:right;"><?php hsc(number_format($value['postage']));?>
+                  <td><?php hsc($value['mail_addr']);?>
+                  <td style="text-align:center;">
+                    <?php
+                    if($value['url1']!="") {
+                    ?>
+                    <a href='<?php hsc($value['url1']);?>' target='_blank'>閲覧</a>
+                    <?php
+                    }
+                    ?>
+                  <td style="text-align:center;">
+                    <?php
+                    if($value['url2']!="") {
+                    ?>
+                    <a href='<?php hsc($value['url2']);?>' target='_blank'>閲覧</a>
+                    <?php
+                    }
+                    ?>
+              </tr>
+              <?php
+                $index++;
+              }
+              ?>
+          </tbody>
+     </table>
+
+      <p class="title" style="margin-top:30px;">最近追加された商品</p>
+      <table id="listTable" style="width:1000px;">
+          <thead class="meisai">
+              <tr>
+                  <th style="width:320px;" colspan="2">商品名
+                  <th style="width:250px;">仕入先
+                  <th style="width:70px;">容量
+                  <th style="width:40px;">入数
+                  <th style="width:50px;">ケース
+                  <th style="width:70px;">最低ﾛｯﾄ
+                  <th style="width:70px;">定価
+                  <th style="width:70px;">単価
+                  <th style="width:45px;" rowspan="2">動画
+                  <th style="width:45px;" rowspan="2">画像
+              </tr>
+              <tr>
+                  <th style="width:160px;border-top:1px solid #FFF;">JANコード
+                  <th style="width:160px;border-top:1px solid #FFF;">GS1-128
+                  <th style="width:620px;border-top:1px solid #FFF;" colspan="7">商品説明
+              </tr>
+          </thead>
+          <tbody class="meisai" id="productsList" style="font-size:10px;">
+            <?php
+            $index = 1;
+            foreach($proArr as $key => $value) {
+              $style = "background:#fff;";
+              if($index%2==0) {
+                $style = "background:#ddd;";
+              }
+            ?>
+              <tr style="<?php echo $style;?>">
+                <td colspan="2" class="products"><?php hsc($value['pro_name']);?>
+                <td class="products"><?php hsc($value['ma_name']);?>
+                <td style="text-align:right;" class="products"><?php hsc($value['youryo2']);?>
+                <td style="text-align:right;" class="products"><?php hsc($value['irisuu']);?>
+                <td style="text-align:right;" class="products">1
+                <td style="text-align:right;" class="products"><?php hsc($value['min_lot']);?>
+                <td style="text-align:right;" class="products"><?php hsc(number_format($value['teika']));?>
+                <td style="text-align:right;" class="products"><?php hsc(number_format($value['tanka']));?>
+                <td style="text-align:center;border-bottom:1px solid #ccc;" rowspan="2" class="products">
+                  <?php
+                  if($value['url1']!="") {
+                  ?>
+                  <a href='<?php hsc($value['url1']);?>' target='_blank'>閲覧</a>
+                  <?php
+                  }
+                  ?>
+                <td style="text-align:center;border-bottom:1px solid #ccc;" rowspan="2" class="products">
+                  <?php
+                    $filename  = $imgFld.$value['ma_cd']."/".$value['jan_cd'].".jpg";
+                    $filename2 = $imgFld2.$value['ma_cd']."/".$value['jan_cd'].".jpg";
+                    //echo $filename."<br>";
+                    //if(file_exists($fliename2)) {
+                  ?>
+                      <a href='<?php hsc($filename);?>' data-lightbox="gallery<?php echo $index;?>" style="text-decoration:underline;color:#00f;" class="products">閲覧</a>
+                  <?php
+                    //}
+                  ?>
+              </tr>
+              <tr style="border-bottom:1px solid #ccc;<?php echo $style;?>">
+                  <td style="text-align:center;border-top:1px solid #ededed;" class="products"><?php hsc($value['jan_cd']);?>
+                  <td style="text-align:center;border-top:1px solid #ededed;" class="products"><?php hsc($value['gs1_code']);?>
+                  <td style="border-top:1px solid #ededed;" colspan="7" class="products" title="<?php hsc($value['syosai']);?>"><?php hsc(mb_strimwidth($value['syosai'],0,80,"...","utf-8"));?>
+              </tr>
+            <?php
+              $index++;
+            }
+            ?>
+          </tbody>
+     </table>
+
+    </div><!-- /#sb-site -->
+    <script type="text/javascript" src="jquery/js/scrolltopcontrol.js"></script> <!--スクロールしながらページのトップに戻る-->
+    <script src="../js/home/slidebars/slidebars.min.js"></script>
+    <script src="../js/home/slidebars/mp_silde.js"></script>
+
+
+    </body>
+</html>

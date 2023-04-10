@@ -1,0 +1,349 @@
+<?php
+    /**
+     * @file      シフト一覧画面(View)
+     * @author    USE K.narita
+     * @date      2016/07/22
+     * @version   1.00
+     * @note      シフト一覧画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array( 'default.css',
+                                'common.js', 
+                                'jquery-ui.min.js', 
+                                'jquery-ui.css' );    // cssまたはｊｓファイルを拡張子付きで配列に記述 
+
+            include("Common/HtmlHeader.php");
+        ?>
+        <script src="../js/attendance/jquery/datepicker-ja.js" /></script>
+        <script type="text/javascript">
+            var lineInfo = null;
+            var btnInfo  = null;
+            $(document).ready(function()
+            {
+                /**
+                 * 検索ボタンクリック
+                 */
+                $('#searchForm').submit(function(event)
+                {
+                    event.preventDefault();
+                    displayPageNo = 1;
+                    
+                    // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                    var data = {
+                                  searchOrganizatioID : $('#organizationName').val(),
+                                  searchSectionName : $('#sectionName').val(),
+                                  searchPositionName : $('#positionName').val(),
+                                  searchEmploymentname : $('#employmentName').val(),
+                                  searchMinDay : $('#minDay').val(),
+                                  searchMaxDay : $('#maxDay').val(),
+                                  sortConditions  : 0
+                               };
+                    var path = 'index.php?param=ShiftList/search&home=1';
+                    
+                    var searchMinTwoWeek = new Date($('#minDay').val());
+                    var searchMinDate = new Date($('#minDay').val());
+                    var searchMaxTwoWeek = new Date($('#maxDay').val());
+                    var searchMaxDate = new Date($('#maxDay').val());
+                    
+                    searchMinTwoWeek.setDate(searchMinTwoWeek.getDate() + 14);
+                    searchMaxTwoWeek.setDate(searchMaxTwoWeek.getDate() + 14);
+                    
+                    var minComparison = [searchMinTwoWeek.getFullYear(),searchMinTwoWeek.getMonth() + 1,searchMinTwoWeek.getDate()].join('/');
+                    var miDate = [searchMinDate.getFullYear(),searchMinDate.getMonth() + 1,searchMinDate.getDate()].join('/');
+                    var maxComparison = [searchMaxTwoWeek.getFullYear(),searchMaxTwoWeek.getMonth() + 1,searchMaxTwoWeek.getDate()].join('/');
+                    var maDate = [searchMaxDate.getFullYear(),searchMaxDate.getMonth() + 1,searchMaxDate.getDate()].join('/');
+                    
+                    var startMinDate = new Date(minComparison);
+                    var endMinDate = new Date(data['searchMaxDay']);
+                    var minDate = new Date(miDate);
+                    
+                    var startMaxDate = new Date(maxComparison);
+                    var endMaxDate = new Date(data['searchMinDay']);
+                    var maxDate = new Date(maDate);
+                    
+                    if( startMinDate.getTime() >= endMinDate.getTime() && minDate.getTime() <= endMinDate.getTime() )
+                    {
+                        // データ更新
+                        setDataForAjax( data, path );
+                    }
+                    else if( startMaxDate.getTime() >= endMaxDate.getTime() && maxDate.getTime() <= endMaxDate.getTime() )
+                    {
+                        // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                        var data = {
+                                      searchOrganizatioID : $('#organizationName').val(),
+                                      searchSectionName : $('#sectionName').val(),
+                                      searchPositionName : $('#positionName').val(),
+                                      searchEmploymentname : $('#employmentName').val(),
+                                      searchMinDay : $('#maxDay').val(),
+                                      searchMaxDay : $('#minDay').val(),
+                                      sortConditions  : 0
+                                   };
+                        // 右側の日付より、左側が未来日の場合
+                        if( $('#maxDay').val() < $('#minDay').val() )
+                        {
+                            // 左右の日付を入れ替える
+                            var temp = $('#maxDay').val();
+                            $('#maxDay').val( $('#minDay').val() );
+                            $('#minDay').val( temp );
+                        }
+                        
+                        // データ更新
+                        setDataForAjax( data, path );
+                    }
+                    else
+                    {
+                        document.getElementById("dialog").textContent="<?php hsc('期間を14日以内にしてください'); ?>";
+                            $("#dialog").dialog('open');
+                    }
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+            });
+
+            /**
+             * 印刷ビュー画面遷移
+             */
+            function printPanelTransition()
+            {
+                var lineInfo = "";
+                var data = {
+                                  searchOrganizatioID : $('#organizationName').val(),
+                                  searchSectionName : $('#sectionName').val(),
+                                  searchPositionName : $('#positionName').val(),
+                                  searchEmploymentname : $('#employmentName').val(),
+                                  searchMinDay : $('#minDay').val(),
+                                  searchMaxDay : $('#maxDay').val(),
+                                  sortConditions  : 0
+                               };
+                
+                var path = 'index.php?param=ShiftList/print&home=1';
+                
+                var searchMinTwoWeek = new Date($('#minDay').val());
+                var searchMinDate = new Date($('#minDay').val());
+                var searchMaxTwoWeek = new Date($('#maxDay').val());
+                var searchMaxDate = new Date($('#maxDay').val());
+                
+                searchMinTwoWeek.setDate(searchMinTwoWeek.getDate() + 14);
+                searchMaxTwoWeek.setDate(searchMaxTwoWeek.getDate() + 14);
+                
+                var minComparison = [searchMinTwoWeek.getFullYear(),searchMinTwoWeek.getMonth() + 1,searchMinTwoWeek.getDate()].join('/');
+                var miDate = [searchMinDate.getFullYear(),searchMinDate.getMonth() + 1,searchMinDate.getDate()].join('/');
+                var maxComparison = [searchMaxTwoWeek.getFullYear(),searchMaxTwoWeek.getMonth() + 1,searchMaxTwoWeek.getDate()].join('/');
+                var maDate = [searchMaxDate.getFullYear(),searchMaxDate.getMonth() + 1,searchMaxDate.getDate()].join('/');
+                
+                var startMinDate = new Date(minComparison);
+                var endMinDate = new Date(data['searchMaxDay']);
+                var minDate = new Date(miDate);
+                
+                var startMaxDate = new Date(maxComparison);
+                var endMaxDate = new Date(data['searchMinDay']);
+                var maxDate = new Date(maDate);
+                
+                if(startMinDate.getTime() >= endMinDate.getTime() && minDate.getTime() <= endMinDate.getTime())
+                {
+                    // データ更新
+                    setDataForAjax( data, path );
+                }
+                else if(startMaxDate.getTime() >= endMaxDate.getTime() && maxDate.getTime() <= endMaxDate.getTime())
+                {
+                    // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                    var data = {
+                                  searchOrganizatioID : $('#organizationName').val(),
+                                  searchSectionName : $('#sectionName').val(),
+                                  searchPositionName : $('#positionName').val(),
+                                  searchEmploymentname : $('#employmentName').val(),
+                                  searchMinDay : $('#maxDay').val(),
+                                  searchMaxDay : $('#minDay').val(),
+                                  sortConditions  : 0
+                               };
+                    
+                    // データ更新
+                    setDataForAjax( data, path );
+                }
+                else
+                {
+                    document.getElementById("dialog").textContent="<?php hsc('期間を14日以内にしてください'); ?>";
+                    $("#dialog").dialog('open');
+                }
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             *  DatePickerを設定
+             */
+            $(function()
+            {
+                $( "#minDay, #maxDay" ).datepicker({
+                    numberOfMonths: 2,
+                    showButtonPanel: true,
+                    dateFormat: 'yy-mm-dd',
+                });
+            });
+        </script>
+
+        <script src="../js/attendance/jquery/printThis.js"></script>
+        <script type="text/javascript">
+            /**
+             * 印刷プレビュー画面へ
+             */
+            function goPrint()
+            {
+                $('#outPrint').printThis();
+            }
+
+            /**
+             * 検索画面へ
+             */
+            function dateMoved()
+            {
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                                searchOrganizatioID : $('#organizationName').val(),
+                                searchSectionName : $('#sectionName').val(),
+                                searchPositionName : $('#positionName').val(),
+                                searchEmploymentname : $('#employmentName').val(),
+                                searchMinDay : $('#minDay').val(),
+                                searchMaxDay : $('#maxDay').val(),
+                                sortConditions  : 0
+                           }
+
+                var path = 'index.php?param=ShiftList/printReturn&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+            }
+        </script>
+
+    </head>
+<?php if($printFlag) { ?>
+    <body onload="goPrint(); setTimeout('dateMoved();', 1500);" id="outPrint">
+<?php } else { ?>
+    <body>
+<?php } ?>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site" style="overflow: auto;">
+            <!-- パンくずリスト -->
+            <?php include("Common/Breadcrumb.php"); ?>
+            <?php if($printFlag) { ?>
+                <div class="approvalStampContainer">
+                    <div class="approvalStamp"></div><!-- /.approvalStamp -->
+                    <div class="approvalStamp"></div><!-- /.approvalStamp -->
+                    <div class="approvalStamp"></div><!-- /.approvalStamp -->
+                    <div class="approvalStampBlank"></div><!-- /.approvalStampBlank -->
+                </div><!-- /.approvalStampContainer -->
+                <div class="serchBoardArea" style="width:99%; margin:5px auto !important; background-color: #ffffff">
+                    <table>
+                        <tbody>
+                            <tr>
+                                <th style="width:110px">日付</th>
+                                <td style="width:220px">
+                                    <label><?php hsc($searchArray['minDay']); ?></label>
+                                    　～　
+                                    <label><?php hsc($searchArray['maxDay']); ?></label>
+                                </td>
+                                <th style="width:110px">役職</th>
+                                <td style="width:110px">
+                                    <label><?php hsc($searchArray['positionName']); ?></label>
+                                </td>
+                                <th style="width:110px">雇用形態</th>
+                                <td style="width:110px">
+                                    <label><?php hsc($searchArray['employmentName']); ?></label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>組織名</th>
+                                <td>
+                                    <label>
+                                        <?php
+                                            foreach ( $abbreviatedNameList as $abbreviatedName )
+                                            {
+                                                if( $abbreviatedName['organization_id'] == $searchArray['organizationID'] )
+                                                {
+                                                    hsc($abbreviatedName['abbreviated_name']);
+                                                }
+                                            }
+                                        ?>
+                                    </label>
+                                </td>
+                                <th>セクション</th>
+                                <td colspan="3">
+                                    <label><?php hsc($searchArray['sectionName']); ?></label>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <br>
+                </div><!-- /.serchBoardArea -->
+                <form id="searchForm" name="searchForm" >
+                    <input type="hidden" name="minDay" id="minDay" value="<?php hsc($searchArray['minDay']); ?>" >
+                    <input type="hidden" name="maxDay" id="maxDay" value="<?php hsc($searchArray['maxDay']); ?>" >
+                    <input type="hidden" name="sectionName" id="sectionName" value="<?php hsc($searchArray['sectionName']); ?>" > 
+                    <input type="hidden" name="positionName" id="positionName" value="<?php hsc($searchArray['positionName']); ?>" > 
+                    <input type="hidden" name="employmentName" id="employmentName" value="<?php hsc($searchArray['employmentName']); ?>" >
+                    <input type="hidden" name="organizationName" id="organizationName" value="<?php hsc($searchArray['organizationID']); ?>" >
+                </form>
+            <?php } else { ?>
+                <form id="searchForm" name="searchForm" >
+                    <input type="hidden" name="companyID" value="<?php hsc( $_SESSION['COMPANY_ID'] ); ?>">
+                    <!-- serchBoardArea -->
+                    <div class="serchBoardArea" style="width:99%; margin:5px auto !important; background-color: #ffffff">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <th style="width:110px">日付</th>
+                                    <td style="width:220px">
+                                        <input type="text" name="minDay" id="minDay" value="<?php hsc($searchArray['minDay']); ?>" style="width: 80px" required > 
+                                        　～　
+                                        <input type="text" name="maxDay" id="maxDay" value="<?php hsc($searchArray['maxDay']); ?>" style="width: 80px" required > 
+                                    </td>
+                                    <th style="width:110px">役職</th>
+                                    <td style="width:110px">
+                                        <?php include("./../master/View/Common/SearchPositionName.php"); ?>
+                                    </td>
+                                    <th style="width:110px">雇用形態</th>
+                                    <td style="width:110px">
+                                        <?php include("./../master/View/Common/SearchEmploymentName.php"); ?>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>組織名</th>
+                                    <td>
+                                        <?php include("../FwCommon/View/SearchOrganizationName.php"); ?>
+                                    </td>
+                                    <th>セクション</th>
+                                    <td colspan="3">
+                                        <?php include("../FwCommon/View/SearchSectionName.php"); ?>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div><!-- /.serchBoardArea -->
+                    <div style="text-align: center; white-space: nowrap;" id="styleAlignCenter">
+                        <div style="display: inline-block;" class="serchButtonArea">
+                            <input type="submit" id="search" name="search" href="#" value="検索" class="serch" />
+                            <input type="submit" id="print" name="print" onClick="printPanelTransition()" value="印刷" class="print">
+                        </div><!-- /.serchButtonArea -->
+                    </div>
+                </form>
+            <?php } ?>
+            <?php include("ShiftListTablePanel.html"); ?>
+        </div><!-- /.sb-site -->
+        <?php include("../FwCommon/View/Dialog.php"); ?>
+    </body>
+</html>

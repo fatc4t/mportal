@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>m-portal</title>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8">
+        <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+        <?php include("../home/View/Common/HtmlHeader.php"); ?>        
+        <script type="text/javascript" src="../../FwCommon/js/common.js" ></script>
+        <script type="text/javascript" src="../js/template1/common.js" ></script> 
+        <script type="text/javascript" src="../js/template1/jquery-ui.min.js" ></script>
+        <!--ADDSTR 20201118 kanderu    -->
+<!--        Enterキーを押すと、次のフィールドに移動します-->
+        <script type="text/javascript" src="../../FwCommon/js/EnterFocus.js" ></script>
+<!--ADDEND 20201118 kanderu    -->
+        <link rel="stylesheet" href="../css/product/jquery-ui.css" >	
+        <link rel="stylesheet" href="../css/product/default.css" >	         
+        <script type="text/javascript">
+            controller      = "<?php echo $controller ; ?>";
+            jss_rc   = "../js/"+controller.toLowerCase()+"/template1.js";
+            var script  = document.createElement('script');
+            script.src  = jss_rc;
+            script.type ="text/javascript";            
+            document.head.appendChild(script);
+            var link    = document.createElement('link');
+            link.rel    = "stylesheet";
+            link.href   = "../css/"+controller.toLowerCase()+"/template1.css";
+            document.head.appendChild(link);
+            
+            pagetitle       = "<?php echo $pagetitle ; ?>";
+            addrow          = "<?php echo $addrow ; ?>";
+            save            = "<?php echo $save ; ?>";
+            pr_key_list     = "<?php echo $pr_key_list; ?>";
+            pr_key_id       = '<?php echo json_encode(json_encode($pr_key_id)); ?>';
+            A_pr_key_id     = JSON.parse(pr_key_id.slice(1,-1));
+            key             = '<?php echo json_encode(json_encode($key)); ?>';
+            A_key           = JSON.parse(key.slice(1,-1));
+            title           = '<?php echo json_encode(json_encode($title)); ?>';
+            A_title         = JSON.parse(title.slice(1,-1));
+            data            = '<?php echo json_encode(json_encode($data)); ?>';
+            working_data    = JSON.parse(data.slice(1,-1));
+            //
+            abbreviated_list    = '<?php echo json_encode(json_encode($abbreviatedNameList)); ?>';
+            A_abbreviated_list  = JSON.parse(abbreviated_list.slice(1,-1));
+            destination     = "<?php hsc($destination); ?>";
+            //orgn_id         = "<?php hsc($orgn_id); ?>";
+            orgn_id         = "<?php hsc($cmb_prod_k['organization_id']); ?>";
+            cmb_prod_k_type = "<?php hsc($cmb_prod_k['prod_k_type']); ?>";
+            txt_prod_k_type_load = "<?php hsc($txt_prod_k_type); ?>";
+            //
+            mst0010_alldata     = '<?php echo json_encode(json_encode($mst0010_alldata)); ?>';
+            A_mst0010_alldata   = JSON.parse(mst0010_alldata.slice(1,-1));
+
+            var new_data    = [];
+            var upd_data    = [];
+            var del_data    = [];
+            
+            function thead_crea(thead_nm){
+                thead = document.getElementById("thead_template");
+                thead.innerHTML = '';
+                field_nm            = document.createElement('th');                
+                field_nm.innerHTML  = "&nbsp;&nbsp;&nbsp;";
+                thead.appendChild(field_nm); 
+
+                for(i=0;i < thead_nm.length ; i++ ){
+                    field_nm            = document.createElement('th');
+                    field_nm.innerHTML  = "";
+                    field_nm.innerHTML  = thead_nm[i];
+                    thead.appendChild(field_nm);
+                }                
+            }
+            
+            function tbody_crea(work_data){
+                tbod = document.getElementById("tbody_template");
+                tbod.innerHTML = '';
+                var plus = 0;
+                for(i=0;i < work_data.length ; i++ ){
+                        
+                    var trow         = tbod.insertRow();
+                    var ckbox        = trow.insertCell(0);
+                    var newbutton       = document.createElement('button');
+                    newbutton.name      = 'button_del';
+                    newbutton.id        = 'del_' + i;
+                    newbutton.value     = i;
+                    newbutton.innerHTML = "削除";
+                    newbutton.onclick = del_row;
+                    ckbox.appendChild(newbutton);
+
+                    for(j=0;j < A_key.length; j++){
+                        var newcell     = trow.insertCell(j+1);
+                        var newinput   = document.createElement('input');
+                        newinput.type       = 'text';
+                        newinput.name       = A_key[j];
+                        newinput.id         = A_key[j]+"_"+i;
+                        newinput.onchange  = f_change;
+                        newinput.onblur    = f_blur;
+                        newinput.onkeydown = f_keydown;
+                        newinput.onkeypress = f_keypress;
+                        newinput.oninput    = f_input;
+                        newinput.value      = work_data[i][A_key[j]];
+                        newcell.appendChild(newinput);                            
+                    }
+                }
+                  
+                var trow         = tbod.insertRow();
+                var ckbox        = trow.insertCell(0);
+                var newbutton       = document.createElement('button');
+                newbutton.name      = 'button_add';
+                newbutton.id        = 'add';
+                newbutton.value     = work_data.length;
+                newbutton.innerHTML = "追加1";
+                newbutton.onclick = add_row;
+                newbutton.setAttribute("disabled", true);
+                ckbox.appendChild(newbutton);
+
+                for(j=0;j < A_key.length; j++){
+                    var newcell = trow.insertCell(j+1);
+                    var newinput = document.createElement('input');
+                    newinput.type       = 'text';
+                    newinput.name       = A_key[j];
+                    newinput.id         = A_key[j]+"_"+i;
+                    newinput.onchange   = f_change;
+                    newinput.onblur     = f_blur;
+                    newinput.onkeydown  = f_keydown;
+                    newinput.onkeypress = f_keypress;
+                    newinput.oninput    = f_input;
+                    newinput.value      = "";
+                    newcell.appendChild(newinput);
+                }
+             if(addrow == 0){
+                 list = document.getElementsByName('button_del');
+                 for(i=0;i<list.length;i++){
+                    list[i].setAttribute("disabled", true);
+                 }
+                 document.getElementById("add").setAttribute("disabled", true);
+             }
+             if(save == 0){
+                  document.getElementById('send_result').setAttribute("disabled", true);
+             }
+                
+            }
+            function f_change(e){
+                T_f_change(e);
+            }
+            function f_blur(e){
+                T_f_blur(e);
+            }
+            function f_keydown(e){
+                result = T_f_keydown(e);
+                return result;
+            }
+            function f_keypress(e){
+                T_f_keypress(e);
+            }
+            function f_input(e){
+                T_f_input(e);
+            }
+            function add_row(e){
+                res = T_addrow(e);
+                
+                if (res === "ok"){
+                    newval           = +e.target.value +1;
+                    elemt            = document.getElementById("add");
+                    elemt.id         = 'del_'+e.target.value;
+                    elemt.name       = 'button_del';
+                    elemt.innerHTML  = "削除";
+                    elemt.onclick   = del_row;
+                    
+                    tbod = document.getElementById("tbody_template");
+                    var trow         = tbod.insertRow();
+                    var ckbox        = trow.insertCell(0);
+                    var newbutton       = document.createElement('button');
+                    newbutton.name      = 'button_add';
+                    newbutton.id        = 'add';
+                    newbutton.value     = newval;
+                    newbutton.innerHTML = "追加2";
+                    newbutton.disabled  = true;
+                    newbutton.onclick  = add_row;
+                    ckbox.appendChild(newbutton);
+                    for(j=0;j < A_key.length; j++){
+                        var newcell = trow.insertCell(j+1);
+                        var newinput = document.createElement('input');
+                        newinput.type       = 'text';
+                        newinput.name       = A_key[j];
+                        newinput.id         = A_key[j]+"_"+newval;
+                        newinput.onchange   = f_change;
+                        newinput.onblur     = f_blur;
+                        newinput.onkeydown  = f_keydown;
+                        newinput.oninput     = f_input;
+                        newinput.value      = "";
+                        newcell.appendChild(newinput);
+                    }                    
+                elemt           = document.getElementById("add");
+                elemnt_f_id     = A_pr_key_id[0] +"_"+elemt.value;
+                elemnt_f        = document.getElementById(elemnt_f_id);
+                elemnt_f.focus();                  
+                }
+            }
+            function del_row(e){
+                rowIndex=0;
+                elements=document.getElementsByName('button_del');
+                for(i=0;i<elements.length;i++){
+                    if (elements[i].value === e.target.value){
+                        rowIndex=i;
+                        break;
+                    }
+                }
+                res = T_delrow(e);
+                if (res === "ok"){
+                    // e.target.value not equal rowIndex of HTMLTableElement
+                    //tbod = document.getElementById("tbody_template").deleteRow(e.target.value);
+                    tbod = document.getElementById("tbody_template").deleteRow(rowIndex);
+                }
+            }
+            
+            function send_result(){
+                
+                
+                if (new_data.length === 0 && upd_data.length === 0 && del_data.length === 0 &&
+                    document.getElementById("txt_PROD_K_TYPE").value === txt_prod_k_type_load){
+                    alert("※更新データはありません。");
+                    return false;
+                }
+                
+                //data_send   = T_send_result();
+                data_send   = T_send_result(orgn_id);
+ //               var xhr     = new XMLHttpRequest();
+ //               xhr.open("post", spath, true);
+ //               xhr.setRequestHeader('Content-Type', 'application/json');
+ //               xhr.send(data_send); 
+                //setDataForAjax( data_send, spath,'ajaxScreenUpdate' );
+            }
+            
+            function reset_data(){
+                T_reset_data();
+            }
+            function all_reset(){
+                spath       = window.location.href;
+                spath       = spath.split('?'); 
+                spath       = spath[0]+'?param='+destination+'/show&home=1';
+                window.location.replace(spath);
+            }
+            
+        </script>
+            
+        <style type="text/css">
+         #table {
+    max-height: 9em;}
+        </style>
+    </head>
+    <body>
+        <?php
+              include("../home/View/Common/PageHeader.php");
+
+        ?>
+    <!-- Site -->
+    <div id="sb-site" style="overflow: auto;">
+        <h4 id="pagetitle"></h4>
+        <div style="color:#FF0000; font-weight:bold;"><?php if (Count($aryErrMsg) > 0) hsc('　'.join('<br />',$aryErrMsg)); ?></div>
+        <label for "cmb_ORGANIZATION_ID">　組織名</label>
+        <select id="cmb_ORGANIZATION_ID" name="cmb_ORGANIZATION_ID">
+        <?php foreach($abbreviatedNameList as $abbreviated) { ?>
+            <option value="<?php hsc($abbreviated['organization_id']); ?>" <?php hsc($selected); ?>><?php hsc($abbreviated['abbreviated_name']); ?></option>
+        <?php } ?>
+        </select>
+        <br />
+        <label for="cmb_PROD_K_TYPE">　分類　</label>
+        <select id="cmb_PROD_K_TYPE" name="cmb_PROD_K_TYPE" style="width:300px;">
+        </select>
+        <input type="text" id="txt_PROD_K_TYPE" name="txt_PROD_K_TYPE" style="width:300px;">
+        <script type="text/javascript">
+            if (orgn_id){
+                elem = document.getElementById('cmb_PROD_K_TYPE');
+                elem.options.length = 0;
+                var j = 0;
+                elem.options[j ++] = new Option('','');
+                for (var i = 0; i< A_mst0010_alldata.length; i ++){
+                    if (A_mst0010_alldata[i]['organization_id'] === Number(orgn_id)){
+                        elem.options[j ++] = new Option(A_mst0010_alldata[i]['p_kubun1'], "1");
+                        elem.options[j ++] = new Option(A_mst0010_alldata[i]['p_kubun2'], "2");
+                        elem.options[j ++] = new Option(A_mst0010_alldata[i]['p_kubun3'], "3");
+                        elem.options[j ++] = new Option(A_mst0010_alldata[i]['p_kubun4'], "4");
+                        elem.options[j ++] = new Option(A_mst0010_alldata[i]['p_kubun5'], "5");
+                    }
+                }
+            }
+            // Pulldown value setting
+            document.getElementById('cmb_ORGANIZATION_ID').value = orgn_id;
+            document.getElementById('cmb_PROD_K_TYPE').value = cmb_prod_k_type;
+            document.getElementById('txt_PROD_K_TYPE').value = txt_prod_k_type_load;
+
+            // Pulldown change event procedure
+            document.getElementById('cmb_ORGANIZATION_ID').addEventListener("change",function(){
+                iorgn_id = Number(document.getElementById("cmb_ORGANIZATION_ID").value);
+                elem = document.getElementById('cmb_PROD_K_TYPE');
+                elem.options.length = 0;
+                var j = 0;
+                elem.options[j ++] = new Option('','');
+                for (var i = 0; i< A_mst0010_alldata.length; i ++){
+                    if (A_mst0010_alldata[i]['organization_id'] === iorgn_id){
+                        elem.options[j ++] = new Option(A_mst0010_alldata[i]['p_kubun1'], "1");
+                        elem.options[j ++] = new Option(A_mst0010_alldata[i]['p_kubun2'], "2");
+                        elem.options[j ++] = new Option(A_mst0010_alldata[i]['p_kubun3'], "3");
+                        elem.options[j ++] = new Option(A_mst0010_alldata[i]['p_kubun4'], "4");
+                        elem.options[j ++] = new Option(A_mst0010_alldata[i]['p_kubun5'], "5");
+                    }
+                }
+            });
+            document.getElementById('cmb_PROD_K_TYPE').addEventListener("change",function(){
+                iorgn_id = Number(document.getElementById("cmb_ORGANIZATION_ID").value);
+                stype = document.getElementById('cmb_PROD_K_TYPE').value;
+                spath = window.location.href;
+                spath = spath.split('?'); 
+                spath = spath[0]+'?param='+destination+'/show&orgnid='+iorgn_id+'&type='+stype;
+                window.location.replace(spath);
+            });
+            if (orgn_id){
+                document.getElementById("cmb_ORGANIZATION_ID").setAttribute("disabled", true);
+                document.getElementById("cmb_PROD_K_TYPE").setAttribute("disabled", true);
+            }
+        </script>
+        
+        <div class="table_container">
+         
+            <table id="table_template">
+                 <thead id="thead_template">
+                     <tr>
+                        <th>
+                        </th>                         
+                     </tr>
+                 </thead>
+                 <tbody id="tbody_template">
+                     
+                 </tbody>
+            </table> 
+     
+        </div>
+
+        <?php if (isset($cmb_prod_k['organization_id'])){ ?>
+        <div>
+            <br />
+<!--            &nbsp;<button type="button" id="send_result" onclick="send_result()"  >決定</button>&nbsp;&nbsp;&nbsp;<button type="button" id="reset_data" onclick="reset_data()"  >取消</button>&nbsp;&nbsp;&nbsp;<button type="button" id="all_reset" onclick="all_reset()"  >再検索</button>-->
+     &nbsp;<button type="button" id="send_result" onclick="send_result()"  >一括配信</button>&nbsp;&nbsp;&nbsp;<button type="button" id="reset_data" onclick="reset_data()"  >取消</button>&nbsp;&nbsp;&nbsp;<button type="button" id="all_reset" onclick="all_reset()"  >再検索</button>
+<!--      // <button type="button" id="add" onclick="tbody_crea('work_data')"  >test</button>-->
+        </div>
+        <?php } ?>
+    </div><!-- /#sb-site -->
+
+        <script type="text/javascript">
+                thead_crea(A_title);
+                //tbody_crea(working_data);
+                if (orgn_id !== ''){
+                    tbody_crea(working_data);
+                }
+                document.getElementById('pagetitle').innerHTML = "&nbsp;" + pagetitle;
+        </script>
+    </body>
+</html>

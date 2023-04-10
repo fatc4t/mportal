@@ -1,0 +1,101 @@
+<?php
+    /**
+     * @file      POS種別マスタ画面(View)
+     * @author    millionet oota
+     * @date      2016/07/14
+     * @version   1.00
+     * @note      POS種別マスタ画面(一覧部分)
+     */
+?>
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-ajax">
+
+                <!-- PageMoveArea -->
+                <?php include("../FwCommon/View/PagingArea.php"); ?>
+
+                <!-- serchListArea -->
+                <div class="serchListArea">
+                    <input type="hidden" id="token" name="token" value="<?php hsc($TokenID); ?>">
+                    <table id="nameTable">
+                        <tr><!-- ヘッダ部分  -->
+                            <!-- No -->
+                            <th width="5%"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0810')); ?>');"><?php hsc($Log->getMsgLog('MSG_BASE_0810')); ?><?php hsc($headerArray['posBrandNoSortMark']); ?></span></th>
+                            <!-- 表示順 -->
+                            <th width="5%"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0811')); ?>');"><?php hsc($Log->getMsgLog('MSG_BASE_0811')); ?><?php hsc($headerArray['posBrandDispOrderSortMark']); ?></span></th>
+                            <!-- POS種別コード -->
+                            <th width="15%"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0820')); ?>');"><?php hsc($Log->getMsgLog('MSG_BASE_0820')); ?><?php hsc($headerArray['posBrandCodeSortMark']); ?></span></th>
+                            <!-- POS種別名 -->
+                            <th width="15%"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0821')); ?>');"><?php hsc($Log->getMsgLog('MSG_BASE_0821')); ?><?php hsc($headerArray['posBrandNameSortMark']); ?></span></th>
+                            <!-- よみがな -->
+                            <th width="15%"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>');"><?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?><?php hsc($headerArray['posBrandNameKanaSortMark']); ?></span></th>
+                            <!-- 初回登録日 -->
+                            <th width="15%"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0813')); ?>');"><?php hsc($Log->getMsgLog('MSG_BASE_0813')); ?><?php hsc($headerArray['registrationTimeSortMark']); ?></span></th>
+                            <!-- 更新日 -->
+                            <th width="15%"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0814')); ?>');"><?php hsc($Log->getMsgLog('MSG_BASE_0814')); ?><?php hsc($headerArray['updateTimeSortMark']); ?></span></th>
+                            <!-- 状態 -->
+                            <th width="10%"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0815')); ?>');"><?php hsc($Log->getMsgLog('MSG_BASE_0815')); ?><?php hsc($headerArray['posBrandStateSortMark']); ?></span></th>
+                            <th width="10%"></th>
+                        </tr>
+                        
+                        <!-- データ部分  -->
+                        <?php if( !empty($posBrandList) ) { ?>
+                        <?php foreach($posBrandList as $posBrand) { ?>
+                            <?php $posBrand_no++; ?>
+                            <?php if(!$posBrandNoSortFlag) { ?>
+                                <?php $display_no++; ?>
+                            <?php } ?>
+                            <tr>
+                                <input type="hidden" id="posBrandIdMod<?php hsc($posBrand_no); ?>" name="posBrandId<?php hsc($posBrand_no); ?>" value="<?php hsc($posBrand['pos_brand_id']); ?>">
+                                <input type="hidden" id="updateTime<?php hsc($posBrand_no); ?>" name="updateTime<?php hsc($posBrand_no); ?>" value="<?php hsc($posBrand['update_time']); ?>">
+                                <!-- No -->
+                                <td><?php hsc($display_no); ?></td>
+                                <!-- 表示順 -->
+                                <td id="sDisp<?php hsc($posBrand_no); ?>"><?php hsc($posBrand['disp_order']); ?></td>
+                                <td id="sDisp-edit<?php hsc($posBrand_no); ?>" style="display : none">
+                                    <input type="text" pattern="^[0-9A-Za-z]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0301')); ?>" id="sDispMod<?php hsc($posBrand_no); ?>" name="sDisp<?php hsc($posBrand_no); ?>" size="10" maxlength="20" value="<?php hsc($posBrand['disp_order']); ?>" class="En" required>
+                                </td>
+                                <!-- POS種別コード -->
+                                <td id="sPosBrandCode<?php hsc($posBrand_no); ?>"><?php hsc($posBrand['pos_brand_code']); ?></td>
+                                <td id="sPosBrandCode-edit<?php hsc($posBrand_no); ?>" style="display : none">
+                                    <input type="text" pattern="^[0-9A-Za-z]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0301')); ?>" id="posBrandCodeMod<?php hsc($posBrand_no); ?>" name="sPosBrandCode<?php hsc($posBrand_no); ?>" size="20" maxlength="20" value="<?php hsc($posBrand['pos_brand_code']); ?>" class="En" required>
+                                </td>
+                                <!-- POS種別名 -->
+                                <td id="sPosBrandName<?php hsc($posBrand_no); ?>"><?php hsc($posBrand['pos_brand_name']); ?></td>
+                                <td id="sPosBrandName-edit<?php hsc($posBrand_no); ?>" style="display : none">
+                                    <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0302')); ?>" id="posBrandNameMod<?php hsc($posBrand_no); ?>" name="sPosBrandName<?php hsc($posBrand_no); ?>" size="20" maxlength="20" value="<?php hsc($posBrand['pos_brand_name']); ?>" class="Em" required>
+                                </td>
+                                <!-- よみがな -->
+                                <td id="sPosBrandNameKana<?php hsc($posBrand_no); ?>"><?php hsc($posBrand['pos_brand_name_kana']); ?></td>
+                                <td id="sPosBrandNameKana-edit<?php hsc($posBrand_no); ?>" style="display : none">
+                                    <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0302')); ?>" id="posBrandNameKanaMod<?php hsc($posBrand_no); ?>" name="sPosBrandNameKana<?php hsc($posBrand_no); ?>" size="20" maxlength="20" value="<?php hsc($posBrand['pos_brand_name_kana']); ?>" class="Em" required>
+                                </td>
+                                <!-- 初回登録日 -->
+                                <td id="sRegistrationTime<?php hsc($posBrand_no); ?>"><?php hsc($posBrand['registration_time']); ?></td>
+                                <!-- 更新日 -->
+                                <td id="sUpdateTime<?php hsc($posBrand_no); ?>"><?php hsc($posBrand['update_time']); ?></td>
+                                <!-- 状態 -->
+                                <?php $del_state = ""; ?>
+                                <?php if(!empty($posBrand['is_del'])) { ?>
+                                    <?php $del_state = "削除"; ?>
+                                <?php } ?>
+                                <td><?php hsc($del_state); ?></td>
+                                <td align="center">
+                                    <?php if(empty($posBrand['is_del'])) { ?>
+                                        <div class="logicButtonArea">
+                                            <input type="button" id="edtBtn<?php hsc($posBrand_no); ?>" value="<?php hsc($Log->getMsgLog('MSG_BASE_0801')); ?>" onclick="editRow(this)" class="update" <?php hsc($posBrand['cor_disabled']); ?>>
+                                            <input type="submit" id="edtBtn-mod<?php hsc($posBrand_no); ?>" name="mod<?php hsc($posBrand_no); ?>" style="display : none" value="<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>')" class="confirm" <?php hsc($posBrand['mod_disabled']); ?>>
+                                            <input type="submit" id="edtBtn-del<?php hsc($posBrand_no); ?>" name="del<?php hsc($posBrand_no); ?>" style="display : none" value="<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>')" class="delete" <?php hsc($posBrand['del_disabled']); ?>>
+                                        </div><!-- /.logicButtonArea -->
+                                    <?php } ?>
+                                </td>
+                            </tr>
+                            <?php if($posBrandNoSortFlag) { ?>
+                                <?php $display_no--; ?>
+                            <?php } ?>
+                        <?php }} ?>
+                    </table>
+                </div>
+                <!-- /.serchListArea -->
+            </div>
+            <!-- /.jquery-replace-ajax -->

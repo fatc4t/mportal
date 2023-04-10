@@ -1,0 +1,589 @@
+<?php
+    /**
+     * @file      帳票- 仕入先・店舗別支払一覧画面(View)
+     * @author    millionet oota
+     * @date      2018/06/04
+     * @version   1.00
+     * @note      帳票 - 仕入先・店舗別支払一覧画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array( 'default.css',
+                                'common.js', 
+                                'jquery-ui.min.js', 
+                                'jquery-ui.css' );    // cssまたはｊｓファイルを拡張子付きで配列に記述 
+
+            include("Common/HtmlHeader.php");
+        ?>
+
+    <script src="../js/profit/jquery/jquery.ui.ympicker.js" /></script>
+    <script src="../js/profit/jquery/jquery-migrate-1.0.0.js" /></script>
+    <script src="../js/profit/jquery/datepicker-ja.js" /></script>
+    <script src="../js/autofil.js" ></script>
+    <script type="text/javascript">
+        data_all       = '<?php echo json_encode(json_encode($data)); ?>';
+        A_data_all     = JSON.parse(data_all.slice(1,-1));
+        comp_list      = '';
+        comp_org_sort  = [];
+        s_data       = '<?php echo json_encode(json_encode($search_data)); ?>';
+        A_search_data     = JSON.parse(s_data.slice(1,-1));        
+        
+        
+    $(function()
+    {
+        $( "#start_date, #end_date" ).datepicker({
+            numberOfMonths: 2,
+            showCurrentAtPos: 1,
+            showButtonPanel: true,
+            dateFormat: 'yy/mm/dd'
+        });
+    });
+    
+        function init_data(){
+            elem_comp = document.getElementById('company');
+            opt=document.createElement("option");
+            opt.value   = '';
+            opt.text    = '';
+            elem_comp.options.add(opt,null);             
+            for(i=0;i<A_data_all.length;i++){
+                n_comp = A_data_all[i]['company_nm'];
+                n_org  = A_data_all[i]['organization_id'];               
+                if( comp_list.indexOf(n_comp) === -1 ){
+                    comp_list += ',' + n_comp;
+                    opt=document.createElement("option");
+                    opt.value   = n_comp;
+                    opt.text    = n_comp;
+                    elem_comp.options.add(opt,null);
+                }
+                if(!comp_org_sort[n_comp]){
+                    comp_org_sort[n_comp] = [];
+                }
+                if(!comp_org_sort[n_comp][n_org]){
+                    comp_org_sort[n_comp][n_org] = [];
+                }
+                comp_org_sort[n_comp][n_org][comp_org_sort[n_comp][n_org].length] = A_data_all[i];
+            }
+        }
+        function org_select(e){
+            comp = e.target.value;
+            elem_org_id = document.getElementById('org_id');
+            elem_org_id.innerHTML = '';
+            if(!comp){
+                elem_org_id.setAttribute("disabled", true);
+                return;
+            }
+            key = Object.keys(comp_org_sort[comp]);
+            if(key.length === 0){
+                alert('データがありません');
+                elem_org_id.setAttribute("disabled", true);
+                return;
+            }else{
+                elem_org_id.removeAttribute("disabled");
+            }
+            opt=document.createElement("option");
+            opt.value   = '';
+            opt.text    = '';
+            elem_org_id.options.add(opt,null);              
+            for(i=0;i<key.length;i++){
+                    opt=document.createElement("option");
+                    opt.value   = key[i];
+                    opt.text    = key[i];
+                    elem_org_id.options.add(opt,null);                
+            }
+            
+        }
+        function search_reset(){
+            document.getElementById('company').value = '';
+            document.getElementById('org_id').value = '';
+            document.getElementById('start_date').value = '';
+            document.getElementById('end_date').value = '';
+            document.getElementById('start_table').value = '';
+            document.getElementById('end_table').value = '';            
+            tbody_crea(A_data_all);
+        }
+        function search_data(){
+            data_searched=[];
+            comp       = document.getElementById('company').value;
+            org_id     = document.getElementById('org_id').value;
+            date_start = document.getElementById('start_date').value;
+            date_end   = document.getElementById('end_date').value;
+            table_start= document.getElementById('start_table').value;
+            table_end  = document.getElementById('end_table').value;
+            if(comp){               
+                if(org_id){
+                    if( date_start || date_end || table_start || table_end ){
+                        for(i=0;i<comp_org_sort[comp][org_id].length;i++){
+                            row = comp_org_sort[comp][org_id][i];
+                            n_row_date   = new Date(row['err_time'])
+                            if(date_start){
+                                n_date_start = new Date(date_start);
+                                if(n_row_date < n_date_start ){
+                                    continue;
+                                }                            
+                            }
+                            if(date_end){
+                                n_date_endt = new Date(date_end);
+                                if(n_row_date > n_date_endt ){
+                                    continue;
+                                }                            
+                            }
+                            if(table_start){
+                                if(row['table_nm'] < table_start ){
+                                    continue;
+                                }                            
+                            }
+                            if(table_end){
+                                if(row['table_nm'] > table_end ){
+                                    continue;
+                                }                            
+                            }                       
+                            data_searched[data_searched.length] = row;
+                        }
+                        
+                    }else{
+                        data_searched = comp_org_sort[comp][org_id];
+                    }
+                }else{
+                    if( date_start || date_end || table_start || table_end ){
+                        key_org_id = Object.keys(comp_org_sort[comp]);
+                        for(j=0;j<key_org_id.length;j++){
+                            org_id = key_org_id[j];
+                            for(i=0;i<comp_org_sort[comp][org_id].length;i++){
+                                row = comp_org_sort[comp][org_id][i]; 
+                                n_row_date   = new Date(row['err_time'])
+                                if(date_start){
+                                    n_date_start = new Date(date_start);
+                                    if(n_row_date < n_date_start ){
+                                        continue;
+                                    }                            
+                                }
+                                if(date_end){
+                                    n_date_endt = new Date(date_end);
+                                    if(n_row_date > n_date_endt ){
+                                        continue;
+                                    }                            
+                                }
+                                if(table_start){
+                                    if(row['table_nm'] < table_start ){
+                                        continue;
+                                    }                            
+                                }
+                                if(table_end){
+                                    if(row['table_nm'] > table_end ){
+                                        continue;
+                                    }                            
+                                }                       
+                                data_searched[data_searched.length] = row;                                
+                            }
+                        }
+                    }else{
+                        key_org_id = Object.keys(comp_org_sort[comp]);
+                        for(j=0;j<key_org_id.length;j++){
+                            org_id = key_org_id[j];
+                            for(i=0;i<comp_org_sort[comp][org_id].length;i++){
+                                row = comp_org_sort[comp][org_id][i];                        
+                                data_searched[data_searched.length] = row;
+                            }
+                        }
+                    }
+                }
+            }else{
+                if( date_start || date_end || table_start || table_end ){
+                    for(i=0;i<A_data_all.length;i++){
+                        row = A_data_all[i];
+                        n_row_date   = new Date(row['err_time'])
+                        if(date_start){
+                            n_date_start = new Date(date_start);
+                            if(n_row_date < n_date_start ){
+                                continue;
+                            }                            
+                        }
+                        if(date_end){
+                            n_date_endt = new Date(date_end);
+                            if(n_row_date > n_date_endt ){
+                                continue;
+                            }                            
+                        }
+                        if(table_start){
+                            if(row['table_nm'] < table_start ){
+                                continue;
+                            }                            
+                        }
+                        if(table_end){
+                            if(row['table_nm'] > table_end ){
+                                continue;
+                            }                            
+                        }                       
+                        data_searched[data_searched.length] = row;
+                    }
+ 
+                }else{                   
+                    data_searched = A_data_all;
+                }             
+            }          
+            tbody_crea(data_searched);
+        }
+        function download(e){
+                console.log(e);
+                //data_send={};
+                data_send = { action:'download' };
+                org_id = e.path[2].childNodes[2].innerHTML;
+                comp   = e.path[2].childNodes[1].innerHTML;
+                filename = e.path[2].childNodes[4].innerHTML;     
+                path_file='/mportal/'+comp+'/'+org_id+'/error/receive/';
+                
+                data_send['path_file']=path_file;
+                data_send['filename']=filename;
+                console.log(data_send);
+                spath       = 'index.php?param=error_management/addInput';
+                setDataForAjax( data_send, spath ,'ajaxScreenUpdate' ); 
+        }
+        function resolved(e){
+                console.log(e);
+                //data_send={};
+                
+                data_send = { action:'resolved' };
+                org_id   = e.path[2].childNodes[2].innerHTML;
+                comp     = e.path[2].childNodes[1].innerHTML;
+                filename = e.path[2].childNodes[4].innerHTML;     
+                date     = e.path[2].childNodes[0].innerHTML;
+                
+                search_comp       = document.getElementById('company').value;
+                search_org_id     = document.getElementById('org_id').value;
+                search_date_start = document.getElementById('start_date').value;
+                search_date_end   = document.getElementById('end_date').value;
+                search_table_start= document.getElementById('start_table').value;
+                search_table_end  = document.getElementById('end_table').value;
+
+                data_send['org_id']  =org_id;
+                data_send['comp']    =comp;
+                data_send['filename']=filename;
+                data_send['date']    =date;
+                if(search_comp){
+                    data_send['search_comp']        =search_comp;
+                }
+                if(search_comp){
+                    data_send['search_org_id']      =search_org_id;
+                }
+                if(search_comp){
+                    data_send['search_date_start']  =search_date_start;
+                }
+                if(search_comp){
+                    data_send['search_date_end']    =search_date_end;
+                }
+                if(search_comp){
+                    data_send['search_table_start'] =search_table_start;
+                }
+                if(search_comp){
+                    data_send['search_table_end']   =search_table_end;
+                }                
+                console.log(data_send);
+                spath       = 'index.php?param=error_management/addInput';
+                setDataForAjax( data_send, spath ,'ajaxScreenUpdate' );             
+            
+        }
+        function chf(frm){
+            if( 1 < window.location.search.length )
+                {
+                    // 最初の1文字 (?記号) を除いた文字列を取得する
+                    var query = window.location.search.substring( 1 );
+                    var action = frm.action.split( '?' );
+
+                    // 検索以外の機能実行後だった場合、パラメータを補正する
+                    if(1 < action.length){
+                        frm.action = action[0];
+                    }
+
+                    // クエリの区切り記号 (&) で文字列を配列に分割する
+                    var parameters = query.split( '&' );
+
+                    if (frm.onbtn.value == 'serch') {
+                      frm.target='_self';
+                        if(1 < parameters.length){
+                             frm.action += '?param=' +frm.elements["codeName"].value + '&home=1';
+                         }else{
+                             frm.action += '?param=' +frm.elements["codeName"].value;
+                        }
+                    }else if (frm.onbtn.value == 'download'){
+                        org_id = '';
+                        comp   = '';
+                        filename = '';
+                        frm.action += '?param=LedgerSheetSuppliersPayment/csvoutput';
+                        
+                    }
+                }
+       }
+    /**
+     *  イベント制御用
+     *
+     */
+    function set_value(s_val){
+        document.serchForm.onbtn.value = s_val;
+    }
+    function tbody_crea(work_data){
+        tbod = document.getElementById("table_body");
+        tbod.innerHTML = '';
+        for(i=0;i < work_data.length ; i++ ){
+            var trow         = tbod.insertRow();
+            v_date  = trow.insertCell(0);
+            v_comp  = trow.insertCell(1);
+            v_org   = trow.insertCell(2);
+            v_table = trow.insertCell(3);
+            v_file  = trow.insertCell(4);
+            v_err   = trow.insertCell(5);
+            v_but   = trow.insertCell(6);
+            
+            v_date.innerHTML  = work_data[i]['err_time'].split('.')[0];
+            v_comp.innerHTML  = work_data[i]['company_nm'];
+            v_org.innerHTML   = work_data[i]['organization_id'];
+            v_table.innerHTML = work_data[i]['table_nm'];
+            v_file.innerHTML  = work_data[i]['file_nm'];
+            v_err.innerHTML   = work_data[i]['err_message'];
+            /*
+            newbutton       = document.createElement('button');
+            newbutton.name      = 'view_file';
+            newbutton.id        = 'view_file';
+            newbutton.value     = i;
+            newbutton.innerHTML = "ファイル見";
+            newbutton.onclick   = view_file;  
+            v_but.appendChild(newbutton);  
+            */
+            newbutton       = document.createElement('button');
+            newbutton.name      = 'download';
+            newbutton.id        = 'download';
+            newbutton.value     = i;
+            newbutton.innerHTML = "ダウンロード";
+            newbutton.onclick   = download;            
+            v_but.appendChild(newbutton);
+            newbutton       = document.createElement('button');
+            newbutton.name      = 'resolved';
+            newbutton.id        = 'resolved';
+            newbutton.value     = i;
+            newbutton.innerHTML = "解決した";
+            newbutton.onclick   = resolved;            
+            v_but.appendChild(newbutton);
+        }
+    }
+    window.onload = function(){
+        init_data();
+        creat_listener();
+        if(Object.keys(A_search_data).length === 0){
+            tbody_crea(A_data_all);
+        }else{
+            console.log('here');
+            if(A_search_data['search_comp']){
+                document.getElementById('company').value = A_search_data['search_comp'];
+                if(A_search_data['search_org_id']){
+                    e={ target:'' };
+                    e.target={ value:A_search_data['search_comp'] };
+                    org_select(e);
+                    document.getElementById('org_id').value = A_search_data['search_org_id'];
+                }                
+            }
+            if(A_search_data['search_date_start']){
+                document.getElementById('start_date').value=A_search_data['search_date_start'];
+            }
+            if(A_search_data['search_date_end']){
+                document.getElementById('end_date').value=A_search_data['search_date_end'];
+            }
+            if(A_search_data['search_table_start']){
+                document.getElementById('start_table').value=A_search_data['search_table_start'];
+            }
+            if(A_search_data['search_table_end']){
+                document.getElementById('end_table').value=A_search_data['search_table_end'];
+            }
+            search_data();
+        }
+    }
+    </script>    
+    
+   <STYLE type="text/css">
+        body {
+             z-index: 1;
+             background-color: #fff;           
+        }       
+        #header_h {
+           width:98%;
+           overflow-x:hidden;overflow-y:hidden;
+           }
+        #header_v {
+           width:90px;height:650px;
+           overflow-x:scroll;overflow-y:hidden;
+           text-align: left;
+           }
+        .table_container {
+            overflow: hidden;                
+            padding: 0;
+            padding-left: 5px;
+        }        
+        
+        #table_id {
+            max-height: 40em;
+            display: flex;
+            flex-flow: column;
+            /*height: 100%;*/
+            width: 100%;
+            padding: 0;
+            border-spacing: 0;
+        }
+        #table_id thead {
+            /* head takes the height it requires, 
+            and it's not scaled when table is resized */
+            flex: 0 0 auto;
+            width: calc(100% - 17px);
+        }
+        #table_id tbody {
+            /* body takes all the remaining available space */
+            flex: 1 1 auto;
+            display: block;
+            overflow-y: scroll;
+            padding: 0;
+        }
+        #table_id tbody tr {
+            width: 100%;
+        }
+        #table_id thead,
+        #table_id tbody tr {
+            display: table;
+            table-layout: fixed;
+            padding: 0;
+        }
+
+        #table_id thead th {
+            border: 1px solid #AAA;
+            color: white;
+            text-align: center;
+            padding: 0;
+            border-collapse: collapse;
+        }
+        #table_id tbody td{
+            border: 1px solid #444;
+            padding: 0;
+            text-align: center; 
+            border-collapse: collapse;
+        }
+        #table_id thead th:first-child,
+        #table_id tbody tr td:first-child {
+          width: 6em;
+        }
+        #table_id thead th:nth-child(2),
+        #table_id tbody tr td:nth-child(2) {
+          width: 10em;
+        }
+        #table_id thead th:nth-child(3),
+        #table_id tbody tr td:nth-child(3) {
+          width: 5em;
+        }  
+        #table_id thead th:nth-child(4),
+        #table_id tbody tr td:nth-child(4) {
+          width: 6em;
+        } 
+        #table_id thead th:nth-child(5),
+        #table_id tbody tr td:nth-child(5) {
+          width: 18em;
+        }
+        #table_id thead th:nth-child(6),
+        #table_id tbody tr td:nth-child(6) {
+          /* width: 20em; */
+        }         
+        #table_id thead th:nth-child(7),
+        #table_id tbody tr td:nth-child(7) {
+          max-width: 10em;
+        }         
+        #serchTable {
+            width:calc(100% - 10px)
+        }
+        #serchTable tr td{
+            background-color: #ffffff;
+        }
+       </STYLE>
+
+    </head>
+    
+    <body>
+<?php
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>  
+        <br /><br /><br />
+        
+       <!--  <form name="serchForm" id="serchForm" action="/profit/index.php" method="post" onsubmit="return chf(this)"> -->
+            <div class="serchListArea">
+
+                <table id="serchTable" align="center">
+                    <tr>
+                        <th id="serchTableTitle" align="center" width="40">エラー管理
+                            <input type="hidden" name="codeName" id="codeName" value="error_management/show">
+                        </th>
+                          
+
+                        <th id="serchTableTitle" align="right" width="40">日付</th>
+                        <td id="serchTableItem" width="80">
+                            <input type="text" pattern="\d{4}/\d{2}/\d{2}" title="西暦/月/日の形式で入力してください。" id="start_date" name="start_date" size="9" >                
+                            <input type="text" pattern="\d{4}/\d{2}/\d{2}" title="西暦/月/日の形式で入力してください。" id="end_date" name="end_date" size="9" >
+                        </td>
+                        <th align="center" width="60">会社</th>
+                        <td width="120">
+                            <select id="company" name="company" onchange="org_select(event)">
+                            </select>
+                        </td>
+
+                        <td width=60>
+                          <button id='search_data' name='search_data' onclick="search_data()">検索</button>
+                          <button id='search_data' name='search_data' onclick="search_reset()">取消</button>
+                           <!-- <input width=20 size=10 class="submit" type="submit" name="csvoutput" id="csvoutput" value="CSV出力" onClick="set_value('csvoutput')"> -->
+                          <input type="hidden" name="onbtn">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th></th>
+                        <th id="serchTableTitle" align="right" width="40">テーブル名</th>
+                        <td id="serchTableItem" width="80">
+                            <input type="text"  id="start_table" name="start_table" size="9" >                
+                            <input type="text"  id="end_table" name="end_table" size="9"  >
+                        </td>                                    
+                        <th id="serchTableTitle" align="center" width="40">店舗</th>
+                        <td width=120>
+                            <select id="org_id" name="org_id" disabled>
+                            </select>
+                        </td> 
+                        <td>
+                        </td>                                    
+                    </tr>
+
+                </table>
+
+                <div id="header_h"  class="table_container">
+                    <table id="table_id">
+                        <thead>
+                            <tr>
+                                <th >日付</th>
+                                <th >会社</th>
+                                <th >店舗</th>
+                                <th >テーブル名</th>
+                                <th >ファイル名</th>
+                                <th >エラーメセージ</th>
+                                <th ></th>
+                            </tr>
+                        </thead>
+                        <tbody id="table_body">
+                        </tbody>
+                    </table>
+                </div>                
+            </div><!-- /#sb-site -->
+            
+       <!--  </form>    -->
+        <input type="text" id="file_path" name="file_path" hidden>
+        <input type="text" id="file_name" name="file_name" hidden>
+    </body>
+</html>

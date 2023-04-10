@@ -1,0 +1,927 @@
+<?php
+/**
+* @file      売上対比実績 画面(View)
+* @author    millionet oota
+* @date      2020/07/30
+* @version   1.00
+* @note      売上対比実績 帳票画面
+*/
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+        $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述
+        include("../profit/View/Common/HtmlHeader.php");
+        ?> 
+        <script src="../js/profit/jquery/jquery.ui.ympicker.js" /></script>
+    <script src="../js/profit/jquery/jquery-migrate-1.0.0.js" /></script>
+<script src="../js/profit/jquery/datepicker-ja.js" /></script>
+<script src="../js/autofil_v<?php echo $_SESSION['AUTOFIL_VER'] ?>.js" ></script>
+<script src="../FwCommon/js/common.js" ></script>
+<!-- modal script-->
+<script src="../js/modal/modal.js" ></script>
+<link rel="stylesheet" href="../css/modal/modal.css" >    
+<script type="text/javascript">
+    Sizelist       = '<?php echo json_encode(json_encode($Sizelist)); ?>';
+    A_Sizelist     = JSON.parse(Sizelist.slice(1,-1));
+    // 店舗リスト
+    porg_id_list        = '<?php echo json_encode(json_encode($org_id_list)); ?>';
+    data_org            = JSON.parse(porg_id_list.slice(1,-1)); 
+    // 部門リスト
+    ptypsect_detail     = '<?php echo json_encode($sect_detail); ?>';
+    data_sect           = JSON.parse(ptypsect_detail);  
+    // 画面パラメータ
+    //  data_prod           = [];  
+    var prod_list = "";
+    searchArray         = '<?php echo json_encode($searchArray); ?>';
+    A_searchArray       = JSON.parse(searchArray);
+    param               = '<?php echo json_encode($param); ?>';
+    A_param             = JSON.parse(param);
+    // インジケーター
+    lording_default_message = '検索しています。';
+    lording_prod_message    = 'データを取得しています。';
+    // 店舗リスト展開
+    var org_list = A_searchArray["org_id"].replace('false',''); 
+    if(org_list){
+        org_list = ","+org_list;
+        data_select['org'] = org_list;
+    }
+    // 部門リスト展開
+    var sect_list = A_searchArray["sect_cd"].replace('false','');
+    if(sect_list){
+        sect_list = ","+sect_list;
+        data_select['sect'] = sect_list;
+    }
+</script>
+<script type="text/javascript">
+    // 各種ラジオ変更処理
+    function radio_change_management(){ 
+        var prev = [];
+        document.getElementById("serchTable").addEventListener('change', function(e) {
+            if(e.target.name === "period"){
+                if(!prev[e.target.name]){
+                    old_id_start="start_dateR";
+                    old_id_start="start_dateR";
+                    old_id_end="end_dateT";  
+                    old_id_end="end_dateT"; 
+                    elem_str_date = document.getElementById(old_id_start).value.replace(/\//g,"");
+                    elem_end_date = document.getElementById(old_id_end).value.replace(/\//g,"");
+                }
+                document.getElementById(old_id_start).hidden=true;
+                document.getElementById(old_id_end).hidden=true;
+                document.getElementById(old_id_start).value="";
+                document.getElementById(old_id_end).value="";                        
+                document.getElementById(new_id_start).hidden=false;
+                document.getElementById(new_id_end).hidden=false;                        
+            }else if(e.target.name === "org_r"){
+                if(!prev[e.target.name]){
+                    prev[e.target.name]={value:""};
+                }
+                document.getElementById("org_select").disabled=true;
+                if(e.target.value === "" ){
+                    document.getElementById("org_select").disabled=false;
+                }  
+            }else if(e.target.name === "sect_r"){
+                if(!prev[e.target.name]){
+                    prev[e.target.name]={value:""};
+                }                        
+                document.getElementById("sect_select").disabled=true;
+                if(e.target.value === "" ){
+                    document.getElementById("sect_select").disabled=false;
+                }
+            }
+            // 縦方向のみ
+            var sample2_1 = document.getElementById('header_h');
+            var sample2_2 = document.getElementById('data');
+            var sample2_3 = document.getElementById('footer_h'); 
+            var syncScroll2 = new SyncScroll(sample2_1, sample2_3, sample2_2);
+            syncScroll2.enableHorizontal = true;
+
+            // 横方向のみ
+            var sample3_1 = document.getElementById('header_h');
+            var sample3_2 = document.getElementById('data');
+            var sample3_3 = document.getElementById('footer_h');            
+            var syncScroll3 = new SyncScroll(sample3_1, sample3_3, sample3_2);
+            syncScroll3.enableVertical = false;
+            prev[e.target.name] = e.target;
+        });    
+    }    
+    function chf(frm){
+        if( 1 < window.location.search.length )
+        {
+            csv_data.value = '';
+            // modal data
+            // org_id
+            if(org_r_selected.checked){
+                // list org name
+                for(i=0;i<org_select.options.length;i++){
+                    if( !isNaN(org_select.options[i].value) ){
+                        org_nm_lst.value = org_nm_lst.value + ','+org_select.options[i].innerText;
+                    }
+                    org_nm_lst.value = org_nm_lst.value.replace(/^,/,"");
+                }   
+                org_id.value = org_list.replace(/^,/,"'").replace(/,/g,"','").replace(/$/,"'");
+                if(!org_list){
+                    alert("店舗を選択してください。");
+                    return false;
+                }
+            }else{
+                org_id.value = false;
+            }
+
+            // sect_cd                    
+            if(sect_r_selected.checked){
+                // list sect name
+                for(i=0;i<sect_select.options.length;i++){
+                    if( !isNaN(sect_select.options[i].value) ){
+                        sect_nm_lst.value = sect_nm_lst.value + ','+sect_select.options[i].innerText;
+                    }
+                    sect_nm_lst.value = sect_nm_lst.value.replace(/^,/,"");
+                }   
+                sect_cd.value = sect_list.replace(/^,/,"'").replace(/,/g,"','").replace(/$/,"'");
+                if(!sect_list){
+                    alert("部門を選択してください。");
+                    return false;
+                }
+            }else{
+                sect_cd.value = false;
+            }
+
+            // 最初の1文字 (?記号) を除いた文字列を取得する
+            var query = window.location.search.substring( 1 );
+            var action = frm.action.split( '?' );
+            // 検索以外の機能実行後だった場合、パラメータを補正する
+            if(1 < action.length){
+                frm.action = action[0];
+            }
+            // クエリの区切り記号 (&) で文字列を配列に分割する
+            var parameters = query.split( '&' );
+            if (frm.onbtn.value == 'serch') {
+                // ローディングメッセージ 開始
+                lording_message.innerHTML = lording_default_message;
+                modal_lording.hidden = false;
+                frm.target='_self';
+                if(1 < parameters.length){
+                    frm.action += '?param=' +frm.elements["codeName"].value + '&home=1';
+                }else{
+                    frm.action += '?param=' +frm.elements["codeName"].value;
+                }
+            }else if (frm.onbtn.value == 'csvoutput'){
+                // ローディングメッセージ 開始
+                lording_message.innerHTML = lording_default_message;
+                modal_lording.hidden = false;
+                header_text = header_h.getElementsByTagName('tr')[0].innerText.replace(' ▲',"").replace(' ▼',"").replace(/[\n,\r]/g,'').replace(/\t/g,",");
+                elem_tr_list = data.getElementsByTagName('tr');
+                data_send = [];
+                var csv_data_o = {};
+                csv_data_o['"0"'] = header_text;
+                var row_nb = 1;
+                var list_nm = '';  //店舗リスト用の変数
+                for(i=0;i<elem_tr_list.length;i++){
+                    if(elem_tr_list[i].style.backgroundColor){
+                        continue;
+                    }                            
+                    if(elem_tr_list[i].getElementsByTagName('td')[0].innerText !== ''){
+                        list_nm = elem_tr_list[i].getElementsByTagName('td')[0].innerText;　//CSV出力の時店舗名の行を空ないの場合、普通の店舗名を表示
+                        csv_data_o['"'+row_nb+'"'] = '"'+elem_tr_list[i].innerText.replace(/\t/g,'","')+'"';
+                    }else{
+                        elem_tr_list[i].getElementsByTagName('td')[0].innerText = list_nm;　//店舗名を表示して保持
+                        csv_data_o['"'+row_nb+'"'] = '"'+elem_tr_list[i].innerText.replace(/\t/g,'","')+'"';
+                        elem_tr_list[i].getElementsByTagName('td')[0].innerText = '';　//CSV出力の時行が空の場合、保持した店舗名を空の行を埋めます
+                    }
+                    row_nb +=1;
+                }
+                csv_data.value = JSON.stringify(csv_data_o);                        
+                if(1 < parameters.length){
+                    frm.action += '?param=LedgerSheetSalesResultsCompare/csvoutput&home=1';
+                }else{
+                    frm.action += '?param=LedgerSheetSalesResultsCompare/csvoutput';
+                }
+                modal_lording.hidden = true;
+            }
+        }
+    }
+    $(document).ready(function()
+    {
+        /**
+         * 帳票種別によって日付フォームを切り替え
+         */
+        $('#codeName').change(function()
+        {
+            if($('#codeName').val() === "LedgerSheetSalesResultsCompare/show")
+            {
+                $('#start_dateR').css('display' , '');
+                $('#end_dateR').css('display' , '');
+                $('#start_dateT').css('display' , '');
+                $('#end_dateT').css('display' , '');
+                $('#start_date').css('display' , 'none');
+                $('#end_date').css('display' , 'none');
+            }
+            else
+            {
+                $('#start_dateR').css('display' , 'none');
+                $('#end_dateR').css('display' , 'none');
+                $('#start_dateT').css('display' , 'none');
+                $('#end_dateT').css('display' , 'none');
+                $('#start_date').css('display' , '');
+                $('#end_date').css('display' , '');
+            }
+        });
+
+    });
+    /**
+     *  イベント制御用
+     *
+     */
+    function set_value(s_val){
+        //modal_lording.hidden = true;
+        document.serchForm.onbtn.value = s_val;
+        // modal_lording.hidden = false;
+        elem_str_date = document.getElementById('start_dateR').value.replace(/\//g,"");
+        elem_end_date = document.getElementById('end_dateR').value.replace(/\//g,""); 
+        elem_str_date1 = document.getElementById('start_dateT').value.replace(/\//g,"");
+        elem_end_date1 = document.getElementById('end_dateT').value.replace(/\//g,""); 
+        if(elem_str_date > elem_end_date){
+            alert("※期間指定が不正です。開始日が終了日を超えています。"); 
+            //document.getElementById('start_dateR').focus();
+            return;
+        }
+        if(elem_str_date1 > elem_end_date1){
+            alert("※期間指定が不正です。開始日が終了日を超えています。"); 
+            //document.getElementById('start_dateR').focus();
+            return;
+        }
+  
+          
+    }
+    //ADDSTR 2020/07/06 kanderu
+    /**
+     *  ページコントロール
+     *
+     */
+    function set_value_bt(s_val,mod){
+        /*const button = document.getElementById("btn_previous");*/
+        document.serchForm.onbtn.value = s_val;
+        
+        if(mod === 'btn_previous'){
+            document.getElementById("pageNo").value = Number(document.getElementById("pageNo").value) - 1;           
+        }
+
+        if(mod === 'btn_next'){
+            document.getElementById("pageNo").value = Number(document.getElementById("pageNo").value) +1;
+        }
+        if (mod === 'btn_first'){
+            document.getElementById("pageNo").value= 1;   
+        }
+        if (mod === 'btn_last'){
+            document.getElementById("pageNo").value=Number(document.getElementById("pageMaxNo").value);
+        }   
+    }
+    //ADDEND 2020/07/06 kanderu
+    
+    
+    
+    /**
+     * DatePickerを設定
+     */
+    $(function()
+    {
+        $( "#start_dateR, #end_dateR, #start_dateT, #end_dateT" ).datepicker({
+            numberOfMonths: 2,
+            showCurrentAtPos: 1,
+            showButtonPanel: true,
+            dateFormat: 'yy/mm/dd'
+        });
+    });  
+    /**
+     *
+     * スクロール制御
+     *
+     */
+    function SyncScroll(/* elem1, elem2, ... */) {
+        this._elements = [];
+        this._elementOnscroll = this._elementOnscroll.bind(this);
+        this.addElement.apply(this, arguments);
+    }
+    SyncScroll.prototype = {
+        enableHorizontal: true,
+        enableVertical: true,
+        addElement: function (/* elem1, elem2, ... */) {
+            var elem, i;
+            for (i = 0; i < arguments.length; i += 1) {
+                elem = arguments[i];
+                elem.addEventListener('scroll', this._elementOnscroll, false);
+                this._elements.push(elem);
+            }
+        },
+        removeElement: function (/* elem1, elem2, ... */) {
+            var elem, i, j;
+            for (i = 0; i < arguments.length; i += 1) {
+                elem = arguments[i];
+                elem.removeEventListener('scroll', this._elementOnscroll, false);
+                j = this._elements.indexOf(elem);
+                if (j >= 0) {
+                    this._elements.splice(j, 1);
+                }
+            }
+        },
+        _elementOnscroll: function (event) {
+            var i,
+                    elems = this._elements,
+                    elem = event.target,
+                    x = elem.scrollLeft,
+                    y = elem.scrollTop;
+            if (this.enableHorizontal) {
+                for (i = 0; i < elems.length; i += 1) {
+                    elem = elems[i];
+                    if (elem === event.target || elem.scrollLeft === x) {
+                        continue;
+                    }
+                    elem.scrollLeft = x;
+                    if (elem.scrollLeft !== x) {
+                        elem.scrollLeft = x + x - elem.scrollLeft;
+                    }
+                }
+            }
+            if (this.enableVertical) {
+                for (i = 0; i < elems.length; i += 1) {
+                    elem = elems[i];
+                    if (elem === event.target || elem.scrollTop === y) {
+                        continue;
+                    }
+                    elem.scrollTop = y;
+                    if (elem.scrollTop !== y) {
+                        elem.scrollTop = y + y - elem.scrollTop;
+                    }
+                }
+            }
+        },
+        destroy: function () {
+            this.removeElement.apply(this, this._elements);
+        }
+    };     
+
+    window.onload = function () {
+            
+        creat_listener();
+        radio_change_management();
+        sect_array = [];
+        modal_lording.hidden = true;
+        //ADDSTR 2020/07/07 kanderu 
+        //button　disable 
+        if(document.getElementById("pageNo").value <= 1){
+            /* (mod === 'btn_previous').disabled=true;*/
+            document.getElementById("btn_previous").setAttribute("disabled", true);     
+        }
+        if(document.getElementById("pageNo").value >= document.getElementById("pageMaxNo").value){
+            /* (mod === 'btn_previous').disabled=true;*/
+            document.getElementById("btn_next").setAttribute("disabled", true);     
+        } 
+
+        //ADDEND 2020/07/07 kanderu 
+        if(A_param["sect_r"] === ""){
+            code_list = sect_list.replace(/^,/,'').split(',');
+            name_list = A_param["sect_nm_lst"].split(',');
+            for(i=0;i<name_list.length;i++){
+                sect_array[code_list[i]] = name_list[i];
+            }          
+        }
+        modal_create_select("sect_select",sect_array);
+        if(sect_list){
+            sect_r_selected.checked = true;
+            sect_select.disabled = false;
+        }
+        if(A_param["sect_select"] && A_param["sect_select"] !== 'empty'){
+            sect_select.value = A_param["sect_select"];
+        }
+        org_array = [];
+        if(A_param["org_r"] === ""){
+            code_list = org_list.replace(/^,/,'').split(',');
+            name_list = A_param["org_nm_lst"].split(',');
+            for(i=0;i<name_list.length;i++){
+                org_array[code_list[i]] = name_list[i];
+            }          
+        }
+        modal_create_select("org_select",org_array);
+        if(org_list){
+            org_r_selected.checked = true;
+            org_select.disabled = false;
+        }
+        if(A_param["org_select"] && A_param["org_select"] !== 'empty'){
+            org_select.value = A_param["org_select"];
+        } 
+        if(A_searchArray['tenpo']){
+            document.getElementById("tenpo").checked = true;
+            org_r_compile.checked = true;
+        }
+        // 縦方向のみ
+        var sample2_1 = document.getElementById('header_h');
+        var sample2_2 = document.getElementById('data');
+        var sample2_3 = document.getElementById('footer_h'); 
+        var syncScroll2 = new SyncScroll(sample2_1, sample2_3, sample2_2);
+        syncScroll2.enableHorizontal = true;
+
+        // 横方向のみ
+        var sample3_1 = document.getElementById('header_h');
+        var sample3_2 = document.getElementById('data');
+        var sample3_3 = document.getElementById('footer_h');            
+        var syncScroll3 = new SyncScroll(sample3_1, sample3_3, sample3_2);
+        syncScroll3.enableVertical = false;
+
+    };
+    //ADDSTR kanderu 2020/06*************************************************************************  
+    //抽出件数1000以上、入力することのメッセージを表示します。
+    function handleChange(input) {
+        if (input.value < 1) input.value = '';
+        if (input.value > 10000) {
+            alert('※入力範囲は１～10000までに入力してください!!');
+            input.value = 10000;
+        }
+    }
+
+    //ADDEND kanderu 2020/06*************************************************************************
+</script>
+<STYLE type="text/css">
+    .serchListArea tr:nth-child(even) td { background: transparent; } 
+    #header_h {
+        width:calc(100% - 16px);
+        overflow-x:hidden;overflow-y:hidden;
+    }
+    #header_v {
+        width:90px;height:650px;
+        overflow-x:scroll;overflow-y:hidden;
+        text-align: left;
+    }
+    #data {
+        width:100%;
+        max-height:580px;
+        overflow-x:scroll;overflow-y:scroll;
+        table-layout: fixed;
+    }
+    #footer_h {
+        width:calc(100% - 16px);
+        
+        table-layout: fixed;
+    }
+    /* ローディングメッセージ */
+    .loader {
+        float: left;
+        border: 16px solid #f3f3f3;
+        border-radius: 50%;
+        border-top: 16px solid #3498db;
+        width: 50px;
+        height: 50px;
+        -webkit-animation: spin 2s linear infinite; /* Safari */
+        animation: spin 2s linear infinite;
+    }
+    /* Safari */
+    @-webkit-keyframes spin {
+        0% { -webkit-transform: rotate(0deg); }
+        100% { -webkit-transform: rotate(360deg); }
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    .css_lording{
+        background-color: #0D0D70;
+        color: white;
+        margin: auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 270px;
+        overflow: hidden;   
+        border-radius: 6px;
+        margin-top: 300px;
+    }
+    #modal_lording{
+        position: fixed; /* Stay in place */
+        z-index: 1; /* Sit on top */
+        padding-top: 100px; /* Location of the box */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */                
+    }
+    /*日付幅設定*/
+    #data td:first-child,
+    #header_h th:first-child,
+    #footer_h td:first-child{
+        width:80px; 
+    }
+    #data  td:nth-child(2),
+    #header_h   th:nth-child(2),
+    #footer_h td:nth-child(2){
+        width: 60px;
+    }
+    #data  td:nth-child(3),
+    #header_h   th:nth-child(3),
+    #footer_h td:nth-child(3){
+        width: 100px;
+    } 
+    #data  td:nth-child(4),
+    #header_h   th:nth-child(4),
+    #footer_h td:nth-child(4){
+        width: 100px;
+    }            
+    #data  td:nth-child(5),
+    #header_h   th:nth-child(5),
+    #footer_h td:nth-child(5){
+        width: 80px;
+    }            
+    #data  td:nth-child(6),
+    #header_h   th:nth-child(6),
+    #footer_h td:nth-child(6){
+        width: 80px;
+    }
+    #data  td:nth-child(7),
+    #header_h   th:nth-child(7),
+    #footer_h td:nth-child(7){
+        width: 100px;
+    }
+    #data  td:nth-child(8),
+    #header_h   th:nth-child(8),
+    #footer_h td:nth-child(8){
+        width: 100px;
+    }
+    #data  td:nth-child(9),
+    #header_h   th:nth-child(9),
+    #footer_h td:nth-child(9){
+        width: 60px;
+    }            
+    #data  td:nth-child(10),
+    #header_h   th:nth-child(10),
+    #footer_h td:nth-child(10){
+        width: 100px;
+    }            
+    #data  td:nth-child(11),
+    #header_h   th:nth-child(11),
+    #footer_h td:nth-child(11){
+        width: 80px;
+    }
+    #data  td:nth-child(12),
+    #header_h   th:nth-child(12),
+    #footer_h td:nth-child(12){
+        width: 80px;
+    }
+    #data  td:nth-child(13),
+    #header_h   th:nth-child(13),
+    #footer_h td:nth-child(13){
+        width: 80px;
+    }
+    #limit_r{
+        width:60px;
+    }
+    
+</STYLE>
+</head>
+<body>
+    <?php
+    if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+    include("../home/View/Common/PageHeader.php");
+    }else{
+    include("Common/PageHeader.php");
+    }
+    }else{
+    include("Common/PageHeader.php");
+    }
+    ?>
+    <?php
+    $checked = '';
+    if (isset($_POST['tenpo'])){
+    $checked = ' checked';
+    }
+    ?>
+    <!-- Site -->
+    <div id="sb-site">
+        <form  name="serchForm" id="serchForm" action="/profit/index.php" method="post" onsubmit="return chf(this)">
+            <div class="serchListArea">
+                <table align="center">
+                    <tr>
+                        <td>
+                            <table id="serchTable">
+                                <tr>
+                                    <th rowspan=2 id="serchTableTitle" align="left" width="15">帳票</th>
+                                    <td rowspan=2 align=left width="17" id="serchTableItem">
+                                        売上対比実績
+                                        <input type="hidden" name="codeName" id="codeName" value="LedgerSheetSalesResultsCompare/show">
+                                    </td>
+                                    <th width="15" id="period_t">
+                                        期間配分			  
+                                    <td width="60" id="period_d">
+                                        <!-- reference date -->
+                                        基準日&nbsp;&nbsp;
+                                        <input type="text" title="西暦/月の形式で入力してください。" id="start_dateR" name="start_dateR" size="10" value=<?php hsc($startDateR); ?>>～
+                                               <input type="text" title="西暦/月の形式で入力してください。" id="end_dateR" name="end_dateR"   size="10" value=<?php hsc($endDateR); ?>>
+                                               <br>
+                                        対象日&nbsp;&nbsp;
+                                        <input type="text" title="西暦/月の形式で入力してください。" id="start_dateT" name="start_dateT" size="10" value=<?php hsc($startDateT); ?>>～
+                                               <input type="text" title="西暦/月の形式で入力してください。" id="end_dateT" name="end_dateT" size="10" value=<?php hsc($endDateT); ?>>
+                                    <th id="serchTableTitle" align="center" width="20">店舗<br />選択</th>
+                                    <td align="left" width=40>
+                                        <input type="radio" name="org_r" id="org_r_all" value="all" checked> 全店<br />
+                                        <input type="radio" name="org_r" id="org_r_selected" value=""> 店舗指定&nbsp;&nbsp;
+                                        <select id="org_select" name="org_select" disabled onchange="modal_select_mgt(event)"><option value="no">&nbsp;</option></select>
+                                        <input type="checkbox" name="tenpo" value="Yes" id="tenpo" hidden>
+                                        <input type="text" name="org_id" value="" id="org_id" hidden>
+                                        <input type="text" name="org_nm_lst" value="" id="org_nm_lst" hidden> 
+                                    </td>
+                                    <th id="serchTableTitle" align="left" width="20">部門選択</th>
+                                    <td id="serchTableItem" width=40>
+                                        <input type="radio" name="sect_r" id="sect_r_all" value="all" checked> 全部門<br />
+                                        <input type="radio" name="sect_r" id="sect_r_selected" value=""> 部門指定&nbsp;&nbsp;
+                                        <select id="sect_select" name="sect_select" disabled onchange="modal_select_mgt(event)"><option value="no">&nbsp;</option></select>                        
+                                        <input type="text" name="sect_cd" value="" id="sect_cd" hidden>
+                                        <input type="text" name="sect_nm_lst" value="" id="sect_nm_lst" hidden> 
+                                    </td>
+                                    <td rowspan=2 width="30">
+                                        <input class="submit" type="submit" name="search" id="search" value="検索" onClick="set_value('serch')">
+                                        <input type="text" name="csv_data" value="" id="csv_data" hidden>
+                                        <?php if( !empty($ledgerSheetDetailList) ) { ;?>
+                                        <input width=20 size=10 class="submit" type="submit" name="csvoutput" id="csvoutput" value="CSV出力" onClick="set_value('csvoutput')">
+                                        <?php } ?>
+                                        <input type="hidden" name="onbtn">
+                                    </td>
+                                </tr>
+                            </table>
+                            <!-- モーダル画面各種 -->
+                            <!-- 店舗 -->
+                            <div id="modal_org" class="modal">
+                                <div class="modal-content">
+                                    <?php include("../modal/View/Modalorganization.html"); ?>
+                                </div>
+                            </div>             
+                            <!-- 部門 -->
+                            <div id="modal_sect" class="modal">
+                                <div class="modal-content">
+                                    <?php include("../modal/View/Modaldepartment.html"); ?>
+                                </div>
+                            </div>
+                            <!-- インジケーター処理 -->
+                            <div id='modal_lording' hidden >
+                                <div class="css_lording">
+                                    <div class="little_box">
+                                        <div class="loader" >
+                                        </div>
+                                    </div>
+                                    <div class="float_rigth">
+                                        <span id='lording_message'>検索しています。</span><br />お待ちください。
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </td>
+                    </tr>
+                </table>
+                <!--ADDSTR kanderu 2020/06*************************************************************************
+            ボタンの追加-->
+                <br>
+                <div align="center">
+                    抽出件数: <input type="text" id="limit_r" value="<?php echo htmlspecialchars($_POST['limit_r']); ?>" name="limit_r" maxlength="5" class="field_short" oninput="this.value=this.value.replace(/[^\d]/,'')" onchange="handleChange(this);" >
+                    <button  type="submit" id="btn_first"  onClick="set_value_bt('serch','btn_first')">一ページ目</button>
+                    <button  type="submit" id="btn_previous" onclick="set_value_bt('serch','btn_previous')">前ページ</button>
+                    <button  type="submit" id="btn_next"  onClick="set_value_bt('serch','btn_next')">次ページ</button>
+                    <button  type="submit" id="btn_last" onClick="set_value_bt('serch','btn_last')">最後ページ</button>
+                    <?php if( empty($ledgerSheetDetailList) ) { ;?>
+                    <span id="pages_number">0/0 ページ</span>
+                    <?php } ?>
+                    <?php if( !empty($ledgerSheetDetailList) ) { ;?>
+                    <span id="pages_number"><?php hsc($pageNo);?>/<?php hsc($pageMaxNo);?> ページ</span>
+                    <?php } ?>
+                    <input type="hidden" id="pageNo" name="pageNo" value="<?php hsc($pageNo);?>">
+                    <input type="hidden" id="pageMaxNo" name="pageMaxNo" value="<?php hsc($pageMaxNo);?>">
+                    <br>
+                </div><br>
+                <!-- 固定ヘッダ -->
+                <table>
+                    <tr>
+                        <td>
+                            <!-- 水平ヘッダ 現在は固定 -->
+                            <div id="header_h">
+                                <table>
+                                    <tr>
+                                        <!--                    <th id='viewList' align='center' width=100>日付</th>-->
+                                        <th id='viewList' align='center' >店舗名</th>
+                                        <th id='viewList' align='center' >内訳</th>
+                                        <th id='viewList' align='center' >税込売上金額</th>
+                                        <th id='viewList' align='center' >税抜売上金額</th>
+                                        <th id='viewList' align='center' >消費税8%</th>
+                                        <th id='viewList' align='center' >消費税</th>
+                                        <th id='viewList' align='center' >粗利金額</th>
+                                        <th id='viewList' align='center' >粗利率</th>
+                                        <th id='viewList' align='center' >客数</th>
+                                        <th id='viewList' align='center' >買上点数</th>
+                                        <th id='viewList' align='center' >客単価</th>
+                                        <th id='viewList' align='center' >1客買上点数</th>
+                                        <th id='viewList' align='center' >平均単価</th>
+                                    </tr>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <!-- データ部分  -->
+                            <div id="data">
+                                <table>
+                                    <?php if( !empty($ledgerSheetDetailList) ) { 
+                                    $row_cnt=1;?>
+                                    <?php foreach ($ledgerSheetDetailList as $data ) { ?>
+                                    <?php
+                                    switch ($data['record_type']){
+                                    case 'S':
+                                    
+                                    echo '<tr style="background-color:lightgrey;">';
+                                    
+                                    case 'P':
+                                    echo '<tr style="background-color:lightgrey;">';
+                                    break;
+                                    default:
+                                    echo '<tr>';
+                                    break;
+                                    }
+                                    if($rows === end($ledgerSheetDetailList) || $data['record_type'] === 'P'){
+                                    break;
+                                    }                         
+                                    ?>           
+                                    <!--                    <td id='viewList' style="background-color:transparent;" align='left'   width=100><?php hsc($data['proc_date']);?></td> 店舗名		 -->
+                                    <td id='viewList' style="background-color:transparent;" align='left'    ><?php hsc($data['org_nm']);?></td>    <!-- 棚番(初回)	 -->
+                                    <td id='viewList' style="background-color:transparent;" align='left'    >基準日</td>     <!-- 棚番(最終)	 -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'     ><?php hsc(number_format($data['pure_total']+$data['utax']));?></td>    <!--   棚番(他)		 -->
+                                    <!--                      <td id='viewList' style="background-color:transparent;" align='right'   width=55><?php hsc(number_format($data['res1']));?></td>  -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'   ><?php hsc(number_format($data['pure_total_i']));?></td>        <!-- 商品コード		 -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'   ><?php hsc(number_format($data['tax_total_08']));?></td>        <!-- 商品名		 -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'   ><?php hsc(number_format($data['tax_total_10']));?></td>        <!-- 税率		 -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'   ><?php hsc(number_format($data['total_profit_i']));?></td>         <!-- 部門コード 	 -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['res3']));?></td>        <!-- 部門名		 -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'   ><?php hsc(number_format($data['cnt']));?></td>      <!-- 大分類コード	 -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'   ><?php hsc(number_format($data['total_amount']));?></td>     <!-- 大分類名		 -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'   ><?php hsc(number_format($data['res4']));?></td>      <!-- 中分類コード	 -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'   ><?php hsc(number_format($data['res5'],2));?></td>     <!-- 中分類名		 -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'   ><?php hsc(number_format($data['res6'],2));?></td>         <!-- 仕入先コード	 -->   
+                                    </tr>
+                                    <?php
+                                    switch ($data['record_type']){
+                                    case 'S':
+                                    
+                                    echo '<tr style="background-color:lightgrey;">';
+                                    
+                                    case 'P':
+                                    echo '<tr style="background-color:lightgrey;">';
+                                    break;
+                                    default:
+                                    echo '<tr>';
+                                    break;
+                                    }
+                                    ?>
+                                    <!--                 <td id='viewList' style="background-color:transparent;" align='left'   width=100><?php hsc($data['proc_date']);?></td> 店舗名		 -->
+                                    <td id='viewList' style="background-color:transparent;" align='left'    ><?php hsc($data['org_nm']);?></td>    <!-- 棚番(初回)	 -->
+                                    <td id='viewList' style="background-color:transparent;" align='left'    >対象日</td>     <!-- 棚番(最終)	 -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['pure_total2']+$data['utax2']));?></td>      <!-- 棚番(他)		 -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'   ><?php hsc(number_format($data['pure_total_i2']));?></td>        <!-- 商品コード		 -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'   ><?php hsc(number_format($data['tax_total_082']));?></td>        <!-- 商品名		 -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'   ><?php hsc(number_format($data['tax_total_102']));?></td>        <!-- 税率		 -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'   ><?php hsc(number_format($data['total_profit_i2']));?></td>         <!-- 部門コード 	 -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'   ><?php hsc(number_format($data['res32']));?></td>        <!-- 部門名		 -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'   ><?php hsc(number_format($data['cnt2']));?></td>      <!-- 大分類コード	 -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'   ><?php hsc(number_format($data['total_amount2']));?></td>     <!-- 大分類名		 -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'   ><?php hsc(number_format($data['res42']));?></td>      <!-- 中分類コード	 -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'   ><?php hsc(number_format($data['res52'],2));?></td>     <!-- 中分類名		 -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'   ><?php hsc(number_format($data['res62'],2));?></td>         <!-- 仕入先コード	 -->
+                                    </tr>
+                                    <?php
+                                    switch ($data['record_type']){
+                                    case 'S':
+                                    
+                                    echo '<tr style="background-color:lightgrey;">';
+                                    
+                                    case 'P':
+                                    echo '<tr style="background-color:lightgrey;">';
+                                    break;
+                                    default:
+                                    echo '<tr>';
+                                    break;
+                                    }
+                                    ?>
+                                    <!--                 <td id='viewList' style="background-color:transparent;" align='left'   width=100><?php hsc($data['proc_date']);?></td> 店舗名		 -->
+                                    <td id='viewList' style="background-color:transparent;" align='left'    ><?php hsc($data['org_nm']);?></td>    <!-- 棚番(初回)	 -->
+                                    <td id='viewList' style="background-color:transparent;" align='left'    >対象日比</td>     <!-- 棚番(最終)	 -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'   ><?php hsc(number_format($data['res1per1'],2));?></td>     <!-- 棚番(他)		 -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'   ><?php hsc(number_format($data['pure_total_iper'],2));?></td>        <!-- 商品コード		 -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'   ><?php hsc(number_format($data['tax_total_08per'],2));?></td>        <!-- 商品名		 -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'   ><?php hsc(number_format($data['tax_total_10per'],2));?></td>        <!-- 税率		 -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'   ><?php hsc(number_format($data['total_profit_iper'],2));?></td>         <!-- 部門コード 	 -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'   ><?php hsc(number_format($data['res3per'],2));?></td>        <!-- 部門名		 -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'   ><?php hsc(number_format($data['cntper'],2));?></td>      <!-- 大分類コード	 -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'   ><?php hsc(number_format($data['total_amountper'],2));?></td>     <!-- 大分類名		 -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'   ><?php hsc(number_format($data['res4per'],2));?></td>      <!-- 中分類コード	 -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'   ><?php hsc(number_format($data['res5per'],2));?></td>     <!-- 中分類名		 -->
+                                    <td id='viewList' style="background-color:transparent;" align='right'   ><?php hsc(number_format($data['res6per'],2));?></td>         <!-- 仕入先コード	 -->
+                                    </tr>
+                                    <?php } ?>
+                                    <?php } ?>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                    <?php   if( !empty($ledgerSheetDetailList) ) {  
+                    $data = end($ledgerSheetDetailList);
+                    ?>
+                    <tr>
+                        <td>        
+                            <div id='sep'>
+                                <table style="table-layout:fixed;">
+                                    <tr>
+                                        <th></th>
+                                    </tr>
+                                </table>
+                            </div> 
+                        </td>    
+                    </tr>    
+                    <tr>
+                        <td>
+                            <div id="footer_h">
+                                <table style="table-layout:fixed;">
+                                    <!--                    <tr>
+                                                           <td id='viewList' style="background-color:transparent;" align='left'    >総合計</td> 		 
+                                                           <td id='viewList' style="background-color:transparent;" align='left'    ></td>       
+                                                            <td id='viewList' style="background-color:transparent;" align='left'   ></td>        
+                                                            <td id='viewList' style="background-color:transparent;" align='left'   ></td>        	 
+                                                            <td id='viewList' style="background-color:transparent;" align='left'   ></td>       
+                                                            <td id='viewList' style="background-color:transparent;" align='left'   ></td>       			 
+                                                            <td id='viewList' style="background-color:transparent;" align='left'   ></td>      			 
+                                                            <td id='viewList' style="background-color:transparent;" align='left'   ></td>          	 
+                                                            <td id='viewList' style="background-color:transparent;" align='left'   ></td>    			 
+                                                            <td id='viewList' style="background-color:transparent;" align='left'   ></td>                    
+                                                            <td id='viewList' style="background-color:transparent;" align='left'   ></td>     	 
+                                                            <td id='viewList' style="background-color:transparent;" align='left'   ></td>                    
+                                                            <td id='viewList' style="background-color:transparent;" align='left'   ></td>       		 -->
+                                    
+                                    
+                                    
+                                    <tr>
+                                        
+                                        <td id='viewList' style="background-color:transparent;" align='left'  >総合計</td> 
+                                        <td id='viewList' style="background-color:transparent;" align='left'  >基準日</td>  
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['pure_total']+$data['utax']));?></td>                    	
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['pure_total_i']));?></td>                   		 
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['tax_total_08']));?></td>               
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['tax_total_10']));?></td>                    	 
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['total_profit_i']));?></td>            
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['res3']));?></td>                 
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['cnt']));?></td>                  		 
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['total_amount']));?></td>                			 
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['res4']));?></td>            		 
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['res5']));?></td> 
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['res6']));?></td> 
+                                    </tr>
+                                    
+                                    <tr> 
+                                        <td id='viewList' style="background-color:transparent;" align='left'  >総合計</td> 
+                                        <td id='viewList' style="background-color:transparent;" align='left'  >	対象日</td>
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['pure_total2']+$data['utax2']));?></td>                    	
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['pure_total_i2']));?></td>                   		 
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['tax_total_082']));?></td>               
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['tax_total_102']));?></td>                    	 
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['total_profit_i2']));?></td>            
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['res32']));?></td>                 
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['cnt2']));?></td>                   		 
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['total_amount2']));?></td>                			 
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['res42']));?></td>            		 
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['res52']));?></td> 
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['res62']));?></td> 
+                                    </tr>
+                                    <tr>
+                                        
+                                        <td id='viewList' style="background-color:transparent;" align='left'  >総合計</td> 
+                                        <td id='viewList' style="background-color:transparent;" align='left'  >	対象日比</td>
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['res1per12'],2));?></td>                    	
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['pure_total_iper'],2));?></td>                   		 
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['tax_total_08per'],2));?></td>               
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['tax_total_10per'],2));?></td>                    	 
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['total_profit_iper'],2));?></td>            
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['res3per'],2));?></td>                 
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['cntper'],2));?></td>                  		 
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['total_amountper'],2));?></td>                			 
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['res4per'],2));?></td>            		 
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['res5per']));?></td> 
+                                        <td id='viewList' style="background-color:transparent;" align='right'  ><?php hsc(number_format($data['res6per'],2));?></td> 
+                                    </tr>
+                                    
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                    <?php } ?>     
+                </table>
+            </div>
+        </form>
+        <script type="text/javascript" src="../jquery/js/scrolltopcontrol2.js"></script> <!--スクロールしながらページのトップに戻る-->
+    </div><!-- /#sb-site -->
+</body>
+</html>

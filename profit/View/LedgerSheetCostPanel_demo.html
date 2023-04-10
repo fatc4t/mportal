@@ -1,0 +1,875 @@
+<?php
+    /**
+     * @file      コスト帳票画面(View)
+     * @author    millionet oota
+     * @date      2016/06/30
+     * @version   1.00
+     * @note      コスト帳票画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述 
+            include("../profit/View/Common/HtmlHeader.php"); 
+        ?>
+    <script type="text/javascript">
+        function chf(frm){
+            if( 1 < window.location.search.length )
+                {
+                    // 最初の1文字 (?記号) を除いた文字列を取得する
+                    var query = window.location.search.substring( 1 );
+                    // クエリの区切り記号 (&) で文字列を配列に分割する
+                    var parameters = query.split( '&' );
+                    if(1 < parameters.length){
+                        frm.action += '?param=' +frm.elements["codeName"].value + '&home=1';
+                    }else{
+                        frm.action += '?param=' +frm.elements["codeName"].value;
+                    }
+                }
+       }
+    </script>
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site">
+<form name="serchForm" id="serchForm" action="/profit/index.php" method="post" onsubmit="return chf(this)">
+<div class="serchListArea">
+<table align="center">
+<tr>
+<td>
+<table id="serchTable">
+<tr>
+<th id="serchTableTitle" align="center" width="65">帳票種別</th>
+<td id="serchTableItem">
+<select name="codeName" id="codeName">
+    <option value="LedgerSheetDay/show">売上分析</option>
+    <option value="LedgerSheetMonth/show">月次帳票</option>
+    <option value="LedgerSheetItem/show">商品別帳票</option>
+    <option value="LedgerSheetTime/show">時間別帳票</option>
+    <option value="LedgerSheetTimeZone/show">時間帯別帳票</option>
+    <option value="LedgerSheetCost/show" selected>コスト帳票</option>
+</select>
+</td>
+<th id="serchTableTitle" align="center" width="65">集計期間</th>
+<td id="serchTableItem">
+<select name="from_year" class="from_year" >
+<option value="2011">2011 年</option>
+<option value="2012">2012 年</option>
+<option value="2013">2013 年</option>
+<option value="2014">2014 年</option>
+<option value="2015">2015 年</option>
+<option value="2016" selected>2016 年</option>
+</select>
+<select name="from_month" class="from_month" >
+<option value="1">01 月</option>
+<option value="2">02 月</option>
+<option value="3">03 月</option>
+<option value="4">04 月</option>
+<option value="5">05 月</option>
+<option value="6">06 月</option>
+<option value="7" selected>07 月</option>
+<option value="8">08 月</option>
+<option value="9">09 月</option>
+<option value="10">10 月</option>
+<option value="11">11 月</option>
+<option value="12">12 月</option>
+</select>
+<label class="label_kara" >～</label>
+<select name="to_year" class="to_year" >
+<option value="2011">2011 年</option>
+<option value="2012">2012 年</option>
+<option value="2013">2013 年</option>
+<option value="2014">2014 年</option>
+<option value="2015">2015 年</option>
+<option value="2016" selected>2016 年</option>
+</select>
+<select name="to_month" class="to_month" >
+<option value="1">01 月</option>
+<option value="2">02 月</option>
+<option value="3">03 月</option>
+<option value="4">04 月</option>
+<option value="5">05 月</option>
+<option value="6">06 月</option>
+<option value="7" selected>07 月</option>
+<option value="8">08 月</option>
+<option value="9">09 月</option>
+<option value="10">10 月</option>
+<option value="11">11 月</option>
+<option value="12">12 月</option>
+</select>
+<select name="to_day" class="to_day" >
+<option value="1">01 日</option>
+<option value="2">02 日</option>
+<option value="3">03 日</option>
+<option value="4">04 日</option>
+<option value="5">05 日</option>
+<option value="6">06 日</option>
+<option value="7">07 日</option>
+<option value="8">08 日</option>
+<option value="9">09 日</option>
+<option value="10">10 日</option>
+<option value="11">11 日</option>
+<option value="12">12 日</option>
+<option value="13">13 日</option>
+<option value="14">14 日</option>
+<option value="15">15 日</option>
+<option value="16">16 日</option>
+<option value="17">17 日</option>
+<option value="18">18 日</option>
+<option value="19">19 日</option>
+<option value="20">20 日</option>
+<option value="21">21 日</option>
+<option value="22">22 日</option>
+<option value="23">23 日</option>
+<option value="24">24 日</option>
+<option value="25">25 日</option>
+<option value="26">26 日</option>
+<option value="27">27 日</option>
+<option value="28">28 日</option>
+<option value="29">29 日</option>
+<option value="30">30 日</option>
+<option value="31" selected>31 日</option>
+</select>　
+</td>
+</tr>
+</table>
+</td>
+<td>
+　<input class="submit" type="submit" name="submit" value="検索">
+</td>
+</table><br />
+</form>
+<div id="menu-wrap">
+</div>
+<table id='viewList' align='center'>
+<div id="menu-wrap">
+<thead>
+<tr>
+<th id='viewList' align='center' width=100> </th>
+<th id='viewList' align='center' width=60>札幌店</th>
+<th id='viewList' align='center' width=60>仙台店</th>
+<th id='viewList' align='center' width=60>東京本店</th>
+<th id='viewList' align='center' width=60>新潟店</th>
+<th id='viewList' align='center' width=60>長野店</th>
+<th id='viewList' align='center' width=60>金沢店</th>
+<th id='viewList' align='center' width=60>名古屋店</th>
+<th id='viewList' align='center' width=60>大阪店</th>
+<th id='viewList' align='center' width=60>京都店</th>
+<th id='viewList' align='center' width=60>岡山店</th>
+<th id='viewList' align='center' width=60>広島店</th>
+<th id='viewList' align='center' width=60>香川店</th>
+<th id='viewList' align='center' width=60>博多店</th>
+<th id='viewList' align='center' width=60>鹿児島店</th>
+<th id='viewList' align='center' width=60>沖縄店</th>
+<th id='viewList' align='center' width=60>ハワイ店</th>
+<th id='viewList' align='center' width=60>ベトナム店</th>
+</tr>
+</thead>
+</div>
+<tbody>
+<tr>
+<th id='viewList' align='left' width=100>税抜売上</th>
+<td id='viewList' align='right' width=60>1,220,056</td>
+<td id='viewList' align='right' width=60>1,863,510</td>
+<td id='viewList' align='right' width=60>3,451,450</td>
+<td id='viewList' align='right' width=60>1,080,129</td>
+<td id='viewList' align='right' width=60>1,400,858</td>
+<td id='viewList' align='right' width=60>2,153,122</td>
+<td id='viewList' align='right' width=60>1,432,123</td>
+<td id='viewList' align='right' width=60>2,645,451</td>
+<td id='viewList' align='right' width=60>1,902,213</td>
+<td id='viewList' align='right' width=60>990,784</td>
+<td id='viewList' align='right' width=60>1,053,123</td>
+<td id='viewList' align='right' width=60>1,001,012</td>
+<td id='viewList' align='right' width=60>1,912,311</td>
+<td id='viewList' align='right' width=60>1,451,600</td>
+<td id='viewList' align='right' width=60>870,012</td>
+<td id='viewList' align='right' width=60>1,002,145</td>
+<td id='viewList' align='right' width=60>770,973</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>食材仕入</th>
+<td id='viewList' align='right'>345,441</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>飲料仕入</th>
+<td id='viewList' align='right'>303,230</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>仕入合計</th>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>648,671</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>社員人件費</th>
+<td id='viewList' align='right'>50,000</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>アルバイト人件費</th>
+<td id='viewList' align='right'>401,321</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>人件費合計</th>
+<td id='viewList' align='right'>451,321</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>人件費比率</th>
+<td id='viewList' align='right'>36.99%</td>
+<td id='viewList' align='right'>0%</td>
+<td id='viewList' align='right'>0%</td>
+<td id='viewList' align='right'>0%</td>
+<td id='viewList' align='right'>0%</td>
+<td id='viewList' align='right'>0%</td>
+<td id='viewList' align='right'>0%</td>
+<td id='viewList' align='right'>0%</td>
+<td id='viewList' align='right'>0%</td>
+<td id='viewList' align='right'>0%</td>
+<td id='viewList' align='right'>0%</td>
+<td id='viewList' align='right'>0%</td>
+<td id='viewList' align='right'>0%</td>
+<td id='viewList' align='right'>0%</td>
+<td id='viewList' align='right'>0%</td>
+<td id='viewList' align='right'>0%</td>
+<td id='viewList' align='right'>0%</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>前年売上累計</th>
+<td id='viewList' align='right'>1,132,774</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+</tr>
+<tr height=30>
+<td colspan='17' align='left'><font size='3'>仕入明細</font></td>
+</tr>
+<tr>
+<th id='viewList' align='left'>日清製粉</th>
+<td id='viewList' align='right'>89,123</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>ブロイラー</th>
+<td id='viewList' align='right'>44,123</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>牧家</th>
+<td id='viewList' align='right'>1,452</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>ミリオフード</th>
+<td id='viewList' align='right'>44,236</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>めいらく</th>
+<td id='viewList' align='right'>9,751</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>尾家産業</th>
+<td id='viewList' align='right'>1,345</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>雪印乳業</th>
+<td id='viewList' align='right'>975</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>ナカガワ</th>
+<td id='viewList' align='right'>11,234</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>丸大</th>
+<td id='viewList' align='right'>99</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>○○食糧</th>
+<td id='viewList' align='right'>45,123</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>さか元</th>
+<td id='viewList' align='right'>6,132</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>日本プライス</th>
+<td id='viewList' align='right'>1,234</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>アスクル</th>
+<td id='viewList' align='right'>2,654</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>アイチフーズ</th>
+<td id='viewList' align='right'>3,335</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>太田商店</th>
+<td id='viewList' align='right'>65,456</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>ミリオ水産</th>
+<td id='viewList' align='right'>7,845</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>花咲パック</th>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>食材現金仕入</th>
+<td id='viewList' align='right'>11,324</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>食材仕入計</th>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>345,441</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>ミリオ酒販</th>
+<td id='viewList' align='right'>75,654</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>アサヒ</th>
+<td id='viewList' align='right'>98,456</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>コカ・コーラ</th>
+<td id='viewList' align='right'>104,120</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>飲料現金仕入</th>
+<td id='viewList' align='right'>25,000</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>飲料仕入計</th>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>303,230</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>仕入合計</th>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>648,671</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+</tr>
+</tbody>
+</table>
+</div>
+<br />
+<br />
+<br />
+<script type="text/javascript" src="../jquery/js/scrolltopcontrol2.js"></script> <!--スクロールしながらページのトップに戻る-->
+        </div><!-- /#sb-site -->
+</body>
+</html>

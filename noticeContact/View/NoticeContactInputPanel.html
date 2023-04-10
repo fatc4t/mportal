@@ -1,0 +1,783 @@
+<?php
+    /**
+     * @file      通達連絡入力画面(View)
+     * @author    millionet oota
+     * @date      2017/01/26
+     * @version   1.00
+     * @note      通達連絡入力画面
+     */
+?>
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+    <!-- Force latest IE rendering engine or ChromeFrame if installed -->
+    <!--[if IE]>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <![endif]-->
+    <meta charset="utf-8">
+    <meta name="description" content="File Upload widget with multiple file selection, drag&amp;drop support, progress bars, validation and preview images, audio and video for jQuery. Supports cross-domain, chunked and resumable file uploads and client-side image resizing. Works with any server-side platform (PHP, Python, Ruby on Rails, Java, Node.js, Go etc.) that supports standard HTML form file uploads.">
+    <!-- Bootstrap styles -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <!-- Generic page styles -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- blueimp Gallery styles -->
+    <link rel="stylesheet" href="//blueimp.github.io/Gallery/css/blueimp-gallery.min.css">
+    <!-- CSS to style the file input field as button and adjust the Bootstrap progress bars -->
+    <link rel="stylesheet" href="css/jquery.fileupload.css">
+    <link rel="stylesheet" href="css/jquery.fileupload-ui.css">
+    <!-- CSS adjustments for browsers with JavaScript disabled -->
+    <noscript><link rel="stylesheet" href="css/jquery.fileupload-noscript.css"></noscript>
+    <noscript><link rel="stylesheet" href="css/jquery.fileupload-ui-noscript.css"></noscript>
+        
+    <?php
+        $fileNames = array( 'default.css', 'common.js', 'jquery-ui.min.js', 'jquery-ui.css' );    // cssまたはｊｓファイルを拡張子付きで配列に記述 
+        include("Common/HtmlHeader.php"); 
+    ?>
+        
+<!-- アップロード領域 -->
+<script id="template-upload" type="text/x-tmpl">
+{% for (var i=0, file; file=o.files[i]; i++) { %}
+    <tr class="template-upload fade">
+        <td>
+            <span class="preview"></span>
+        </td>
+        <td>
+            <p class="name">{%=file.name%}</p>
+            <strong class="error text-danger"></strong>
+        </td>
+        <td>
+            <p class="size">Processing...</p>
+            <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-bar progress-bar-success" style="width:0%;"></div></div>
+        </td>
+        <td>
+            {% if (!i && !o.options.autoUpload) { %}
+                <button class="btn btn-primary start" disabled>
+                    <i class="glyphicon glyphicon-upload"></i>
+                    <span>アップロード</span>
+                </button>
+            {% } %}
+            {% if (!i) { %}
+                <button class="btn btn-warning cancel">
+                    <i class="glyphicon glyphicon-ban-circle"></i>
+                    <span>キャンセル</span>
+                </button>
+            {% } %}
+        </td>
+    </tr>
+{% } %}
+</script>
+<!-- The template to display files available for download -->
+<script id="template-download" type="text/x-tmpl">
+{% for (var i=0, file; file=o.files[i]; i++) { %}
+    <tr class="template-download fade">
+        <td>
+            <span class="preview">
+                {% if (file.url) { %}
+                    <a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}" data-gallery><img src="{%=file.url%}" width="180" height="180"></a>
+                {% } %}
+            </span>
+        </td>
+        <td>
+            <p class="name">
+                {% if (file.url) { %}
+                    <a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}" {%=file.url?'data-gallery':''%}>{%=file.name%}</a>
+                {% } else { %}
+                    <span>{%=file.name%}</span>
+                {% } %}
+            </p>
+        </td>
+        <td>
+            <span class="size">{%=o.formatFileSize(file.size)%}</span>
+        </td>
+        <td>
+            {% if (file.deleteUrl) { %}
+                <button class="btn btn-danger delete" data-type="{%=file.deleteType%}" data-url="{%=file.deleteUrl%}"{% if (file.deleteWithCredentials) { %} data-xhr-fields='{"withCredentials":true}'{% } %}>
+                    <i class="glyphicon glyphicon-trash"></i>
+                    <span>削除</span>
+                </button>
+                <input type="checkbox" name="delete" value="1" class="toggle">
+            {% } else { %}
+                <button class="btn btn-warning cancel">
+                    <i class="glyphicon glyphicon-ban-circle"></i>
+                    <span>キャンセル</span>
+                </button>
+            {% } %}
+        </td>
+    </tr>
+{% } %}
+</script>
+
+<!-- The jQuery UI widget factory, can be omitted if jQuery UI is already included -->
+<script src="js/vendor/jquery.ui.widget.js"></script>
+<!-- The Templates plugin is included to render the upload/download listings -->
+<script src="//blueimp.github.io/JavaScript-Templates/js/tmpl.min.js"></script>
+<!-- The Load Image plugin is included for the preview images and image resizing functionality -->
+<script src="//blueimp.github.io/JavaScript-Load-Image/js/load-image.all.min.js"></script>
+<!-- The Canvas to Blob plugin is included for image resizing functionality -->
+<script src="//blueimp.github.io/JavaScript-Canvas-to-Blob/js/canvas-to-blob.min.js"></script>
+<!-- Bootstrap JS is not required, but included for the responsive demo navigation -->
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+<!-- blueimp Gallery script -->
+<script src="//blueimp.github.io/Gallery/js/jquery.blueimp-gallery.min.js"></script>
+<!-- The Iframe Transport is required for browsers without support for XHR file uploads -->
+<script src="js/jquery.iframe-transport.js"></script>
+<!-- The basic File Upload plugin -->
+<script src="js/jquery.fileupload.js"></script>
+<!-- The File Upload processing plugin -->
+<script src="js/jquery.fileupload-process.js"></script>
+<!-- The File Upload image preview & resize plugin -->
+<script src="js/jquery.fileupload-image.js"></script>
+<!-- The File Upload audio preview plugin -->
+<script src="js/jquery.fileupload-audio.js"></script>
+<!-- The File Upload video preview plugin -->
+<script src="js/jquery.fileupload-video.js"></script>
+<!-- The File Upload validation plugin -->
+<script src="js/jquery.fileupload-validate.js"></script>
+<!-- The File Upload user interface plugin -->
+<script src="js/jquery.fileupload-ui.js"></script>
+<!-- The main application script -->
+<script src="js/main.js"></script>
+<!-- The XDomainRequest Transport is included for cross-domain file deletion for IE 8 and IE 9 -->
+<!--[if (gte IE 8)&(lt IE 10)]>
+<script src="js/cors/jquery.xdr-transport.js"></script>
+<![endif]-->
+
+        <script type="text/javascript">
+            var lineInfo = null;
+            var btnInfo  = null;
+            var appCnt = 0;
+
+            $(document).ready(function() 
+            {
+                
+                /**
+                 * 削除ボタン押下時処理
+                 */
+                $('#del').click(function()
+                {
+                    event.preventDefault();
+
+                    document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$DELETE_DIALOG_MSG); ?>';
+                    $("#dialog_mod").dialog('open');
+
+                    // サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+            
+                /**
+                 * 戻るボタン押下時処理
+                 */
+                $('#back').click(function()
+                {
+                    // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                    var data = {
+                                  back : $('#back').val(),
+                                  searchTitle : $('#searchTitle').val(),
+                                  searchContents : $('#searchContents').val(),
+//                                  searchFile : $('#searchFile').val(),
+                                  searchSAppStartDate : $('#minApplicationStartDate').val(),
+                                  searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                               }
+                    var path = 'index.php?param=NoticeContact/show&home=1';
+
+                    // データ更新
+                    setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+                    // サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+                // 登録系ボタン押下時
+                $('#fileupload').submit(function(event)
+                {
+                    event.preventDefault();
+
+                    if(btnInfo !== '<?php hsc($Log->getMsgLog("MSG_BASE_0803")); ?>')
+                    {
+                        if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0800")); ?>')
+                        {
+                            // 一覧画面新規作成ボタンから遷移してきた場合
+                            document.getElementById("dialog_add").textContent='<?php hsc(SystemParameters::$NEW_DIALOG_MSG); ?>';
+                            $("#dialog_add").dialog('open');
+                        
+                        }
+                        else if(btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>')
+                        {
+                            document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$UPDATE_DIALOG_MSG); ?>';
+                            $("#dialog_mod").dialog('open');
+                        }
+                    }
+                    else
+                    {
+                        document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$DELETE_DIALOG_MSG); ?>';
+                        $("#dialog_mod").dialog('open');
+                    }
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+                /**
+                 * ラジオボタン変更イベント
+                 */
+                $("input:radio[name=unit]").change(function()
+                {
+                    if($("[name=unit]:checked").val() == "1")
+                    {
+                        // 全員指定の場合
+                        $('#organizationName').css('display' , 'none');
+                        $('#searchUser').css('display' , 'none');
+                        $('#right').css('display' , 'none');
+                        $('#left').css('display' , 'none');
+                        $('#searchUser').css('display' , 'none');
+                        $('#selectUser').css('display' , 'none');
+                        $('#p1').css('display' , 'none');
+                        $('#p2').css('display' , 'none');
+                        $('#groupName').css('display' , 'none');
+                    }
+                    else if($("[name=unit]:checked").val() == "2")
+                    {
+                        // 組織指定の場合
+                        $('#organizationName').css('display' , 'none');
+                        $('#searchUser').css('display' , '');
+                        document.getElementById("organizationName").disabled = false;
+                        document.getElementById("right").disabled = false;
+                        document.getElementById("left").disabled = false;
+                        document.getElementById("searchUser").disabled = false;
+                        document.getElementById("selectUser").disabled = false;
+                        $('#groupName').css('display' , 'none');
+                    }
+                    else if($("[name=unit]:checked").val() == "3")
+                    {
+                        // 組織配下指定の場合
+                    }
+                    else if($("[name=unit]:checked").val() == "4")
+                    {
+                        // 役職指定の場合
+                        $('#organizationName').css('display' , 'none');
+                        document.getElementById("organizationName").disabled = false;
+                        document.getElementById("right").disabled = false;
+                        document.getElementById("left").disabled = false;
+                        document.getElementById("searchUser").disabled = false;
+                        document.getElementById("selectUser").disabled = false;
+                        $('#groupName').css('display' , 'none');
+                    }
+                    else if($("[name=unit]:checked").val() == "5")
+                    {
+                        // 個人指定の場合
+                        $('#organizationName').css('display' , '');
+                        document.getElementById("organizationName").disabled = false;
+                        document.getElementById("right").disabled = false;
+                        document.getElementById("left").disabled = false;
+                        document.getElementById("searchUser").disabled = false;
+                        document.getElementById("selectUser").disabled = false;
+                        $('#groupName').css('display' , 'none');
+                    }
+                    else if($("[name=unit]:checked").val() == "6")
+                    {
+                        // グループ指定の場合
+                        $('#organizationName').css('display' , 'none');
+                        document.getElementById("organizationName").disabled = false;
+                        document.getElementById("right").disabled = false;
+                        document.getElementById("left").disabled = false;
+                        document.getElementById("searchUser").disabled = false;
+                        document.getElementById("selectUser").disabled = false;
+                        $('#groupName').css('display' , 'none');
+                    }
+                    else if($("[name=unit]:checked").val() == "7")
+                    {
+                        // グループ個人指定の場合
+                        $('#organizationName').css('display' , 'none');
+                        document.getElementById("organizationName").disabled = false;
+                        document.getElementById("right").disabled = false;
+                        document.getElementById("left").disabled = false;
+                        document.getElementById("searchUser").disabled = false;
+                        document.getElementById("selectUser").disabled = false;
+                        $('#groupName').css('display' , '');
+                    }
+                    
+                    if($("[name=unit]:checked").val() != "1")
+                    {
+                        // リストを再生成
+                        setSearchUserList();
+                    }
+                    
+                });
+
+            });
+
+            /**
+             * 新規作成データの設定
+             */
+            function setAddData()
+            {
+                
+                var $selectUser = '';
+                var selectUser = document.getElementById('selectUser')
+                
+                for(var i = 0; i < selectUser.options.length; i++){
+                    $selectUser += selectUser[i].value + ',';
+                };
+                
+                // 選択種別を渡すために判別する
+                var $selectUnit = '';
+                var unit = document.getElementsByName('unit');
+                for(var i = 0; i < unit.length; i++){
+                    if (unit[i].checked) {
+                        $selectUnit = unit[i].value;
+                        break;
+                    }
+                };
+                
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              searchTitle : $('#searchTitle').val(),
+                              searchContents : $('#searchContents').val(),
+//                              searchFile : $('#searchFile').val(),
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              token : $('#token').val(),
+                              thumbnailId : $('#thumbnailId').val(),
+                              oldThumbnailId : $('#oldThumbnailId').val(),
+                              title : $('#title').val(),
+                              contents : $('#contents').val(),
+//                              files : $('#files').val(),
+                              selectUser : $selectUser,
+                              unit : $selectUnit,
+                           };
+                var path = 'index.php?param=NoticeContact/add&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+            }
+
+            /**
+             * データ更新の設定
+             */
+            function setModData()
+            {
+                if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>' )
+                {
+                    path = 'index.php?param=NoticeContact/mod&home=1';
+                }
+                else
+                {
+                    path = 'index.php?param=NoticeContact/del&home=1';
+                }
+                
+                // 保持リストを渡す為にまとめる(右リスト)
+                var $selectUser = '';
+                var selectUser = document.getElementById('selectUser')
+                
+                for(var i = 0; i < selectUser.options.length; i++){
+                    $selectUser += selectUser[i].value + ',';
+                };
+
+                // 選択種別を渡すために判別する
+                var $selectUnit = '';
+                var unit = document.getElementsByName('unit');
+                for(var i = 0; i < unit.length; i++){
+                    if (unit[i].checked) {
+                        $selectUnit = unit[i].value;
+                        break;
+                    }
+                };
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              noticeContactID : $('#noticeContactID').val(),
+                              updateTime : $('#updateTime').val(),
+                              searchTitle : $('#searchTitle').val(),
+                              searchContents : $('#searchContents').val(),
+//                              searchFile : $('#searchFile').val(),
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              token : $('#token').val(),
+                              thumbnailId : $('#thumbnailId').val(),
+                              oldThumbnailId : $('#oldThumbnailId').val(),
+                              title : $('#title').val(),
+                              contents : $('#contents').val(),
+//                              files : $('#files').val(),
+                              selectUser : $selectUser,
+                              unit : $selectUnit,
+                           };
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+            }
+
+            /**
+             * 更新キャンセル
+             */
+            function cancel()
+            {
+                var data = null;
+                var path = '';
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              searchTitle : $('#searchTitle').val(),
+                              searchContents : $('#searchContents').val(),
+//                              searchFile : $('#searchFile').val(),
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              token : $('#token').val(),
+                              thumbnailId : $('#thumbnailId').val(),
+                              oldThumbnailId : $('#oldThumbnailId').val()
+                            }
+                var path = 'index.php?param=NoticeContact/show&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+                // サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 行情報を設定
+             */
+            function setLineInfo(thisLineInfo, thisBtnInfo)
+            {
+                lineInfo = thisLineInfo;
+                btnInfo  = thisBtnInfo;
+                return true;
+            }
+
+            /**
+             * 遷移先の設定
+             */
+            function moveRedirect()
+            {
+                cancel();
+            }
+            
+            /**
+             * 検索用従業員リスト更新
+             */
+            function setSearchUserList()
+            {
+                // 検索用従業員リスト更新用パス
+                var path = 'index.php?param=NoticeContact/searchUserListInput&home=1';
+                
+                // 保持リストを渡す為にまとめる(右リスト)
+                var $selectUser = '';
+                var $selectUserLabel ='';
+                
+                var selectUser = document.getElementById('selectUser')
+                
+                for(var i = 0; i < selectUser.options.length; i++){
+                    $selectUser += selectUser[i].value + ',';
+                    $selectUserLabel += selectUser.options[i].text + ',';
+                };
+
+                // 選択種別を渡すために判別する
+                var $selectUnit = '';
+                var unit = document.getElementsByName('unit');
+                for(var i = 0; i < unit.length; i++){
+                    if (unit[i].checked) {
+                        $selectUnit = unit[i].value;
+                        break;
+                    }
+                };
+        
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              searchOrgID : $('#organizationName').val(),
+                              searchGroupID : $('#groupName').val(),
+                              selectUser : $selectUser,
+                              selectUserLabel : $selectUserLabel,
+                              unit : $selectUnit,
+                           };
+
+                // データ更新
+                setDataForAjax( data, path, "jquery-replace-SearchUserName-ajax" );
+            }
+            
+            /**
+             * リスト操作
+             */
+            function moveList() {
+
+                //　リストで選択している要素を取得する。
+                var leftList = document.getElementById("searchUser");
+                var rightList = document.getElementById("selectUser");
+                
+                //　移動する
+                for (var i = 0; i < leftList.length; i++) {
+                   if (leftList[i].selected) {
+                       // 重複チェック
+                       var flg = true;
+                       if(rightList.length != 0){
+                           for (var j = 0; j < rightList.length; j++) {
+                                if(leftList[i].value == rightList[j].value){
+                                   flg = false;
+                                }
+                           }
+                       }
+
+                       // 重複フラグ判定
+                       if(flg){
+                           // 追加前にラベルの組織改装文字を除去
+                           var label = leftList[i].text.replace( /｜/g , "" ) ;
+                           label = label.replace( /　/g , "" ) ;
+                           label = label.replace( /├/g , "" ) ;
+                           label = label.replace( /└/g , "" ) ;
+                           leftList[i].text = label;
+                           
+                           //重複していなければ右リストに追加
+                           rightList.appendChild(leftList[i]);
+                           i--;
+                       }
+                   }
+                }
+            }
+            
+            /**
+             * リスト削除
+             */
+            function delList() {
+
+                 //　リストで選択している要素を取得する。
+                var leftList = document.getElementById("searchUser");
+                var rightList = document.getElementById("selectUser");
+                
+                //　移動する
+                for (var i = 0; i < rightList.length; i++) {
+                   if (rightList[i].selected) {
+                       // 重複チェック
+                       var flg = true;
+                       if(leftList.length != 0){
+                           for (var j = 0; j < leftList.length; j++) {
+                                if(rightList[i].value == leftList[j].value){
+                                   flg = false;
+                                }
+                           }
+                       }
+
+                       // 重複フラグ判定
+                       if(flg){
+                           //重複していなければ左リストに戻す
+                           leftList.appendChild(rightList[i]);
+                           i--;
+                       }else{
+                           //重複していれば右リストの削除だけ行う
+                            rightList.removeChild(rightList[i]);
+                            i--;
+                       }
+                   }
+                }
+            }
+
+        </script>
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site">
+            <!-- パンくずリスト -->
+            <?php include("Common/Breadcrumb.php"); ?>
+            
+            <!-- serchButtonArea -->
+            <div class="logicButtonArea">
+                <p align=center>
+                    <input type="button" id="back" name="back" value="戻る" class="return" data-href="index.php?param=NoticeContact/show&home=1">
+                </p>
+            </div><!-- /.serchButtonArea -->
+
+            <!-- serchEditArea -->
+            <form id="fileupload" name="fileupload" method="POST" enctype="multipart/form-data">
+                <!-- 以下、hiddenの値は修正/削除時の条件に使用 -->
+                <input type="hidden" id="token" name="token" value="<?php hsc($TokenID); ?>">
+                <input type="hidden" id="thumbnailId" name="thumbnailId" value="<?php hsc($thumbnailId); ?>">
+                <input type="hidden" id="oldThumbnailId" name="oldThumbnailId" value="<?php hsc($oldThumbnailId); ?>">
+                <input type="hidden" id="file" name="file" value="<?php hsc($file); ?>">
+                <input type="hidden" id="noticeContactID" name="noticeContactID" value="<?php hsc($noticeContactDataList['notice_contact_id']); ?>">
+                <input type="hidden" id="updateTime" name="updateTime" value="<?php hsc($noticeContactDataList['update_time']); ?>">
+                <!-- 以下、hiddenの値は一覧表の検索条件保持のため、使用 -->
+                <input type="hidden" id="searchTitle" name="searchTitle" value="<?php hsc($_POST['searchTitle']); ?>">
+                <input type="hidden" id="searchContents" name="searchContents" value="<?php hsc($_POST['searchContents']); ?>">
+                <input type="hidden" id="searchThumbnail" name="searchThumbnail" value="<?php hsc($_POST['searchThumbnail']); ?>">
+                <input type="hidden" id="searchFile" name="searchFile" value="<?php hsc($_POST['searchFile']); ?>">
+                <input type="hidden" id="searchViewer_count" name="searchViewer_count" value="<?php hsc($_POST['searchViewer_count']); ?>">
+                <input type="hidden" id="minApplicationStartDate" name="minApplicationStartDate" value="<?php hsc($_POST['searchSAppStartDate']); ?>">
+                <input type="hidden" id="maxApplicationStartDate" name="maxApplicationStartDate" value="<?php hsc($_POST['searchEAppStartDate']); ?>">
+                <div class="serchEditArea">
+                    <div style="width:900px; margin:0 auto;">
+                        <table width="100%">
+                            <tbody>
+                                <tr>
+                                    <td width="120px" style="border-style:none;"></td>
+                                    <td width="800px" style="border-style:none;"></td>
+                                </tr>
+                                <tr>
+                                    <th>タイトル</th>
+                                    <td colspan="2" style="background-color: #ffffff">
+                                        <input type="text" title="タイトル" id="title" name="title" style="width: 792px" value="<?php hsc($noticeContactDataList['title']); ?>" class="Em" required>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>内容</th>
+                                    <td colspan="2" style="background-color: #ffffff">
+                                        <textarea  id="contents" name="contents" rows="20" cols="110"><?php hsc($noticeContactDataList['contents']); ?></textarea>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <table width="100%" id="thumbnailTable">
+                            <tbody id="thumbnailTbody">
+                                <tr>
+                                    <th width="120px">添付ファイル</th>
+                                    <td width="800px">
+                                        <div style="background-color: #ffffff">
+                                            <!-- Redirect browsers with JavaScript disabled to the origin page -->
+                                            <noscript><input type="hidden" name="redirect" value="https://blueimp.github.io/jQuery-File-Upload/"></noscript>
+                                            <!-- The fileupload-buttonbar contains buttons to add/delete files and start/cancel the upload -->
+                                            <div class="row fileupload-buttonbar">
+                                                <div class="col-lg-7">
+                                                    <!-- The fileinput-button span is used to style the file input field as button -->
+                                                    <span class="btn btn-success fileinput-button">
+                                                        <i class="glyphicon glyphicon-plus"></i>
+                                                        <span>ファイル追加</span>
+                                                        <input type="file" name="files[]" multiple>
+                                                    </span>
+<!--                                                    <button type="submit" class="btn btn-primary start">
+                                                        <i class="glyphicon glyphicon-upload"></i>
+                                                        <span>全てアップロード</span>
+                                                    </button>
+                                                    <button type="reset" class="btn btn-warning cancel">
+                                                        <i class="glyphicon glyphicon-ban-circle"></i>
+                                                        <span>全てキャンセル</span>
+                                                    </button>
+                                                    <button type="button" class="btn btn-danger delete">
+                                                        <i class="glyphicon glyphicon-trash"></i>
+                                                        <span>全て削除</span>
+                                                    </button>
+-->
+                                                    <input type="checkbox" class="toggle">
+                                                    <!-- The global file processing state -->
+                                                    <span class="fileupload-process"></span>
+                                                </div>
+                                                <!-- The global progress state -->
+                                                <div class="col-lg-5 fileupload-progress fade">
+                                                    <!-- The global progress bar -->
+                                                    <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+                                                        <div class="progress-bar progress-bar-success" style="width:0%;"></div>
+                                                    </div>
+                                                    <!-- The extended global progress state -->
+                                                    <div class="progress-extended">&nbsp;</div>
+                                                </div>
+                                            </div>
+                                            <!-- The table listing the files available for upload/download -->
+                                            <table role="presentation" class="table table-striped" style="width:600px" align=left><tbody class="files"></tbody></table>
+                                            <br>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <table width="100%">
+                            <tbody>
+                                <tr>
+                                    <td style="border-style:none;"></td>
+                                </tr>
+                                <tr>
+                                </tr>
+                                <th>選択種別</th>
+                                <td style="width:110px; background-color: #ffffff">
+                                    　<input type="radio" id="unit" name="unit" value="1" checked>全員
+                                    　<input type="radio" id="unit" name="unit" value="2">組織
+<!--                                    　<input type="radio" id="unit" name="unit" value="3">組織配下 -->
+                                    　<input type="radio" id="unit" name="unit" value="4">役職
+                                    　<input type="radio" id="unit" name="unit" value="5">個人
+                                    　<input type="radio" id="unit" name="unit" value="6">グループ
+                                    　<input type="radio" id="unit" name="unit" value="7">グループ個人
+                                </td>
+                                <tr>
+                                    <th>フィルタ</th>
+                                        <td style="background-color: #ffffff">
+                                            <?php $unit_disabled = ""; ?>
+                                            <?php if (empty($noticeContactDataList['notice_contact_id'])) { ?>
+                                                <?php $unit_disabled = "display:none"; ?>
+                                            <?php } ?>
+                                            <select name="organizationName" id="organizationName" style="width:200px;<?php hsc($unit_disabled); ?>" onChange="setSearchUserList()">
+                                                <?php foreach($abbreviatedNameList as $abbreviated) { ?>
+                                                    <?php $selected = ""; ?>
+                                                    <?php if($abbreviated['organization_id'] == $searchArray['organizationID']) { ?>
+                                                        <?php $selected = "selected"; ?>
+                                                    <?php } ?>
+                                                    <option value="<?php hsc($abbreviated['organization_id']); ?>" <?php hsc($selected); ?>><?php hsc($abbreviated['abbreviated_name']); ?></option>
+                                                <?php } ?>
+                                            </select>
+                                            <?php if($CorrectionFlag) { ?>
+                                                <?php $group_disabled = "display:none"; ?>
+                                            <?php } ?>
+                                            <select name="groupName" id="groupName" style="width:200px;<?php hsc($group_disabled); ?>" onChange="setSearchUserList()">
+                                                <?php foreach($groupList as $group) { ?>
+                                                    <?php $selected = ""; ?>
+                                                    <?php if($group['group_id'] == $searchArray['group_id']) { ?>
+                                                        <?php $selected = "selected"; ?>
+                                                    <?php } ?>
+                                                    <option value="<?php hsc($group['group_id']); ?>" <?php hsc($selected); ?>><?php hsc($group['group_name']); ?></option>
+                                                <?php } ?>
+                                            </select>
+                                        </td>
+                                </tr>
+                                <tr>
+                                    <th>対象リスト</th>
+                                    <td  style="background-color: #ffffff">
+                                        <?php include("SearchList.php"); ?>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border-style:none;"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                    </div><!-- /. width:65% -->
+                </div><!-- /.serchEditArea -->
+                <input type="hidden" id="btnid" name="btnid" value=""/>
+
+                <!-- logicButtonArea -->
+                <div class="logicButtonArea">
+                    <p align=center>
+                        <?php if($CorrectionFlag) { ?>
+                            <?php if($delFlag) { ?>
+                                <input type="submit" id="del" name="del" value="<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>')" class="delete">
+                            <?php } ?>
+                            <?php if($writeFlag) { ?>
+                                <input type="submit" id="newadd" name="newadd" value="<?php hsc($Log->getMsgLog('MSG_BASE_0805')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0800')); ?>')" class="add">
+                                <input type="submit" id="mod" name="mod" value="<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>')" class="update">
+                            <?php } ?>
+                        <?php } else { ?>
+                            <input type="submit" id="add" name="add" value="　<?php hsc($Log->getMsgLog('MSG_BASE_0805')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0800')); ?>')" class="add">
+                        <?php } ?>
+                    </p>
+                </div><!-- /.logicButtonArea -->
+            </form>
+
+        </div><!-- /#sb-site -->
+        
+        <div id="jquery-replace-ajax">
+            
+        </div><!-- /#jquery-replace-ajax -->
+
+        <?php include("../FwCommon/View/Dialog.php"); ?>
+    <script>
+       $('#fileupload').fileupload({
+            autoUpload: true
+        });
+    </script>
+    </body>
+</html>

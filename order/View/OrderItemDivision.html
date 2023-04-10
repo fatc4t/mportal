@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>m-portal</title>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8">
+        <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+        <?php include("Common/HtmlHeader.php"); ?>        
+        <script type="text/javascript" src="../../FwCommon/js/common.js" ></script>
+        <script type="text/javascript" src="../js/template1/common.js" ></script> 
+        <script type="text/javascript" src="../js/template1/jquery-ui.min.js" ></script>
+        <link rel="stylesheet" href="../css/order/jquery-ui.css" >	
+        <link rel="stylesheet" href="../css/order/default.css" >	         
+        <script type="text/javascript">
+            controller      = "<?php echo $controller ; ?>";
+            jss_rc   = "../js/"+controller.toLowerCase()+"/template1.js";
+            var script  = document.createElement('script');
+            script.src  = jss_rc;
+            script.type ="text/javascript";            
+            document.head.appendChild(script);
+            var link    = document.createElement('link');
+            link.rel    = "stylesheet";
+            link.href   = "../css/"+controller.toLowerCase()+"/template1.css";
+            document.head.appendChild(link);
+            
+            pagetitle       = "<?php echo $pagetitle ; ?>";
+            addrow          = "<?php echo $addrow ; ?>";
+            save            = "<?php echo $save ; ?>";
+            pr_key_list     = "<?php echo $pr_key_list; ?>";
+            pr_key_id       = '<?php echo json_encode(json_encode($pr_key_id)); ?>';
+            A_pr_key_id     = JSON.parse(pr_key_id.slice(1,-1));
+            key             = '<?php echo json_encode(json_encode($key)); ?>';
+            A_key           = JSON.parse(key.slice(1,-1));
+            title           = '<?php echo json_encode(json_encode($title)); ?>';
+            A_title         = JSON.parse(title.slice(1,-1));
+            data            = '<?php echo json_encode(json_encode($data)); ?>';
+            working_data    = JSON.parse(data.slice(1,-1));
+            //
+            abbreviated_list    = '<?php echo json_encode(json_encode($abbreviatedNameList)); ?>';
+            A_abbreviated_list  = JSON.parse(abbreviated_list.slice(1,-1));
+            destination     = "<?php hsc($destination); ?>";
+            orgn_id         = "<?php hsc($cmb_prod_k['ma_cd']); ?>";
+            //
+            alldata         = '<?php echo json_encode(json_encode($alldata)); ?>';
+            A_alldata       = JSON.parse(alldata.slice(1,-1));
+            cmb_ma_cd       = "<?php hsc($cmb_prod_k['ma_cd']); ?>";
+            cmb_prod_k_type = "<?php hsc($cmb_prod_k['prod_k_type']); ?>";
+            cmb_prod_k_cd1  = "<?php hsc($cmb_prod_k['prod_k_cd1']); ?>";
+            cmb_prod_k_cd2  = "<?php hsc($cmb_prod_k['prod_k_cd2']); ?>";
+            cmb_prod_k_cd3  = "<?php hsc($cmb_prod_k['prod_k_cd3']); ?>";
+            cmb_prod_k_cd4  = "<?php hsc($cmb_prod_k['prod_k_cd4']); ?>";
+            cmb_prod_k_cd5  = "<?php hsc($cmb_prod_k['prod_k_cd5']); ?>";
+            
+            maker_list    = '<?php echo json_encode(json_encode($makerList)); ?>';
+            A_maker_list  = JSON.parse(maker_list.slice(1,-1));
+            ma_cd_self         = "<?php hsc($ma_cd); ?>";
+            ma_name_self         = "<?php hsc($ma_name); ?>";
+
+            var new_data    = [];
+            var upd_data    = [];
+            var del_data    = [];
+            
+            function thead_crea(thead_nm){
+                thead = document.getElementById("thead_template");
+                thead.innerHTML = '';
+                field_nm            = document.createElement('th');                
+                field_nm.innerHTML  = "&nbsp;&nbsp;&nbsp;";
+                thead.appendChild(field_nm); 
+
+                for(i=0;i < thead_nm.length ; i++ ){
+                    field_nm            = document.createElement('th');
+                    field_nm.innerHTML  = "";
+                    field_nm.innerHTML  = thead_nm[i];
+                    thead.appendChild(field_nm);
+                }                
+            }
+            
+            function tbody_crea(work_data){
+                tbod = document.getElementById("tbody_template");
+                tbod.innerHTML = '';
+                for(i=0;i < work_data.length ; i++ ){         
+                    var trow         = tbod.insertRow();
+                    var ckbox        = trow.insertCell(0);
+                    var newbutton       = document.createElement('button');
+                    newbutton.name      = 'button_del';
+                    newbutton.id        = 'del_' + i;
+                    newbutton.value     = i;
+                    newbutton.innerHTML = "削除";
+                    newbutton.onclick = del_row;
+                    ckbox.appendChild(newbutton);
+
+                    for(j=0;j < A_key.length; j++){
+                        var newcell     = trow.insertCell(j+1);
+                        var newinput   = document.createElement('input');
+                        newinput.type       = 'text';
+                        newinput.name       = A_key[j];
+                        newinput.id         = A_key[j]+"_"+i;
+                        newinput.onchange  = f_change;
+                        newinput.onblur    = f_blur;
+                        newinput.onkeydown = f_keydown;
+                        newinput.onkeypress = f_keypress;
+                        newinput.oninput    = f_input;
+                        newinput.value      = work_data[i][A_key[j]];
+                        newcell.appendChild(newinput);                            
+                    }
+                }
+         
+                if (work_data.length == 0){
+                    var trow         = tbod.insertRow();
+                    var ckbox        = trow.insertCell(0);
+                    var newbutton       = document.createElement('button');
+                    newbutton.name      = 'button_del';
+                    newbutton.id        = 'del_0';
+                    newbutton.value     = 0;
+                    newbutton.innerHTML = "削除";
+                    newbutton.onclick = del_row;
+                    ckbox.appendChild(newbutton);
+                    for(j=0;j < A_key.length; j++){
+                        var newcell = trow.insertCell(j+1);
+                        var newinput = document.createElement('input');
+                        newinput.type       = 'text';
+                        newinput.name       = A_key[j];
+                        newinput.id         = A_key[j]+"_"+i;
+                        newinput.onchange   = f_change;
+                        newinput.onblur     = f_blur;
+                        newinput.onkeydown  = f_keydown;
+                        newinput.onkeypress = f_keypress;
+                        newinput.oninput    = f_input;
+                        newinput.value      = "";
+                        newcell.appendChild(newinput);
+                    }
+                }
+             if(addrow == 0){
+                 list = document.getElementsByName('button_del');
+                 for(i=0;i<list.length;i++){
+                    list[i].setAttribute("disabled", true);
+                 }
+             }
+             if(save == 0){
+                  document.getElementById('send_result').setAttribute("disabled", true);
+             }
+                
+            }
+            function f_change(e){
+                T_f_change(e);
+            }
+            function f_blur(e){
+                //T_f_blur(e);
+            }
+            function f_keydown(e){
+                result = T_f_keydown(e);
+                return result;
+            }
+            function f_keypress(e){
+                T_f_keypress(e);
+            }
+            function f_input(e){
+                T_f_input(e);
+            }
+            function add_row(e){
+                res = T_addrow(e);
+                
+                if (res === "ok"){
+                    newval           = working_data.length;
+                    tbod = document.getElementById("tbody_template");
+                    var trow         = tbod.insertRow();
+                    var ckbox        = trow.insertCell(0);
+                    var newbutton       = document.createElement('button');
+                    newbutton.name      = 'button_del';
+                    newbutton.id        = 'del_'+newval;
+                    newbutton.innerHTML = "削除";
+                    newbutton.value     = newval;
+                    newbutton.onclick  = del_row;
+                    ckbox.appendChild(newbutton);
+                    
+                    for(j=0;j < A_key.length; j++){
+                        var newcell = trow.insertCell(j+1);
+                        var newinput = document.createElement('input');
+                        newinput.type       = 'text';
+                        newinput.name       = A_key[j];
+                        newinput.id         = A_key[j]+"_"+newval;
+                        newinput.onchange   = f_change;
+                        newinput.onblur     = f_blur;
+                        newinput.onkeydown  = f_keydown;
+                        newinput.oninput     = f_input;
+                        newinput.value      = "";
+                        newcell.appendChild(newinput);
+                    }
+                    elemnt_f_id     = A_pr_key_id[0] +"_"+newval;
+                    elemnt_f        = document.getElementById(elemnt_f_id);
+                    elemnt_f.focus();   
+                }
+            }
+            function del_row(e){
+                rowIndex=0;
+                elements=document.getElementsByName('button_del');
+                for(i=0;i<elements.length;i++){
+                    if (elements[i].value === e.target.value){
+                        rowIndex=i;
+                        break;
+                    }
+                }
+                res = T_delrow(e);
+                if (res === "ok"){
+                    if(document.getElementsByName("button_del").length > 1){
+                        tbod = document.getElementById("tbody_template").deleteRow(rowIndex);
+                    }else{
+                         for(j=0;j < A_key.length; j++){
+                            document.getElementById(A_key[j] + "_" + e.target.value).value = "";
+                        }
+                    }
+                }
+            }
+            
+            function send_result(){
+                data_send   = T_send_result(ma_cd);              
+            }
+            
+            function reset_data(){
+                T_reset_data();
+            }
+            
+            function all_reset(){
+                spath       = window.location.href;
+                spath       = spath.split('?'); 
+                spath       = spath[0]+'?param='+destination+'/show&home=1';
+                window.location.replace(spath);
+            }
+            
+            $(document).ready(function() 
+            {
+                //業者リスト設定
+                var x = document.getElementById("cmb_ma_cd");
+                $('#cmb_ma_cd').empty();
+                var op = document.createElement("option");
+                op.text = ma_name_self;
+                op.value = ma_cd_self;
+                x.add(op,1); 
+                for(var i=0;i<A_maker_list.length;i++){
+                    if(A_maker_list[i]['ma_name'] == null || A_maker_list[i]['ma_name'] == ""){
+                        continue;
+                    }
+                    var op = document.createElement("option");
+                    op.text = A_maker_list[i]['ma_name'];
+                    op.value = A_maker_list[i]['ma_cd'];
+                    x.add(op,1); 
+                };
+                document.getElementById('cmb_ma_cd').value = cmb_ma_cd;
+            });
+        </script>
+            
+        <style type="text/css">
+            
+        </style>
+    </head>
+    <body>
+        <?php
+              include("../home/View/Common/PageHeader.php");
+        ?> 
+    <!-- Site -->
+    <div id="sb-site" style="overflow: auto;">
+<!--        <h4 id="pagetitle"></h4> -->
+        <?php include("Common/Breadcrumb.php"); ?>
+        <div style="color:#FF0000; font-weight:bold;"><?php if (Count($aryErrMsg) > 0) hsc('　'.join('<br />',$aryErrMsg)); ?></div>
+        <label for="cmb_ma_cd">　業者&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+        <select id="cmb_ma_cd" name="cmb_ma_cd" style="width:400px;">  
+        </select>
+        <br />
+        <label for="cmb_PROD_T_TYPE">　商品区分種別&nbsp;&nbsp;&nbsp;</label>
+        <select id="cmb_PROD_T_TYPE" name="cmb_PROD_T_TYPE" style="width:400px;">
+            <option value=""></option>
+            <option value="1">商品区分1</option>
+            <option value="2">商品区分2</option>
+            <option value="3">商品区分3</option>
+            <option value="4">商品区分4</option>
+            <option value="5">商品区分5</option>
+        </select>
+        <br />
+        <label for="cmb_PROD_T_CD1">　商品区分1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+        <select id="cmb_PROD_T_CD1" name="cmb_PROD_T_CD1" style="width:400px;">
+        </select>
+        <br />
+        <label for="cmb_PROD_T_CD2">　商品区分2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+        <select id="cmb_PROD_T_CD2" name="cmb_PROD_T_CD2" style="width:400px;">
+        </select>
+        <br />
+        <label for="cmb_PROD_T_CD3">　商品区分3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+        <select id="cmb_PROD_T_CD3" name="cmb_PROD_T_CD3" style="width:400px;">
+        </select>
+        <br />
+        <label for="cmb_PROD_T_CD4">　商品区分4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+        <select id="cmb_PROD_T_CD4" name="cmb_PROD_T_CD4" style="width:400px;">
+        </select>
+        <br />
+        <label for="cmb_PROD_T_CD5">　商品区分5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+        <select id="cmb_PROD_T_CD5" name="cmb_PROD_T_CD5" style="width:400px;">
+        </select>
+        <br /><br />
+        <script type="text/javascript">
+            // Pulldown value setting
+            document.getElementById('cmb_ma_cd').value = cmb_ma_cd;
+            document.getElementById('cmb_PROD_T_TYPE').value = cmb_prod_k_type;
+            document.getElementById('cmb_PROD_T_CD1').value = cmb_prod_k_cd1;
+            document.getElementById('cmb_PROD_T_CD2').value = cmb_prod_k_cd2;
+            document.getElementById('cmb_PROD_T_CD3').value = cmb_prod_k_cd3;
+            document.getElementById('cmb_PROD_T_CD4').value = cmb_prod_k_cd4;
+            document.getElementById('cmb_PROD_T_CD5').value = cmb_prod_k_cd5;
+
+            // 商品区分1プルダウンのOption更新
+            function cmb_PROD_T_CD1_Option(){
+                ma_cd = cmb_ma_cd;
+                stype = document.getElementById('cmb_PROD_T_TYPE').value;
+                elem = document.getElementById('cmb_PROD_T_CD1');
+                elem.options.length = 0;
+                var j = 0;
+                elem.options[j ++] = new Option('','');
+                var aryOpt = [];
+                for (var i = 0; i< A_alldata.length; i ++){
+                    if (aryOpt.indexOf(A_alldata[i]['prod_k_cd1']) < 0){
+                        if (A_alldata[i]['ma_cd'] == ma_cd){
+                            if (A_alldata[i]['prod_k_type'] === "1"){
+                                elem.options[j ++] = new Option(A_alldata[i]['prod_k_nm'], A_alldata[i]['prod_k_cd1']);
+                                aryOpt.push(A_alldata[i]['prod_k_cd1']);
+                            }
+                        }
+                    }
+                }
+                // 商品区分2・商品区分3・商品区分4・商品区分5プルダウンのOption初期化
+                document.getElementById('cmb_PROD_T_CD1').value = cmb_prod_k_cd1;
+                document.getElementById('cmb_PROD_T_CD2').options.length = 0;
+                document.getElementById('cmb_PROD_T_CD3').options.length = 0;
+                document.getElementById('cmb_PROD_T_CD4').options.length = 0;
+                document.getElementById('cmb_PROD_T_CD5').options.length = 0;
+            }
+            // 商品区分2プルダウンのOption更新
+            function cmb_PROD_T_CD2_Option(){
+                ma_cd = cmb_ma_cd;
+                stype = document.getElementById('cmb_PROD_T_TYPE').value;
+                scd1 = document.getElementById('cmb_PROD_T_CD1').value;
+                elem = document.getElementById('cmb_PROD_T_CD2');
+                elem.options.length = 0;
+                var j = 0;
+                elem.options[j ++] = new Option('','');
+                var aryOpt = [];
+                for (var i = 0; i< A_alldata.length; i ++){
+                    if (aryOpt.indexOf(A_alldata[i]['prod_k_cd2']) < 0){
+                        if (A_alldata[i]['ma_cd'] == ma_cd){
+                            if (A_alldata[i]['prod_k_type'] === "2"){
+                                if (A_alldata[i]['prod_k_cd1'] === scd1){
+                                    elem.options[j ++] = new Option(A_alldata[i]['prod_k_nm'], A_alldata[i]['prod_k_cd2']);
+                                    aryOpt.push(A_alldata[i]['prod_k_cd2']);
+                                }
+                            }
+                        }
+                    }
+                }
+                document.getElementById('cmb_PROD_T_CD2').value = cmb_prod_k_cd2;
+                document.getElementById('cmb_PROD_T_CD3').options.length = 0;
+                document.getElementById('cmb_PROD_T_CD4').options.length = 0;
+                document.getElementById('cmb_PROD_T_CD5').options.length = 0;
+            }
+            // 商品区分3プルダウンのOption更新
+            function cmb_PROD_T_CD3_Option(){
+                ma_cd = cmb_ma_cd;
+                stype = document.getElementById('cmb_PROD_T_TYPE').value;
+                scd1 = document.getElementById('cmb_PROD_T_CD1').value;
+                scd2 = document.getElementById('cmb_PROD_T_CD2').value;
+                elem = document.getElementById('cmb_PROD_T_CD3');
+                elem.options.length = 0;
+                var j = 0;
+                elem.options[j ++] = new Option('','');
+                var aryOpt = [];
+                for (var i = 0; i< A_alldata.length; i ++){
+                    if (aryOpt.indexOf(A_alldata[i]['prod_k_cd3']) < 0){
+                        if (A_alldata[i]['ma_cd'] == ma_cd){
+                            if (A_alldata[i]['prod_k_type'] === "3"){
+                                if (A_alldata[i]['prod_k_cd1'] === scd1){
+                                    if (A_alldata[i]['prod_k_cd2'] === scd2){
+                                        elem.options[j ++] = new Option(A_alldata[i]['prod_k_nm'], A_alldata[i]['prod_k_cd3']);
+                                        aryOpt.push(A_alldata[i]['prod_k_cd3']);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                document.getElementById('cmb_PROD_T_CD3').value = cmb_prod_k_cd3;
+                document.getElementById('cmb_PROD_T_CD4').options.length = 0;
+                document.getElementById('cmb_PROD_T_CD5').options.length = 0;
+            }
+            // 商品区分4プルダウンのOption更新
+            function cmb_PROD_T_CD4_Option(){
+                ma_cd = cmb_ma_cd;
+                stype = document.getElementById('cmb_PROD_T_TYPE').value;
+                scd1 = document.getElementById('cmb_PROD_T_CD1').value;
+                scd2 = document.getElementById('cmb_PROD_T_CD2').value;
+                scd3 = document.getElementById('cmb_PROD_T_CD3').value;
+                elem = document.getElementById('cmb_PROD_T_CD4');
+                elem.options.length = 0;
+                var j = 0;
+                elem.options[j ++] = new Option('','');
+                var aryOpt = [];
+                for (var i = 0; i< A_alldata.length; i ++){
+                    if (aryOpt.indexOf(A_alldata[i]['prod_k_cd4']) < 0){
+                        if (A_alldata[i]['ma_cd'] == ma_cd){
+                            if (A_alldata[i]['prod_k_type'] === "4"){
+                                if (A_alldata[i]['prod_k_cd1'] === scd1){
+                                    if (A_alldata[i]['prod_k_cd2'] === scd2){
+                                        if (A_alldata[i]['prod_k_cd3'] === scd3){
+                                            elem.options[j ++] = new Option(A_alldata[i]['prod_k_nm'], A_alldata[i]['prod_k_cd4']);
+                                            aryOpt.push(A_alldata[i]['prod_k_cd4']);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                document.getElementById('cmb_PROD_T_CD4').value = cmb_prod_k_cd4;
+                document.getElementById('cmb_PROD_T_CD5').options.length = 0;
+            }
+            // 商品区分5プルダウンのOption更新
+            function cmb_PROD_T_CD5_Option(){
+                ma_cd = cmb_ma_cd;
+                stype = document.getElementById('cmb_PROD_T_TYPE').value;
+                scd1 = document.getElementById('cmb_PROD_T_CD1').value;
+                scd2 = document.getElementById('cmb_PROD_T_CD2').value;
+                scd3 = document.getElementById('cmb_PROD_T_CD3').value;
+                scd4 = document.getElementById('cmb_PROD_T_CD4').value;
+                elem = document.getElementById('cmb_PROD_T_CD5');
+                elem.options.length = 0;
+                var j = 0;
+                elem.options[j ++] = new Option('','');
+                var aryOpt = [];
+                for (var i = 0; i< A_alldata.length; i ++){
+                    if (aryOpt.indexOf(A_alldata[i]['prod_k_cd5']) < 0){
+                        if (A_alldata[i]['ma_cd'] == ma_cd){
+                            if (A_alldata[i]['prod_k_type'] === "5"){
+                                if (A_alldata[i]['prod_k_cd1'] === scd1){
+                                    if (A_alldata[i]['prod_k_cd2'] === scd2){
+                                        if (A_alldata[i]['prod_k_cd3'] === scd3){
+                                            if (A_alldata[i]['prod_k_cd4'] === scd4){
+                                                elem.options[j ++] = new Option(A_alldata[i]['prod_k_nm'], A_alldata[i]['prod_k_cd5']);
+                                                aryOpt.push(A_alldata[i]['prod_k_cd5']);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                document.getElementById('cmb_PROD_T_CD5').value = cmb_prod_k_cd5;
+            }
+
+            // Pulldown change event procedure
+            document.getElementById('cmb_ma_cd').addEventListener("change",function(){
+                document.getElementById('cmb_PROD_T_TYPE').value = "";
+                document.getElementById('cmb_PROD_T_CD1').options.length = 0;
+                document.getElementById('cmb_PROD_T_CD2').options.length = 0;
+                document.getElementById('cmb_PROD_T_CD3').options.length = 0;
+                document.getElementById('cmb_PROD_T_CD4').options.length = 0;
+                
+            });
+            document.getElementById('cmb_PROD_T_TYPE').addEventListener("change",function(){
+                ma_cd = Number(document.getElementById("cmb_ma_cd").value);
+                stype = document.getElementById('cmb_PROD_T_TYPE').value;
+                // 商品区分種別が商品区分1選択時
+                if (stype === "1" || stype === ""){
+                    spath = window.location.href;
+                    spath = spath.split('?'); 
+                    spath = spath[0]+'?param='+destination+'/show&type='+stype+'&ma_cd='+ma_cd;
+                    window.location.replace(spath);
+                }
+                else{
+                    cmb_prod_k_cd1 = "";
+                    // 商品区分1プルダウンのOption更新
+                    cmb_ma_cd = ma_cd;
+                    cmb_PROD_T_CD1_Option();
+                }
+            });
+            document.getElementById('cmb_PROD_T_CD1').addEventListener("change",function(){
+                ma_cd = Number(document.getElementById("cmb_ma_cd").value);
+                
+                stype = document.getElementById('cmb_PROD_T_TYPE').value;
+                scd1 = document.getElementById('cmb_PROD_T_CD1').value;
+                // 商品区分種別が商品区分2選択時
+                //if (iorgn_id !== "" && stype === "2"){
+                if (stype === "2"){
+                    spath = window.location.href;
+                    spath = spath.split('?'); 
+                    //spath = spath[0]+'?param='+destination+'/show&orgnid='+iorgn_id+'&type='+stype+'&cd1='+scd1;
+                    spath = spath[0]+'?param='+destination+'/show&type='+stype+'&cd1='+scd1+'&ma_cd='+ma_cd;
+                    window.location.replace(spath);
+                }
+                else{
+                    cmb_prod_k_cd2 = "";
+                    // 商品区分2プルダウンのOption更新
+                    cmb_ma_cd = ma_cd;
+                    cmb_PROD_T_CD2_Option();
+                }
+            }); 
+            document.getElementById('cmb_PROD_T_CD2').addEventListener("change",function(){
+                ma_cd = Number(document.getElementById("cmb_ma_cd").value);
+                stype = document.getElementById('cmb_PROD_T_TYPE').value;
+                scd1 = document.getElementById('cmb_PROD_T_CD1').value;
+                scd2 = document.getElementById('cmb_PROD_T_CD2').value;
+                // 商品区分種別が商品区分3選択時
+                if (stype === "3"){
+                    spath = window.location.href;
+                    spath = spath.split('?'); 
+                    spath = spath[0]+'?param='+destination+'/show&type='+stype+'&cd1='+scd1+'&cd2='+scd2+'&ma_cd='+ma_cd;
+                    window.location.replace(spath);
+                }
+                else{
+                    cmb_prod_k_cd3 = "";
+                    // 商品区分3プルダウンのOption更新
+                    cmb_ma_cd = ma_cd;
+                    cmb_PROD_T_CD3_Option();
+                }
+            }); 
+            document.getElementById('cmb_PROD_T_CD3').addEventListener("change",function(){
+                ma_cd = Number(document.getElementById("cmb_ma_cd").value);
+                stype = document.getElementById('cmb_PROD_T_TYPE').value;
+                scd1 = document.getElementById('cmb_PROD_T_CD1').value;
+                scd2 = document.getElementById('cmb_PROD_T_CD2').value;
+                scd3 = document.getElementById('cmb_PROD_T_CD3').value;
+                // 商品区分種別が商品区分4選択時
+                if (stype === "4"){
+                    spath = window.location.href;
+                    spath = spath.split('?'); 
+                    spath = spath[0]+'?param='+destination+'/show&type='+stype+'&cd1='+scd1+'&cd2='+scd2+'&cd3='+scd3+'&ma_cd='+ma_cd;
+                    window.location.replace(spath);
+                }
+                else{
+                    cmb_prod_k_cd4 = "";
+                    // 商品区分4プルダウンのOption更新
+                    cmb_ma_cd = ma_cd;
+                    cmb_PROD_T_CD4_Option();
+                }
+            }); 
+            document.getElementById('cmb_PROD_T_CD4').addEventListener("change",function(){
+                ma_cd = Number(document.getElementById('cmb_ma_cd').value);
+                stype = document.getElementById('cmb_PROD_T_TYPE').value;
+                scd1 = document.getElementById('cmb_PROD_T_CD1').value;
+                scd2 = document.getElementById('cmb_PROD_T_CD2').value;
+                scd3 = document.getElementById('cmb_PROD_T_CD3').value;
+                scd4 = document.getElementById('cmb_PROD_T_CD4').value;
+
+                spath = window.location.href;
+                spath = spath.split('?'); 
+                spath = spath[0]+'?param='+destination+'/show&type='+stype+'&cd1='+scd1+'&cd2='+scd2+'&cd3='+scd3+'&cd4='+scd4+'&ma_cd='+ma_cd;
+                window.location.replace(spath);    
+            }); 
+
+            if (A_alldata){
+                ma_cd = cmb_ma_cd;
+                stype = Number(document.getElementById('cmb_PROD_T_TYPE').value);
+                if (stype > 1){     // 商品区分2・商品区分3・クラス
+                    // 商品区分１プルダウンのOption更新
+                    cmb_PROD_T_CD1_Option();
+                }
+                if (stype > 2){     // 商品区分3・クラス
+                    // 商品区分２プルダウンのOption設定
+                    cmb_PROD_T_CD2_Option();
+                }
+                if (stype > 3){     // クラス
+                    // 商品区分３プルダウンのOption更新
+                    cmb_PROD_T_CD3_Option();
+                }
+                if (stype > 4){     // クラス
+                    // 商品区分４プルダウンのOption更新
+                    cmb_PROD_T_CD4_Option();
+                }
+            }
+        </script>
+
+        <div class="table_container">
+            <table id="table_template">
+                 <thead id="thead_template">
+                     <tr>
+                        <th>
+                        </th>                         
+                     </tr>
+                 </thead>
+                 <tbody id="tbody_template">
+                     
+                 </tbody>
+            </table>        
+        </div>
+        <?php if (isset($cmb_prod_k['ma_cd'])){ ?>
+        <div id="button_area">
+            <br />
+            &nbsp;<button type="button" id="send_result" onclick="send_result()"  >登録</button>&nbsp;&nbsp;&nbsp;<button type="button" id="reset_data" onclick="reset_data()"  >取消</button>&nbsp;&nbsp;&nbsp;<button type="button" id="all_reset" onclick="all_reset()"  >再検索</button>
+        </div>
+        <?php } ?>
+    </div><!-- /#sb-site -->
+        <script type="text/javascript">
+                thead_crea(A_title);
+                if (document.getElementById('cmb_PROD_T_TYPE').value !== ''){
+                    tbody_crea(working_data);
+                    document.getElementById('button_area').style.display = "block";
+                }else{
+                    document.getElementById('button_area').style.display = "none";
+                }
+                document.getElementById('pagetitle').innerHTML = "&nbsp;" + pagetitle;
+        </script>
+    </body>
+</html>

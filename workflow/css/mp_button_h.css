@@ -1,0 +1,440 @@
+
+.serchButtonArea input {
+	-moz-box-shadow:inset 0px 1px 0px 0px #ffffff;
+	-webkit-box-shadow:inset 0px 1px 0px 0px #ffffff;
+	box-shadow:inset 0px 1px 0px 0px #ffffff;
+	background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #ededed), color-stop(1, #dfdfdf) );
+	background:-moz-linear-gradient( center top, #ededed 5%, #dfdfdf 100% );
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#ededed', endColorstr='#dfdfdf');
+	background-color:#ededed;
+	-webkit-border-top-left-radius:6px;
+	-moz-border-radius-topleft:6px;
+	border-top-left-radius:6px;
+	-webkit-border-top-right-radius:6px;
+	-moz-border-radius-topright:6px;
+	border-top-right-radius:6px;
+	-webkit-border-bottom-right-radius:6px;
+	-moz-border-radius-bottomright:6px;
+	border-bottom-right-radius:6px;
+	-webkit-border-bottom-left-radius:6px;
+	-moz-border-radius-bottomleft:6px;
+	border-bottom-left-radius:6px;
+	border:1px solid #ABA9A9;
+	display:inline-block;
+	color:#777777;
+	font-size:14px;
+	font-weight:bold;
+	font-style:normal;
+	line-height:30px;
+	width:100px;
+	text-decoration:none;
+	text-align:center;
+	text-shadow:1px 1px 0px #ffffff;
+}
+
+.serchButtonArea input:hover {
+	background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #dfdfdf), color-stop(1, #ededed) );
+	background:-moz-linear-gradient( center top, #dfdfdf 5%, #ededed 100% );
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#dfdfdf', endColorstr='#ededed');
+	background-color:#dfdfdf;
+}
+.serchButtonArea input:active {
+	position:relative;
+	top:1px;
+}
+
+.serchButtonArea input.print {
+  height: 30px;
+  width: 100px;
+  background-image: url('../icons/printer.png');
+  display: inline-block;
+  /* 位置合わせ用 */
+  vertical-align: middle;
+  margin: 0 10px 2px 0;
+  cursor: pointer;
+  background-repeat:no-repeat;
+  background-position: 5px;
+  text-indent: 5px;
+}
+
+
+.serchButtonArea input.serch {
+  height: 30px;
+  width: 100px;
+  background-image: url('../icons/search.png');
+  display: inline-block;
+  /* 位置合わせ用 */
+  vertical-align: middle;
+  margin: 0 10px 2px 0;
+  cursor: pointer;
+  background-repeat:no-repeat;
+  background-position: 5px;
+  text-indent: 5px;
+}
+
+.serchButtonArea input.csv {
+  height: 30px;
+  width: 100px;
+  background-image: url('../icons/csv.png');
+  display: inline-block;
+  /* 位置合わせ用 */
+  vertical-align: middle;
+  margin: 0 10px 2px 0;
+  cursor: pointer;
+  background-repeat:no-repeat;
+  background-position: 5px;
+  text-indent: 5px;
+}
+
+
+.serchButtonArea input.xls {
+  height: 30px;
+  width: 100px;
+  background-image: url('../icons/xls.png');
+  display: inline-block;
+  /* 位置合わせ用 */
+  vertical-align: middle;
+  margin: 0 10px 2px 0;
+  cursor: pointer;
+  background-repeat:no-repeat;
+  background-position: 5px;
+  text-indent: 5px;
+}
+
+
+.serchButtonArea input.doc {
+  height: 30px;
+  width: 100px;
+  background-image: url('../icons/doc.png');
+  display: inline-block;
+  /* 位置合わせ用 */
+  vertical-align: middle;
+  margin: 0 10px 2px 0;
+  cursor: pointer;
+  background-repeat:no-repeat;
+  background-position: 5px;
+  text-indent: 5px;
+}
+
+.serchButtonArea input.pdf {
+  height: 30px;
+  width: 100px;
+  background-image: url('../icons/pdf.png');
+  display: inline-block;
+  /* 位置合わせ用 */
+  vertical-align: middle;
+  margin: 0 10px 2px 0;
+  cursor: pointer;
+  background-repeat:no-repeat;
+  background-position: 5px;
+  text-indent: 5px;
+}
+
+.serchButtonArea input.bookmark {
+  height: 30px;
+  width: 100px;
+  background-image: url('../icons/bookmark.png');
+  display: inline-block;
+  /* 位置合わせ用 */
+  vertical-align: middle;
+  margin: 0 10px 2px 0;
+  cursor: pointer;
+  background-repeat:no-repeat;
+  background-position: 5px;
+  text-indent: 5px;
+}
+
+.menuNameArea span.menu {
+  height: 16px;
+  width: 16px;
+  background-image: url('../icons/menu.png');
+  display: inline-block;
+  text-indent: -9999px;
+  /* 位置合わせ用 */
+  vertical-align: middle;
+  margin: 0 10px 2px 0;
+  cursor: pointer;
+}
+
+.logicButtonArea input {
+	-moz-box-shadow:inset 0px 1px 0px 0px #ffffff;
+	-webkit-box-shadow:inset 0px 1px 0px 0px #ffffff;
+	box-shadow:inset 0px 1px 0px 0px #ffffff;
+	background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #ededed), color-stop(1, #dfdfdf) );
+	background:-moz-linear-gradient( center top, #ededed 5%, #dfdfdf 100% );
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#ededed', endColorstr='#dfdfdf');
+	background-color:#ededed;
+	-webkit-border-top-left-radius:6px;
+	-moz-border-radius-topleft:6px;
+	border-top-left-radius:6px;
+	-webkit-border-top-right-radius:6px;
+	-moz-border-radius-topright:6px;
+	border-top-right-radius:6px;
+	-webkit-border-bottom-right-radius:6px;
+	-moz-border-radius-bottomright:6px;
+	border-bottom-right-radius:6px;
+	-webkit-border-bottom-left-radius:6px;
+	-moz-border-radius-bottomleft:6px;
+	border-bottom-left-radius:6px;
+	border:1px solid #ABA9A9;
+	display:inline-block;
+	color:#777777;
+	font-size:14px;
+	font-weight:bold;
+	font-style:normal;
+	line-height:30px;
+	width:100px;
+	text-decoration:none;
+	text-align:center;
+	text-shadow:1px 1px 0px #ffffff;
+}
+
+.logicButtonArea input:hover {
+	background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #dfdfdf), color-stop(1, #ededed) );
+	background:-moz-linear-gradient( center top, #dfdfdf 5%, #ededed 100% );
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#dfdfdf', endColorstr='#ededed');
+	background-color:#dfdfdf;
+}
+.logicButtonArea input:active {
+	position:relative;
+	top:1px;
+}
+
+.logicButtonArea input.add {
+  height: 30px;
+  width: 100px;
+  background-image: url('../icons/add.png');
+  display: inline-block;
+  /* 位置合わせ用 */
+  vertical-align: middle;
+  margin: 0 10px 2px 0;
+  cursor: pointer;
+  background-repeat:no-repeat;
+  background-position: 5px;
+  text-indent: 5px;
+}
+
+.logicButtonArea input.update {
+  height: 30px;
+  width: 100px;
+  background-image: url('../icons/update.png');
+  display: inline-block;
+  /* 位置合わせ用 */
+  vertical-align: middle;
+  margin: 0 10px 2px 0;
+  cursor: pointer;
+  background-repeat:no-repeat;
+  background-position: 5px;
+  text-indent: 5px;
+}
+
+.logicButtonArea input.edit {
+  height: 30px;
+  width: 100px;
+  background-image: url('../icons/edit.png');
+  display: inline-block;
+  /* 位置合わせ用 */
+  vertical-align: middle;
+  margin: 0 10px 2px 0;
+  cursor: pointer;
+  background-repeat:no-repeat;
+  background-position: 5px;
+  text-indent: 5px;
+}
+
+.logicButtonArea input.delete {
+  height: 30px;
+  width: 100px;
+  background-image: url('../icons/delete.png');
+  display: inline-block;
+  /* 位置合わせ用 */
+  vertical-align: middle;
+  margin: 0 10px 2px 0;
+  cursor: pointer;
+  background-repeat:no-repeat;
+  background-position: 5px;
+  text-indent: 5px;
+}
+
+.logicButtonArea input.request {
+  height: 30px;
+  width: 100px;
+  background-image: url('../icons/request.png');
+  display: inline-block;
+  /* 位置合わせ用 */
+  vertical-align: middle;
+  margin: 0 10px 2px 0;
+  cursor: pointer;
+  background-repeat:no-repeat;
+  background-position: 5px;
+  text-indent: 5px;
+}
+
+
+.logicButtonArea input.return {
+  height: 30px;
+  width: 100px;
+  background-image: url('../icons/return.png');
+  display: inline-block;
+  /* 位置合わせ用 */
+  vertical-align: middle;
+  margin: 0 10px 2px 0;
+  cursor: pointer;
+  background-repeat:no-repeat;
+  background-position: 5px;
+  text-indent: 5px;
+}
+
+.logicButtonArea input.confirm {
+  height: 30px;
+  width: 100px;
+  background-image: url('../icons/confirm.png');
+  display: inline-block;
+  /* 位置合わせ用 */
+  vertical-align: middle;
+  margin: 0 10px 2px 0;
+  cursor: pointer;
+  background-repeat:no-repeat;
+  background-position: 5px;
+  text-indent: 5px;
+}
+
+.logicButtonArea input.close {
+  height: 30px;
+  width: 100px;
+  background-image: url('../icons/close.png');
+  display: inline-block;
+  /* 位置合わせ用 */
+  vertical-align: middle;
+  margin: 0 10px 2px 0;
+  cursor: pointer;
+  background-repeat:no-repeat;
+  background-position: 5px;
+  text-indent: 5px;
+}
+
+.logicButtonArea input.undo {
+  height: 30px;
+  width: 100px;
+  background-image: url('../icons/undo.png');
+  display: inline-block;
+  /* 位置合わせ用 */
+  vertical-align: middle;
+  margin: 0 10px 2px 0;
+  cursor: pointer;
+  background-repeat:no-repeat;
+  background-position: 5px;
+  text-indent: 5px;
+}
+
+.logicButtonArea input.print {
+  height: 30px;
+  width: 100px;
+  background-image: url('../icons/printer.png');
+  display: inline-block;
+  /* 位置合わせ用 */
+  vertical-align: middle;
+  margin: 0 10px 2px 0;
+  cursor: pointer;
+  background-repeat:no-repeat;
+  background-position: 5px;
+  text-indent: 5px;
+}
+
+
+.PageMoveArea table {
+ border:0px;
+ font-size:12px;
+ table-layout: fixed;
+ margin-left: auto;
+ margin-right: auto;
+}
+
+.PageMoveArea a {
+	-moz-box-shadow:inset 0px 1px 0px 0px #ffffff;
+	-webkit-box-shadow:inset 0px 1px 0px 0px #ffffff;
+	box-shadow:inset 0px 1px 0px 0px #ffffff;
+	background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #ededed), color-stop(1, #dfdfdf) );
+	background:-moz-linear-gradient( center top, #ededed 5%, #dfdfdf 100% );
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#ededed', endColorstr='#dfdfdf');
+	background-color:#ededed;
+	-webkit-border-top-left-radius:6px;
+	-moz-border-radius-topleft:6px;
+	border-top-left-radius:6px;
+	-webkit-border-top-right-radius:6px;
+	-moz-border-radius-topright:6px;
+	border-top-right-radius:6px;
+	-webkit-border-bottom-right-radius:6px;
+	-moz-border-radius-bottomright:6px;
+	border-bottom-right-radius:6px;
+	-webkit-border-bottom-left-radius:6px;
+	-moz-border-radius-bottomleft:6px;
+	border-bottom-left-radius:6px;
+	border:1px solid #ABA9A9;
+	display:inline-block;
+	color:#777777;
+	font-weight:bold;
+	font-style:normal;
+	line-height:25px;
+	width:30px;
+	text-decoration:none;
+	text-align:center;
+	text-shadow:1px 1px 0px #ffffff;
+}
+.PageMoveArea a:hover {
+	background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #dfdfdf), color-stop(1, #ededed) );
+	background:-moz-linear-gradient( center top, #dfdfdf 5%, #ededed 100% );
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#dfdfdf', endColorstr='#ededed');
+	background-color:#dfdfdf;
+}
+.PageMoveArea a:active {
+	position:relative;
+	top:1px;
+}
+
+.PageMoveArea a.current {
+	-moz-box-shadow:inset 0px 1px 0px 0px #ffffff;
+	-webkit-box-shadow:inset 0px 1px 0px 0px #ffffff;
+	box-shadow:inset 0px 1px 0px 0px #ffffff;
+background: -webkit-gradient(linear, left top, left bottom, color-stop(0.00, #c3d9ff), color-stop(1.00, #97b0d9));
+background: -webkit-linear-gradient(#c3d9ff, #97b0d9);
+background: -moz-linear-gradient(#c3d9ff, #97b0d9);
+background: -o-linear-gradient(#c3d9ff, #97b0d9);
+background: -ms-linear-gradient(#c3d9ff, #97b0d9);
+background: linear-gradient(#c3d9ff, #97b0d9);
+	-webkit-border-top-left-radius:6px;
+	-moz-border-radius-topleft:6px;
+	border-top-left-radius:6px;
+	-webkit-border-top-right-radius:6px;
+	-moz-border-radius-topright:6px;
+	border-top-right-radius:6px;
+	-webkit-border-bottom-right-radius:6px;
+	-moz-border-radius-bottomright:6px;
+	border-bottom-right-radius:6px;
+	-webkit-border-bottom-left-radius:6px;
+	-moz-border-radius-bottomleft:6px;
+	border-bottom-left-radius:6px;
+	border:1px solid #ABA9A9;
+	display:inline-block;
+	color:#777777;
+	font-weight:bold;
+	font-style:normal;
+	line-height:25px;
+	width:30px;
+	text-decoration:none;
+	text-align:center;
+	text-shadow:1px 1px 0px #ffffff;
+}
+.PageMoveArea a.current:hover {
+background: -webkit-gradient(linear, left top, left bottom, color-stop(0.00, #97b0d9), color-stop(1.00, #c3d9ff));
+background: -webkit-linear-gradient(#97b0d9, #c3d9ff);
+background: -moz-linear-gradient(#97b0d9, #c3d9ff);
+background: -o-linear-gradient(#97b0d9, #c3d9ff);
+background: -ms-linear-gradient(#97b0d9, #c3d9ff);
+background: linear-gradient(#97b0d9, #c3d9ff);
+}
+.PageMoveArea a.current:active {
+	position:relative;
+	top:1px;
+}
+

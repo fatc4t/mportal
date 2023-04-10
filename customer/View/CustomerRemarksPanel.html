@@ -1,0 +1,363 @@
+<?php
+    /**
+     * @file      顧客備考マスタ画面(View)
+     * @author    K.Sakamoto
+     * @date      2017/07/25
+     * @version   1.00
+     * @note      顧客備考マスタ画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array( 'default.css',
+                                'common.js', 
+                                'jquery-ui.min.js', 
+                                'jquery-ui.css' );    // cssまたはｊｓファイルを拡張子付きで配列に記述 
+
+            include("../home/View/Common/HtmlHeader.php");
+        ?>
+        <script type="text/javascript">
+            var lineInfo = null;
+            var btnInfo  = null;
+            var displayPageNo = 1;
+            var displayRecordCnt = <?php hsc($_SESSION["DISPLAY_RECORD_CNT"]); ?>;
+            var CustomerClassificationItemInfo = null;
+            var customerClassificationSort = 6;
+            var no_click_count = 0;
+            var state_click_count = 0;
+            var code_click_count = 0;
+            var organization_click_count = 0;
+            var customerClassification_click_count = 0;
+            var disporder_click_count = 0;
+            
+            var selectedType = '01'
+            
+            $(document).ready(function()
+            {
+                /**
+                 * 検索ボタンクリック
+                 */
+                $('#search').click(function()
+                {
+                    displayPageNo = 1;
+
+                    // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                    var data = {
+                                  displayPageNo : displayPageNo,
+                                  displayRecordCnt : displayRecordCnt,
+                                  searchCodeName : $('#codeName').val(),
+                                  searchCustomerClassificationName : $('#customerClassificationName').val(),
+                                  searchDelF : document.getElementById("delF").checked,
+                                  sortConditions  : 4
+                               };
+                    var path = 'index.php?param=CustomerClassification/search&home=1';
+
+                    // データ更新
+                    setDataForAjax( data, path );
+                    
+                    // 新規登録エリア設定
+                    setInputArea();
+                    
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+                /**
+                 * 登録ボタンクリック
+                 */
+                $('#addForm').submit(function(event)
+                {
+                    event.preventDefault();
+
+                    document.getElementById("dialog_add").textContent='<?php hsc(SystemParameters::$NEW_DIALOG_MSG); ?>';
+                    
+                    $("#dialog_add").dialog('open');
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+                /**
+                 * 更新/削除ボタンクリック
+                 */
+                $('#modForm').submit(function(event)
+                {
+                    event.preventDefault();
+
+                    if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>' )
+                    {
+                        document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$UPDATE_DIALOG_MSG); ?>';
+                    }
+                    else
+                    {
+                        document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$DELETE_DIALOG_MSG); ?>';
+                    }
+                    
+                    $("#dialog_mod").dialog('open');
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+                
+            });
+
+            /*
+             * 
+             * @param {type} thisLineInfo
+             * @param {type} thisBtnInfo
+             * @returns {Boolean}
+             */
+            function selectType(custBType)
+            {
+                selectedType = custBType;
+                
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                data = {
+                          custBType : selectedType,
+                       };
+
+                var path = 'index.php?param=CustomerRemarks/search&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, 'jquery-replace-ajax', false );
+
+//                // 新規登録エリア設定
+//                setInputArea();
+            }
+            
+            
+            
+            /*
+             * editRow: 編集ボタン該当行の内容を入力・編集またモード切り替え
+             */
+            function editRow(obj)
+            {
+                var objTR = obj.parentNode.parentNode;
+                var rowId = objTR.sectionRowIndex + 1;
+                var rowCount = nameTable.rows.length;
+
+                // モードの切り替えはボタンの値で判定	
+                $('#sCode' + rowId).css('display' , 'none');
+                $('#sCode-edit' + rowId).val($('#sCode').text()).css('display' , '');
+                $('#sCustomerRemarks' + rowId).css('display' , 'none');
+                $('#sCustomerRemarks-edit' + rowId).val($('#sCustomerRemarks').text()).css('display' , '');
+                $('#edtBtn' + rowId).css('display' , 'none');
+                $('#edtBtn-mod' + rowId).css('display' , '');
+                $('#edtBtn-del' + rowId).css('display' , '');
+                $('#add').prop('disabled', true);
+                for(var i = 1; i <= rowCount; i++)
+                {
+                    $('#edtBtn' + i).prop('disabled', true);
+                    $('#edtBtn-res' + i).prop('disabled' , true);
+                }
+            }
+
+            /**
+             * 行情報を設定
+             */
+            function setLineInfo(thisLineInfo, thisBtnInfo)
+            {
+                lineInfo = thisLineInfo;
+                btnInfo  = thisBtnInfo;
+                
+                if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0803")); ?>' )
+                {
+                    document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$DELETE_DIALOG_MSG); ?>';
+                    $("#dialog_mod").dialog('open');
+                }
+                if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0806")); ?>' )
+                {
+                    document.getElementById("dialog_res").textContent='<?php hsc(SystemParameters::$RESURRECTION_DIALOG_MSG); ?>';
+                    $("#dialog_res").dialog('open');
+                }
+
+                return false;
+            }
+
+            /**
+             * 新規作成データの設定
+             */
+            function setAddData()
+            {
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                                custBType : selectedType,
+                                custBCd : $('#customerRemarksNewCode').val(),
+                                custBNm : $('#customerRemarksNewName').val(),
+                           };
+                var path = 'index.php?param=CustomerRemarks/add&home=1';
+
+                // データ更新
+                setDataForAjax( data, path );
+
+                // 新規登録エリア設定
+                setInputArea();
+            }
+
+            /**
+             * 更新用データの設定
+             */
+            function setModData()
+            {
+                var objTR = lineInfo.parentNode.parentNode;
+                var rowId = objTR.sectionRowIndex + 1;
+                var data = null;
+                var path = '';
+                if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>' )
+                {
+                    path = 'index.php?param=CustomerRemarks/mod&home=1';
+                }
+                else
+                {
+                    path = 'index.php?param=CustomerRemarks/del&home=1';
+                }
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                data = {
+                          custBType : selectedType,
+                          custBId : $('#custBIdMod' + rowId).val(),
+                          custBCd : $('#custBCdMod' + rowId).val(),
+                          custBNm : $('#custBNmMod' + rowId).val(),
+                          updateTime : $('#updateTime'  + rowId).val(),
+                          custTypeNm : $('#custTypeNmMod'  + rowId).val(),
+                       };
+
+                // データ更新
+                setDataForAjax( data, path, 'jquery-replace-ajax', false );
+                
+                // 新規登録エリア設定
+                setInputArea();
+            }
+
+            /**
+             * 復活用データの設定
+             */
+            function setResData()
+            {
+                var objTR = lineInfo.parentNode.parentNode;
+                var rowId = objTR.sectionRowIndex + 1;
+                var data = null;
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                data = {
+                          custBType : selectedType,
+                          custBId : $('#custBIdMod' + rowId).val(),
+                          custBCd : $('#custBCdMod' + rowId).val(),
+                          updateTime : $('#updateTime'  + rowId).val(),
+                       };
+
+                var path = 'index.php?param=CustomerRemarks/res&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, 'jquery-replace-ajax', false );
+                
+                // 新規登録エリア設定
+                setInputArea();
+            }
+
+//            /**
+//             * 更新キャンセル
+//             */
+//            function cancel()
+//            {
+//                var data = null;
+//                var path = '';
+//
+//                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+//                data = {
+//                          displayPageNo : displayPageNo,
+//                          displayRecordCnt : displayRecordCnt,
+//                          searchCodeName : $('#codeName').val(),
+//                          searchOrganizatioID : $('#organizationName').val(),
+//                          searchCustomerClassificationName : $('#customerClassificationName').val(),
+//                          searchDelF : document.getElementById("delF").checked,
+//                          sortConditions : customerClassificationSort,
+//                          token : $('#token').val()
+//                       };
+//
+//                // 検索する為、パスを変更する
+//                path = 'index.php?param=CustomerClassification/search&home=1';
+//
+//                // データ更新
+//                setDataForAjax( data, path );
+//                
+//                // 新規データをクリア
+//                $('#customerClassificationNewCode').val('');
+//                $('#customerClassificationNewName').val('');
+//            }
+
+            /**
+             * 新規登録エリア設定
+             */
+            function setInputArea()
+            {
+                var data = {
+                              custBType : selectedType,
+                };
+                var path = 'index.php?param=CustomerRemarks/inputArea&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, "jquery-replace-input-ajax" );
+            }
+
+        </script>
+        
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site" style="overflow: auto;">
+            <!-- パンくずリスト -->
+            <?php include("Common/Breadcrumb.php"); ?>
+            <!--<form id="searchForm" name="searchForm" method="POST" action="index.php?param=CustomerRemarks/search&home=1">-->
+                <!-- serchBoardArea -->
+                <div class="serchBoardArea" style="float:left; width:29%; margin:5px 5px 0px 5px; !important;" >
+                    <table>
+                        <tr>
+                            <th style="width:99%"><?php hsc($Log->getMsgLog('MSG_BASE_0933')); ?></th>
+                            <th style="width:1%"></th>
+                        </tr>
+                        <tr>
+                            <td style="width:99%" colspan="2" >
+                                <input type="radio" name="custBType" value="01" onclick="selectType('01')" checked>予備情報<br>
+                                <input type="radio" name="custBType" value="02" onclick="selectType('02')">未設定2<br>
+                                <input type="radio" name="custBType" value="03" onclick="selectType('03')">未設定3<br>
+                                <input type="radio" name="custBType" value="04" onclick="selectType('04')">未設定4<br>
+                                <input type="radio" name="custBType" value="05" onclick="selectType('05')">未設定5<br>
+                                <input type="radio" name="custBType" value="06" onclick="selectType('06')">未設定6<br>
+                                <input type="radio" name="custBType" value="07" onclick="selectType('07')">未設定7<br>
+                                <input type="radio" name="custBType" value="08" onclick="selectType('08')">未設定8<br>
+                                <input type="radio" name="custBType" value="09" onclick="selectType('09')">未設定9<br>
+                                <input type="radio" name="custBType" value="10" onclick="selectType('10')">未設定10
+                            </td>
+                            <td style="width:1%"></td>
+                        </tr>
+                    </table>
+                </div><!-- /.serchBoardArea -->
+            <!--</form>-->
+        
+            <form id="modForm" name="modForm" >
+                <?php include("CustomerRemarksTablePanel.html"); ?>
+            </form>
+
+            <form id="addForm" name="addForm">
+                <?php include("CustomerRemarksInputPanel.html"); ?>
+            </form>
+
+        </div><!-- /.sb-site -->
+
+        <?php include("../FwCommon/View/Dialog.php"); ?>
+    </body>
+</html>

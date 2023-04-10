@@ -1,0 +1,490 @@
+<?php
+    /**
+     * @file      給与システム連携設定入力画面(View)
+     * @author    USE S.Nakamura
+     * @date      2016/07/22
+     * @version   1.00
+     * @note      給与システム連携設定入力画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array( 'default.css',
+                                'common.js', 
+                                'jquery-ui.min.js', 
+                                'jquery-ui.css' );    // cssまたはｊｓファイルを拡張子付きで配列に記述 
+            include("Common/HtmlHeader.php"); 
+        ?>
+
+        <script type="text/javascript">
+            var lineInfo = null;
+            var btnInfo  = null;
+            var allCnt = 0;
+            var outputDipsOrder = 0;
+            var type = 0;
+            
+            $(document).ready(function () 
+            {
+                /**
+                 * 削除ボタン押下時処理
+                 */
+                $('#del').click(function()
+                {
+                    event.preventDefault();
+
+                    document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$DELETE_DIALOG_MSG); ?>';
+                    $("#dialog_mod").dialog('open');
+
+                    // サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+                
+                /**
+                 * 上の行と入れ替え
+                 */
+                $(document).on("click","#p2146-2-tbody > tr:gt(0) .upList", function () 
+                {
+                    var t = $(this).parent().parent();
+                    if(t.prev("tr")) 
+                    {
+                        t.insertBefore(t.prev("tr")[0]);
+                    }
+                });
+                
+                /**
+                 * 下の行と入れ替え
+                 */
+                $(document).on("click", ".downList", function () 
+                {
+                    var t = $(this).parent().parent();
+                    if(t.next("tr")) 
+                    {
+                        t.insertAfter(t.next("tr")[0]);
+                    }
+                });
+                
+                /**
+                 * 戻るボタン押下時処理
+                 */
+                $('#back').click(function()
+                {
+                    var isDel = Boolean($('#sIsDel').val());
+                    
+                    // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                    var data = {
+                                   searchOrganizationID : $('#sOrganizationID').val(),
+                                   searchOptionName : $('#sOptionName').val(),
+                                   searchDisplayFormat : $('#sDisplayFormat').val(),
+                                   searchNoDataFormat : $('#sNoDataFormat').val(),
+                                   searchCountingUnit : $('#sCountingUnit').val(),
+                                   searchMinCount : $('#sMinCount').val(),
+                                   searchMaxCount : $('#sMaxCount').val(),
+                                   searchComment : $('#sComment').val(),
+                                   searchDelCheck : isDel,
+                                   sortConditions : 0,
+                                };
+                    
+                    var path = 'index.php?param=PayrollSystem/show&home=1';
+                    
+                    // データ更新
+                    setDataForAjax( data, path, "ajaxScreenUpdate" );
+                    
+                    // サブミット後、ページをリロードしないようにする
+                    return false;
+                    
+                });
+                
+                // 登録系ボタン押下時
+                $('#addForm').submit(function(event)
+                {
+                    event.preventDefault();
+
+                    if(btnInfo !== '<?php hsc($Log->getMsgLog("MSG_BASE_0803")); ?>')
+                    {
+                        if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0800")); ?>')
+                        {
+                            // 一覧画面新規作成ボタンから遷移してきた場合
+                            document.getElementById("dialog_add").textContent='<?php hsc(SystemParameters::$NEW_DIALOG_MSG); ?>';
+                            $("#dialog_add").dialog('open');
+                        }
+                        else if(btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>')
+                        {
+                            document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$UPDATE_DIALOG_MSG); ?>';
+                            $("#dialog_mod").dialog('open');
+                        }
+                    }
+                    else
+                    {
+                        document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$DELETE_DIALOG_MSG); ?>';
+                        $("#dialog_mod").dialog('open');
+                    }
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+  
+            });
+
+            /**
+             * 新規作成データの設定
+             */
+            function setAddData()
+            {
+                var path = 'index.php?param=PayrollSystem/add&home=1';
+                
+                // データ更新処理
+                sendModData(path, 0);
+            }
+
+            /**  
+             * データ更新の設定
+             */
+            function setModData()
+            {
+                if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>' )
+                {
+                    path = 'index.php?param=PayrollSystem/mod&home=1';
+                }
+                else
+                {
+                    path = 'index.php?param=PayrollSystem/del&home=1';
+                }
+                
+
+                // データ更新処理
+                sendModData(path, $('#payrollSystemId').val());
+            }
+
+            /**  
+             * データ更新処理
+             */
+            function sendModData(path, payrollSystemId)
+            {
+                var outputItemNameArray = $(".outputItemName").map(function()
+                {
+                    return $(this).val();
+                }).get();
+                
+                var itemNameArray = $(".outputItemID").map(function()
+                {
+                    return $(this).val();
+                }).get();
+                
+                var isDisplayArray = $(".isDisplay").map(function()
+                {
+                    return $(this).prop('checked');
+                }).get();
+                
+                var outputTypeIdArray = $(".outputTypeId").map(function()
+                {
+                    return $(this).val();
+                }).get();
+
+                var outputItemBranchArray = $(".outputItemBranch").map(function()
+                {
+                    return $(this).val();
+                }).get();
+
+                var outputItemViewArray = $(".outputItemView").map(function()
+                {
+                    return $(this).val();
+                }).get();
+
+                var isDel = $('#sIsDel').val();
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                               searchOrganizationID : $('#sOrganizationID').val(),
+                               searchOptionName : $('#sOptionName').val(),
+                               searchDisplayFormat : $('#sDisplayFormat').val(),
+                               searchNoDataFormat : $('#sNoDataFormat').val(),
+                               searchCountingUnit : $('#sCountingUnit').val(),
+                               searchMinCount : $('#sMinCount').val(),
+                               searchMaxCount : $('#sMaxCount').val(),
+                               searchComment : $('#sComment').val(),
+                               searchDelCheck : isDel,
+                               sortConditions : 0,
+                               organizationName : $('#organizationName').val(),
+                               optionName : $('#optionName').val(),
+                               isItemName :$("[name=isItemName]:checked").val(),
+                               displayFormat : $("[name=displayFormat]:checked").val(),
+                               noDataFormat : $("[name=noDataFormat]:checked").val(),
+                               countingUnit :$("[name=countingUnit]:checked").val(),
+                               comment : $('#comment').val(),
+                               organizationId : $('#organizationId').val(),
+                               payrollSystemId : payrollSystemId,
+                               updateTime : $('#updateTime').val(),
+                               dispOrder : $('#dispOrder').val(),
+                               outputItemNameList : outputItemNameArray,
+                               itemNameArrayList : itemNameArray,
+                               isDisplayArrayList : isDisplayArray,
+                               outputTypeIdArrayList : outputTypeIdArray,
+                               outputItemBranchArrayList : outputItemBranchArray,
+                               outputItemViewArrayList : outputItemViewArray,
+                               token : $('#token').val()
+                            };
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+            }
+
+            /**
+             * 更新キャンセル
+             */
+            function cancel()
+            {
+                var data = null;
+                var path = '';
+                
+                var isDel = Boolean($('#sIsDel').val());
+                
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                data = {
+                           searchOrganizationID : $('#sOrganizationID').val(),
+                           searchOptionName : $('#sOptionName').val(),
+                           searchDisplayFormat : $('#sDisplayFormat').val(),
+                           searchNoDataFormat : $('#sNoDataFormat').val(),
+                           searchMinCount : $('#sMinCount').val(),
+                           searchMaxCount : $('#sMaxCount').val(),
+                           searchCountingUnit : $('#sCountingUnit').val(),
+                           searchComment : $('#sComment').val(),
+                           searchDelCheck : isDel,
+                           sortConditions : 0,
+                        };
+
+                // 検索する為、パスを変更する
+                path = 'index.php?param=PayrollSystem/show&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+                
+                // サブミット後、ページをリロードしないようにする
+                return false;
+                
+            }
+            
+            /**
+             * 行情報を設定
+             */
+            function setLineInfo(thisLineInfo, thisBtnInfo)
+            {
+                lineInfo = thisLineInfo;
+                btnInfo  = thisBtnInfo;
+                
+                return true;
+            }
+            
+            /**
+             * 遷移先の設定
+             */
+            function moveRedirect()
+            {
+                cancel();
+            }
+
+        </script>
+
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site">
+            <!-- パンくずリスト -->
+            <?php include("Common/Breadcrumb.php"); ?>
+            
+            <!-- logicButtonArea -->
+            <div class="logicButtonArea">
+                <p align=center>
+                    <input type="button" id="back" name="back" value="戻る" class="return" data-href="index.php?param=PayrollSystem/show&home=1">
+                </p>
+            </div><!-- /.logicButtonArea -->
+
+            <!-- serchEditArea -->
+            <form id="addForm" name="addForm">
+                <?php if($searchArray['isDel'] == 1) { ?>
+                    <?php $isDel = (bool)1; ?>
+                <?php } else { ?>
+                    <?php $isDel = (bool)0; ?>
+                <?php }?>
+                <input type="hidden" name="sOrganizationID" id="sOrganizationID" value="<?php hsc($searchArray['organizationId']); ?>">
+                <input type="hidden" name="sOptionName" id="sOptionName" value="<?php hsc($searchArray['optionName']); ?>">
+                <input type="hidden" name="sDisplayFormat" id="sDisplayFormat" value="<?php hsc($searchArray['displayFormat']); ?>">
+                <input type="hidden" name="sNoDataFormat" id="sNoDataFormat" value="<?php hsc($searchArray['noDataFormat']); ?>">
+                <input type="hidden" name="sMinCount" id="sMinCount" value="<?php hsc($searchArray['minCount']); ?>">
+                <input type="hidden" name="sMaxCount" id="sMaxCount" value="<?php hsc($searchArray['maxCount']); ?>">
+                <input type="hidden" name="sCountingUnit" id="sCountingUnit" value="<?php hsc($searchArray['countingUnit']); ?>">
+                <input type="hidden" name="sComment" id="sComment" value="<?php hsc($searchArray['comment']); ?>">
+                <input type="hidden" name="sIsDel" id="sIsDel" value="<?php hsc($isDel); ?>">
+                <div class="serchEditArea" style="width:1240px; margin:5px auto !important;">
+                    <table style="background-color: #ffffff">
+                        <tbody>
+                            <tr>
+                                <th style="width:152px">組織名</th>
+                                <td style="width:203px">
+                                    <input type="hidden" name="payrollSystemId" id="payrollSystemId" value="<?php hsc($postArray['payrollSystemId']); ?>">
+                                    <input type="hidden" name="updateTime" id="updateTime" value="<?php hsc($payrollSystemList[0]['update_time']); ?>">
+                                    <input type="hidden" name="organizationId" id="organizationId" value="<?php hsc($payrollSystemList[0]['organization_id']); ?>">
+                                    <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" name="organizationName" id="organizationName" style="width:200px" required>
+                                        <?php foreach($abbreviatedNameList as $abbreviated) { ?>
+                                            <?php $selected = ""; ?>
+                                            <?php if($abbreviated['organization_id'] == $payrollSystemList[0]['organization_id']) { ?>
+                                                <?php $selected = "selected"; ?>
+                                            <?php } ?>
+                                            <option value="<?php hsc($abbreviated['organization_id']); ?>" <?php hsc($selected); ?>><?php hsc($abbreviated['abbreviated_name']); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </td>
+                                <th style="width:75px">設定名</th>
+                                <td style="width:200px">
+                                    <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0308')); ?>" name="optionName" id="optionName" value="<?php hsc($payrollSystemList[0]['name']); ?>" style="width:185px" maxlength="30" class="Em" required>
+                                </td>
+                                <th style="width:85px">項目名の出力</th>
+                                <td style="width:63px">
+                                    <?php if($payrollSystemList[0]['is_item_name'] == 2) { ?>
+                                        <input type="radio" name="isItemName" id="isItemName" value="1">する<br>
+                                        <input type="radio" name="isItemName" id="isItemName" value="2" checked>しない
+                                    <?php } else { ?>
+                                        <input type="radio" name="isItemName" id="isItemName" value="1" checked>する<br>
+                                        <input type="radio" name="isItemName" id="isItemName" value="2">しない
+                                    <?php } ?>
+                                </td>
+                                <th style="width:102px">時間の表示形式</th>
+                                <td style="width:360px">
+                                    <?php if($payrollSystemList[0]['display_format'] == 1) { ?>
+                                        <input type="radio" name="displayFormat" id="displayFormat" value="1" checked>10進数 
+                                        <input type="radio" name="displayFormat" id="displayFormat" value="2">時刻形式<br>
+                                    <?php } else { ?>
+                                        <input type="radio" name="displayFormat" id="displayFormat" value="1">10進数 
+                                        <input type="radio" name="displayFormat" id="displayFormat" value="2" checked>時刻形式<br>
+                                    <?php } ?>
+                                    ※10進数選択時、時間の表示は1時間30分を1.5と表記されます。<br>
+                                    ※時刻形式選択時、時間の表示は1時間30分を1:30と表記されます。
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>時間データなしの表示方式</th>
+                                <td>
+                                    <br>
+                                    <?php if($payrollSystemList[0]['no_data_format'] == 2 ) { ?>
+                                        <input type="radio" name="noDataFormat" id="noDataFormat" value="1">数値 
+                                        <input type="radio" name="noDataFormat" id="noDataFormat" value="2" checked>空白
+                                    <?php } else { ?>
+                                        <input type="radio" name="noDataFormat" id="noDataFormat" value="1" checked>数値 
+                                        <input type="radio" name="noDataFormat" id="noDataFormat" value="2">空白
+                                    <?php }?>
+                                    <br>
+                                    <br>
+                                </td>
+                                <th>集計単位</th>
+                                <td>
+                                    <?php $oneDayChecked = ""; ?>
+                                    <?php $totalChecked = ""; ?>
+                                    <?php $bothChecked = ""; ?>
+                                    <?php if($payrollSystemList[0]['counting_unit'] == 2) { ?>
+                                        <?php $totalChecked = "checked"; ?>
+                                    <?php } else if($payrollSystemList[0]['counting_unit'] == 3) { ?>
+                                        <?php $bothChecked = "checked"; ?>
+                                    <?php } else { ?>
+                                        <?php $oneDayChecked = "checked"; ?>
+                                    <?php } ?>
+                                    <input type="radio" name="countingUnit" id="countingUnit" value="1" <?php hsc($oneDayChecked); ?>>1日ずつ 
+                                    <input type="radio" name="countingUnit" id="countingUnit" value="2" <?php hsc($totalChecked); ?>>期間合計のみ 
+                                    <input type="radio" name="countingUnit" id="countingUnit" value="3" <?php hsc($bothChecked); ?>>両方
+                                </td>
+                                <th>表示順</th>
+                                <td>
+                                    <input type="text" pattern="[1-9][0-9]*" title="<?php hsc($Log->getMsgLog('MSG_BASE_0312')); ?>" name="dispOrder" id="dispOrder" value="<?php hsc($payrollSystemList[0]['disp_order']); ?>" style="width:57px" maxlength="3" class="En" required>
+                                </td>
+                                <th>コメント</th>
+                                <td>
+                                    <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0308')); ?>" id="comment" name="comment" value="<?php hsc($payrollSystemList[0]['comment']); ?>" style="width:355px" maxlength="30" class="Em">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div><!-- /.serchEditArea -->
+                <input type="hidden" id="token" name="token" value="<?php hsc($TokenID); ?>">
+                <div class="serchListArea" style="width:1198px; margin:0px auto !important;">
+                    <table id="nameTable">
+                        <thead>
+                            <tr>
+                                <th width="59px">No</th>
+                                <th width="472px">出力項目</th>
+                                <th width="59px">出力</th>
+                                <th width="472px">項目名</th>
+                                <th width="118px">表示順</th>
+                                <!-- 2016/09/19 Y.Sugou -->
+                                <td width="18px" style="border-style:none;" ></td>
+                                <!-- ---------------------- -->
+                            </tr>
+                        </thead>
+                </table>
+                </div>
+                <div class="serchListArea" style="width:1198px; margin: 0px auto; overflow-y:auto; height:400px; !important;">
+                <table id="nameTable">
+                        <tbody id="p2146-2-tbody" style="background-color: #ffffff">
+                            <?php $arrayCount = count( $outputItemDetailList ); ?>
+                            <?php for( $i = 0; $i < $arrayCount; $i++ ) { ?>
+                                <?php $display_no++; ?>
+                                <tr>
+                                    <td align="right" style="width:59px;">
+                                        <?php hsc($display_no); ?>
+                                    </td>
+                                    <td style="width:472px;">
+                                        <?php hsc($outputItemDetailList[$i]['disp_name']) ?>
+                                    </td>
+                                    <td align="center" style="width:59px;">
+                                        <?php 
+                                            $displayChecked = "";
+                                            if($outputItemDetailList[$i]['is_display'] == 1)
+                                            {
+                                                $displayChecked = "checked";
+                                            }
+                                        ?>
+                                        <input type="checkbox" name="isDisplay" id="isDisplay" class="isDisplay" value="on" <?php hsc($displayChecked); ?>>
+                                        <input type="hidden" id="outputItemID" name="outputItemID" value="<?php hsc($outputItemDetailList[$i]['output_item_id']); ?>" class="outputItemID">
+                                        <input type="hidden" id="itemName" name="itemName" value="<?php hsc($outputItemDetailList[$i]['item_name']); ?>" class="itemName">
+                                        <input type="hidden" id="outputTypeId" name="outputTypeId" class="outputTypeId" value="<?php hsc($outputItemDetailList[$i]['output_type_id']); ?>" >
+                                        <input type="hidden" id="outputItemBranch" name="outputItemBranch" class="outputItemBranch" value="<?php hsc($outputItemDetailList[$i]['output_item_branch']); ?>" >
+                                    </td>
+                                    <td style="width:472px;">
+                                        <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0302')); ?>" name="outputItemName" id="outputItemName" class="outputItemName"  value="<?php hsc($outputItemDetailList[$i]['item_name']); ?>" style="width:400px" maxlength="20">
+                                    </td>
+                                    <td align="center" style="width:118px;">
+                                        <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" name="outputItemView" id="outputItemView" class="outputItemView En"  value="<?php hsc( $i + 1 ); ?>" style="width:50px" maxlength="5" required>
+                                    </td>
+                                </tr>
+                            <?php } ?>
+                        </tbody>
+                    </table>
+                </div><!-- /.serchListArea -->
+                <input type="hidden" id="btnid" name="btnid" value=""/>
+                <!-- logicButtonArea -->
+                <div class="logicButtonArea">
+                    <p align=center>
+                        <?php if( 0 != $postArray['payrollSystemId']) { ?>
+                            <input type="submit" id="del" name="del" value="<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>')" class="delete">
+                            <input type="submit" id="newadd" name="newadd" value="　<?php hsc($Log->getMsgLog('MSG_BASE_0805')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0800')); ?>')" class="add">
+                            <input type="submit" id="mod" name="mod" value="<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>')" class="update">
+                        <?php } else { ?>
+                            <input type="submit" id="add" name="add" value="　<?php hsc($Log->getMsgLog('MSG_BASE_0805')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0800')); ?>')" class="add">
+                        <?php } ?>
+                    </p>
+                </div><!-- /.logicButtonArea -->
+            </form>
+        </div><!-- /#sb-site -->
+        <?php include("../FwCommon/View/Dialog.php"); ?>
+    </body>
+</html>

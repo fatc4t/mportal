@@ -1,0 +1,57 @@
+<?php
+    /**
+     * @file      顧客備考マスタ画面(View)
+     * @author    K.Sakamoto
+     * @date      2017/07/25
+     * @version   1.00
+     * @note      顧客備考マスタ画面(一覧部分)
+     */
+?>
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-ajax">
+            <?php if( $isScrollBar ) { ?>
+                <div class="serchListArea" style=" float:right; width:69%; height:305px; margin:5px 5px 0px 5px; auto !important;">
+            <?php } else { ?>
+                <div class="serchListArea" style=" float:right; width:69%; margin:5px 5px 0px 5px; auto !important;">
+            <?php } ?>
+                    <table>
+                        <tr>
+                            <th style="width:20%"><?php hsc($Log->getMsgLog('MSG_BASE_0929')); ?></th>
+                            <th style="width:50%"><?php hsc($Log->getMsgLog('MSG_BASE_0934')); ?></th>
+                            <th style="width:30%"></th>
+                        </tr>
+                    </table>
+                    <table id="nameTable">
+                    <?php foreach($customerRemarksList as $customerRemarks) { ?>
+                        <?php $customerRemarks_no++; ?>
+                        <tr>
+                            <input type="hidden" id="custBIdMod<?php hsc($customerRemarks_no); ?>" name="custBId<?php hsc($customerRemarks_no); ?>" value="<?php hsc($customerRemarks['cust_b_id']); ?>">
+                            <input type="hidden" id="updateTime<?php hsc($customerRemarks_no); ?>" name="updateTime<?php hsc($customerRemarks_no); ?>" value="<?php hsc($customerRemarks['update_time']); ?>">
+
+                            <td id="sCode<?php hsc($customerRemarks_no); ?>" style="width:20%"><?php hsc($customerRemarks['cust_b_cd']); ?></td>
+                            <td id="sCode-edit<?php hsc($customerRemarks_no); ?>" style="display : none" align="center" style="width:20%">
+                                <?php hsc($customerRemarks['cust_b_cd']); ?>                                
+                                <input type="hidden" id="custBCdMod<?php hsc($customerRemarks_no); ?>" name="sCode<?php hsc($customerRemarks_no); ?>" value="<?php hsc($customerRemarks['cust_b_cd']); ?>">
+                                
+                            </td>
+
+                            <td id="sCustomerRemarks<?php hsc($customerRemarks_no); ?>" style="width:50%"><?php hsc($customerRemarks['cust_b_nm']); ?></td>
+                            <td id="sCustomerRemarks-edit<?php hsc($customerRemarks_no); ?>" style="display : none"  align="center" style="width:50%">
+                                <input type="text" title="20<?php hsc($Log->getMsgLog('MSG_BASE_0310')); ?>" id="custBNmMod<?php hsc($customerRemarks_no); ?>" name="sCustomerRemarks<?php hsc($customerRemarks_no); ?>" size="22" maxlength="20" value="<?php hsc($customerRemarks['cust_b_nm']); ?>" class="Em" required>
+                            </td>
+
+                            <td align="center" style="width:30%">
+                                <?php if(empty($customerRemarks['disabled'])) { ?>
+                                    <input type="button" id="edtBtn<?php hsc($customerRemarks_no); ?>" value="<?php hsc($Log->getMsgLog('MSG_BASE_0801')); ?>" onclick="editRow(this)" >
+                                    <input type="submit" id="edtBtn-mod<?php hsc($customerRemarks_no); ?>" name="mod<?php hsc($customerRemarks_no); ?>" style="display : none;" value="<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>')">
+                                    <input type="button" id="edtBtn-del<?php hsc($customerRemarks_no); ?>" name="del<?php hsc($customerRemarks_no); ?>" style="display : none;" value="<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>')">
+                                <?php } else {?>
+                                    <input type="button" id="edtBtn-res<?php hsc($customerRemarks_no); ?>" name="del<?php hsc($customerRemarks_no); ?>" value="<?php hsc($Log->getMsgLog('MSG_BASE_0806')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0806')); ?>')">
+                                <?php } ?>
+                            </td>
+                        </tr>
+                    <?php } ?>
+                    </table>
+                </div><!-- /.serchListArea -->
+            </div><!-- /.jquery-replace-ajax -->

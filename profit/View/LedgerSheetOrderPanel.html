@@ -1,0 +1,353 @@
+<?php
+    /**
+     * @file      日次帳票画面(View)
+     * @author    millionet oota
+     * @date      2016/06/30
+     * @version   1.00
+     * @note      日次帳票画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述
+            include("../profit/View/Common/HtmlHeader.php");
+        ?>
+
+    <script src="../js/profit/jquery/jquery.ui.ympicker.js" /></script>
+    <script src="../js/profit/jquery/jquery-migrate-1.0.0.js" /></script>
+    <script src="../js/profit/jquery/datepicker-ja.js" /></script>
+    <script src="../js/autofil_v<?php echo $_SESSION['AUTOFIL_VER'] ?>.js" ></script>
+    <script type="text/javascript">
+        Sizelist       = '<?php echo json_encode(json_encode($Sizelist)); ?>';
+        A_Sizelist     = JSON.parse(Sizelist.slice(1,-1));
+    </script>
+    <script type="text/javascript">
+        function chf(frm){
+            if( 1 < window.location.search.length )
+                {
+                    // 最初の1文字 (?記号) を除いた文字列を取得する
+                    var query = window.location.search.substring( 1 );
+                    var action = frm.action.split( '?' );
+
+                    // 検索以外の機能実行後だった場合、パラメータを補正する
+                    if(1 < action.length){
+                        frm.action = action[0];
+                    }
+
+                    // クエリの区切り記号 (&) で文字列を配列に分割する
+                    var parameters = query.split( '&' );
+
+                    if (frm.onbtn.value == 'serch')
+                    {
+                      frm.target = '_self';
+                      if(1 < parameters.length)
+                      {
+                         frm.action += '?param=' +frm.elements["codeName"].value + '&home=1';
+                      }else{
+                         frm.action += '?param=' +frm.elements["codeName"].value;
+                      }
+                    }else if (frm.onbtn.value == 'csvoutput'){
+                        if(1 < parameters.length){
+                             frm.action += '?param=LedgerSheetOrder/csvoutput&home=1';
+                         }else{
+                             frm.action += '?param=LedgerSheetOrder/csvoutput';
+                        }
+                    }
+                }
+       }
+
+    $(document).ready(function()
+    {
+        /**
+         * 帳票種別によって日付フォームを切り替え
+         */
+        $('#codeName').change(function()
+        {
+            if($('#codeName').val() === "LedgerSheetMonth/show")
+            {
+                $('#start_dateM').css('display' , '');
+                $('#end_dateM').css('display' , '');
+                $('#start_date').css('display' , 'none');
+                $('#end_date').css('display' , 'none');
+
+            }
+            else
+            {
+                $('#start_dateM').css('display' , 'none');
+                $('#end_dateM').css('display' , 'none');
+                $('#start_date').css('display' , '');
+                $('#end_date').css('display' , '');
+            }
+        });
+
+        // 日付検索条件の初期設定
+        if($('#codeName').val() === "LedgerSheetOrder/show")
+        {
+            $('#start_dateM').css('display' , 'none');
+            $('#end_dateM').css('display' , 'none');
+            $('#start_date').css('display' , '');
+            $('#end_date').css('display' , '');
+        }
+        else
+        {
+            $('#start_dateM').css('display' , '');
+            $('#end_dateM').css('display' , '');
+            $('#start_date').css('display' , 'none');
+            $('#end_date').css('display' , 'none');
+        }
+
+    });
+
+    /**
+     *  イベント制御用
+     *
+     */
+    function set_value(s_val){
+        document.serchForm.onbtn.value = s_val;
+    }
+
+    /**
+     * DatePickerを設定
+     */
+    $(function()
+    {
+        $( "#start_date, #end_date" ).datepicker({
+            numberOfMonths: 2,
+            showCurrentAtPos: 1,
+            showButtonPanel: true,
+            dateFormat: 'yy/mm/dd'
+        });
+    });
+
+    /**
+     *
+      * 画面生成時自動読み込み
+     *
+     */
+    $(function() {
+    /**
+     *
+     * スクロール制御
+     *
+     */
+        function SyncScroll(/* elem1, elem2, ... */) {
+            this._elements = [];
+            this._elementOnscroll = this._elementOnscroll.bind(this);
+            this.addElement.apply(this, arguments);
+        }
+        SyncScroll.prototype = {
+            enableHorizontal: true,
+            enableVertical: true,
+            addElement: function (/* elem1, elem2, ... */) {
+                var elem, i;
+                for (i = 0; i < arguments.length; i += 1) {
+                    elem = arguments[i];
+                    elem.addEventListener('scroll', this._elementOnscroll, false);
+                    this._elements.push(elem);
+                }
+            },
+            removeElement: function (/* elem1, elem2, ... */) {
+                var elem, i, j;
+                for (i = 0; i < arguments.length; i += 1) {
+                    elem = arguments[i];
+                    elem.removeEventListener('scroll', this._elementOnscroll, false);
+                    j = this._elements.indexOf(elem);
+                    if (j >= 0) {
+                        this._elements.splice(j, 1);
+                    }
+                }
+            },
+            _elementOnscroll: function (event) {
+                var i,
+                    elems = this._elements,
+                    elem = event.target,
+                    x = elem.scrollLeft,
+                    y = elem.scrollTop;
+                if (this.enableHorizontal) {
+                    for (i = 0; i < elems.length; i += 1) {
+                        elem = elems[i];
+                        if (elem === event.target || elem.scrollLeft === x) {
+                            continue;
+                        }
+                        elem.scrollLeft = x;
+                        if (elem.scrollLeft !== x) {
+                            elem.scrollLeft = x + x - elem.scrollLeft;
+                        }
+                    }
+                }
+                if (this.enableVertical) {
+                    for (i = 0; i < elems.length; i += 1) {
+                        elem = elems[i];
+                        if (elem === event.target || elem.scrollTop === y) {
+                            continue;
+                        }
+                        elem.scrollTop = y;
+                        if (elem.scrollTop !== y) {
+                            elem.scrollTop = y + y - elem.scrollTop;
+                        }
+                    }
+                }
+            },
+            destroy: function () {
+                this.removeElement.apply(this, this._elements);
+            }
+        };
+
+        window.onload = function () {
+            creat_listener();
+            // 縦方向のみ
+            var sample2_1 = document.getElementById('header_v');
+            var sample2_2 = document.getElementById('data');
+            var syncScroll2 = new SyncScroll(sample2_1, sample2_2);
+            syncScroll2.enableHorizontal = false;
+
+            // 横方向のみ
+            var sample3_1 = document.getElementById('header_h');
+            var sample3_2 = document.getElementById('data');
+            var syncScroll3 = new SyncScroll(sample3_1, sample3_2);
+            syncScroll3.enableVertical = false;
+        };
+    });
+    </script>
+
+    <STYLE type="text/css">
+#header_h {
+   width:98%;
+   overflow-x:hidden;overflow-y:hidden;
+   }
+#header_v {
+   width:90px;height:650px;
+   overflow-x:scroll;overflow-y:hidden;
+   text-align: left;
+   }
+#data {
+/*Edit 2019/11/29 kanderu*/
+   width:99%;max-height:650px;
+   overflow-x:scroll;overflow-y:scroll;
+   table-layout: fixed;
+   }
+
+    </STYLE>
+
+    </head>
+    <body>
+<?php
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+
+<!-- Site -->
+<div id="sb-site">
+<form name="serchForm" id="serchForm" action="/profit/index.php" method="post" onsubmit="return chf(this)">
+<div class="serchListArea">
+<table align="center">
+    <tr>
+        <td>
+            <table id="serchTable">
+                <tr>
+                    <th id="serchTableTitle" align="left" width="65">帳票種別</th>
+                    <td id="serchTableItem" width=220>
+                        注文書
+                      <input type="hidden" name="codeName" id="codeName" value="LedgerSheetOrder/show">
+                    </td>
+                    <th id="serchTableTitle" align="right" width="65">仕入先</th>
+                    <td id="serchTableItem" width="120">
+                      <?php $selectOrgSize = empty( $selectOrgSize ) ? 100 : $selectOrgSize  ?>
+                      <select name="supplierName" id="supplierName" style="width:<?php hsc($selectOrgSize); ?>px">
+                          <option value=""></option>
+                          <?php foreach($supplierList as $supplier) { ?>
+                              <?php $selected = ""; ?>
+                              <?php if($supplier['supp_cd'] == $searchArray['supp_cd']) { ?>
+                                  <?php $selected = "selected"; ?>
+                              <?php } ?>
+                              <option value="<?php hsc($supplier['supp_cd']); ?>" <?php hsc($selected); ?>><?php hsc($supplier['supp_nm']); ?></option>
+                          <?php } ?>
+                      </select>
+                    </td>
+                    <th id="serchTableTitle" align="center" width="85">発注日の開始</th>
+                    <td id="serchTableItem" width="140">
+                        <input type="text" pattern="\d{4}/\d{2}/\d{2}" title="西暦/月/日の形式で入力してください。" id="start_date" name="start_date" size="10" value=<?php hsc($startDate); ?>>
+                    </td>
+                    <th id="serchTableTitle" align="center" width="85">納品日の終了</th>
+                    <td id="serchTableItem" width="140">
+                        <input type="text" pattern="\d{4}/\d{2}/\d{2}" title="西暦/月/日の形式で入力してください。" id="end_date" name="end_date" size="10" value=<?php hsc($endDate); ?>>
+                    </td>
+                    <td>
+                      <input class="submit" type="submit" name="search" id="search" value="検索" onClick="set_value('serch')">
+                <?php if( !empty($ledgerSheetOrderList) ) { ; ?>
+                       <input width=20 size=10 class="submit" type="submit" name="csvoutput" id="csvoutput" value="CSV出力" onClick="set_value('csvoutput')">
+                <?php } ?>
+                      <input type="hidden" name="onbtn">
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+<!-- 固定ヘッダ -->
+<table>
+    <tr>
+        <td>
+            <!-- 水平ヘッダ -->
+            <div id="header_h">
+            <table>
+              <tr>
+                <th align=left width=50>No</th>
+                <th align=center width=60>伝票</th>
+                <th align=center width=102>商品コード</th>
+                <th align=center>商品名</th>
+                <th align=center>商品名カナ</th>
+                <th align=center width=80>容量</th>
+                <th align=center width=60>数量</th>
+                <th align=center width=80>発注日</th>
+                <th align=center width=80>納品日</th>
+                <th align=center width=80>店舗</th>
+              </tr>
+            </table>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <!-- データ部分  -->
+            <div id="data">
+            <table>
+                <?php if( !empty($ledgerSheetOrderList) ) { 
+                                 $row_cnt = 1; ?>
+                    <?php foreach ($ledgerSheetOrderList as $rows ) { ?>
+                <tr>
+                    <th align=left width=50><?php hsc($row_cnt ++); ?></th>
+                    <td align=center width=60><?php hsc($rows['denno']);?></td>
+                    <td align=center width=102><?php hsc($rows['prod_cd']);?></td>
+                    <td align=left><?php hsc($rows['prod_nm']);?></td>
+                    <td align=left><?php hsc($rows['prod_kn']);?></td>
+                    <td align=center width=80><?php hsc($rows['prod_capa']);?></td>
+                    <td align=right width=60><?php hsc(number_format($rows['ord_amount']));?></td>
+                    <td align=center width=80><?php hsc($rows['start_date']);?></td>
+                    <td align=center width=80><?php hsc($rows['end_date']);?></td>
+                    <td align=center width=80><?php hsc($rows['abbreviated_name']);?></td>
+                </tr>
+                    <?php } ?>
+                <?php } ?>
+            </table>
+            </div>
+        </td>
+    </tr>
+</table>
+</div>
+</form>
+<script type="text/javascript" src="../jquery/js/scrolltopcontrol2.js"></script>
+<!--スクロールしながらページのトップに戻る-->
+</div><!-- /#sb-site -->
+
+</body>
+</html>

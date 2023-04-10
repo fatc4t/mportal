@@ -1,0 +1,180 @@
+<?php
+    /**
+     * @file      発注画面(View)
+     * @author    USE K.Kanda(media-craft.co.jp)
+     * @date      2018/01/30
+     * @version   1.00
+     * @note      発注画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+<head>
+<?php
+    $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述
+    $add = ''; //
+    include("Common/HtmlHeader.php");
+?>
+<script type="text/javascript" src="../js/order/common.js"></script>
+<script type="text/javascript" src="../js/order/jquery-ui.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../css/order/jquery-ui.css">
+<script src="../js/order/jquery/datepicker-ja.js" ></script>
+<script type="text/javascript">
+$(function()
+{
+
+	$("#ymd1").datepicker();
+	$("#ymd2").datepicker();
+
+	$(document).on('click','.button_copy',function()
+    {
+		var ord_no = $(this).attr('data-ordno');
+		copyOrder(ord_no);
+	});
+	$(document).on('click','.button_select',function()
+    {
+		var ord_no = $(this).attr('data-ordno');
+		selectOrder(ord_no);
+	});
+
+	$(document).on('click','#search',function()
+	{
+		getHistoryList();
+	});
+
+});
+function getHistoryList() {
+	//ajax
+	var path = "./index.php?param=History/list";
+	$.ajax({
+		url: path,
+		type: "POST",
+		data: $("#form1").serialize(),
+		success: function(rtnData) {
+			$("#listArea").html(rtnData);
+		},
+		error:function(xhr, textStatus, error) {
+			alert("通信エラー");
+		}
+	});
+}
+function copyOrder(ord_no) {
+	var url = "./index.php?param=Order/copy&home=1&ord_no="+ord_no;
+	location.href=url;
+}
+function selectOrder(ord_no) {
+	var url = "./index.php?param=Order/select&home=1&ord_no="+ord_no;
+	location.href=url;
+}
+</script>
+<link rel="stylesheet" type="text/css" href="../css/order/order.css">
+</head>
+<body>
+<?php
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+<!-- Site -->
+<style type="text/css">
+#listTable {
+	display:block;
+	position:relative;
+	overflow:auto;
+}
+
+#listTable thead.meisai {
+	display:block;
+	position: -webkit-sticky;
+	position: sticky;
+	top: 0;
+	z-index: 2;
+}
+
+#listTable tbody.meisai {
+	display:block;
+}
+
+#listTable thead.meisai th {
+	height:24px;
+	color:#fff;
+	box-sizing:border-box;
+	padding:3px;
+	display: inline-block;
+	vertical-align:top;
+	text-align:center;
+}
+
+
+#listTable tbody.meisai td {
+	height:38px;
+	padding:3px;
+	box-sizing:border-box;
+	display: inline-block;
+	vertical-align:top;
+	line-height:2.0;
+}
+</style>
+<form id="form1" method="post" enctype="multipart/form-data">
+<input type="hidden" name="pha_id" id="pha_id" value="<?php hsc($pha_id);?>">
+<input type="hidden" name="ord_no" id="ord_no">
+<div id="sb-site" style="overflow: auto;">
+    <!-- パンくずリスト -->
+    <?php include("Common/Breadcrumb.php"); ?>
+    <div id="formArea" style="width:1050px;">
+    	<table>
+        	<tr>
+                <th>日付範囲</th>
+                <td><input type="text" name="ymd1" id="ymd1" size="10" readonly></td>
+                <!--
+                <td><div class="button2"></div></td>
+                -->
+                <td>～</td>
+                <td><input type="text" name="ymd2" id="ymd2" size="10" readonly></td>
+                <!--
+                <td><div class="button2"></div></td>
+                -->
+            </tr>
+            <tr>
+            	<th>状態</th>
+                <td colspan="5">
+                	<select name="kbn">
+                    	<option value="">指定なし</option>
+                        <?php
+                        foreach($kbnArr as $key => $value) {
+                       	?>
+                        <option value="<?php echo $key;?>"><?php echo $value;?></option>
+                        <?php
+                        }
+                        ?>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+            	<th>発注先</th>
+                <td colspan="5"><input type="text" placeholder="発注先名" name="ma_name" size="35"></td>
+                <td><div class="button_search" id="search">検索する</div></td>
+            </tr>
+        </table>
+    </div>
+    <div id="listArea" style="width:1050px;">
+
+    </div>
+</div>
+</form>
+<?php include("../FwCommon/View/Dialog.php"); ?>
+<script>
+$(function()
+{
+	//一覧の呼出
+	getHistoryList();
+});
+</script>
+</body>
+</html>

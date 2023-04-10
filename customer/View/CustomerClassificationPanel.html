@@ -1,0 +1,547 @@
+<?php
+    /**
+     * @file      顧客分類マスタ画面(View)
+     * @author    K.Sakamoto
+     * @date      2017/07/25
+     * @version   1.00
+     * @note      顧客分類マスタ画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array( 'default.css',
+                                'common.js', 
+                                'jquery-ui.min.js', 
+                                'jquery-ui.css' );    // cssまたはｊｓファイルを拡張子付きで配列に記述 
+
+            include("../home/View/Common/HtmlHeader.php");
+        ?>
+        <script type="text/javascript">
+            var lineInfo = null;
+            var btnInfo  = null;
+            var displayPageNo = 1;
+            var displayRecordCnt = <?php hsc($_SESSION["DISPLAY_RECORD_CNT"]); ?>;
+            var CustomerClassificationItemInfo = null;
+            var customerClassificationSort = 6;
+            var no_click_count = 0;
+            var state_click_count = 0;
+            var code_click_count = 0;
+            var organization_click_count = 0;
+            var customerClassification_click_count = 0;
+            var disporder_click_count = 0;
+            $(document).ready(function()
+            {
+                /**
+                 * 検索ボタンクリック
+                 */
+                $('#search').click(function()
+                {
+                    displayPageNo = 1;
+
+                    // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                    var data = {
+                                  displayPageNo : displayPageNo,
+                                  displayRecordCnt : displayRecordCnt,
+                                  searchCodeName : $('#codeName').val(),
+                                  searchCustomerClassificationName : $('#customerClassificationName').val(),
+                                  searchDelF : document.getElementById("delF").checked,
+                                  sortConditions  : 4
+                               };
+                    var path = 'index.php?param=CustomerClassification/search&home=1';
+
+                    // データ更新
+                    setDataForAjax( data, path );
+                    
+                    // 新規登録エリア設定
+                    setInputArea();
+                    
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+                /**
+                 * 登録ボタンクリック
+                 */
+                $('#addForm').submit(function(event)
+                {
+                    event.preventDefault();
+
+                    document.getElementById("dialog_add").textContent='<?php hsc(SystemParameters::$NEW_DIALOG_MSG); ?>';
+                    
+                    $("#dialog_add").dialog('open');
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+                /**
+                 * 更新/削除ボタンクリック
+                 */
+                $('#modForm').submit(function(event)
+                {
+                    event.preventDefault();
+
+                    if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>' )
+                    {
+                        document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$UPDATE_DIALOG_MSG); ?>';
+                    }
+                    else
+                    {
+                        document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$DELETE_DIALOG_MSG); ?>';
+                    }
+                    
+                    $("#dialog_mod").dialog('open');
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+                
+            });
+
+            /*
+             * editRow: 編集ボタン該当行の内容を入力・編集またモード切り替え
+             */
+            function editRow(obj)
+            {
+
+                var objTR = obj.parentNode.parentNode;
+                var rowId = objTR.sectionRowIndex + 1;
+                var rowCount = nameTable.rows.length;
+
+                // モードの切り替えはボタンの値で判定	
+                $('#sCode' + rowId).css('display' , 'none');
+                $('#sCode-edit' + rowId).val($('#sCode').text()).css('display' , '');
+                $('#sCustomerClassification' + rowId).css('display' , 'none');
+                $('#sCustomerClassification-edit' + rowId).val($('#sCustomerClassification').text()).css('display' , '');
+                $('#edtBtn' + rowId).css('display' , 'none');
+                $('#edtBtn-mod' + rowId).css('display' , '');
+                $('#edtBtn-del' + rowId).css('display' , '');
+                $('#add').prop('disabled', true);
+                for(var i = 1; i <= rowCount; i++)
+                {
+                    $('#edtBtn' + i).prop('disabled', true);
+                }
+//                setOrganizationMod(rowId);
+            }
+
+            /**
+             * 行情報を設定
+             */
+            function setLineInfo(thisLineInfo, thisBtnInfo)
+            {
+                lineInfo = thisLineInfo;
+                btnInfo  = thisBtnInfo;
+                
+                if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0803")); ?>' )
+                {
+                    document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$DELETE_DIALOG_MSG); ?>';
+                    $("#dialog_mod").dialog('open');
+                }
+
+                return false;
+            }
+
+            /**
+             * ソート処理
+             */
+            function setColumnInfo(thisItemInfo)
+            {
+                CustomerClassificationItemInfo = thisItemInfo;
+
+                customerClassificationSort = 6;
+
+//                if(CustomerClassificationItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?>")
+//                {
+//                    no_click_count++;
+//                    if((no_click_count % 2) != 0)
+//                    {
+//                        customerClassificationSort = 1;
+//                    }
+//                    else
+//                    {
+//                        customerClassificationSort = 2;
+//                    }
+//                }
+//                else if(CustomerClassificationItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0849')); ?>")
+//                {
+//                    state_click_count++;
+//                    if((state_click_count % 2) != 0)
+//                    {
+//                        customerClassificationSort = 3;
+//                    }
+//                    else
+//                    {
+//                        customerClassificationSort = 4;
+//                    }
+//                }
+//                else if(CustomerClassificationItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0851')); ?>")
+                if(CustomerClassificationItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0851')); ?>")
+                {
+                    code_click_count++;
+                    if((code_click_count % 2) != 0)
+                    {
+                        customerClassificationSort = 5;
+                    }
+                    else
+                    {
+                        customerClassificationSort = 6;
+                    }
+                }
+//                else if(CustomerClassificationItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?>" )
+//                {
+//                    organization_click_count++;
+//                    if((organization_click_count % 2) != 0)
+//                    {
+//                        customerClassificationSort = 7;
+//                    }
+//                    else
+//                    {
+//                        customerClassificationSort = 8;
+//                    }
+//                }
+                else if(CustomerClassificationItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0862')); ?>" )
+                {
+                    customerClassification_click_count++;
+                    if((customerClassification_click_count % 2) != 0)
+                    {
+                        customerClassificationSort = 9;
+                    }
+                    else
+                    {
+                        customerClassificationSort = 10;
+                    }
+                }
+//                else if(CustomerClassificationItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0852')); ?>" )
+//                {
+//                    disporder_click_count++;
+//                    if((disporder_click_count % 2) != 0)
+//                    {
+//                        customerClassificationSort = 11;
+//                    }
+//                    else
+//                    {
+//                        customerClassificationSort = 12;
+//                    }
+//                }
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchCodeName : $('#codeName').val(),
+                              searchCustomerClassificationName : $('#customerClassificationName').val(),
+                              searchDelF : document.getElementById("delF").checked,
+                              sortConditions : customerClassificationSort 
+                           };
+                var path = 'index.php?param=CustomerClassification/search&home=1';
+                // データ更新
+                setDataForAjax( data, path );
+
+                // 新規登録エリア設定
+                setInputArea();
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 表示レコード数選択
+             */
+            function displayRecord(recordCnt)
+            {
+                displayRecordCnt = recordCnt;
+                displayPageNo = 1;
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchCodeName : $('#codeName').val(),
+                              searchCustomerClassificationName : $('#customerClassificationName').val(), 
+                              searchDelF : document.getElementById("delF").checked,
+                              sortConditions : customerClassificationSort 
+                           };
+                var path = 'index.php?param=CustomerClassification/search&home=1';
+                // データ更新
+                setDataForAjax( data, path );
+
+                // 新規登録エリア設定
+                setInputArea();
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 表示ページ数選択
+             */
+            function displayPage(pageCnt)
+            {
+                displayPageNo = pageCnt;
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchCodeName : $('#codeName').val(),
+                              searchCustomerClassificationName : $('#customerClassificationName').val(), 
+                              searchDelF : document.getElementById("delF").checked,
+                              sortConditions : customerClassificationSort 
+                           };
+                var path = 'index.php?param=CustomerClassification/search&home=1';
+                // データ更新
+                setDataForAjax( data, path );
+                
+                // 新規登録エリア設定
+                setInputArea();
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 新規作成データの設定
+             */
+            function setAddData()
+            {
+
+                displayPageNo = 1;
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchCodeName : $('#codeName').val(),
+                              searchCustomerClassificationName : $('#customerClassificationName').val(),
+                              searchDelF : document.getElementById("delF").checked,
+                              sortConditions : customerClassificationSort,
+                              custTypeCode : $('#customerClassificationNewCode').val(),
+                              custTypeNm : $('#customerClassificationNewName').val(),
+                              token : $('#token').val()
+                           };
+                var path = 'index.php?param=CustomerClassification/add&home=1';
+
+                // データ更新
+                setDataForAjax( data, path );
+
+                // コードリスト
+                setSearchCodeName();
+                // セクションリスト更新
+                setSearchCustomerClassificationName();
+                // 新規登録エリア設定
+                setInputArea();
+
+            }
+
+            /**
+             * 更新用データの設定
+             */
+            function setModData()
+            {
+                var objTR = lineInfo.parentNode.parentNode;
+                var rowId = objTR.sectionRowIndex + 1;
+                var data = null;
+                var path = '';
+                if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>' )
+                {
+                    path = 'index.php?param=CustomerClassification/mod&home=1';
+                }
+                else
+                {
+                    path = 'index.php?param=CustomerClassification/del&home=1';
+                }
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                data = {
+                          displayPageNo : displayPageNo,
+                          displayRecordCnt : displayRecordCnt,
+                          searchCodeName : $('#codeName').val(),
+                          searchCustomerClassificationName : $('#customerClassificationName').val(),
+                          searchDelF : document.getElementById("delF").checked,
+                          sortConditions : customerClassificationSort,
+                          custTypeId : $('#custTypeIdMod' + rowId).val(),
+                          custTypeCode : $('#custTypeCodeMod' + rowId).val(),
+                          custTypeNm : $('#custTypeNmMod'  + rowId).val(),
+                          updateTime : $('#updateTime'  + rowId).val(),
+                          token : $('#token').val()
+                       };
+
+                // データ更新
+                setDataForAjax( data, path, 'jquery-replace-ajax', false );
+                
+                // 新規登録エリア設定
+                setInputArea();
+                
+                // コードリスト
+                setSearchCodeName();
+                // セクションリスト更新
+                setSearchCustomerClassificationName();
+            }
+
+            /**
+             * 更新キャンセル
+             */
+            function cancel()
+            {
+                var data = null;
+                var path = '';
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                data = {
+                          displayPageNo : displayPageNo,
+                          displayRecordCnt : displayRecordCnt,
+                          searchCodeName : $('#codeName').val(),
+                          searchOrganizatioID : $('#organizationName').val(),
+                          searchCustomerClassificationName : $('#customerClassificationName').val(),
+                          searchDelF : document.getElementById("delF").checked,
+                          sortConditions : customerClassificationSort,
+                          token : $('#token').val()
+                       };
+
+                // 検索する為、パスを変更する
+                path = 'index.php?param=CustomerClassification/search&home=1';
+
+                // データ更新
+                setDataForAjax( data, path );
+                
+                // 新規データをクリア
+                $('#customerClassificationNewCode').val('');
+                $('#customerClassificationNewName').val('');
+            }
+
+            /**
+             * 検索用コードリスト更新
+             */
+            function setSearchCodeName()
+            {
+                var data = null;
+                var path = '';
+
+                // 検索用コードリスト更新用パス
+                path = 'index.php?param=CustomerClassification/searchCodeName&home=1';
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                data = {
+                          searchCodeName : $('#codeName').val(),
+                       };
+
+                // データ更新
+                setDataForAjax( data, path, "jquery-replace-SearchCodeName-ajax" );
+            }
+
+            /**
+             * 検索用顧客分類名リスト更新
+             */
+            function setSearchCustomerClassificationName()
+            {
+                var data = null;
+                var path = '';
+
+                // 検索用セクションリスト更新用パス
+                path = 'index.php?param=CustomerClassification/searchCustomerClassificationName&home=1';
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                data = {
+                          searchCustomerClassificationName : $('#customerClassificationName').val(),
+                       };
+
+                // データ更新
+                setDataForAjax( data, path, "jquery-replace-SearchCustomerTypeName-ajax" );
+            }
+
+            /**
+             * 新規登録エリア設定
+             */
+            function setInputArea()
+            {
+                var data = {
+                                  displayPageNo : displayPageNo,
+                                  displayRecordCnt : displayRecordCnt,
+                                  searchCodeName : $('#codeName').val(),
+                                  searchOrganizatioID : $('#organizationName').val(),
+                                  searchCustomerClassificationName : $('#customerClassificationName').val(),
+                                  searchDelF : document.getElementById("delF").checked,
+                                  sortConditions  : 0
+                               };
+                var path = 'index.php?param=CustomerClassification/inputArea&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, "jquery-replace-input-ajax" );
+            }
+            
+            /**
+             * 編集登録時のアクセス権限内組織名の表示
+             */
+            function setOrganizationMod(rowId)
+            {
+                var orgVal = $('#customerClassificationOrganizationMod' + rowId).val();
+                // 表示の切り替え
+                $("#customerClassificationOrganizationMod" +rowId).prop("required", true);
+                $('#customerClassificationOrganizationMod' + rowId).val(orgVal);
+            }
+
+        </script>
+        
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site" style="overflow: auto;">
+            <!-- パンくずリスト -->
+            <?php include("Common/Breadcrumb.php"); ?>
+            <form id="searchForm" name="searchForm" method="POST" action="index.php?param=CustomerClassification/search&home=1">
+                <input type="hidden" name="companyID" value="<?php hsc( $_SESSION['COMPANY_ID'] ); ?>">
+                <!-- serchBoardArea -->
+                <div class="serchBoardArea" style=" clear:both; width:99%; margin:5px auto !important;" >
+                    <table>
+                        <tbody>
+                            <tr>
+                                <th style="width:110px"><?php hsc($Log->getMsgLog('MSG_BASE_0929')); ?></th>
+                                <td style="width:110px">
+                                    <?php include("../FwCommon/View/SearchCodeName.php"); ?>
+                                </td>
+                                <th style="width:110px"><?php hsc($Log->getMsgLog('MSG_BASE_0930')); ?></th>
+                                <td style="width:110px">
+                                    <?php include("../FwCommon/View/SearchCustomerClassificationName.php"); ?>
+                                </td>
+                                <th style="width:110px"><?php hsc($Log->getMsgLog('MSG_BASE_0931')); ?></th>
+                                <td style="width:110px"><input type="checkbox" name="delF" id="delF" /> <?php hsc($Log->getMsgLog('MSG_BASE_0932')); ?></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div><!-- /.serchBoardArea -->
+
+                <!-- serchButtonArea -->
+                <div class="serchButtonArea">
+                    <p align=center>
+                        <input type="submit" id="search" name="search" href="#" value="検索" class="serch" />
+                    </p>
+                </div><!-- /.serchButtonArea -->
+            </form>
+        
+            <form id="modForm" name="modForm" >
+                <?php include("CustomerClassificationTablePanel.html"); ?>
+            </form>
+            
+            <form id="addForm" name="addForm">
+                <?php include("CustomerClassificationInputPanel.html"); ?>
+            </form>
+
+          
+        </div><!-- /.sb-site -->
+
+        <?php include("../FwCommon/View/Dialog.php"); ?>
+    </body>
+</html>

@@ -1,0 +1,76 @@
+<?php
+require_once("../gokigen/sales/public/f_session.php");
+
+session_start();
+$login_staff = f_session_start($_SESSION["user_name"], $_SERVER["PHP_SELF"], $_SERVER["HTTP_USER_AGENT"], "./gokigen/sales/index.php", $_SERVER["REMOTE_ADDR"]);
+
+
+?>
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Dwarf.Navi</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2" />
+		<!-- Favicons -->
+		<link rel="icon" type="image/png" href="../gokigen/icons/16.png" sizes="16x16">
+		<link rel="icon" type="image/png" href="../gokigen/icons/32.png" sizes="32x32">
+		<link rel="icon" type="image/png" href="../gokigen/icons/48.png" sizes="48x48">
+		<link rel="icon" type="image/png" href="../gokigen/icons/64.png" sizes="64x64">
+		
+		<!-- Apple Touch Icons -->
+		<link rel="apple-touch-icon" href="../gokigen/icons/152.png" sizes="120x120">
+		<link rel="apple-touch-icon" href="../gokigen/icons/120.png" sizes="152x152">
+		<link rel="apple-touch-icon" href="../gokigen/icons/76.png" sizes="76x76">
+		<link rel="apple-touch-icon" href="../gokigen/icons/114.png" sizes="114x114">
+		<link rel="apple-touch-icon" href="../gokigen/icons/57.png" sizes="57x57">
+		<link rel="apple-touch-icon" href="../gokigen/icons/144.png" sizes="144x144">
+		<link rel="apple-touch-icon" href="../gokigen/icons/72.png" sizes="72x72">
+
+		<!-- Section CSS -->
+		<!-- jQuery UI (REQUIRED) -->
+		<link rel="stylesheet" type="text/css" href="css/jquery-ui.css">
+
+		<!-- elFinder CSS (REQUIRED) -->
+		<link rel="stylesheet" type="text/css" href="css/elfinder.min.css">
+		<link rel="stylesheet" type="text/css" href="css/theme.css">
+
+		<!-- Section JavaScript -->
+		<!-- jQuery and jQuery UI (REQUIRED) -->
+		<!--[if lt IE 9]>
+		<script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
+		<![endif]-->
+		<!--[if gte IE 9]><!-->
+		<script src="js/jquery-3.1.1.min.js"></script>
+		<!--<![endif]-->
+		<script src="js/jquery-ui.min.js"></script>
+
+		<!-- elFinder JS (REQUIRED) -->
+		<script src="js/elfinder.min.js"></script>
+
+		<!-- GoogleDocs Quicklook plugin for GoogleDrive Volume (OPTIONAL) -->
+		<!--<script src="js/extras/quicklook.googledocs.js"></script>-->
+
+		<!-- elFinder translation (OPTIONAL) -->
+		<script src="js/i18n/elfinder.jp.js"></script>
+
+		<!-- elFinder initialization (REQUIRED) -->
+		<script type="text/javascript" charset="utf-8">
+			// Documentation for client options:
+			// https://github.com/Studio-42/elFinder/wiki/Client-configuration-options
+			$(document).ready(function() {
+				$('#elfinder').elfinder({
+					url : 'php/connector.minimal.php'  // connector URL (REQUIRED)
+					, lang: 'jp'                    // language (OPTIONAL)
+				});
+			});
+		</script>
+	</head>
+	<body>
+
+		<!-- Element where elFinder will be created (REQUIRED) -->
+		<div id="elfinder"></div>
+
+	</body>
+</html>

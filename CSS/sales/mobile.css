@@ -1,0 +1,36 @@
+.list_table { 
+border-collapse: collapse;
+border: 1px #bbbbbb solid;
+width:	100%;
+} 
+
+.title_td { 
+height: 25px;
+border: 1px #696969 solid;
+background-color: #c0c0c0;
+} 
+.item_td { 
+height: 25px;
+border: 1px #696969 solid;
+background-color: #ffffff;
+} 
+.btn {
+	background: #DDD;
+	border: 1px solid #CCC;
+	border-radius: 8px;
+	-moz-border-radius: 8px;
+	-webkit-border-radius: 8px;
+	color: #111;
+	width: 150px;
+	padding: 7px 0;
+}
+.btn2 {
+	background: #DDD;
+	border: 1px solid #CCC;
+	border-radius: 8px;
+	-moz-border-radius: 8px;
+	-webkit-border-radius: 8px;
+	color: #111;
+	width: 80px;
+	padding: 7px 0;
+}

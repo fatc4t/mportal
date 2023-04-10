@@ -1,0 +1,793 @@
+<?php
+    /**
+     * @file      帳票- 店舗日別売上動向表画面(View)
+     * @author    millionet oota
+     * @date      2018/06/04
+     * @version   1.00
+     * @note      帳票 - 店舗日別売上動向表画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述
+            include("../profit/View/Common/HtmlHeader.php");
+        ?>
+
+    <script src="../js/profit/jquery/jquery.ui.ympicker.js" /></script>
+    <script src="../js/profit/jquery/jquery-migrate-1.0.0.js" /></script>
+    <script src="../js/profit/jquery/datepicker-ja.js" /></script>
+    <script src="../js/autofil_v<?php echo $_SESSION['AUTOFIL_VER'] ?>.js" ></script>
+    <!-- modal script-->
+    <script src="../js/modal/modal.js" ></script>
+    <link rel="stylesheet" href="../css/modal/modal.css" >     
+    <script type="text/javascript">
+        Sizelist       = '<?php echo json_encode(json_encode($Sizelist)); ?>';
+        A_Sizelist     = JSON.parse(Sizelist.slice(1,-1));
+        //modal
+        porg_id_list        = '<?php echo json_encode(json_encode($org_id_list)); ?>';
+        data_org            = JSON.parse(porg_id_list.slice(1,-1)); 
+        ptypsupp_detail     = '<?php echo json_encode($supp_detail); ?>';
+        data_supp           = JSON.parse(ptypsupp_detail);  
+        ptypprod_detail     = '<?php echo json_encode($prod_detail); ?>';
+        data_prod           = JSON.parse(ptypprod_detail);         
+        searchArray         = '<?php echo json_encode($searchArray); ?>';
+        A_searchArray       = JSON.parse(searchArray);
+        param               = '<?php echo json_encode($param); ?>';
+        A_param             = JSON.parse(param);
+        
+        var supp_list = A_searchArray["supp_cd"].replace('false','');
+        if(supp_list){
+            supp_list = ","+supp_list;
+            data_select['supp'] = supp_list;
+        }
+        var prod_list = A_searchArray["prod_cd"].replace('false','');
+        if(prod_list){
+            prod_list = ","+prod_list;
+            data_select['prod'] = prod_list;
+        }        
+        var org_list = A_searchArray["org_id"].replace('false',''); 
+        if(org_list){
+            org_list = ","+org_list;
+            data_select['org'] = org_list;
+        }         
+    </script>
+    <script type="text/javascript">
+// modal        
+        function radio_change_management(){
+            var prev = [];
+            document.getElementById("serchTable").addEventListener('change', function(e) {
+                //console.log('Previous:', prev[e.target.name] ? prev[e.target.name].value : null);
+                //console.log(e);
+                if(e.target.name === "period"){
+                    if(!prev[e.target.name]){
+                        old_id_start="start_date";
+                        old_id_end="end_date";                              
+                    }else if(prev[e.target.name].value === "day"){
+                        old_id_start="start_date";
+                        old_id_end="end_date";                            
+                    }else if(prev[e.target.name].value === "month"){
+                        old_id_start="start_dateM";
+                        old_id_end="end_dateM";  
+                    }else if(prev[e.target.name].value === "year"){
+                        old_id_start="start_year";
+                        old_id_end="end_year";
+                    }
+                    document.getElementById(old_id_start).hidden=true;
+                    document.getElementById(old_id_end).hidden=true;
+                    document.getElementById(old_id_start).value="";
+                    document.getElementById(old_id_end).value="";                                                
+                    if(e.target.value === "day"){
+                        date_mode = "date";
+                        new_id_start="start_date";
+                        new_id_end="end_date"; 
+                        // checkbox checked
+                        today = new Date();
+                        document.getElementById(new_id_end).value = today.toISOString().slice(0,10).replace(/-/g,"\/"); 
+                        today.setMonth(today.getMonth()-1);
+                        document.getElementById(new_id_start).value = today.toISOString().slice(0,10).replace(/-/g,"\/");                            
+                    }else if(e.target.value === "month"){
+                        date_mode = "dateM";
+                        new_id_start="start_dateM";
+                        new_id_end="end_dateM";
+                        today = new Date();
+                        document.getElementById(new_id_end).value = today.toISOString().slice(0,7).replace(/-/g,"\/"); 
+                        today.setMonth(today.getMonth()-1);
+                        document.getElementById(new_id_start).value = today.toISOString().slice(0,7).replace(/-/g,"\/");                                                        
+                    }else if(e.target.value === "year"){
+                        date_mode = "year";
+                        new_id_start="start_year";
+                        new_id_end="end_year";
+                        today = new Date();
+                        document.getElementById(new_id_end).value = today.toISOString().slice(0,4).replace(/-/g,"\/"); 
+                        today.setFullYear(today.getFullYear()-1);
+                        document.getElementById(new_id_start).value = today.toISOString().slice(0,4).replace(/-/g,"\/");                                                                                    
+                    }         
+                    document.getElementById(new_id_start).hidden=false;
+                    document.getElementById(new_id_end).hidden=false;                        
+                }else if(e.target.name === "org_r"){
+                    document.getElementById("tenpo").checked = false;
+                    if(!prev[e.target.name]){
+                        prev[e.target.name]={value:""};
+                    }
+                    document.getElementById("org_select").disabled=true;
+                    if(e.target.value === "" ){
+                        document.getElementById("org_select").disabled=false;
+                    }else if(e.target.value === "compile"){
+                        document.getElementById("tenpo").checked = true;
+                    }  
+                }else if(e.target.name === "supp_r"){
+                    if(!prev[e.target.name]){
+                        prev[e.target.name]={value:""};
+                    }                        
+                    document.getElementById("supp_select").disabled=true;
+                    if(e.target.value === "" ){
+                        document.getElementById("supp_select").disabled=false;
+                    }
+                }else if(e.target.name === "prod_r"){
+                    if(!prev[e.target.name]){
+                        prev[e.target.name]={value:""};
+                    }                        
+                    document.getElementById("prod_select").disabled=true;
+                    if(e.target.value === "" ){
+                        document.getElementById("prod_select").disabled=false;
+                    }
+                }
+                prev[e.target.name] = e.target;
+            });
+        }
+        function sort(field){
+            if(sort_table.value.indexOf(field) === -1){
+                sort_table.value = field+" asc";
+            }else{
+                if(sort_table.value.indexOf("asc") !== -1){
+                    sort_table.value = field+" desc";
+                }else{
+                    sort_table.value = field+" asc";
+                }
+            }
+            var frm = document.serchForm;
+            frm.onbtn.value = 'serch';
+            frm.onbtn.value = 'sort';
+            //console.log("sort_table: "+sort_table.value);
+            chf(frm);            
+        }        
+        function chf(frm){
+            if( 1 < window.location.search.length )
+                {
+                    // modal data
+                    elem_str_date = document.getElementById("start_date").value.replace(/\//g,"");
+                    elem_end_date = document.getElementById("end_date").value.replace(/\//g,"");
+                    if(elem_str_date === ""){
+                        alert("仕入日付を入力してください。");
+                        document.getElementById("start_date").focus();
+                        return false;
+                    }else if(elem_end_date === ""){
+                        alert("仕入日付を入力してください。");
+                        document.getElementById("end_date").focus();
+                        return false;
+                    }
+                    if(elem_str_date > elem_end_date){
+                        alert("期間指定が不正です。開始日が終了日を超えています。");
+                        document.getElementById("start_date").value="";
+                        document.getElementById("start_date").focus();
+                        return false;
+                    }                    
+                    // org_id
+                    if(org_r_selected.checked){
+                        // list org name
+                        for(i=0;i<org_select.options.length;i++){
+                            if( !isNaN(org_select.options[i].value) ){
+                                org_nm_lst.value = org_nm_lst.value + ','+org_select.options[i].innerText;
+                            }
+                            org_nm_lst.value = org_nm_lst.value.replace(/^,/,"");
+                        }   
+                        org_id.value = org_list.replace(/^,/,"'").replace(/,/g,"','").replace(/$/,"'");
+                        if(!org_list){
+                            alert("店舗を選択してください。");
+                            return false;
+                        }
+                    }else{
+                        org_id.value = false;
+                    }
+
+                    // supp_cd                    
+                    if(supp_r_selected.checked){
+                        // list supp name
+                        for(i=0;i<supp_select.options.length;i++){
+                            if( !isNaN(supp_select.options[i].value) ){
+                                supp_nm_lst.value = supp_nm_lst.value + ','+supp_select.options[i].innerText;
+                            }
+                            supp_nm_lst.value = supp_nm_lst.value.replace(/^,/,"");
+                        }   
+                        supp_cd.value = supp_list.replace(/^,/,"'").replace(/,/g,"','").replace(/$/,"'");
+                        if(!supp_list){
+                            alert("仕入先を選択してください。");
+                            return false;
+                        }
+                    }else{
+                        supp_cd.value = false;
+                    }  
+                    // prod_cd                    
+                    if(prod_r_selected.checked){
+                        // list prod name
+                        for(i=0;i<prod_select.options.length;i++){
+                            if( !isNaN(prod_select.options[i].value) ){
+                                prod_nm_lst.value = prod_nm_lst.value + ','+prod_select.options[i].innerText;
+                            }
+                            prod_nm_lst.value = prod_nm_lst.value.replace(/^,/,"");
+                        }   
+                        prod_cd.value = prod_list.replace(/^,/,"'").replace(/,/g,"','").replace(/$/,"'");
+                        if(!prod_list){
+                            alert("商品を選択してください。");
+                            return false;
+                        }
+                    }else{
+                        prod_cd.value = false;
+                    }                     
+                    // 最初の1文字 (?記号) を除いた文字列を取得する
+                    var query = window.location.search.substring( 1 );
+                    var action = frm.action.split( '?' );
+
+                    // 検索以外の機能実行後だった場合、パラメータを補正する
+                    if(1 < action.length){
+                        frm.action = action[0];
+                    }
+
+                    // クエリの区切り記号 (&) で文字列を配列に分割する
+                    var parameters = query.split( '&' );
+
+                    if (frm.onbtn.value == 'serch') {
+                      frm.target='_self';
+                        if(1 < parameters.length){
+                             frm.action += '?param=' +frm.elements["codeName"].value + '&home=1';
+                         }else{
+                             frm.action += '?param=' +frm.elements["codeName"].value;
+                        }
+                    }else if (frm.onbtn.value == 'csvoutput'){
+                        if(1 < parameters.length){
+                             frm.action += '?param=LedgerSheetPurchaseDay/csvoutput&home=1';
+                         }else{
+                             frm.action += '?param=LedgerSheetPurchaseDay/csvoutput';
+                        }
+                    }if(frm.onbtn.value === 'sort'){
+						frm.target='_self';
+                        if(1 < parameters.length){
+                             frm.action += '?param=' +frm.elements["codeName"].value + '&home=1';
+                         }else{
+                             frm.action += '?param=' +frm.elements["codeName"].value;
+                        }					
+                        frm.submit();
+                    }                    
+                }
+       }
+
+    /**
+     *  イベント制御用
+     *
+     */
+    function set_value(s_val){
+        document.serchForm.onbtn.value = s_val;
+    }
+
+    /**
+     * DatePickerを設定
+     */
+    $(function()
+    {
+        $( "#start_date, #end_date" ).datepicker({
+            numberOfMonths: 2,
+            showCurrentAtPos: 1,
+            showButtonPanel: true,
+            dateFormat: 'yy/mm/dd'
+        });
+    });
+
+    /**
+     *
+     * スクロール制御
+     *
+     */
+        function SyncScroll(/* elem1, elem2, ... */) {
+            this._elements = [];
+            this._elementOnscroll = this._elementOnscroll.bind(this);
+            this.addElement.apply(this, arguments);
+        }
+        SyncScroll.prototype = {
+            enableHorizontal: true,
+            enableVertical: true,
+            addElement: function (/* elem1, elem2, ... */) {
+                var elem, i;
+                for (i = 0; i < arguments.length; i += 1) {
+                    elem = arguments[i];
+                    elem.addEventListener('scroll', this._elementOnscroll, false);
+                    this._elements.push(elem);
+                }
+            },
+            removeElement: function (/* elem1, elem2, ... */) {
+                var elem, i, j;
+                for (i = 0; i < arguments.length; i += 1) {
+                    elem = arguments[i];
+                    elem.removeEventListener('scroll', this._elementOnscroll, false);
+                    j = this._elements.indexOf(elem);
+                    if (j >= 0) {
+                        this._elements.splice(j, 1);
+                    }
+                }
+            },
+            _elementOnscroll: function (event) {
+                var i,
+                    elems = this._elements,
+                    elem = event.target,
+                    x = elem.scrollLeft,
+                    y = elem.scrollTop;
+                if (this.enableHorizontal) {
+                    for (i = 0; i < elems.length; i += 1) {
+                        elem = elems[i];
+                        if (elem === event.target || elem.scrollLeft === x) {
+                            continue;
+                        }
+                        elem.scrollLeft = x;
+                        if (elem.scrollLeft !== x) {
+                            elem.scrollLeft = x + x - elem.scrollLeft;
+                        }
+                    }
+                }
+                if (this.enableVertical) {
+                    for (i = 0; i < elems.length; i += 1) {
+                        elem = elems[i];
+                        if (elem === event.target || elem.scrollTop === y) {
+                            continue;
+                        }
+                        elem.scrollTop = y;
+                        if (elem.scrollTop !== y) {
+                            elem.scrollTop = y + y - elem.scrollTop;
+                        }
+                    }
+                }
+            },
+            destroy: function () {
+                this.removeElement.apply(this, this._elements);
+            }
+        };
+
+        window.onload = function () {
+            creat_listener();
+// modal
+            radio_change_management();
+            // create select
+            //var empty_array = [];
+            supp_array = [];
+            if(A_param["supp_r"] === ""){
+                code_list = supp_list.replace(/^,/,'').split(',');
+                name_list = A_param["supp_nm_lst"].split(',');
+                for(i=0;i<name_list.length;i++){
+                    supp_array[code_list[i]] = name_list[i];
+                }          
+            }
+            modal_create_select("supp_select",supp_array);
+            if(supp_list){
+                supp_r_selected.checked = true;
+                supp_select.disabled = false;
+            }
+            if(A_param["supp_select"] && A_param["supp_select"] !== 'empty'){
+                supp_select.value = A_param["supp_select"];
+            }
+            
+            prod_array = [];
+            if(A_param["prod_r"] === ""){
+                code_list = prod_list.replace(/^,/,'').split(',');
+                name_list = A_param["prod_nm_lst"].split(',');
+                for(i=0;i<name_list.length;i++){
+                    prod_array[code_list[i]] = name_list[i];
+                }          
+            }
+            modal_create_select("prod_select",prod_array);
+            if(prod_list){
+                prod_r_selected.checked = true;
+                prod_select.disabled = false;
+            }
+            if(A_param["prod_select"] && A_param["prod_select"] !== 'empty'){
+                prod_select.value = A_param["prod_select"];
+            }            
+            
+            org_array = [];
+            if(A_param["org_r"] === ""){
+                code_list = org_list.replace(/^,/,'').split(',');
+                name_list = A_param["org_nm_lst"].split(',');
+                for(i=0;i<name_list.length;i++){
+                    org_array[code_list[i]] = name_list[i];
+                }          
+            }
+            modal_create_select("org_select",org_array);
+            if(org_list){
+                org_r_selected.checked = true;
+                org_select.disabled = false;
+            }
+            if(A_param["org_select"] && A_param["org_select"] !== 'empty'){
+                org_select.value = A_param["org_select"];
+            } 
+            if(A_searchArray['tenpo']){
+                document.getElementById("tenpo").checked = true;
+                org_r_compile.checked = true;
+            } 
+            
+            if(A_param["sort_table"]){
+                sort_table.value = A_param["sort_table"];
+            }else{
+                sort_table.value = 'stock_date asc';
+            }
+            sort_table_split = sort_table.value.split(" ");
+            if(sort_table_split[1] === 'asc'){
+                document.getElementById('sort_'+sort_table_split[0]).innerHTML += ' ▲';
+            }else{
+                document.getElementById('sort_'+sort_table_split[0]).innerHTML += ' ▼';
+            }            
+            // 縦方向のみ
+            var sample2_1 = document.getElementById('header_h');
+            var sample2_2 = document.getElementById('data');
+            var sample2_3 = document.getElementById('footer_h'); 
+            var syncScroll2 = new SyncScroll(sample2_1, sample2_3, sample2_2);
+            syncScroll2.enableHorizontal = true;
+
+            // 横方向のみ
+            var sample3_1 = document.getElementById('header_h');
+            var sample3_2 = document.getElementById('data');
+            var sample3_3 = document.getElementById('footer_h');            
+            var syncScroll3 = new SyncScroll(sample3_1, sample3_3, sample3_2);
+            syncScroll3.enableVertical = false;
+        };
+
+    </script>
+
+    <STYLE type="text/css">
+        .serchListArea tr:nth-child(even) td { background: transparent; } 
+        #header_h,#footer_h,#sep {
+           width:98%;
+           overflow-x:hidden;overflow-y:hidden;
+           }
+        #header_v {
+           width:90px;height:650px;
+           overflow-x:scroll;overflow-y:hidden;
+           text-align: left;
+           }
+        #data {
+           width:99%;
+           max-height:565px;
+           overflow-x:scroll;overflow-y:scroll;
+           table-layout: fixed;
+           }
+        .short{
+        overflow:hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        text-decoration: none;
+        }
+        abbr[title] {
+          border-bottom: none !important;
+          cursor: inherit !important;
+          text-decoration: none !important;
+        }
+        .lol {
+         float: left;
+        }
+        .lolboat {
+        
+        }
+
+    </STYLE>
+
+    </head>
+    <body>
+<?php
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+
+<!-- Site -->
+<div id="sb-site">
+<form name="serchForm" id="serchForm" action="/profit/index.php" method="post" onsubmit="return chf(this)">
+<div class="serchListArea">
+<table align="center">
+    <tr>
+        <td>
+            <table id="serchTable">
+                <tr>
+                    <th id="serchTableTitle" align="center" width="65">帳票</th>
+                    <td id="serchTableItem" width=170>
+                        仕入単品分析
+                      <input type="hidden" name="codeName" id="codeName" value="LedgerSheetPurchaseDay/show">
+                    </td>
+                    <!-- Modal -->
+                    <th id="serchTableTitle" align="left" width="70">仕入先<br />選択</th>
+                    <td id="serchTableItem" width=350>
+                        <input type="radio" name="supp_r" id="supp_r_all" value="all" checked> 全仕入先<br />
+                        <input type="radio" name="supp_r" id="supp_r_selected" value=""> 仕入先指定&nbsp;&nbsp;
+                        <select id="supp_select" name="supp_select" disabled onchange="modal_select_mgt(event)"><option value="no">&nbsp;</option></select>                        
+                        <input type="text" name="supp_cd" value="" id="supp_cd" hidden>
+                        <input type="text" name="supp_nm_lst" value="" id="supp_nm_lst" hidden> 
+                    </td>
+                    <th id="serchTableTitle" align="center" width="70">グループ<br />選択</th>
+                    <td align="left" >
+                        <input type="radio" name="org_r" id="org_r_compile" value="compile"> 企業計<br />
+                        <input type="radio" name="org_r" id="org_r_all" value="all" checked> 全店<br />
+                        <input type="radio" name="org_r" id="org_r_selected" value=""> 店舗指定&nbsp;&nbsp;
+                        <select id="org_select" name="org_select" disabled onchange="modal_select_mgt(event)"><option value="no">&nbsp;</option></select>
+                        <input type="checkbox" name="tenpo" value="Yes" id="tenpo" hidden>
+                        <input type="text" name="org_id" value="" id="org_id" hidden>
+                        <input type="text" name="org_nm_lst" value="" id="org_nm_lst" hidden> 
+                    </td>                    
+                </tr>
+                <tr>
+                    <th id="serchTableTitle" align="center" width="65">期間指定</th>
+                    <!--文字修正　2019/12/01　柴田-->
+                    <td id="serchTableItem" width="120">
+                    <!--文字削除（日付）2019/12/01　柴田-->
+                        <input type="text" pattern="\d{4}/\d{2}/\d{2}" title="西暦/月の形式で入力してください。" id="start_date" name="start_date" size="11" value=<?php hsc($startDate); ?>>
+                               <!--改行削除　2019/12/01　柴田-->
+                        <input type="text" pattern="\d{4}/\d{2}/\d{2}" title="西暦/月の形式で入力してください。" id="end_date" name="end_date" size="11" value=<?php hsc($endDate); ?>>
+                    </td>                    
+                    <th id="serchTableTitle" align="left" width="70">商品<br />選択</th>
+                    <td id="serchTableItem" width=200>
+                        <input type="radio" name="prod_r" id="prod_r_all" value="all" checked> 全商品<br />
+                        <input type="radio" name="prod_r" id="prod_r_selected" value=""> 商品指定&nbsp;&nbsp;
+                        <select id="prod_select" name="prod_select" disabled onchange="modal_select_mgt(event)"><option value="no">&nbsp;</option></select>                        
+                        <input type="text" name="prod_cd" value="" id="prod_cd" hidden>
+                        <input type="text" name="prod_nm_lst" value="" id="prod_nm_lst" hidden> 
+                    </td>                    
+                    <td>
+                        <input class="submit" type="submit" name="search" id="search" value="検索" onClick="set_value('serch')">
+                <?php if( !empty($ledgerSheetDetailList) ) { ;?>
+                       <input size=10 class="submit" type="submit" name="csvoutput" id="csvoutput" value="CSV出力" onClick="set_value('csvoutput')">
+                <?php } ?>
+                      <input type="hidden" name="onbtn">
+                    </td>
+                </tr>
+            </table>
+            <!-- The Modal -->
+            <div id="modal_supp" class="modal">
+                <!-- Modal content -->
+                <div class="modal-content">
+                    <?php include("../modal/View/Modalsupplier.html"); ?>
+                </div>
+            </div>
+            <div id="modal_prod" class="modal">
+                <!-- Modal content -->
+                <div class="modal-content">
+                    <?php include("../modal/View/Modalproduct.html"); ?>
+                </div>
+            </div>            
+            
+            <div id="modal_org" class="modal">
+                <!-- Modal content -->
+                <div class="modal-content">
+                    <?php include("../modal/View/Modalorganization.html"); ?>
+                </div>
+            </div>             
+        </td>
+    </tr>
+</table>
+<!-- 固定ヘッダ -->
+<table>
+    <tr>
+        <td>
+            <!-- 水平ヘッダ -->
+            <div id="header_h">
+            <table>
+              <tr>
+                
+                <th id="sort_stock_date"        onClick="sort('stock_date')"        width=70><u>仕入日</u></th>
+                <th id="sort_abbreviated_name"  onClick="sort('abbreviated_name')"  width=70><u>店舗</u></th>
+                <th id="sort_supp_cd"           onClick="sort('supp_cd')"           width=40><u>仕入先<br />コード</u></th>
+                <th id="sort_supp_nm"           onClick="sort('supp_nm')"           width=100><u>仕入先</u></th>
+                <th id="sort_sect_cd"           onClick="sort('sect_cd')"           width=40><u>部門<br />コード</u></th>
+                <th id="sort_sect_nm"           onClick="sort('sect_nm')"           width=60><u>部門</u></th>
+                <th id="sort_prod_cd"           onClick="sort('prod_cd')"           width=90><u>商品コード</u></th>
+                <th id="sort_prod_nm"           onClick="sort('prod_nm')"           width=180><u>商品</u></th>
+                <th id="sort_prod_tax"          onClick="sort('prod_tax')"          width=40><u>税率</u></th>
+                <th id="sort_amount"            onClick="sort('amount')"            width=50><u>仕入<br />数量</u></th>
+                <th id="sort_costprice"         onClick="sort('costprice')"         width=60><u>仕入単価</u></th>
+                <th id="sort_costtotal"         onClick="sort('costtotal')"         width=82><u>仕入金額</u></th>
+                <th id="sort_saleprice"         onClick="sort('saleprice')"         width=60><u>売単価</u></th>
+                <th id="sort_saletotal"         onClick="sort('saletotal')"         width=82><u>売価金額</u></th>
+                <th id="sort_gross_profit"      onClick="sort('gross_profit')"      width=82><u>粗利金額</u></th>
+                <th id="sort_gross_profit_margin" onClick="sort('gross_profit_margin')" width=60><u>粗利率</u></th>
+              </tr>
+            </table>
+            <input type="hidden" id="sort_table" name="sort_table">
+            </div>
+        </td>
+    </tr>
+    <tr>
+     
+        <td>
+            <!-- データ部分  -->
+            <div id="data">
+            <table>
+                <?php 
+                    $stock_date = '';
+                    $org_nm     = '';
+                    $supp_cd    = '';
+                    $supp_nm    = '';
+                    $sect_cd    = '';
+                    $sect_nm    = '';
+                                       
+                    $prev_stock_date = '';
+                    $prev_org_nm     = '';
+                    $prev_supp_cd    = '';
+                    $prev_supp_nm    = '';
+                    $prev_sect_cd    = '';
+                    $prev_sect_nm    = '';                    
+                    
+                    if( !empty($ledgerSheetDetailList) ) { 
+                        $row_cnt = 1;
+                        foreach ($ledgerSheetDetailList as $rows ) { 
+                            if( $prev_stock_date !== $rows['stock_date'] ){
+                                $prev_stock_date = $rows['stock_date'];
+                                $stock_date = $prev_stock_date;
+                                $prev_org_nm     = '';
+                                $prev_supp_cd    = '';
+                                $prev_supp_nm    = '';
+                                $prev_sect_cd    = '';
+                                $prev_sect_nm    = '';                            
+                            }else{
+                                $stock_date = '';
+                            }
+                            if($prev_org_nm !== $rows['org_nm'] || $rows === end($ledgerSheetDetailList)){                           
+                                if(reset($ledgerSheetDetailList) !== $rows || $rows === end($ledgerSheetDetailList)){                                
+                                    if($tot_saletotal !== 0){
+                                        $tot_gross_profit_margin = $tot_gross_profit/$tot_saletotal*100;
+                                    }else{
+                                        $tot_gross_profit_margin = 0;
+                                    }
+                            ?>
+                                <tr style='background-color:lightgray'>
+                                    <td align="left" width=70 ></td>
+                                    <td align="left" width=70 >合計</td>
+                                    <td align="left" width=40 ></td>
+                                    <td align="left" width=100></td>
+                                    <td align="left" width=40 ></td>
+                                    <td align="left" width=60 ></td>
+                                    <td align="left" width=95 ></td>
+                                    <td align="left" width=182></td>
+                                    <td align="left" width=40></td>
+                                    <td align="right" width=50><?php hsc(number_format($tot_amount)); ?></td>
+                                    <td align="right" width=60></td>
+                                    <td align="right" width=82><?php hsc(number_format($tot_costtotal)); ?></td>
+                                    <td align="right" width=60></td>
+                                    <td align="right" width=82><?php hsc(number_format($tot_saletotal)); ?></td>
+                                    <td align="right" width=82><?php hsc(number_format($tot_gross_profit)); ?></td>
+                                    <td align="right" width=60><?php hsc(number_format($tot_gross_profit_margin,2)); ?></td>
+                                </tr>
+                            <?php
+                                }
+                                $tot_amount                 = $rows['amount'];
+                                $tot_costtotal              = $rows['costtotal'];
+                                $tot_saletotal              = $rows['saletotal'];
+                                $tot_gross_profit           = $rows['gross_profit'];                               
+                                                          
+                                $prev_org_nm = $rows['org_nm'];
+                                $org_nm = $prev_org_nm;
+                                $prev_supp_cd    = '';
+                                $prev_supp_nm    = '';
+                                $prev_sect_cd    = '';
+                                $prev_sect_nm    = '';                               
+                            }else{
+                                $org_nm = '';
+                                $tot_amount                 += $rows['amount'];
+                                $tot_costtotal              += $rows['costtotal'];
+                                $tot_saletotal              += $rows['saletotal'];
+                                $tot_gross_profit           += $rows['gross_profit'];  
+
+                            }
+                            if($prev_supp_cd !== $rows['supp_cd'] ){
+                                $prev_supp_cd = $rows['supp_cd'];
+                                $prev_supp_nm = $rows['supp_nm'];
+                                $supp_cd      = $prev_supp_cd;
+                                $supp_nm      = $prev_supp_nm;
+                                $prev_sect_cd    = '';
+                                $prev_sect_nm    = '';                                 
+                            }else{
+                                $supp_cd    = '';
+                                $supp_nm    = '';                                
+                            }
+                            if($prev_sect_cd !== $rows['sect_cd'] ){
+                                $prev_sect_cd    = $rows['sect_cd'];
+                                $prev_sect_nm    = $rows['sect_nm']; 
+                                $sect_cd         = $prev_sect_cd;
+                                $sect_nm         = $prev_sect_nm;
+                            }else{
+                                $sect_cd    = '';
+                                $sect_nm    = '';                              
+                            }
+                            if($rows === end($ledgerSheetDetailList)){
+                                break;
+                            }                            
+                ?>
+                            <tr>
+                                <td align="left" width=70><?php hsc($stock_date); ?></td>
+                                <td align="left" width=70><?php hsc($org_nm); ?></td>
+                                <td align="left" width=40><?php hsc($supp_cd); ?></td>
+                                <td align="left" width=100><?php hsc($supp_nm); ?></td>
+                                <td align="left" width=40><?php hsc($sect_cd); ?></td>
+                                <td align="left" width=60><?php hsc($sect_nm); ?></td>
+                                <td align="left" width=95><?php hsc($rows['prod_cd']); ?></td>
+                                <td align="left" width=182><?php hsc($rows['prod_nm']); ?></td>
+                                <td align="left" width=40><?php hsc($rows['prod_tax']); ?></td>
+                                <td align="right" width=50><?php hsc(number_format($rows['amount'])); ?></td>
+                                <td align="right" width=60><?php if($rows['costprice']){hsc(number_format($rows['costprice'],2));} ?></td>
+                                <td align="right" width=82><?php hsc(number_format($rows['costtotal'])); ?></td>
+                                <td align="right" width=60><?php if($rows['saleprice']){hsc(number_format($rows['saleprice'],0));} ?></td>
+                                <td align="right" width=82><?php hsc(number_format($rows['saletotal'])); ?></td>
+                                <td align="right" width=82><?php hsc(number_format($rows['gross_profit'])); ?></td>
+                                <td align="right" width=60><?php hsc(number_format($rows['gross_profit_margin'],2)); ?></td>
+                            </tr>
+            <?php       }
+                    } ?>
+            </table>
+            </div>
+        </td>
+    </tr>
+    <?php   if( !empty($ledgerSheetDetailList) ) { 
+                    $stock_date = '総合計';
+                    $org_nm     = '';
+                    $supp_cd    = '';
+                    $supp_nm    = '';
+                    $sect_cd    = '';
+                    $sect_nm    = '';    
+    ?>
+    <tr>
+        <td>        
+            <div id='sep'>
+                <table style="table-layout:fixed;">
+                    <tr>
+                        <th></th>
+                    </tr>
+                </table>
+            </div> 
+        </td>    
+    </tr>   
+    <tr>
+        <td>
+            <div id="footer_h">
+                <table style="table-layout:fixed;">
+                    <tr>
+                        <td align="left" width=70><?php hsc($stock_date); ?></td>
+                        <td align="left" width=70><?php hsc($org_nm); ?></td>
+                        <td align="left" width=40><?php hsc($supp_cd); ?></td>
+                        <td align="left" width=100><?php hsc($supp_nm); ?></td>
+                        <td align="left" width=40><?php hsc($sect_cd); ?></td>
+                        <td align="left" width=60><?php hsc($sect_nm); ?></td>
+                        <td align="left" width=95><?php hsc($rows['prod_cd']); ?></td>
+                        <td align="left" width=182><?php hsc($rows['prod_nm']); ?></td>
+                        <td align="left" width=40><?php hsc($rows['prod_tax']); ?></td>
+                        <td align="right" width=50><?php hsc(number_format($rows['amount'])); ?></td>
+                        <td align="right" width=60><?php if($rows['costprice']){hsc(number_format($rows['costprice'],2));} ?></td>
+                        <td align="right" width=82><?php hsc(number_format($rows['costtotal'])); ?></td>
+                        <td align="right" width=60><?php if($rows['saleprice']){hsc(number_format($rows['saleprice'],0));} ?></td>
+                        <td align="right" width=82><?php hsc(number_format($rows['saletotal'])); ?></td>
+                        <td align="right" width=82><?php hsc(number_format($rows['gross_profit'])); ?></td>
+                        <td align="right" width=60><?php hsc(number_format($rows['gross_profit_margin'],2)); ?></td>
+                    </tr>                    
+                </table>
+            </div>
+        </td>
+    </tr>
+<?php } ?>                     
+</table>
+</div>
+</form>
+<script type="text/javascript" src="../jquery/js/scrolltopcontrol2.js"></script>
+<!--スクロールしながらページのトップに戻る-->
+</div><!-- /#sb-site -->
+
+</body>
+</html>

@@ -1,0 +1,37 @@
+html, body, div, span, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, abbr, address, cite, code, del, dfn, em, img, ins, kbd, q, samp, small, strong, sub, sup, var, b, i, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, figcaption, figure, footer, header, hgroup, menu, nav, section, summary, time, mark, audio, video {
+	margin:0;
+	padding:0;
+	border:0;
+	outline:0;
+	font-size:100%;
+	font-weight:normal;
+	vertical-align:baseline;
+	background:transparent;
+}
+article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section { display:block; }
+img {
+	border:0px;
+	vertical-align:top;
+}
+ol, ul { list-style:none; }
+table, th, td {
+	font-size:1em;
+	font-weight:normal;
+	line-height: 1.4;
+	border-collapse: collapse;
+	border-spacing:0;
+}
+input, textarea { font-size:1em; }
+/*clearfix
+--------------------------------------------------*/
+.clearer { clear:both; }
+.clearfix:after {
+	visibility: hidden;
+	display: block;
+	font-size: 0;
+	content: " ";
+	clear: both;
+	height: 0;
+}
+* html .clearfix { zoom: 1; } /* IE6 */
+*:first-child+html .clearfix { zoom: 1; } /* IE7 */

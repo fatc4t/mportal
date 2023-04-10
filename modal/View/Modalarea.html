@@ -1,0 +1,56 @@
+<div>
+    <h2>地区検索</h2>
+    <div class="modal_area_search">
+        <div class="modal_area_left" id="modal_area_param">
+            <label class="modal_area_label" for="modal_area_area_cd"> コード  ：　</label><input type="text"  id="modal_area_area_cd" class="modal_area_code"><br />
+            <label class="modal_area_label" for="modal_area_area_nm" > 地区名 ：　</label><input type="text"  id="modal_area_area_nm" class="modal_area_name">
+        </div>
+        <button type="button" id="modal_area_search_area" onclick="modal_search(event)"  class="modal_area_left search_btn">表示</button>
+    </div>
+    <br />
+    <div>
+        <table id="modal_area_table_id" class="modal_area_table">
+            <thead>
+                <tr>
+                    <th>選択</th>
+                    <th>コード</th>
+                    <th>地区名</th>
+                </tr>
+            </thead>
+            <tbody id="modal_area_table_body">
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>                        
+            </tbody>
+        </table>
+    </div>
+    <br />
+    <div>
+        <div class="modal_div_btn">
+            <button type="button" id="modal_area_unselect" onclick="modal_unselect(event)"  >一括解除</button>
+            <button type="button" id="modal_area_select" onclick="modal_select(event)"  >一括選択</button>        
+            <button type="button" id="modal_area_befpage" onclick="modal_befpage(event)"  >前ページ</button>        
+            <button type="button" id="modal_area_nextpage" onclick="modal_nextpage(event)"  >次ページ</button>        
+            <button type="button" id="modal_area_validate" onclick="modal_validate(event)"  >決定</button>        
+            <button type="button" id="modal_area_close" onclick="modal_close(event)"  >終了</button>        
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+   
+    if(!pagenb){
+        pagenb=[];
+    }       
+    pagenb["area"] = 0;
+    if(!table_keys){
+        table_keys=[];
+    }    
+    table_keys["area"]=[];
+    table_keys["area"]=["area_cd","area_nm"];
+    if(document.getElementById("modal_area_area_cd")){
+        document.getElementById("modal_area_area_cd").addEventListener("input", modal_input_check);
+        document.getElementById("modal_area_area_cd").maxLength = A_Sizelist["areasize"];
+    } 	
+</script>

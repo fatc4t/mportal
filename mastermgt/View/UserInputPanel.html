@@ -1,0 +1,1004 @@
+<?php
+    /**
+     * @file      従業員入力画面(View)
+     * @author    USE M.Higashihara
+     * @date      2016/06/10
+     * @version   1.00
+     * @note      従業員入力画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array( 'default.css', 'common.js', 'jquery-ui.min.js', 'jquery-ui.css' );    // cssまたはｊｓファイルを拡張子付きで配列に記述 
+            include("Common/HtmlHeader.php"); 
+        ?>
+        <script src="../js/attendance/jquery/datepicker-ja.js" ></script>
+        <script type="text/javascript">
+            var lineInfo = null;
+            var btnInfo  = null;
+            var appCnt = '<?php hsc($approvalCnt); ?>';
+            var allCnt = '<?php hsc($allowanceCnt); ?>';
+            var jsonAllowance = '<?php hsc($jsonAllowanceArray); ?>';
+            var jsonAmount = '<?php hsc($jsonAmountArray); ?>';
+
+            $(document).ready(function() 
+            {
+            
+                /**
+                 * 削除ボタン押下時処理
+                 */
+                $('#del').click(function()
+                {
+                    event.preventDefault();
+
+                    document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$DELETE_DIALOG_MSG); ?>';
+                    $("#dialog_mod").dialog('open');
+
+                    // サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+            
+                /**
+                 * 戻るボタン押下時処理
+                 */
+                $('#back').click(function()
+                {
+                    // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                    var data = {
+                                  back : $('#back').val(),
+                                  searchUserNo : $('#userNo').val(),
+                                  searchUserName : $('#userName').val(),
+                                  searchOrganizationID : $('#organizationName').val(),
+                                  searchPositionName : $('#positionName').val(),
+                                  searchEmploymentName : $('#employmentName').val(),
+                                  searchSectionName : $('#sectionName').val(),
+                                  searchWageForm : $('#wageForm').val(),
+                                  searchMinBaseSalary : $('#minBaseSalary').val(),
+                                  searchMaxBaseSalary : $('#maxBaseSalary').val(),
+                                  searchMinHourlyWage : $('#minHourlyWage').val(),
+                                  searchMaxHourlyWage : $('#maxHourlyWage').val(),
+                                  searchSAppStartDate : $('#minApplicationStartDate').val(),
+                                  searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                                  searchSHireDate : $('#start_hire_date').val(),
+                                  searchEHireDate : $('#end_hire_date').val(),
+                                  searchSLeavingDate : $('#start_leaving_date').val(),
+                                  searchELeavingDate : $('#end_leaving_date').val(),
+                                  searchApproval : $('#approval').val(),
+                                  searchSecurity : $('#securityName').val(),
+                                  searchComment : $('#searchComment').val(),
+                                  searchApplyCheck : $('#applyCheck').val(),
+                                  searchApplySchCheck : $('#applySchCheck').val(),
+                                  searchNonApplyCheck : $('#nonApplyCheck').val(),
+                                  searchDelCheck : $('#delCheck').val(),
+                                  searchDuringCheck : $('#duringCheck').val(),
+                                  searchRetirementCheck : $('#retirementCheck').val(),
+                                  searchTrialCheck : $('#trialCheck').val(),
+                                  token : $('#token').val()
+                               }
+                    var path = 'index.php?param=User/show&home=1';
+
+                    // データ更新
+                    setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+                    // サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+                // 承認組織の行を追加する
+                $(document).on("click", "#appSelectAdd", function ()
+                {
+                    appCnt++;
+                    $('#appSelectDel').css('display' , '');
+                    $('#appAddTbody > tr').eq(0).clone(true).insertAfter(
+                        $(this).parent().parent()
+                    ).find("#approvalOrganization").attr('id', "approvalOrganization" + appCnt);
+                });
+
+                // 承認組織の行を削除する
+                $(document).on("click", "#appSelectDel", function ()
+                {
+                    $(this).parent().parent().remove();
+                });
+
+                // 手当の行を追加する
+                $(document).on("click", "#allSelectAdd", function ()
+                {
+                    allCnt++;
+                    $('#allSelectDel').css('display' , '');
+                    $('#allAddTbody > tr').eq(0).clone(true).insertAfter(
+                        $(this).parent().parent()
+                    ).find("#allowance").attr('id', "allowance" + allCnt);
+                    $("#allowance" + allCnt).parents('td').next().next().children('input').attr('id', "allowanceAmount" + allCnt);
+                    $("#allowance" + allCnt).parents('td').next().children('font').attr('id', "allowanceAmountFont" + allCnt);
+                });
+
+                // 手当の行を削除する
+                $(document).on("click", "#allSelectDel", function ()
+                {
+                    $(this).parent().parent().remove();
+                });
+
+                // 登録系ボタン押下時
+                $('#addForm').submit(function(event)
+                {
+                    event.preventDefault();
+
+                    if(btnInfo !== '<?php hsc($Log->getMsgLog("MSG_BASE_0803")); ?>')
+                    {
+                        if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0800")); ?>')
+                        {
+                            // 一覧画面新規作成ボタンから遷移してきた場合
+                            document.getElementById("dialog_add").textContent='<?php hsc(SystemParameters::$NEW_DIALOG_MSG); ?>';
+                            $("#dialog_add").dialog('open');
+                        
+                        }
+                        else if(btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>')
+                        {
+                            document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$UPDATE_DIALOG_MSG); ?>';
+                            $("#dialog_mod").dialog('open');
+                        }
+                    }
+                    else
+                    {
+                        document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$DELETE_DIALOG_MSG); ?>';
+                        $("#dialog_mod").dialog('open');
+                    }
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+                var correctionOrg = "<?php hsc($userDataList['organization_id']); ?>";
+                var correctionwag = "<?php hsc($userDataList['wage_form_id']); ?>";
+                var correctiontrial = "<?php hsc($userDataList['trial_period_type_id']); ?>";
+                var correctiontrialval = "<?php hsc($userDataList['trial_period_criteria_value']); ?>";
+
+                if( correctionOrg != "0" )
+                {
+                    // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                    var data = {
+                                   organization_id : correctionOrg
+                               };
+
+                    // 手当リスト
+                    setSearchRegisterAllowance(data, true);
+
+                    // 承認組織選択テーブル表示
+                    $('#appAddTbody > tr').eq(0).clone(true).insertAfter($('#appAddTbody > tr')).eq(0).find("#approvalOrganization").attr('id', "approvalOrganization0");
+                    var jsonApproval = '<?php hsc($jsonApprovalArray); ?>';
+                    if(jsonApproval != 'null')
+                    {
+                        var approvalSelected = JSON.parse(jsonApproval);
+                        $('#approvalOrganization0').val(approvalSelected[0]);
+                    }
+                    if(appCnt > 0)
+                    {
+                        for(var i = 1; i <= appCnt; i++)
+                        {
+                            $('#appSelectDel').css('display' , '');
+                            $('#appAddTbody > tr').eq(0).clone(true).insertAfter(
+                                $("#approvalOrganization0").parent().parent()
+                            ).find("#approvalOrganization").attr('id', "approvalOrganization" + i);
+                            $('#approvalOrganization' + i).val(approvalSelected[i]);
+                        }
+                    }
+
+                    if(correctionwag > 1)
+                    {
+                        $("#base_salary").prop("disabled", false);
+                        $('#baseSalaryFont').css('display' , '');
+                    }
+
+                    if(correctiontrial > 1)
+                    {
+                        $("#trialPeriodWrite").prop("disabled", false);
+                        $("#trialPeriodWrite").prop("required", true);
+                        $('#trialPeriodWriteFont').css('display' , '');
+                        $("#trialPeriodWages").prop("disabled", false);
+                        $("#trialPeriodWages").prop("required", true);
+                        $('#trialPeriodWagesFont').css('display' , '');
+                        if(correctiontrial == 2)
+                        {
+                            $('#trialPeriod').html('<input type="text" pattern="[1-9][0-9]*" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" id="trialPeriodCriteria" name="trialPeriodCriteria" style="width: 130px" maxlength="5" value="" class="En" required>時間<font size="3" color="#ff0000">*</font>');
+                            document.getElementById('trialPeriodCriteria').value = correctiontrialval;
+                        }
+                        else if(correctiontrial == 3)
+                        {
+                            $('#trialPeriod').html('<input type="text" pattern="[1-9][0-9]*" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" id="trialPeriodCriteria" name="trialPeriodCriteria" style="width: 130px" maxlength="5" value="" class="En" required>日間 <font size="3" color="#ff0000">*</font>');
+                            document.getElementById('trialPeriodCriteria').value = correctiontrialval;
+                        }
+                        else if(correctiontrial == 4)
+                        {
+                            $('#trialPeriod').html('<input type="text" pattern="[1-9][0-9]*" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" id="trialPeriodCriteria" name="trialPeriodCriteria" style="width: 130px" maxlength="5" value="" class="En" required>か月 <font size="3" color="#ff0000">*</font>');
+                            document.getElementById('trialPeriodCriteria').value = correctiontrialval;
+                        }
+                        else
+                        {
+                            $('#trialPeriod').html('<input type="text" pattern="[1-9][0-9]*" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" id="trialPeriodCriteria" name="trialPeriodCriteria" style="width: 130px" maxlength="5" value="" class="En" required>年間 <font size="3" color="#ff0000">*</font>');
+                            document.getElementById('trialPeriodCriteria').value = correctiontrialval;
+                        }
+                    }
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                }
+                else
+                {
+                    // 承認組織選択テーブル表示
+                    $('#appAddTbody > tr').eq(0).clone(true).insertAfter($('#appAddTbody > tr')).eq(0).find("#approvalOrganization").attr('id', "approvalOrganization0");
+                }
+
+
+            });
+
+            /**
+             * 新規作成データの設定
+             */
+            function setAddData()
+            {
+                var approvalArray = $(".approvalOrganization").map(function(){
+                    return $(this).val();
+                }).get();
+                var allowanceArray = $(".allowance").map(function(){
+                    return $(this).val();
+                }).get();
+                var amountArray = $(".allowanceAmount").map(function(){
+                    return $(this).val();
+                }).get();
+                
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                               searchUserNo : $('#userNo').val(),
+                               searchUserName : $('#userName').val(),
+                               searchOrganizationID : $('#organizationName').val(),
+                               searchPositionName : $('#positionName').val(),
+                               searchEmploymentName : $('#employmentName').val(),
+                               searchSectionName : $('#sectionName').val(),
+                               searchWageForm : $('#wageForm').val(),
+                               searchMinBaseSalary : $('#minBaseSalary').val(),
+                               searchMaxBaseSalary : $('#maxBaseSalary').val(),
+                               searchMinHourlyWage : $('#minHourlyWage').val(),
+                               searchMaxHourlyWage : $('#maxHourlyWage').val(),
+                               searchSAppStartDate : $('#minApplicationStartDate').val(),
+                               searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                               searchSHireDate : $('#start_hire_date').val(),
+                               searchEHireDate : $('#end_hire_date').val(),
+                               searchSLeavingDate : $('#start_leaving_date').val(),
+                               searchELeavingDate : $('#end_leaving_date').val(),
+                               searchApproval : $('#approval').val(),
+                               searchSecurity : $('#securityName').val(),
+                               searchComment : $('#searchComment').val(),
+                               searchApplyCheck : $('#applyCheck').val(),
+                               searchApplySchCheck : $('#applySchCheck').val(),
+                               searchNonApplyCheck : $('#nonApplyCheck').val(),
+                               searchDelCheck : $('#delCheck').val(),
+                               searchDuringCheck : $('#duringCheck').val(),
+                               searchRetirementCheck : $('#retirementCheck').val(),
+                               searchTrialCheck : $('#trialCheck').val(),
+                               application_date_start : $('#application_date_start').val(),
+                               employees_no : $('#employees_no').val(),
+                               user_name : $('#user_name').val(),
+                               hire_date : $('#hire_date').val(),
+                               leaving_date : $('#leaving_date').val(),
+                               login_id : $('#login_id').val(),
+                               password : $('#password').val(),
+                               birthday : $('#birthday').val(),
+                               sex : $('#sex').val(),
+                               address : $('#address').val(),
+                               tel : $('#tel').val(),
+                               cellphone : $('#cellphone').val(),
+                               mail_address : $('#mail_address').val(),
+                               comment : $('#comment').val(),
+                               organization_id : $('#organization').val(),
+                               is_embossing : document.getElementById("is_embossing").checked,
+                               position_id : $('#position').val(),
+                               employment_id : $('#employment').val(),
+                               section_id : $('#section').val(),
+                               security_id : $('#security').val(),
+                               wage_form_id : $('#wage_form').val(),
+                               hourly_wage : $('#hourly_wage').val(),
+                               base_salary : $('#base_salary').val(),
+                               trial_period_type_id : $('#trialPeriodType').val(),
+                               trial_period_criteria_value : $('#trialPeriodCriteria').val(),
+                               trial_period_write_down_criteria : $('#trialPeriodWrite').val(),
+                               trial_period_wages_value : $('#trialPeriodWages').val(),
+                               approvalList : approvalArray,
+                               allowanceList : allowanceArray,
+                               amountList : amountArray,
+                               token : $('#token').val()
+                           };
+                var path = 'index.php?param=User/add&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+            }
+
+            /**
+             * データ更新の設定
+             */
+            function setModData()
+            {
+                var approvalArray = $(".approvalOrganization").map(function(){
+                    return $(this).val();
+                }).get();
+                var allowanceArray = $(".allowance").map(function(){
+                    return $(this).val();
+                }).get();
+                var amountArray = $(".allowanceAmount").map(function(){
+                    return $(this).val();
+                }).get();
+                if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>' )
+                {
+                    path = 'index.php?param=User/mod&home=1';
+                }
+                else
+                {
+                    path = 'index.php?param=User/del&home=1';
+                }
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                               userId : $('#userId').val(),
+                               userDtailID : $('#userDtailID').val(),
+                               updateTime : $('#updateTime').val(),
+                               applicationDateStart : $('#applicationDateStart').val(),
+                               employeesNo : $('#employeesNo').val(),
+                               searchUserNo : $('#userNo').val(),
+                               searchUserName : $('#userName').val(),
+                               searchOrganizationID : $('#organizationName').val(),
+                               searchPositionName : $('#positionName').val(),
+                               searchEmploymentName : $('#employmentName').val(),
+                               searchSectionName : $('#sectionName').val(),
+                               searchWageForm : $('#wageForm').val(),
+                               searchMinBaseSalary : $('#minBaseSalary').val(),
+                               searchMaxBaseSalary : $('#maxBaseSalary').val(),
+                               searchMinHourlyWage : $('#minHourlyWage').val(),
+                               searchMaxHourlyWage : $('#maxHourlyWage').val(),
+                               searchSAppStartDate : $('#minApplicationStartDate').val(),
+                               searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                               searchSHireDate : $('#start_hire_date').val(),
+                               searchEHireDate : $('#end_hire_date').val(),
+                               searchSLeavingDate : $('#start_leaving_date').val(),
+                               searchELeavingDate : $('#end_leaving_date').val(),
+                               searchApproval : $('#approval').val(),
+                               searchSecurity : $('#securityName').val(),
+                               searchComment : $('#searchComment').val(),
+                               searchApplyCheck : $('#applyCheck').val(),
+                               searchApplySchCheck : $('#applySchCheck').val(),
+                               searchNonApplyCheck : $('#nonApplyCheck').val(),
+                               searchDelCheck : $('#delCheck').val(),
+                               searchDuringCheck : $('#duringCheck').val(),
+                               searchRetirementCheck : $('#retirementCheck').val(),
+                               searchTrialCheck : $('#trialCheck').val(),
+                               application_date_start : $('#application_date_start').val(),
+                               employees_no : $('#employees_no').val(),
+                               user_name : $('#user_name').val(),
+                               hire_date : $('#hire_date').val(),
+                               leaving_date : $('#leaving_date').val(),
+                               login_id : $('#login_id').val(),
+                               password : $('#password').val(),
+                               birthday : $('#birthday').val(),
+                               sex : $('#sex').val(),
+                               address : $('#address').val(),
+                               tel : $('#tel').val(),
+                               cellphone : $('#cellphone').val(),
+                               mail_address : $('#mail_address').val(),
+                               comment : $('#comment').val(),
+                               organization_id : $('#organization').val(),
+                               is_embossing : document.getElementById("is_embossing").checked,
+                               position_id : $('#position').val(),
+                               employment_id : $('#employment').val(),
+                               section_id : $('#section').val(),
+                               security_id : $('#security').val(),
+                               wage_form_id : $('#wage_form').val(),
+                               hourly_wage : $('#hourly_wage').val(),
+                               base_salary : $('#base_salary').val(),
+                               trial_period_type_id : $('#trialPeriodType').val(),
+                               trial_period_criteria_value : $('#trialPeriodCriteria').val(),
+                               trial_period_write_down_criteria : $('#trialPeriodWrite').val(),
+                               trial_period_wages_value : $('#trialPeriodWages').val(),
+                               approvalList : approvalArray,
+                               allowanceList : allowanceArray,
+                               amountList : amountArray,
+                               token : $('#token').val()
+                           };
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+            }
+
+            /**
+             * 更新キャンセル
+             */
+            function cancel()
+            {
+                var data = null;
+                var path = '';
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              searchUserNo : $('#userNo').val(),
+                              searchUserName : $('#userName').val(),
+                              searchOrganizationID : $('#organizationName').val(),
+                              searchPositionName : $('#positionName').val(),
+                              searchEmploymentName : $('#employmentName').val(),
+                              searchSectionName : $('#sectionName').val(),
+                              searchWageForm : $('#wageForm').val(),
+                              searchMinBaseSalary : $('#minBaseSalary').val(),
+                              searchMaxBaseSalary : $('#maxBaseSalary').val(),
+                              searchMinHourlyWage : $('#minHourlyWage').val(),
+                              searchMaxHourlyWage : $('#maxHourlyWage').val(),
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              searchSHireDate : $('#start_hire_date').val(),
+                              searchEHireDate : $('#end_hire_date').val(),
+                              searchSLeavingDate : $('#start_leaving_date').val(),
+                              searchELeavingDate : $('#end_leaving_date').val(),
+                              searchApproval : $('#approval').val(),
+                              searchSecurity : $('#securityName').val(),
+                              searchComment : $('#searchComment').val(),
+                              searchApplyCheck : $('#applyCheck').val(),
+                              searchApplySchCheck : $('#applySchCheck').val(),
+                              searchNonApplyCheck : $('#nonApplyCheck').val(),
+                              searchDelCheck : $('#delCheck').val(),
+                              searchDuringCheck : $('#duringCheck').val(),
+                              searchRetirementCheck : $('#retirementCheck').val(),
+                              searchTrialCheck : $('#trialCheck').val(),
+                              token : $('#token').val()
+                            }
+                var path = 'index.php?param=User/show&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+                // サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * プルダウンチェンジイベント
+             */
+            $(function ()
+            {
+                // 賃金形態
+                $("#wage_form").change(changeWage);
+                // 試用期間
+                $("#trialPeriodType").change(changeTrial);
+            });
+
+            /**
+             * 所属組織プルダウンの切り替えにより他のプルダウンの内容を変える
+             */
+            function changeOrganization()
+            {
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                                organization_id : $('#organization').val(),
+                                hire_date : $('#hire_date').val(),
+                                leaving_date : $('#leaving_date').val(),
+                                is_embossing : document.getElementById("is_embossing").checked
+                           };
+
+                // データ更新中ダイアログ表示
+                document.getElementById("notification_dialog").textContent = 'データリスト更新中・・・';
+                $("#notification_dialog").dialog('open');
+                
+                // 所属情報更新
+                setAffiliationInformation(data);
+                // 手当リスト
+                setSearchRegisterAllowance(data, false);
+            };
+
+            /**
+             * 役職プルダウンの切り替えにより他のプルダウンの内容を変える
+             */
+            function changePositionName(eo)
+            {
+                // 試用期間テーブル
+                setSearchRegisterTrial();
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 雇用形態プルダウンの切り替えにより他のプルダウンの内容を変える
+             */
+            function changeEmploymentName(eo)
+            {
+                // 試用期間テーブル
+                setSearchRegisterTrial();
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 賃金形態プルダウンが空白/時給以外を選択した場合の処理
+             */
+            function changeWage(eo)
+            {
+                var wageSelect = $("#wage_form").val();
+                if(wageSelect > 1)
+                {
+                    $("#base_salary").prop("disabled", false);
+                    $('#baseSalaryFont').css('display' , '');
+                }
+                else
+                {
+                    if(wageSelect < 1)
+                    {
+                        $('#hourly_wage').val('');
+                    }
+                    $('#base_salary').val('');
+                    $("#base_salary").prop("disabled", true);
+                    $('#baseSalaryFont').css('display' , 'none');
+                }
+            };
+
+            /**
+             * 試用期間プルダウンが空白以外を選択した場合の処理
+             */
+            function changeTrial(eo)
+            {
+                var trialSelect = $("#trialPeriodType").val();
+                var trialPeriodCriteria = $("#trialPeriodCriteria").val();
+                
+                if(trialSelect > 1)
+                {
+                    $("#trialPeriodWrite").prop("disabled", false);
+                    $("#trialPeriodWrite").prop("required", true);
+                    $('#trialPeriodWriteFont').css('display' , '');
+                    $("#trialPeriodWages").prop("disabled", false);
+                    $("#trialPeriodWages").prop("required", true);
+                    $('#trialPeriodWagesFont').css('display' , '');
+                    if(trialSelect == 2)
+                    {
+                        $('#trialPeriod').html('<input type="text" pattern="[1-9][0-9]*" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" id="trialPeriodCriteria" name="trialPeriodCriteria" style="width: 130px" maxlength="5" value="" class="En" required>時間 <font size="3" color="#ff0000">*</font>');
+                        document.getElementById('trialPeriodCriteria').value = trialPeriodCriteria;
+                    }
+                    else if(trialSelect == 3)
+                    {
+                        $('#trialPeriod').html('<input type="text" pattern="[1-9][0-9]*" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" id="trialPeriodCriteria" name="trialPeriodCriteria" style="width: 130px" maxlength="5" value="" class="En" required>日間 <font size="3" color="#ff0000">*</font>');
+                        document.getElementById('trialPeriodCriteria').value = trialPeriodCriteria;
+                    }
+                    else if(trialSelect == 4)
+                    {
+                        $('#trialPeriod').html('<input type="text" pattern="[1-9][0-9]*" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" id="trialPeriodCriteria" name="trialPeriodCriteria" style="width: 130px" maxlength="5" value="" class="En" required>か月 <font size="3" color="#ff0000">*</font>');
+                        document.getElementById('trialPeriodCriteria').value = trialPeriodCriteria;
+                    }
+                    else if(trialSelect == 5)
+                    {
+                        $('#trialPeriod').html('<input type="text" pattern="[1-9][0-9]*" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" id="trialPeriodCriteria" name="trialPeriodCriteria" style="width: 130px" maxlength="5" value="" class="En" required>年間 <font size="3" color="#ff0000">*</font>');
+                        document.getElementById('trialPeriodCriteria').value = trialPeriodCriteria;
+                    }
+                }
+                else
+                {
+                    $('#trialPeriod').html('<input type="text" pattern="[1-9][0-9]*" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" id="trialPeriodCriteria" name="trialPeriodCriteria" style="width: 130px" maxlength="5" value="" class="En" disabled>');
+                    $('#trialPeriodWrite').val('');
+                    $("#trialPeriodWrite").prop("disabled", true);
+                    $("#trialPeriodWrite").prop("required", false);
+                    $('#trialPeriodWriteFont').css('display' , 'none');
+                    $('#trialPeriodWages').val('');
+                    $("#trialPeriodWages").prop("disabled", true);
+                    $("#trialPeriodWages").prop("required", false);
+                    $('#trialPeriodWagesFont').css('display' , 'none');
+                }
+            };
+
+            /**
+             * 手当プルダウンが空白以外を選択した場合、手当金額をdisableからrequiredにする
+             */
+            function changeAllowance(eo)
+            {
+                var allowanceId = eo.id;
+                var allowanceSelect = $("#" + allowanceId).val();
+                var changePosition = allowanceId.replace( /allowance/g , "" ) ;
+                if(allowanceSelect > 0)
+                {
+                    $("#allowanceAmount" + changePosition).prop("disabled", false);
+                    $("#allowanceAmount" + changePosition).prop("required", true);
+                    $("#allowanceAmountFont" + changePosition).css('display' , '');
+                }
+                else
+                {
+                    $("#allowanceAmount" + changePosition).val('');
+                    $("#allowanceAmount" + changePosition).prop("disabled", true);
+                    $("#allowanceAmount" + changePosition).prop("required", false);
+                    $("#allowanceAmountFont" + changePosition).css('display' , 'none');
+                }
+            }
+
+            /**
+             * 適用開始日のデイトピッカーを設定
+             */
+            $(function()
+            {
+                $( "#application_date_start" ).datepicker({
+                    numberOfMonths: 2,
+                    showButtonPanel: true,
+                    dateFormat: 'yy/mm/dd'
+                });
+            });
+
+            /**
+             * 誕生日のデイトピッカーを設定
+             */
+            $(function()
+            {
+                $( "#birthday" ).datepicker({
+                    showButtonPanel: true,
+                    dateFormat: 'yy/mm/dd',
+                });
+            });
+
+            /**
+             * 所属情報更新
+             */
+            function setAffiliationInformation(data)
+            {
+                var path = '';
+
+                // 登録用役職リスト更新用パス
+                path = 'index.php?param=User/searchAffiliationInfo&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, "jquery-replace-SearchAffiliationInformation-ajax" );
+            }
+
+            /**
+             * 登録用試用期間リスト更新
+             */
+            function setSearchRegisterTrial()
+            {
+                var CorFlag = '<?php hsc($CorrectionFlag); ?>';
+                if(CorFlag != 1)
+                {
+                    // 全てのプルダウンに値が設定されている場合、試用期間データを更新する
+                    if( $('#organization').val() != '' && $('#position').val() != '' && $('#employment').val() != '' )
+                    {
+                        // データ更新中ダイアログ表示
+                        document.getElementById("notification_dialog").textContent = '試用期間更新中・・・';
+                        $("#notification_dialog").dialog('open');
+                        
+                        // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                        var data = {
+                                      organization_id : $('#organization').val(),
+                                      position_id : $('#position').val(),
+                                      employment_id : $('#employment').val(),
+                                   };
+                        // 登録用雇用形態リスト更新用パス
+                        var path = 'index.php?param=User/searchRegisterTrial&home=1';
+                        // データ更新
+                        setDataForAjax( data, path, "jquery-replace-SearchRegisterTrial-ajax", true  );
+                    }
+                }
+            }
+
+            /**
+             * 登録用手当リスト更新
+             */
+            function setSearchRegisterAllowance(data, changeFlag)
+            {
+                var path = '';
+
+                // 登録用雇用形態リスト更新用パス
+                path = 'index.php?param=User/searchRegisterAllowance&isChange=' + changeFlag + '&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, "jquery-replace-SearchRegisterAllowance-ajax", true );
+            }
+
+            /**
+             * 行情報を設定
+             */
+            function setLineInfo(thisLineInfo, thisBtnInfo)
+            {
+                lineInfo = thisLineInfo;
+                btnInfo  = thisBtnInfo;
+                return true;
+            }
+
+            /**
+             * 遷移先の設定
+             */
+            function moveRedirect()
+            {
+                cancel();
+            }
+
+        </script>
+
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site">
+            <!-- パンくずリスト -->
+            <?php include("Common/Breadcrumb.php"); ?>
+            
+            <!-- serchButtonArea -->
+            <div class="logicButtonArea">
+                <p align=center>
+                    <input type="button" id="back" name="back" value="戻る" class="return" data-href="index.php?param=User/show&home=1">
+                </p>
+            </div><!-- /.serchButtonArea -->
+
+            <!-- serchEditArea -->
+            <form id="addForm" name="addForm">
+                <!-- 以下、hiddenの値は修正/削除時の条件に使用 -->
+                <input type="hidden" id="token" name="token" value="<?php hsc($TokenID); ?>">
+                <input type="hidden" id="userId" name="userId" value="<?php hsc($userDataList['user_id']); ?>">
+                <input type="hidden" id="userDtailID" name="userDtailID" value="<?php hsc($userDataList['user_detail_id']); ?>">
+                <input type="hidden" id="updateTime" name="updateTime" value="<?php hsc($userDataList['update_time']); ?>">
+                <input type="hidden" id="applicationDateStart" name="applicationDateStart" value="<?php hsc($userDataList['application_date_start']); ?>">
+                <input type="hidden" id="employeesNo" name="employeesNo" value="<?php hsc($userDataList['employees_no']); ?>">
+                <!-- 以下、hiddenの値は一覧表の検索条件保持のため、使用 -->
+                <input type="hidden" id="userNo" name="userNo" value="<?php hsc($_POST['searchUserNo']); ?>">
+                <input type="hidden" id="userName" name="userName" value="<?php hsc($_POST['searchUserName']); ?>">
+                <input type="hidden" id="organizationName" name="organizationName" value="<?php hsc($_POST['searchOrganizationID']); ?>">
+                <input type="hidden" id="positionName" name="positionName" value="<?php hsc($_POST['searchPositionName']); ?>">
+                <input type="hidden" id="employmentName" name="employmentName" value="<?php hsc($_POST['searchEmploymentName']); ?>">
+                <input type="hidden" id="sectionName" name="sectionName" value="<?php hsc($_POST['searchSectionName']); ?>">
+                <input type="hidden" id="wageForm" name="wageForm" value="<?php hsc($_POST['searchWageForm']); ?>">
+                <input type="hidden" id="minBaseSalary" name="minBaseSalary" value="<?php hsc($_POST['searchMinBaseSalary']); ?>">
+                <input type="hidden" id="maxBaseSalary" name="maxBaseSalary" value="<?php hsc($_POST['searchMaxBaseSalary']); ?>">
+                <input type="hidden" id="minHourlyWage" name="minHourlyWage" value="<?php hsc($_POST['searchMinHourlyWage']); ?>">
+                <input type="hidden" id="maxHourlyWage" name="maxHourlyWage" value="<?php hsc($_POST['searchMaxHourlyWage']); ?>">
+                <input type="hidden" id="minApplicationStartDate" name="minApplicationStartDate" value="<?php hsc($_POST['searchSAppStartDate']); ?>">
+                <input type="hidden" id="maxApplicationStartDate" name="maxApplicationStartDate" value="<?php hsc($_POST['searchEAppStartDate']); ?>">
+                <input type="hidden" id="start_hire_date" name="start_hire_date" value="<?php hsc($_POST['searchSHireDate']); ?>">
+                <input type="hidden" id="end_hire_date" name="end_hire_date" value="<?php hsc($_POST['searchEHireDate']); ?>">
+                <input type="hidden" id="start_leaving_date" name="start_leaving_date" value="<?php hsc($_POST['searchSLeavingDate']); ?>">
+                <input type="hidden" id="end_leaving_date" name="end_leaving_date" value="<?php hsc($_POST['searchELeavingDate']); ?>">
+                <input type="hidden" id="approval" name="approval" value="<?php hsc($_POST['searchApproval']); ?>">
+                <input type="hidden" id="securityName" name="securityName" value="<?php hsc($_POST['searchSecurity']); ?>">
+                <input type="hidden" id="searchComment" name="searchComment" value="<?php hsc($_POST['searchComment']); ?>">
+                <input type="hidden" id="applyCheck" name="applyCheck" value="<?php hsc($_POST['searchApplyCheck']); ?>">
+                <input type="hidden" id="applySchCheck" name="applySchCheck" value="<?php hsc($_POST['searchApplySchCheck']); ?>">
+                <input type="hidden" id="nonApplyCheck" name="nonApplyCheck" value="<?php hsc($_POST['searchNonApplyCheck']); ?>">
+                <input type="hidden" id="delCheck" name="delCheck" value="<?php hsc($_POST['searchDelCheck']); ?>">
+                <input type="hidden" id="duringCheck" name="duringCheck" value="<?php hsc($_POST['searchDuringCheck']); ?>">
+                <input type="hidden" id="retirementCheck" name="retirementCheck" value="<?php hsc($_POST['searchRetirementCheck']); ?>">
+                <input type="hidden" id="trialCheck" name="trialCheck" value="<?php hsc($_POST['searchTrialCheck']); ?>">
+                <div class="serchEditArea">
+                    <div style="width:690px; margin:0 auto;">
+                        <table width="100%">
+                            <tbody>
+                                <tr>
+                                    <td width="120px" style="border-style:none;">【個人情報欄】</td>
+                                    <td width="200px" style="border-style:none;"></td>
+                                    <td width="120px" style="border-style:none;"></td>
+                                    <td width="200px" style="border-style:none;"></td>
+                                    <td width="50px" style="border-style:none;"></td>
+                                </tr>
+                                <tr>
+                                    <th><?php hsc($Log->getMsgLog('MSG_BASE_0853')); ?> <font size="3" color="#ff0000">*</font></th>
+                                    <td><input type="text" pattern="\d{4}/\d{2}/\d{2}" title="<?php hsc($Log->getMsgLog('MSG_BASE_0305')); ?>" id="application_date_start" name="application_date_start" style="width: 130px" value="<?php hsc($userDataList['application_date_start']); ?>" required></td>
+                                    <th><?php hsc($Log->getMsgLog('MSG_BASE_0872')); ?> <font size="3" color="#ff0000">*</font></th>
+                                    <td><input type="text" pattern="^[0-9A-Za-z]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0301')); ?>" id="employees_no" name="employees_no" style="width: 130px" value="<?php hsc($userDataList['employees_no']); ?>" class="En" required></td>
+                                    <td style="border-style:none;"></td>
+                                </tr>
+                                <tr>
+                                    <th><?php hsc($Log->getMsgLog('MSG_BASE_0873')); ?> <font size="3" color="#ff0000">*</font></th>
+                                    <td><input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0302')); ?>" id="user_name" name="user_name" style="width: 130px" maxlength="20" value="<?php hsc($userDataList['user_name']); ?>" class="Em" required></td>
+                                    <th>性別</th>
+                                    <td>
+                                        <?php $maleSelected = ""; ?>
+                                        <?php $femaleSelected = ""; ?>
+                                        <?php if($userDataList['sex'] == 1) { ?>
+                                            <?php $maleSelected = "selected"; ?>
+                                        <?php } else if($userDataList['sex'] == 2) { ?>
+                                            <?php $femaleSelected = "selected"; ?>
+                                        <?php } ?>
+                                        <select id="sex" name="sex" style="width: 130px">
+                                            <option value=""></option>
+                                            <option value="1" <?php hsc($maleSelected); ?>>男</option>
+                                            <option value="2" <?php hsc($femaleSelected); ?>>女</option>
+                                        </select>
+                                    </td>
+                                    <td style="border-style:none;"></td>
+                                </tr>
+                                <tr>
+                                    <th>ログインID</th>
+                                    <td><input type="text" pattern="^[0-9A-Za-z]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0313')); ?>" id="login_id" name="login_id" style="width: 130px" value="<?php hsc($userDataList['login_id']); ?>" class="En"></td>
+                                    <th>パスワード</th>
+                                    <td><input type="text" pattern="^[0-9A-Za-z]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0304')); ?>" id="password" name="password" style="width: 130px" value="<?php hsc($userDataList['password']); ?>" class="En"></td>
+                                    <td style="border-style:none;"></td>
+                                </tr>
+                                <tr>
+                                    <th>生年月日</th>
+                                    <td><input type="text" pattern="\d{4}/\d{2}/\d{2}" title="<?php hsc($Log->getMsgLog('MSG_BASE_0305')); ?>" id="birthday" name="birthday" style="width: 130px" value="<?php hsc($userDataList['birthday']); ?>" class="En"></td>
+                                    <th>住所</th>
+                                    <td><input type="text" id="address" name="address" style="width: 130px" maxlength="80" value="<?php hsc($userDataList['address']); ?>" class="Em"></td>
+                                    <td style="border-style:none;"></td>
+                                </tr>
+                                <tr>
+                                    <th><?php hsc($Log->getMsgLog('MSG_BASE_0874')); ?></th>
+                                    <td><input type="text" pattern="\d{2,4}-?\d{3,4}-?\d{3,4}" title="<?php hsc($Log->getMsgLog('MSG_BASE_0306')); ?>" id="tel" name="tel" style="width: 130px" maxlength="13" value="<?php hsc($userDataList['tel']); ?>" class="En"></td>
+                                    <th>携帯電話</th>
+                                    <td><input type="text" pattern="\d{2,4}-?\d{3,4}-?\d{3,4}" title="<?php hsc($Log->getMsgLog('MSG_BASE_0306')); ?>" id="cellphone" name="cellphone" style="width: 130px" maxlength="13" value="<?php hsc($userDataList['cellphone']); ?>" class="En"></td>
+                                    <td style="border-style:none;"></td>
+                                </tr>
+                                <tr>
+                                    <th>メールアドレス</th>
+                                    <td><input type="text" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0314')); ?>" id="mail_address" name="mail_address" style="width: 130px" maxlength="128" value="<?php hsc($userDataList['mail_address']); ?>" class="En"></td>
+                                    <th><?php hsc($Log->getMsgLog('MSG_BASE_0892')); ?></th>
+                                    <td><input type="text" id="comment" name="comment" style="width: 130px" maxlength="30" value="<?php hsc($userDataList['comment']); ?>" class="Em"></td>
+                                    <td style="border-style:none;"></td>
+                                </tr>
+                                <tr>
+                                    <td style="border-style:none;"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <?php include("Common/SearchAffiliationInformation.php"); ?>
+                        <table width="100%">
+                            <tbody>
+                                <tr>
+                                    <td width="120px" style="border-style:none;">【賃金情報欄】</td>
+                                    <td width="200px" style="border-style:none;"></td>
+                                    <td width="120px" style="border-style:none;"></td>
+                                    <td width="200px" style="border-style:none;"></td>
+                                    <td width="50px" style="border-style:none;"></td>
+                                </tr>
+                                <tr>
+                                    <th>賃金形態 <font size="3" color="#ff0000">*</font></th>
+                                    <td>
+                                        <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="wage_form" name="wage_form" style="width: 130px" required>
+                                            <?php foreach($wageFormList as $wageForm) { ?>
+                                                <?php $selected =""; ?>
+                                                <?php if($wageForm['wage_form_id'] == $userDataList['wage_form_id']) { ?>
+                                                    <?php $selected ="selected"; ?>
+                                                <?php } ?>
+                                                <option value="<?php hsc($wageForm['wage_form_id']); ?>" <?php hsc($selected); ?>><?php hsc($wageForm['wage_form_name']); ?></option>
+                                            <?php } ?>
+                                        </select>
+                                    </td>
+                                    <th>時給</th>
+                                    <td><input type="text" pattern="[0-9]*" title="<?php hsc($Log->getMsgLog('MSG_BASE_0307')); ?>" id="hourly_wage" name="hourly_wage" style="width: 100px" maxlength="8" value="<?php hsc($userDataList['hourly_wage']); ?>" class="En">  円</td>
+                                    <td style="border-style:none;"></td>
+                                </tr>
+                                <tr>
+                                    <td style="border-style:none;"></td>
+                                    <td style="border-style:none;"></td>
+                                    <th>基本給</th>
+                                    <td><input type="text" pattern="[0-9]*" title="<?php hsc($Log->getMsgLog('MSG_BASE_0307')); ?>" id="base_salary" name="base_salary" style="width: 100px" maxlength="8" value="<?php hsc($userDataList['base_salary']); ?>" class="En">  円</td>
+                                    <td style="border-style:none;"></td>
+                                </tr>
+                                <tr>
+                                    <td style="border-style:none;"></td>
+                                </tr>
+                                <tr>
+                                    <td style="border-style:none;">【試用期間情報欄】</td>
+                                </tr>
+                                <tr>
+                                    <th>試用期間</th>
+                                    <?php if(empty($CorrectionFlag)) { ?>
+                                        <td>
+                                            <?php include("Common/SearchRegisterTrial.php"); ?>
+                                        </td>
+                                        <td colspan="2" id="trialPeriod">
+                                            <input type="text" pattern="[1-9][0-9]*" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" id="trialPeriodCriteria" name="trialPeriodCriteria" style="width: 130px" maxlength="30" value="" class="En" disabled>
+                                        </td>
+                                    <?php } else { ?>
+                                        <td>
+                                            <select id="trialPeriodType" name="trialPeriodType" style="width: 130px">
+                                                <?php foreach($trialPeriodList as $trial) { ?>
+                                                    <?php $selected =""; ?>
+                                                    <?php if($trial['trial_period_criteria_id'] == $userDataList['trial_period_type_id']) { ?>
+                                                        <?php $selected ="selected"; ?>
+                                                    <?php } ?>
+                                                    <option value="<?php hsc($trial['trial_period_criteria_id']); ?>" <?php hsc($selected); ?>><?php hsc($trial['trial_period_criteria_name']); ?></option>
+                                                <?php } ?>
+                                            </select>
+                                        </td>
+                                        <td colspan="2" id="trialPeriod">
+                                            <input type="text" pattern="[1-9][0-9]*" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" id="trialPeriodCriteria" name="trialPeriodCriteria" style="width: 130px" maxlength="5" value="<?php hsc($userDataList['trial_period_criteria_value']); ?>" class="En" disabled>
+                                        </td>
+                                    <?php } ?>
+                                    <td style="border-style:none;"></td>
+                                </tr>
+                                <tr>
+                                    <th>試用期間中の賃金 <font id="trialPeriodWriteFont" size="3" style="display : none" color="#ff0000">*</font></th>
+                                    <td>
+                                        <select id="trialPeriodWrite" name="trialPeriodWrite" style="width: 130px" disabled>
+                                            <?php foreach($wageFormList as $wageForm) { ?>
+                                                <?php $selected =""; ?>
+                                                <?php if($wageForm['wage_form_id'] == intval($userDataList['trial_period_write_down_criteria'])) { ?>
+                                                    <?php $selected ="selected"; ?>
+                                                <?php } ?>
+                                                <option value="<?php hsc($wageForm['wage_form_id']); ?>" <?php hsc($selected); ?>><?php hsc($wageForm['wage_form_name']); ?></option>
+                                            <?php } ?>
+                                        </select>
+                                    </td>
+                                    <td colspan="2"><input type="text" pattern="[1-9][0-9]*" title="<?php hsc($Log->getMsgLog('MSG_BASE_0307')); ?>" id="trialPeriodWages" name="trialPeriodWages" style="width: 130px" maxlength="8" value="<?php hsc($userDataList['trial_period_wages_value']); ?>" class="En" disabled>  円 <font id="trialPeriodWagesFont" size="3" style="display : none" color="#ff0000">*</font></td>
+                                    <td style="border-style:none;"></td>
+                                </tr>
+                                <tr>
+                                    <td style="border-style:none;"></td>
+                                </tr>
+                                <tr>
+                                    <td style="border-style:none;">【承認組織情報欄】</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <table width="100%" id="appAddTable">
+                            <tbody id="appAddTbody">
+                                <tr>
+                                    <th width="120px">承認組織</th>
+                                    <td width="200px">
+                                        <select id="approvalOrganization" name="approvalOrganization" class="approvalOrganization" style="width: 130px">
+                                            <?php foreach($abbreviatedList as $abbreviated) { ?>
+                                                <option value="<?php hsc($abbreviated['organization_id']); ?>"><?php hsc($abbreviated['abbreviated_name']); ?></option>
+                                            <?php } ?>
+                                        </select>
+                                    </td>
+                                    <td width="370px" style="border-style:none;">
+                                        <input type="button" id="appSelectAdd" name="appSelectAdd" value="追加" class="add">
+                                        <input type="button" style="display : none" id="appSelectDel" name="appSelectDel" value="削除" class="delete">
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tr>
+                                <td style="border-style:none;"></td>
+                            </tr>
+                        </table>
+                        
+                        <table width="100%">
+                            <tbody>
+                                <tr>
+                                    <td style="border-style:none;">【手当情報欄】</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <?php include("Common/SearchRegisterAllowance.php"); ?>
+                        <font size="5" color="#ff0000">＊</font> は必須項目となります。
+                    </div><!-- /. width:65% -->
+                </div><!-- /.serchEditArea -->
+                <input type="hidden" id="btnid" name="btnid" value=""/>
+
+                <!-- logicButtonArea -->
+                <div class="logicButtonArea">
+                    <p align=center>
+                        <?php $registrationCnt = 0; ?>
+                        <?php foreach( $_SESSION["REGISTRATION"] as $reg ) { ?>
+                            <?php $registrationCnt = $registrationCnt + $reg['organization_id']; ?>
+                        <?php } ?>
+                        <?php $add_disabled = ""; ?>
+                        <?php if(empty($registrationCnt)) { ?>
+                            <?php $add_disabled = "disabled"; ?>
+                        <?php } else if (!empty($_POST['disabledID'])) { ?>
+                            <?php $add_disabled = "disabled"; ?>
+                            <?php $del_disabled = "disabled"; ?>
+                        <?php } ?>
+                        <?php if($CorrectionFlag) { ?>
+                            <input type="submit" id="del" name="del" value="<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>')" class="delete" <?php hsc($del_disabled); ?>>
+                            <input type="submit" id="newadd" name="newadd" value="　<?php hsc($Log->getMsgLog('MSG_BASE_0805')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0800')); ?>')" class="add" <?php hsc($add_disabled); ?>>
+                            <input type="submit" id="mod" name="mod" value="<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>')" class="update" <?php hsc($add_disabled); ?>>
+                        <?php } else { ?>
+                            <input type="submit" id="add" name="add" value="　<?php hsc($Log->getMsgLog('MSG_BASE_0805')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0800')); ?>')" class="add" <?php hsc($add_disabled); ?>>
+                        <?php } ?>
+                    </p>
+                </div><!-- /.logicButtonArea -->
+            </form>
+
+        </div><!-- /#sb-site -->
+        <div id="jquery-replace-ajax">
+            
+        </div><!-- /#jquery-replace-ajax -->
+
+        <?php include("../FwCommon/View/Dialog.php"); ?>
+    </body>
+</html>

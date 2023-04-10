@@ -1,0 +1,106 @@
+<?php
+    /**
+     * @file      POS商品セット構成マスタ画面(View)
+     * @author    川橋
+     * @date      2018/12/21
+     * @version   1.00
+     * @note      POS商品セット構成マスタ画面(一覧部分)
+     */
+?>
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-ajax">
+
+                <!-- PageMoveArea -->
+                <?php include("../FwCommon/View/PagingArea.php"); ?>
+
+                <!-- serchListArea -->
+                <?php if( $isScrollBar ) { ?>
+                    <div class="serchListArea" style=" clear:both; width:99%; margin:0px auto !important; overflow-y:auto; height:25px;">
+                <?php } else { ?>
+                    <div class="serchListArea" style=" clear:both; width:99%; margin:5px auto !important;">
+                <?php } ?>
+                <!-- ---------------------- -->
+                    <input type="hidden" id="token" name="token" value="<?php hsc($TokenID); ?>">
+                    <table>
+                        <tr>
+                            <th style="width:240px;"><span onClick="setColumnInfo('組織');"><u>組織</u><?php hsc($headerArray['mst5101OrganizationSortMark']); ?></span></th>
+                            <th style="width:105px;"><span onClick="setColumnInfo('商品コード');"><u>商品コード</u><?php hsc($headerArray['mst5101ProdCodeSortMark']); ?></span></th>
+                            <th style="width:415px;"><span onClick="setColumnInfo('商品名');"><u>商品名</u><?php hsc($headerArray['mst5101ProdNameSortMark']); ?></span></th>
+                            <th style="width:105px;"><span onClick="setColumnInfo('セット商品コード');"><u>セット商品コード</u><?php hsc($headerArray['mst5101SetProdCodeSortMark']); ?></span></th>
+                            <th style="width:415px;"><span onClick="setColumnInfo('セット商品名');"><u>セット商品名</u><?php hsc($headerArray['mst5101SetProdNameSortMark']); ?></span></th>
+                            <th style="width:123px;">構成数</th>
+                            <th style="width:123px;">&nbsp;</th>
+                        </tr>
+                    </table>
+            <?php if( $isScrollBar ) { ?>
+                </div>
+                <div class="serchListArea" style="width:99%; margin: 0px auto; overflow-y:auto; height:300px; !important;">
+            <?php } ?>
+                    <table id="nameTable" style="background-color: #ffffff;">
+                        <colgroup>
+                            <col style="width:240px;"><!-- 組織 -->
+                            <col style="width:105px;"><!-- 商品コード -->
+                            <col style="width:415px;"><!-- 商品名 -->
+                            <col style="width:105px;"><!-- セット商品コード -->
+                            <col style="width:415px;"><!-- セット商品名 -->
+                            <col style="width:123px;"><!-- 構成数 -->
+                            <col style="width:123px;"><!-- ボタン -->
+                        </colgroup>
+                        <?php $mst5101_no = 0; ?>
+                        <?php foreach($mst5101List as $mst5101) { ?>
+                            <?php $mst5101_no ++; ?>
+                            <tr>
+                                <td><?php hsc($mst5101['abbreviated_name']); ?></td>
+                                <td><?php hsc($mst5101['prod_cd']); ?></td>
+                                <td><?php hsc($mst5101['prod_nm']); ?></td>
+                                <td id="setprod_cd-disp<?php hsc($mst5101_no); ?>" class="L"><?php hsc($mst5101['setprod_cd']); ?></td>
+                                <td id="setprod_nm-disp<?php hsc($mst5101_no); ?>" class="L"><?php hsc($mst5101['setprod_nm']); ?></td>
+                                <td colspan=2 style="display:none;" id="setprod-edit<?php hsc($mst5101_no); ?>" class="L">
+                                    <?php
+                                        $txtValue = $mst5101['setprod_cd'];
+                                        if ($mst5101['setprod_nm'] !== '') {
+                                            $txtValue = $txtValue.'　'.$mst5101['setprod_nm'];
+                                        }
+                                        else if ($mst5101['setprod_kn'] !== '') {
+                                            $txtValue = $txtValue.'　'.$mst5101['setprod_kn'];
+                                        }
+                                    ?>
+                                    <input type="text" title="セット商品" id="setprod_mod<?php hsc($mst5101_no); ?>" name="setprod_mod<?php hsc($mst5101_no); ?>" value="<?php hsc($txtValue); ?>" style="width:520px;" autocomplete="on" list="setprod_list_edit<?php hsc($mst5101_no); ?>" required>
+                                    <datalist id="setprod_list_edit<?php hsc($mst5101_no); ?>">
+                                    <?php
+                                    foreach($mst0201DataList as $mst0201) {
+                                        if ($mst0201['organization_id'] === $mst5101['organization_id']) {
+                                            $optValue = $mst0201['prod_cd'];
+                                            if ($mst0201['prod_nm'] !== '') {
+                                                $optValue = $optValue.'　'.$mst0201['prod_nm'];
+                                            }
+                                            else if ($mst0201['prod_kn'] !== '') {
+                                                $optValue = $optValue.'　'.$mst0201['prod_kn'];
+                                            }
+                                    ?>
+                                        <option value="<?php hsc($optValue); ?>"></option>
+                                    <?php
+                                        }
+                                    }
+                                    ?>
+                                    </datalist>
+                                </td>
+
+                                <td id="setprod_amount-disp<?php hsc($mst5101_no); ?>" class="R"><?php hsc($mst5101['setprod_amount']); ?></td>
+                                <td style="display:none;" id="setprod_amount-edit<?php hsc($mst5101_no); ?>" style="display : none;" class="R">
+                                    <input type="text" title="構成数" id="setprod_amount_mod<?php hsc($mst5101_no); ?>" name="setprod_amount_mod<?php hsc($mst5101_no); ?>" style="width:100px;" maxlength="4" pattern="^([1-9](,\d{3}|\d{0,2})*)$" oncopy="return false" onpaste="return false" oninput="return checkNumInput(this,4)" onfocus="commaRemove(this)" onblur="checkNumFormat(this)" value="<?php hsc($mst5101['setprod_amount']); ?>" class="R En" required>
+                                </td>
+                                <td class="C">
+                                    <input type="button" id="edtBtn<?php hsc($mst5101_no); ?>" value="<?php hsc($Log->getMsgLog('MSG_BASE_0801')); ?>" onclick="editRow(this)" <?php hsc($mst5101['cor_disabled']); ?>>
+                                    <input type="submit" id="edtBtn-mod<?php hsc($mst5101_no); ?>" name="mod<?php hsc($mst5101_no); ?>" style="display : none" value="<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>')" <?php hsc($mst5101['mod_disabled']); ?>>
+                                    <input type="button" id="edtBtn-del<?php hsc($mst5101_no); ?>" name="del<?php hsc($mst5101_no); ?>" style="display : none" value="<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>')" <?php hsc($mst5101['del_disabled']); ?>>
+                                </td>
+                            </tr>
+                            <input type="hidden" id="organization_id_mod<?php hsc($mst5101_no); ?>" name="organization_id_mod<?php hsc($mst5101_no); ?>" value="<?php hsc($mst5101['organization_id']); ?>">
+                            <input type="hidden" id="prod_cd_mod<?php hsc($mst5101_no); ?>" name="prod_cd_mod<?php hsc($mst5101_no); ?>" value="<?php hsc($mst5101['prod_cd']); ?>">
+                            <input type="hidden" id="setprod_cd_bef<?php hsc($mst5101_no); ?>" name="setprod_cd_bef<?php hsc($mst5101_no); ?>" value="<?php hsc($mst5101['setprod_cd']); ?>">
+                        <?php } ?>
+                    </table>
+                </div><!-- /.serchListArea -->
+            </div><!-- /.jquery-replace-ajax -->

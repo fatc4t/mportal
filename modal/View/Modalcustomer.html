@@ -1,0 +1,64 @@
+<div>
+    <h2>顧客検索</h2>
+    <div class="modal_cust_search">
+        <div class="modal_cust_left" id="modal_cust_param">
+            <label class="modal_cust_label" for="modal_cust_cust_cd"> コード  　：　</label><input type="text"  id="modal_cust_cust_cd" class="modal_cust_code"><br />
+            <label class="modal_cust_label" for="modal_cust_cust_nm" > 顧客名 　：　</label><input type="text"  id="modal_cust_cust_nm" class="modal_cust_name"><br />
+            <label class="modal_cust_label" for="modal_cust_tel" > 電話番号 ：　</label><input type="text"  id="modal_cust_tel" class="modal_cust_name" maxLength='16'>
+            <label class="modal_cust_label" for="modal_cust_tel4" > 下4桁 ：　</label><input type="text"  id="modal_cust_tel4" class="modal_cust_name" maxLength='4'>
+        </div>
+        <button type="button" id="modal_cust_search_cust" onclick="modal_search(event)"  class="modal_cust_left search_btn">表示</button>
+    </div>
+    <br />
+    <div>
+        <table id="modal_cust_table_id" class="modal_cust_table">
+            <thead>
+                <tr>
+                    <th>選択</th>
+                    <th>コード</th>
+                    <th>顧客名</th>
+                    <th>電話番号</th>
+                </tr>
+            </thead>
+            <tbody id="modal_cust_table_body">
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>                        
+            </tbody>
+        </table>
+    </div>
+    <br />
+    <div>
+        <div class="modal_div_btn">
+            <button type="button" id="modal_cust_unselect" onclick="modal_unselect(event)"  >一括解除</button>
+            <button type="button" id="modal_cust_select" onclick="modal_select(event)"  >一括選択</button>        
+            <button type="button" id="modal_cust_befpage" onclick="modal_befpage(event)"  >前ページ</button>        
+            <button type="button" id="modal_cust_nextpage" onclick="modal_nextpage(event)"  >次ページ</button>        
+            <button type="button" id="modal_cust_validate" onclick="modal_validate(event)"  >決定</button>        
+            <button type="button" id="modal_cust_close" onclick="modal_close(event)"  >終了</button>        
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+   
+    if(!pagenb){
+        pagenb=[];
+    }       
+    pagenb["cust"] = 0;
+    if(!table_keys){
+        table_keys=[];
+    }    
+    table_keys["cust"]=[];
+    table_keys["cust"]=["cust_cd","cust_nm","tel"]; 
+    if(document.getElementById("modal_cust_cust_cd")){
+        document.getElementById("modal_cust_cust_cd").addEventListener("input", modal_input_check);
+        document.getElementById("modal_cust_cust_cd").maxLength = A_Sizelist["custsize"];
+    }
+    if(document.getElementById("modal_cust_tel")){
+        document.getElementById("modal_cust_tel").addEventListener("input", modal_input_check);
+    }    
+    
+</script>

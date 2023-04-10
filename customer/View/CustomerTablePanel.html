@@ -1,0 +1,241 @@
+<?php
+    /**
+     * @file        顧客画面(View)
+     * @author      K.Sakamoto
+     * @date        2017/08/31
+     * @version     1.00
+     * @note        顧客画面
+     */
+?>
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-ajax">
+
+                <!-- PageMoveArea -->
+                <?php include("../FwCommon/View/PagingArea.php"); ?>
+
+                <!-- serchListArea -->
+            <!-- 2016/09/19 Y.Sugou -->
+            <?php if( $isScrollBar ) { ?>
+                <div class="serchListArea" style=" clear:both; margin:margin:5px; !important; overflow-y:auto; height:305px; width:99%">
+            <?php } else { ?>
+                <div class="serchListArea" style=" clear:both; margin:margin:5px; !important; overflow-y:auto; width:99%">
+            <?php } ?>
+            <!-- ---------------------- -->
+                    <table>
+                        <tbody>
+                            <tr>
+                                <th width="37px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?></u><?php hsc($headerArray['customerNoSortMark']); ?></span></th>
+                                <th width="100px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0850')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0850')); ?></u><?php hsc($headerArray['customerCustCdSortMark']); ?></span></th>
+                                <th width="200px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0851')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0851')); ?></u><?php hsc($headerArray['customerCustNmSortMark']); ?></span></th>
+                                <th width="200px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0852')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0852')); ?></u><?php hsc($headerArray['customerCustKnSortMark']); ?></span></th>
+                                <th width="100px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0853')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0853')); ?></u><?php hsc($headerArray['customerZipSortMark']); ?></span></th>
+                                <th width="300px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?></u><?php hsc($headerArray['customerAddr1SortMark']); ?></span></th>
+                                <th width="300px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0855')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0855')); ?></u><?php hsc($headerArray['customerAddr2SortMark']); ?></span></th>
+                                <th width="300px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0856')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0856')); ?></u><?php hsc($headerArray['customerAddr3SortMark']); ?></span></th>
+                                <th width="100px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0857')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0857')); ?></u><?php hsc($headerArray['customerTelSortMark']); ?></span></th>
+                                <th width="100px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0858')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0858')); ?></u><?php hsc($headerArray['customerFaxSortMark']); ?></span></th>
+                                <th width="100px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0859')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0859')); ?></u><?php hsc($headerArray['customerHphoneSortMark']); ?></span></th>
+                                <th width="200px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0860')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0860')); ?></u><?php hsc($headerArray['customerEmailSortMark']); ?></span></th>
+                                <th width="200px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0861')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0861')); ?></u><?php hsc($headerArray['customerImodeSortMark']); ?></span></th>
+                                <th width="150px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0862')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0862')); ?></u><?php hsc($headerArray['customerBirthSortMark']); ?></span></th>
+                                <th width="100px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0863')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0863')); ?></u><?php hsc($headerArray['customerSexSortMark']); ?></span></th>
+                                <th width="150px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0864')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0864')); ?></u><?php hsc($headerArray['customerMemorialSortMark']); ?></span></th>
+                                <th width="150px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0865')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0865')); ?></u><?php hsc($headerArray['customerShopCdSortMark']); ?></span></th>
+                                <th width="150px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0866')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0866')); ?></u><?php hsc($headerArray['customerCustTypeCdSortMark']); ?></span></th>
+                                <th width="150px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0867')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0867')); ?></u><?php hsc($headerArray['customerAreaCdSortMark']); ?></span></th>
+                                <th width="150px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0868')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0868')); ?></u><?php hsc($headerArray['customerStaffCdSortMark']); ?></span></th>
+                                <th width="100px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0869')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0869')); ?></u><?php hsc($headerArray['customerDmTypeSortMark']); ?></span></th>
+                                <th width="200px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0870')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0870')); ?></u><?php hsc($headerArray['customerOptionFlagSortMark']); ?></span></th>
+                                <th width="100px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0871')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0871')); ?></u><?php hsc($headerArray['customerDissenddmSortMark']); ?></span></th>
+                                <th width="100px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0872')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0872')); ?></u><?php hsc($headerArray['customerDissendEmailSortMark']); ?></span></th>
+                                <th width="100px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0873')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0873')); ?></u><?php hsc($headerArray['customerDissendImodeSortMark']); ?></span></th>
+                                <th width="150px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0874')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0874')); ?></u><?php hsc($headerArray['customerPublishSortMark']); ?></span></th>
+                                <th width="150px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0875')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0875')); ?></u><?php hsc($headerArray['customerLimitdateSortMark']); ?></span></th>
+                                <th width="150px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0876')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0876')); ?></u><?php hsc($headerArray['customerRenewSortMark']); ?></span></th>
+                                <th width="100px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0877')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0877')); ?></u><?php hsc($headerArray['customerFeesReceKbnSortMark']); ?></span></th>
+                                <th width="100px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0878')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0878')); ?></u><?php hsc($headerArray['customerCredImpoKbnSortMark']); ?></span></th>
+                                <th width="100px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0879')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0879')); ?></u><?php hsc($headerArray['customerCustSumdaySortMark']); ?></span></th>
+                                <th width="100px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0880')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0880')); ?></u><?php hsc($headerArray['customerTaxCalcKbnSortMark']); ?></span></th>
+                                <th width="100px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0881')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0881')); ?></u><?php hsc($headerArray['customerTaxFracKbnSortMark']); ?></span></th>
+                                <th width="200px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0882')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0882')); ?></u><?php hsc($headerArray['customerNote1SortMark']); ?></span></th>
+                                <th width="200px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0883')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0883')); ?></u><?php hsc($headerArray['customerNote2SortMark']); ?></span></th>
+                                <th width="200px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0884')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0884')); ?></u><?php hsc($headerArray['customerNote3SortMark']); ?></span></th>
+                                <th width="200px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0885')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0885')); ?></u><?php hsc($headerArray['customerNote4SortMark']); ?></span></th>
+                                <th width="200px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0886')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0886')); ?></u><?php hsc($headerArray['customerNote5SortMark']); ?></span></th>
+                                <th width="200px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0887')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0887')); ?></u><?php hsc($headerArray['customerCustBNm1SortMark']); ?></span></th>
+                                <th width="200px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0888')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0888')); ?></u><?php hsc($headerArray['customerCustBNm2SortMark']); ?></span></th>
+                                <th width="200px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0889')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0889')); ?></u><?php hsc($headerArray['customerCustBNm3SortMark']); ?></span></th>
+                                <th width="200px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0890')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0890')); ?></u><?php hsc($headerArray['customerCustBNm4SortMark']); ?></span></th>
+                                <th width="200px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0891')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0891')); ?></u><?php hsc($headerArray['customerCustBNm5SortMark']); ?></span></th>
+                                <th width="200px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0892')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0892')); ?></u><?php hsc($headerArray['customerCustBNm6SortMark']); ?></span></th>
+                                <th width="200px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0893')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0893')); ?></u><?php hsc($headerArray['customerCustBNm7SortMark']); ?></span></th>
+                                <th width="200px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0894')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0894')); ?></u><?php hsc($headerArray['customerCustBNm8SortMark']); ?></span></th>
+                                <th width="200px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0895')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0895')); ?></u><?php hsc($headerArray['customerCustBNm9SortMark']); ?></span></th>
+                                <th width="200px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0896')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0896')); ?></u><?php hsc($headerArray['customerCustBNm10SortMark']); ?></span></th>
+                                <th width="150px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0897')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0897')); ?></u><?php hsc($headerArray['customerFstVisitDtSortMark']); ?></span></th>
+                                <th width="150px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0898')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0898')); ?></u><?php hsc($headerArray['customerLstVisitDtSortMark']); ?></span></th>
+                                <th width="150px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0899')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0899')); ?></u><?php hsc($headerArray['customerLstShopCdSortMark']); ?></span></th>
+                                <th width="100px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0900')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0900')); ?></u><?php hsc($headerArray['customerVisitCntSortMark']); ?></span></th>
+                                <th width="100px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0901')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0901')); ?></u><?php hsc($headerArray['customerAllTotalSortMark']); ?></span></th>
+                                <th width="100px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0902')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0902')); ?></u><?php hsc($headerArray['customerAllProfitSortMark']); ?></span></th>
+                                <th width="100px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0903')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0903')); ?></u><?php hsc($headerArray['customerAllPointSortMark']); ?></span></th>
+                            </tr>
+                </table>
+            <?php if( $isScrollBar ) { ?>
+<!--                </div>
+                <div class="serchListArea" style="margin:margin:5px; overflow-y:auto; height:268px; !important;">-->
+            <?php } ?>
+                <table id="nameTable">
+                            <?php foreach($customerList as $customer) { ?>
+                                <?php $customer_no++; ?>
+                                <?php if(!$customerNoSortFlag) { ?>
+                                    <?php $display_no++; ?>
+                                <?php } ?>
+                                <tr>
+                                    <td align="right" style="width:37px;"><?php hsc($display_no); ?></td>
+                                    <td align="center" style="width:100px;"><?php hsc($customer['cust_cd']); ?></td>
+                                    <td align="center" style="width:200px;"><span onClick="editPanelTransition(<?php hsc($customer['cust_id']); ?>)"><a href="#"><?php hsc($customer['cust_nm']); ?></a></span></td>
+                                    <td align="center" style="width:200px;"><?php hsc($customer['cust_kn']); ?></td>
+                                    <td align="center" style="width:100px;"><?php hsc($customer['zip']); ?></td>
+                                    <td align="center" style="width:300px;"><?php hsc($customer['addr1']); ?></td>
+                                    <td align="center" style="width:300px;"><?php hsc($customer['addr2']); ?></td>
+                                    <td align="center" style="width:300px;"><?php hsc($customer['addr3']); ?></td>
+                                    <td align="center" style="width:100px;"><?php hsc($customer['tel']); ?></td>
+                                    <td align="center" style="width:100px;"><?php hsc($customer['fax']); ?></td>
+                                    <td align="center" style="width:100px;"><?php hsc($customer['hphone']); ?></td>
+                                    <td align="center" style="width:200px;"><?php hsc($customer['email']); ?></td>
+                                    <td align="center" style="width:200px;"><?php hsc($customer['imode']); ?></td>
+                                    <?php $birth = "" ?>
+                                    <?php if(!empty($customer['birth'])) { ?>
+                                        <?php $birth = substr($customer['birth'], 0, 4)."年".substr($customer['birth'], 4, 2)."月".substr($customer['birth'], 6, 2)."日"; ?>
+                                    <?php } ?>
+                                    <td align="center" style="width:150px;"><?php hsc($birth); ?></td>
+                                    <?php $sex = "" ?>
+                                    <?php if($customer['sex'] == '1') { ?>
+                                        <?php $sex = "男性"; ?>
+                                    <?php } else if($customer['sex'] == '2') { ?>
+                                        <?php $sex = "女性"; ?>
+                                    <?php } ?>
+                                    <td align="center" style="width:100px;"><?php hsc($sex); ?></td>
+                                    <?php $memorial = "" ?>
+                                    <?php if(!empty($customer['memorial'])) { ?>
+                                        <?php $memorial = substr($customer['memorial'], 0, 4)."年".substr($customer['memorial'], 4, 2)."月".substr($customer['memorial'], 6, 2)."日"; ?>
+                                    <?php } ?>
+                                    <td align="center" style="width:150px;"><?php hsc($memorial); ?></td>
+                                    <td align="center" style="width:150px;"><?php hsc($customer['shop_nm']); ?></td>
+                                    <td align="center" style="width:150px;"><?php hsc($customer['cust_type_nm']); ?></td>
+                                    <td align="center" style="width:150px;"><?php hsc($customer['area_nm']); ?></td>
+                                    <td align="center" style="width:150px;"><?php hsc($customer['staff_nm']); ?></td>
+                                    <td align="center" style="width:100px;"><?php hsc($customer['dm_type']); ?></td>
+                                    <td align="center" style="width:200px;"><?php hsc($customer['option_flag']); ?></td>
+                                    <?php $dissenddm = "" ?>
+                                    <?php if($customer['dissenddm'] == '0') { ?>
+                                        <?php $dissenddm = "発送可"; ?>
+                                    <?php } else if($customer['dissenddm'] == '1') { ?>
+                                        <?php $dissenddm = "発送不可"; ?>
+                                    <?php } ?>
+                                    <td align="center" style="width:100px;"><?php hsc($dissenddm); ?></td>
+                                    <?php $dissendemail = "" ?>
+                                    <?php if($customer['dissendemail'] == '0') { ?>
+                                        <?php $dissendemail = "送信可"; ?>
+                                    <?php } else if($customer['dissendemail'] == '1') { ?>
+                                        <?php $dissendemail = "送信不可"; ?>
+                                    <?php } ?>
+                                    <td align="center" style="width:100px;"><?php hsc($dissendemail); ?></td>
+                                    <?php $dissendimode = "" ?>
+                                    <?php if($customer['dissendimode'] == '0') { ?>
+                                        <?php $dissendimode = "送信可"; ?>
+                                    <?php } else if($customer['dissendimode'] == '1') { ?>
+                                        <?php $dissendimode = "送信不可"; ?>
+                                    <?php } ?>
+                                    <td align="center" style="width:100px;"><?php hsc($dissendimode); ?></td>
+                                    <?php $publish = "" ?>
+                                    <?php if(!empty($customer['publish'])) { ?>
+                                        <?php $publish = substr($customer['publish'], 0, 4)."年".substr($customer['publish'], 4, 2)."月".substr($customer['publish'], 6, 2)."日"; ?>
+                                    <?php } ?>
+                                    <td align="center" style="width:150px;"><?php hsc($publish); ?></td>
+                                    <?php $limitdate = "" ?>
+                                    <?php if(!empty($customer['limitdate'])) { ?>
+                                        <?php $limitdate = substr($customer['limitdate'], 0, 4)."年".substr($customer['limitdate'], 4, 2)."月".substr($customer['limitdate'], 6, 2)."日"; ?>
+                                    <?php } ?>
+                                    <td align="center" style="width:150px;"><?php hsc($limitdate); ?></td>
+                                    <?php $renew = "" ?>
+                                    <?php if(!empty($customer['renew'])) { ?>
+                                        <?php $renew = substr($customer['renew'], 0, 4)."年".substr($customer['renew'], 4, 2)."月".substr($customer['renew'], 6, 2)."日"; ?>
+                                    <?php } ?>
+                                    <td align="center" style="width:150px;"><?php hsc($renew); ?></td>
+                                    <?php $fees_rece_kbn = "" ?>
+                                    <?php if($customer['fees_rece_kbn'] == '0') { ?>
+                                        <?php $fees_rece_kbn = "入金済"; ?>
+                                    <?php } else if($customer['fees_rece_kbn'] == '1') { ?>
+                                        <?php $fees_rece_kbn = "未入金"; ?>
+                                    <?php } ?>
+                                    <td align="center" style="width:100px;"><?php hsc($fees_rece_kbn); ?></td>
+                                    <?php $cred_impo_kbn = "" ?>
+                                    <?php if($customer['cred_impo_kbn'] == '0') { ?>
+                                        <?php $cred_impo_kbn = "可能"; ?>
+                                    <?php } else if($customer['cred_impo_kbn'] == '1') { ?>
+                                        <?php $cred_impo_kbn = "不可"; ?>
+                                    <?php } ?>
+                                    <td align="center" style="width:100px;"><?php hsc($cred_impo_kbn); ?></td>
+                                    <td align="center" style="width:100px;"><?php hsc($customer['cust_sumday']); ?></td>
+                                    <?php $tax_calc_kbn = "" ?>
+                                    <?php if($customer['tax_calc_kbn'] == '1') { ?>
+                                        <?php $tax_calc_kbn = "請求単位"; ?>
+                                    <?php } else if($customer['tax_calc_kbn'] == '2') { ?>
+                                        <?php $tax_calc_kbn = "伝票単位"; ?>
+                                    <?php } else if($customer['tax_calc_kbn'] == '3') { ?>
+                                        <?php $tax_calc_kbn = "明細単位"; ?>
+                                    <?php } else if($customer['tax_calc_kbn'] == '4') { ?>
+                                        <?php $tax_calc_kbn = "親子単位"; ?>
+                                    <?php } ?>
+                                    <td align="center" style="width:100px;"><?php hsc($tax_calc_kbn); ?></td>
+                                    <?php $tax_frac_kbn = "" ?>
+                                    <?php if($customer['tax_frac_kbn'] == '1') { ?>
+                                        <?php $tax_frac_kbn = "切捨て"; ?>
+                                    <?php } else if($customer['tax_frac_kbn'] == '2') { ?>
+                                        <?php $tax_frac_kbn = "四捨五入"; ?>
+                                    <?php } else if($customer['tax_frac_kbn'] == '3') { ?>
+                                        <?php $tax_frac_kbn = "切上げ"; ?>
+                                    <?php } ?>
+                                    <td align="center" style="width:100px;"><?php hsc($tax_frac_kbn); ?></td>
+                                    <td align="center" style="width:200px;"><?php hsc($customer['note1']); ?></td>
+                                    <td align="center" style="width:200px;"><?php hsc($customer['note2']); ?></td>
+                                    <td align="center" style="width:200px;"><?php hsc($customer['note3']); ?></td>
+                                    <td align="center" style="width:200px;"><?php hsc($customer['note4']); ?></td>
+                                    <td align="center" style="width:200px;"><?php hsc($customer['note5']); ?></td>
+                                    <td align="center" style="width:200px;"><?php hsc($customer['cust_b_nm1']); ?></td>
+                                    <td align="center" style="width:200px;"><?php hsc($customer['cust_b_nm2']); ?></td>
+                                    <td align="center" style="width:200px;"><?php hsc($customer['cust_b_nm3']); ?></td>
+                                    <td align="center" style="width:200px;"><?php hsc($customer['cust_b_nm4']); ?></td>
+                                    <td align="center" style="width:200px;"><?php hsc($customer['cust_b_nm5']); ?></td>
+                                    <td align="center" style="width:200px;"><?php hsc($customer['cust_b_nm6']); ?></td>
+                                    <td align="center" style="width:200px;"><?php hsc($customer['cust_b_nm7']); ?></td>
+                                    <td align="center" style="width:200px;"><?php hsc($customer['cust_b_nm8']); ?></td>
+                                    <td align="center" style="width:200px;"><?php hsc($customer['cust_b_nm9']); ?></td>
+                                    <td align="center" style="width:200px;"><?php hsc($customer['cust_b_nm10']); ?></td>
+                                    <?php $fst_visit_dt = "" ?>
+                                    <?php if(!empty($customer['fst_visit_dt'])) { ?>
+                                        <?php $fst_visit_dt = substr($customer['fst_visit_dt'], 0, 4)."年".substr($customer['fst_visit_dt'], 4, 2)."月".substr($customer['fst_visit_dt'], 6, 2)."日"; ?>
+                                    <?php } ?>
+                                    <td align="center" style="width:150px;"><?php hsc($fst_visit_dt); ?></td>
+                                    <?php $lst_visit_dt = "" ?>
+                                    <?php if(!empty($customer['lst_visit_dt'])) { ?>
+                                        <?php $lst_visit_dt = substr($customer['lst_visit_dt'], 0, 4)."年".substr($customer['lst_visit_dt'], 4, 2)."月".substr($customer['lst_visit_dt'], 6, 2)."日"; ?>
+                                    <?php } ?>
+                                    <td align="center" style="width:150px;"><?php hsc($lst_visit_dt); ?></td>
+                                    <td align="center" style="width:150px;"><?php hsc($customer['lst_shop_nm']); ?></td>
+                                    <td align="right" style="width:100px;"><?php hsc(number_format($customer['visit_cnt'])); ?>回</td>
+                                    <td align="right" style="width:100px;"><?php hsc(number_format($customer['all_total'])); ?>円</td>
+                                    <td align="right" style="width:100px;"><?php hsc(number_format($customer['all_profit'])); ?>円</td>
+                                    <td align="right" style="width:100px;"><?php hsc(number_format($customer['all_point'])); ?>円</td>
+                                </tr>
+                                <?php if($customerNoSortFlag) { ?>
+                                      <?php $display_no--; ?>
+                                <?php } ?>
+                            <?php } ?>
+                        </tbody>
+                    </table>
+                </div><!-- /.serchListArea -->
+           </div><!-- /.jquery-replace-ajax -->

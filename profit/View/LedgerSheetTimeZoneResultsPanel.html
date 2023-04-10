@@ -1,0 +1,720 @@
+<?php
+    /**
+     * @file      時間帯別実績(View)
+     * @author    millionet montagne
+     * @date      2019/05/22
+     * @version   1.00
+     * @note      
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述
+            include("../profit/View/Common/HtmlHeader.php");
+        ?>
+
+        <script src="../js/profit/jquery/jquery.ui.ympicker.js" ></script>
+        <script src="../js/profit/jquery/jquery-migrate-1.0.0.js" ></script>
+        <script src="../js/profit/jquery/datepicker-ja.js" ></script>
+        <script src="../js/autofil_v<?php echo $_SESSION['AUTOFIL_VER'] ?>.js" ></script>
+        <!-- modal script-->
+        <script src="../js/modal/modal.js" ></script>
+        <link rel="stylesheet" href="../css/modal/modal.css" >
+        
+        <script type="text/javascript">
+            Sizelist       = '<?php echo json_encode(json_encode($Sizelist)); ?>';
+            A_Sizelist     = JSON.parse(Sizelist.slice(1,-1));
+            porg_id_list        = '<?php echo json_encode(json_encode($org_id_list)); ?>';
+            data_org            = JSON.parse(porg_id_list.slice(1,-1)); 
+            ptypdata            = '<?php echo json_encode($data); ?>';
+            A_Data              = JSON.parse(ptypdata); 
+ 
+            // create data set for day case, month case and year case
+            A_Data_day = []; // day
+            A_Data_month = []; // month
+            A_Data_year = [];  // year
+            // fill month data and year data
+            cumul=[];
+            cumul["month"]=[];
+            cumul["year"]=[];
+            for(i=0;i<A_Data.length;i++){
+                date_day = A_Data[i]["proc_date"];
+                org_id=A_Data[i]["org_id"];
+                // day
+                if(!A_Data_month[date_day]){
+                    A_Data_month[date_day]=[];
+                }
+                if(!A_Data_month[date_day][org_id]){
+                    A_Data_month[date_day][org_id] = [];
+                }
+                A_Data_month[date_day][org_id][A_Data[i]["tmzone_cd"]] = JSON.parse(JSON.stringify(A_Data[i]));
+            }
+            working_data = [];
+        </script>
+        <script type="text/javascript">
+            var date_mode = "month";
+            var org_list = "";
+            
+            function numberWithCommas(x,precision = 0) {
+                // x : value
+                // precision : precision to return default 0 (no decimal: 99) | 1 => 99.9 | 2 => 99.99 ...
+                x = Math.round(Number(x)*Math.pow(10,precision))/Math.pow(10,precision);
+                var parts = x.toString().split(".");
+                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                if(precision){
+                    if(!parts[1]){
+                        parts[1] = 0;
+                    }                    
+                    parts[1]=(parts[1]+"0".repeat(precision)).substr(0,precision);
+                }                
+                return parts.join(".");
+            }
+            
+            /**
+             * DatePickerを設定
+             */
+            $(function()
+            {
+                $( "#start_date, #end_date" ).datepicker({
+                    numberOfMonths: 2,
+                    showCurrentAtPos: 1,
+                    showButtonPanel: true,
+                    dateFormat: 'yy/mm/dd'
+                });
+            });
+
+            $(function() {
+                $("#start_dateM").ympicker({
+                    altField: "#start_dateM" //リターンセットUI IDorCLASS名
+                    ,altFormat: "yy/mm" //リターン日付形式
+                    ,monthNamesShort: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"]  //カレンダー表示月形式
+                    ,showAnim: "slideDown" //表示アニメーション形式
+                    ,yearRange: "c-2:c+3" //プルダウン年範囲
+                });
+            });
+            $(function() {
+                $("#end_dateM").ympicker({
+                    altField: "#end_dateM" //リターンセットUI IDorCLASS名
+                    ,altFormat: "yy/mm" //リターン日付形式
+                    ,monthNamesShort: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"]  //カレンダー表示月形式
+                    ,showAnim: "slideDown" //表示アニメーション形式
+                    ,yearRange: "c-2:c+3" //プルダウン年範囲
+                });
+            });
+            $(function() {
+                $("#end_year, #start_year").datepicker({
+                    dateFormat: "yy",
+                    changeYear: true
+                    ,changeMonth: false
+                    ,showButtonPanel: false
+                    ,onClose: function(dateText, inst) { 
+                        var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
+                        $(this).datepicker('setDate', new Date(year, 1));
+                    }
+                }).focus(function(){
+                    document.getElementsByClassName("ui-datepicker-calendar")[0].style.display="none";
+                    document.getElementsByClassName("ui-datepicker-month")[0].style.display="none";
+                    document.getElementsByClassName("ui-datepicker-prev")[0].style.display="none";
+                    document.getElementsByClassName("ui-datepicker-next")[0].style.display="none";
+                } )                ;
+            });
+            function radio_change_management(){
+                var prev = [];
+                document.getElementById("search_param").addEventListener('change', function(e) {
+                    //console.log('Previous:', prev[e.target.name] ? prev[e.target.name].value : null);
+                    //console.log(e);
+                    if(e.target.name === "org_r"){
+                        if(!prev[e.target.name]){
+                            prev[e.target.name]={value:""};
+                        }
+                        document.getElementById("org_select").disabled=true;
+                        if(e.target.value === "" ){
+                            document.getElementById("org_select").disabled=false;
+                        }  
+                    }
+                    prev[e.target.name] = e.target;
+                });
+            }
+            function csv_print(e){
+                elem_tr_list = table_body.getElementsByTagName("tr");
+                data_send = [];
+                var csv_data_o = {};
+                var row_nb = 0;
+                csv_data_o['"'+row_nb+'"'] =table_head.getElementsByTagName('tr')[0].innerText.replace(' ▲',"").replace(' ▼',"").replace(/[\n,\r]/g,'').replace(/\t/g,",");
+                for(i=0;i<elem_tr_list.length;i++){
+                    looprow = elem_tr_list[i];
+                    if( looprow.childElementCount ===1 ){
+                        continue;
+                    }
+                    if(looprow.style.backgroundColor){
+                        //console.log(elem_tr_list[i]);
+                        continue;
+                    } 
+                    row_nb += 1; 
+                    csv_data_o['"'+row_nb+'"'] = '"'+looprow.innerText.replace(/\t/g,'","')+'"';
+                }
+                data_send["csv_data"] = JSON.stringify(csv_data_o);
+                //console.log(data_send);
+                //data_sendを送ります。
+                spath       = 'index.php?param=LedgerSheetTimeZoneResults/csvoutput';
+                //console.log(spath);
+                setDataForAjax( data_send, spath ,'ajaxScreenUpdate' );                
+            }
+            function search_data(){
+                // check checkbox at list 1 is checked
+                
+                date_str_id = "start_dateM";
+                date_end_id = "end_date";
+                loop_date="";
+                loop_org_id="";
+                elem_str_date = document.getElementById(date_str_id).value.replace(/\//g,"");
+                org_select_val = document.getElementById("org_select").value;
+                if(elem_str_date === ""){
+                    alert("営業期間を入力してください。");
+                    document.getElementById(date_str_id).focus();
+                    return;                    
+                }
+                if(!A_Data_month[elem_str_date]){
+                    alert("データがありません。");
+                    working_data=[];
+                    show_data(working_data);
+                    return;
+                }
+                temp_data =A_Data_month[elem_str_date];
+                
+                //console.log(temp_data);
+                elem_org = document.querySelector('input[name="org_r"]:checked');
+                
+                if(elem_org.value === ""){
+                    if(org_list===""){
+                        alert("店舗を入力してください。");
+                        return;
+                    }
+                }
+                working_data = [];
+                prev_res5 = 0;
+                prev_res6 = 0;
+               // org_id
+                org_id_key = Object.keys(temp_data);
+                for(k=0;k<org_id_key.length;k++){
+                    loop_org_id = org_id_key[k];
+                    if(elem_org.value === ""){
+                        //console.log(isNaN(org_select_val));
+                        if(isNaN(org_select_val)){
+                            if(org_list.indexOf(loop_org_id) === -1){
+                                //console.log("exit1");
+                                continue;
+                            }
+                        }else if(loop_org_id !== org_select_val){
+                            continue;
+                        }
+                    }
+                    if(elem_org.value !== "compile"){
+                        if(!working_data[loop_org_id]){
+                            working_data[loop_org_id] = [];
+                        }
+                        working_data[loop_org_id] = temp_data[loop_org_id];
+                    }else{
+                        if(!working_data["企業計"]){
+                            working_data["企業計"] = [];
+                        }
+                        tmzone_cd_key = Object.keys(temp_data[loop_org_id]);
+                        for(i=0;i<tmzone_cd_key.length;i++){
+                            loop_tmzone_cd = tmzone_cd_key[i];
+                            loop_row = temp_data[loop_org_id][loop_tmzone_cd];
+                            if(!working_data["企業計"][loop_tmzone_cd]){
+                                working_data["企業計"][loop_tmzone_cd] = loop_row;
+                            }else{
+                                working_data["企業計"][loop_tmzone_cd]["sale_total"]    = Number(loop_row["sale_total"])   + Number(working_data["企業計"][loop_tmzone_cd]["sale_total"]);
+                                working_data["企業計"][loop_tmzone_cd]["pure_total"]    = Number(loop_row["pure_total"])   + Number(working_data["企業計"][loop_tmzone_cd]["pure_total"]);
+                                working_data["企業計"][loop_tmzone_cd]["sale_profit"]   = Number(loop_row["sale_profit"])  + Number(working_data["企業計"][loop_tmzone_cd]["sale_profit"]);
+                                working_data["企業計"][loop_tmzone_cd]["sale_amount"]   = Number(loop_row["sale_amount"])  + Number(working_data["企業計"][loop_tmzone_cd]["sale_amount"]);
+                                working_data["企業計"][loop_tmzone_cd]["return_total"]  = Number(loop_row["return_total"]) + Number(working_data["企業計"][loop_tmzone_cd]["return_total"]);
+                                working_data["企業計"][loop_tmzone_cd]["return_amount"] = Number(loop_row["return_amount"])+ Number(working_data["企業計"][loop_tmzone_cd]["return_amount"]);                                
+                                working_data["企業計"][loop_tmzone_cd]["tax"]           = Number(loop_row["tax"])          + Number(working_data["企業計"][loop_tmzone_cd]["tax"]);                                
+                            }
+                        }
+                    }
+                }
+                //console.log(working_data);
+                if(working_data.length === 0 ){
+                    alert("データがありません。");
+                    document.getElementById("btn_csv").hidden = true;
+                }else{
+                    document.getElementById("btn_csv").hidden = false;
+                }
+                show_data(working_data);
+            };
+            
+            function show_data(t_data){
+                //console.log(t_data);
+                elem_tbody=document.getElementById("table_body");
+                elem_tbody.innerHTML="";
+                org_r_val = document.querySelector('input[name="org_r"]:checked').value;
+                
+                function insert_row(row){
+                    //console.log("row to print");
+                    //console.log(row);
+                    // a finir round a faire, format des donnees (proc_date,sale_total,sale_profit,sale_amount,cust_amount)
+                    trow     = elem_tbody.insertRow();
+                    if(row["background"]){
+                        //console.log(row);
+                        trow.style.backgroundColor = row["background"];
+                    }
+                    org_nm_val = trow.insertCell(0);
+                    time_period_val = trow.insertCell(1);
+                    sale_total_val = trow.insertCell(2);
+                    pure_total_val = trow.insertCell(3);
+                    tax_val        = trow.insertCell(4);
+                    sale_profit_val = trow.insertCell(5);
+                    res2_val = trow.insertCell(6);
+                    sale_amount_val = trow.insertCell(7);
+                    res3_val = trow.insertCell(8);
+                    return_total_val = trow.insertCell(9);
+                    return_amount_val = trow.insertCell(10);
+                    tot_sale_total_val = trow.insertCell(11);
+                    tot_sale_profit_val = trow.insertCell(12);
+    
+                    org_nm_val.innerHTML        = row["org_nm"];
+                    time_period_val.innerHTML   = row["time_period"];
+                    sale_total_val.innerHTML    = numberWithCommas(row["sale_total"]);
+                    pure_total_val.innerHTML    = numberWithCommas(row["pure_total"]);
+                    tax_val.innerHTML           = numberWithCommas(Number(row["tax"]));
+                    sale_profit_val.innerHTML   = numberWithCommas(row["sale_profit"]);
+                    if(Number(row["sale_total"]) !== 0){
+                        res2_val.innerHTML      = numberWithCommas(Number(row["sale_profit"])/Number(row["sale_total"])*100,2);
+                    }else{
+                        res2_val.innerHTML      = '0.00';
+                    }
+                    sale_amount_val.innerHTML   = numberWithCommas(row["sale_amount"]);
+                    if(Number(row["sale_amount"]) !== 0){
+                        res3_val.innerHTML      = numberWithCommas(Number(row["pure_total"])/Number(row["sale_amount"])*100,2);
+                    }else{
+                        res3_val.innerHTML      = '0.00';
+                    }
+                    return_total_val.innerHTML  = numberWithCommas(row["return_total"]);
+                    return_amount_val.innerHTML = numberWithCommas(row["return_amount"]);
+                    tot_sale_total_val.innerHTML  = numberWithCommas(row["tot_sale_total"]);
+                    tot_sale_profit_val.innerHTML = numberWithCommas(row["tot_sale_profit"]); 
+                }
+                function insert_footer(row){
+                    elem_tfoot=document.getElementById("table_foot");
+                    elem_tfoot.innerHTML="";
+                    elem_tfoot.innerHTML="<tr><th></th></tr>";
+                    foot_date_key = Object.keys(t_data);
+                    //console.log(foot_date_key);
+                    trow     = elem_tfoot.insertRow();
+                    org_nm_val = trow.insertCell(0);
+                    time_period_val = trow.insertCell(1);
+                    sale_total_val = trow.insertCell(2);
+                    pure_total_val = trow.insertCell(3);
+                    tax_val = trow.insertCell(4);
+                    sale_profit_val = trow.insertCell(5);
+                    res2_val = trow.insertCell(6);
+                    sale_amount_val = trow.insertCell(7);
+                    res3_val = trow.insertCell(8);
+                    return_total_val = trow.insertCell(9);
+                    return_amount_val = trow.insertCell(10);
+                    tot_sale_total_val = trow.insertCell(11);
+                    tot_sale_profit_val = trow.insertCell(12);
+    
+                    org_nm_val.innerHTML        = "総合計";
+                    time_period_val.innerHTML   = "";
+                    sale_total_val.innerHTML    = numberWithCommas(row["sale_total"]);
+                    pure_total_val.innerHTML    = numberWithCommas(row["pure_total"]);
+                    tax_val.innerHTML           = numberWithCommas(Number(row["tax"]));
+                    sale_profit_val.innerHTML   = numberWithCommas(row["sale_profit"]);
+                    if(Number(row["sale_total"]) !== 0){
+                        res2_val.innerHTML      = numberWithCommas(Number(row["sale_profit"])/Number(row["sale_total"])*100,2);
+                    }else{
+                        res2_val.innerHTML      = '0.00';
+                    }
+                    sale_amount_val.innerHTML   = numberWithCommas(row["sale_amount"]);
+                    if(Number(row["sale_amount"]) !== 0){
+                        res3_val.innerHTML      = numberWithCommas(Number(row["pure_total"])/Number(row["sale_amount"])*100,2);
+                    }else{
+                        res3_val.innerHTML      = '0.00';
+                    }
+                    return_total_val.innerHTML  = numberWithCommas(row["return_total"]);
+                    return_amount_val.innerHTML = numberWithCommas(row["return_amount"]);
+                    tot_sale_total_val.innerHTML  = numberWithCommas(row["tot_sale_total"]);
+                    tot_sale_profit_val.innerHTML = numberWithCommas(row["tot_sale_profit"]);                     
+                }
+                
+                t_cumul_data = [];
+                t_cumul_data["total"]=[];
+                t_cumul_data["total"]["sale_total"]     = 0;
+                t_cumul_data["total"]["pure_total"]     = 0;
+                t_cumul_data["total"]["sale_profit"]    = 0;
+                t_cumul_data["total"]["sale_amount"]    = 0;
+                t_cumul_data["total"]["return_total"]   = 0;
+                t_cumul_data["total"]["return_amount"]  = 0;
+                t_cumul_data["total"]["tot_sale_total"] = 0;
+                t_cumul_data["total"]["tot_sale_profit"] = 0;
+                t_cumul_data["total"]["tax"]            = 0;
+                
+                t_cumul_data["compile"]=[];
+                t_cumul_data["calc"]=[];
+                loop_date="";
+                org_id = "";
+                // ################ loop org_id
+                org_id_key = Object.keys(t_data).sort();
+                for(i=0;i<org_id_key.length;i++){
+                    org_id=org_id_key[i];
+                    // loop data
+                    t_cumul_data["cumul"] = [];
+                    t_cumul_data["cumul"]["sale_total"]     = 0;
+                    t_cumul_data["cumul"]["pure_total"]     = 0;
+                    t_cumul_data["cumul"]["sale_profit"]    = 0;
+                    t_cumul_data["cumul"]["sale_amount"]    = 0;
+                    t_cumul_data["cumul"]["return_total"]   = 0;
+                    t_cumul_data["cumul"]["return_amount"]  = 0;
+                    t_cumul_data["cumul"]["tot_sale_total"]  = 0;
+                    t_cumul_data["cumul"]["tot_sale_profit"] = 0;
+                    t_cumul_data["cumul"]["tax"]            = 0;
+                    tot_sale_total  = 0;
+                    tot_sale_profit = 0;
+                    // tmzone_cd loop
+                    tmzone_cd_key = Object.keys(t_data[org_id]).sort();
+                    for(j=0;j<tmzone_cd_key.length;j++){
+                        llop_tmzone_cd = tmzone_cd_key[j];
+                        loop_row = t_data[org_id][llop_tmzone_cd];
+                        // a faire
+
+                        if(j === 0){
+                            org_nm = loop_row["org_nm"];
+                        }else{
+                            org_nm = '';
+                        }
+                        tot_sale_total  += Number(loop_row["sale_total"]);
+                        tot_sale_profit += Number(loop_row["sale_profit"]);
+                        i_row =[];
+                        i_row["org_nm"] = org_nm;
+                        i_row["time_period"]    = loop_row["time_period"];
+                        i_row["sale_total"]     = loop_row["sale_total"];
+                        i_row["pure_total"]     = loop_row["pure_total"];
+                        i_row["tax"]            = loop_row["tax"];
+                        i_row["sale_profit"]    = loop_row["sale_profit"];
+                        i_row["sale_amount"]    = loop_row["sale_amount"];
+                        i_row["return_total"]   = loop_row["return_total"];
+                        i_row["return_amount"]  = loop_row["return_amount"];
+                        i_row["tot_sale_total"]  = tot_sale_total;
+                        i_row["tot_sale_profit"] = tot_sale_profit;
+                        insert_row(i_row);
+                        t_cumul_data["cumul"]["sale_total"]     += Number(i_row["sale_total"]);
+                        t_cumul_data["cumul"]["pure_total"]     += Number(i_row["pure_total"]);
+                        t_cumul_data["cumul"]["tax"]            += Number(i_row["tax"]);
+                        t_cumul_data["cumul"]["sale_profit"]    += Number(i_row["sale_profit"]);
+                        t_cumul_data["cumul"]["sale_amount"]    += Number(i_row["sale_amount"]);
+                        t_cumul_data["cumul"]["return_total"]   += Number(i_row["return_total"]);
+                        t_cumul_data["cumul"]["return_amount"]  += Number(i_row["return_amount"]);
+                        t_cumul_data["cumul"]["tot_sale_total"]  += Number(i_row["tot_sale_total"]);
+                        t_cumul_data["cumul"]["tot_sale_profit"] += Number(i_row["tot_sale_profit"]);
+                        
+                        t_cumul_data["total"]["sale_total"]     += Number(i_row["sale_total"]);
+                        t_cumul_data["total"]["pure_total"]     += Number(i_row["pure_total"]);
+                        t_cumul_data["total"]["tax"]            += Number(i_row["tax"]);
+                        t_cumul_data["total"]["sale_profit"]    += Number(i_row["sale_profit"]);
+                        t_cumul_data["total"]["sale_amount"]    += Number(i_row["sale_amount"]);
+                        t_cumul_data["total"]["return_total"]   += Number(i_row["return_total"]);
+                        t_cumul_data["total"]["return_amount"]  += Number(i_row["return_amount"]);
+                        t_cumul_data["total"]["tot_sale_total"]  += Number(i_row["tot_sale_total"]);
+                        t_cumul_data["total"]["tot_sale_profit"] += Number(i_row["tot_sale_profit"]);                         
+                    } // end loop tmzone_cd
+                        loop_row = t_cumul_data["cumul"];
+                        loop_row["background"] = "lightgrey" ;
+                        loop_row["org_nm"]       = "合計";
+                        loop_row["time_period"]  = "";
+                        insert_row(loop_row);                  
+                } // end loop org_id
+
+                // call footer function;
+                insert_footer(t_cumul_data["total"]);
+            }
+            
+            window.onload = function () {
+                creat_listener();
+                radio_change_management();
+                today = new Date();
+                //document.getElementById("end_date").value = today.toISOString().slice(0,10).replace(/-/g,"\/"); 
+                //today.setMonth(today.getMonth()-1);
+                document.getElementById("start_dateM").value = today.toISOString().slice(0,7).replace(/-/g,"\/"); 
+                var empty_array = [];
+                modal_create_select("org_select",empty_array);
+            };
+
+        </script>
+
+        <STYLE type="text/css">
+            select{
+                min-width: 10em;
+            }
+            #sb-site{
+                padding-left: 5px;
+            }
+            table th {
+              color: #fff;
+              background: #0D0D70;
+              border-left:1px solid #000000;
+              border-right:1px solid #000000;
+              border-top:1px solid #000000;
+              border-bottom:1px solid #000000;
+              line-height: 120%;
+              text-align: center;
+              text-shadow:0 -1px 0 rgba(34,85,136,0.9);
+              box-shadow: 0px 1px 1px rgba(255,255,255,0.3) inset;
+              height:25px;
+            }
+            #search_param{
+                overflow: hidden;
+            }
+            .no_overflow{
+                float: left; 
+            }            
+            .field_title {
+                float: left;
+                display:flex;
+                align-items:center;
+                background: #0D0D70;
+                height: 7em;
+                color: white;
+                text-align: center;
+                padding: 5px;
+                border: 1px solid black;
+            }
+            .field_data {
+                padding: 5px 20px 5px 20px;
+                float : left;
+                height: 7em;
+                border: 1px solid black;
+            }
+
+            #screen_name_d{
+                display:flex;
+                align-items:center;
+ 
+            }
+            #action_d{
+                padding-top: 12px;
+            }
+            #org_d{
+               padding-top: 25px; 
+            }
+            #period_d{
+                padding-top: 13px;
+            }            
+/* table css */            
+            .table_container {
+                overflow: hidden;                
+                padding: 0;
+            }
+            #table_id  {
+                max-height: 45em;
+                display: flex;
+                flex-flow: column;
+                height: 100%;
+                width: 100%;
+                padding: 0;
+                border-spacing: 0;  
+            }
+            #table_id  thead,
+            #table_id  tfoot{
+                /* head takes the height it requires, 
+                and it's not scaled when table is resized */
+                flex: 0 0 auto;
+                width: calc(100% - 19px);
+            }
+            #table_id  tbody {
+                /* body takes all the remaining available space */
+                /*flex: 1 1 auto;*/
+                display: block;
+                overflow-y: scroll;
+                padding: 0;
+            }
+            #table_id  tbody tr,
+            #table_id  tfoot tr {
+                width: 100%;
+            }
+            #table_id thead,
+            #table_id tbody tr,
+            #table_id  tfoot tr{
+                display: table;
+                table-layout: fixed;
+                padding: 0;
+                background-color: #fff;
+            }
+
+            #table_id thead th {
+                background: #0D0D70;                
+                border: 1px solid #AAA;
+                color: white;
+                text-align: center;
+                padding: 0;
+                border-collapse: collapse;
+            }
+            #table_id tbody td,
+            #table_id tfoot td{
+                
+                border: 1px solid #444;
+                padding: 0 2px 0 2px;
+                text-align: center; 
+                border-collapse: collapse;
+            } 
+            #table_id thead th:first-child,
+            #table_id tbody tr td:first-child,
+            #table_id tfoot tr td:first-child {
+              width: 7em;
+            }
+            #table_id thead th:nth-child(2),
+            #table_id tbody tr td:nth-child(2),
+            #table_id tfoot tr td:nth-child(2){
+                width: 8em;
+            }
+            #table_id thead th:nth-child(3),
+            #table_id tbody tr td:nth-child(3),
+            #table_id tfoot tr td:nth-child(3){
+                width: 7em;
+            }
+            #table_id thead th:nth-child(4),
+            #table_id tbody tr td:nth-child(4),
+            #table_id tfoot tr td:nth-child(4){
+                width: 7em;
+            }
+            #table_id thead th:nth-child(5),
+            #table_id tbody tr td:nth-child(5),
+            #table_id tfoot tr td:nth-child(5){
+                width: 7em;
+            } 
+            #table_id thead th:nth-child(6),
+            #table_id tbody tr td:nth-child(6),
+            #table_id tfoot tr td:nth-child(6){
+                width: 7em;
+            }
+            #table_id thead th:nth-child(7),
+            #table_id tbody tr td:nth-child(7),
+            #table_id tfoot tr td:nth-child(7){
+                width: 7em;
+            }
+            #table_id thead th:nth-child(8),
+            #table_id tbody tr td:nth-child(8),
+            #table_id tfoot tr td:nth-child(8){
+                /*width: 10em;*/
+            }
+           
+            #table_id tbody tr td,
+            #table_id tfoot tr td{
+                text-align: right;
+            }
+            #table_id tbody tr td:first-child,
+            #table_id tfoot tr td:first-child,
+            #table_id tbody tr td:nth-child(2),
+            #table_id tfoot tr td:nth-child(2){
+                text-align: left;
+            }
+            .hasDatepicker, .hasYmpicker{
+                margin-top: 3px;
+            }            
+        </STYLE>
+
+    </head>
+    <body>
+        <?php
+        if( isset($_GET['home']) ) {
+            if( "1" ==  $_GET['home'] ){
+                include("../home/View/Common/PageHeader.php");
+            }else{
+                include("Common/PageHeader.php");
+            }
+        }else{
+                include("Common/PageHeader.php");
+        }
+        ?>
+
+        <!-- Site -->
+        <div id="sb-site">
+            <div id="search_param">
+                <div id="screen_name_t" class="field_title">
+                    帳票			
+                </div>
+                <div id="screen_name_d" class="field_data">
+                    時間帯別実績	
+                </div>                   
+                <div id="period_t" class="field_title">
+                    期間指定<!--文字修正　2019/12/01　柴田-->			
+                </div>  
+                <div id="period_d" class="field_data">
+                    <!-- month -->
+                    <br />
+                   <input type="text" title="開始" id="start_dateM" name="start_date" size="10" ><!--文字修正　2019/12/01　柴田-->
+                </div>
+                <div class="no_overflow">
+                    <div id="org_t" class="field_title">
+                        グループ<br />選択			
+                    </div>
+                    <div id="org_d" class="field_data">
+                        <input type="radio" name="org_r" value="all" checked> 全店<br>
+                        <input type="radio" name="org_r" value=""> 店舗指定&nbsp;&nbsp;
+                        <select id="org_select" name="org_select" disabled onchange="modal_select_mgt(event)"><option value="no">&nbsp;</option></select>
+                    </div> 
+                <div id="action_d" class="field_data">
+                    <button type="button" onclick="search_data(event)" >検索</button><br /><br />
+                    <button type="button" id="btn_csv" onclick="csv_print(event)" hidden>CSV出力</button>
+                </div>
+            </div>
+            </div>
+            <!-- The Modal -->
+            
+            <div id="modal_org" class="modal">
+                <!-- Modal content -->
+                <div class="modal-content">
+                    <?php include("../modal/View/Modalorganization.html"); ?>
+                </div>
+            </div>            
+            
+            <br />
+            <div id="data_show"  class="table_container">
+                <table id="table_id">
+                    <thead id="table_head">
+                        <tr>
+                            <th>店舗名</th>
+                            <th>時間帯</th>
+                            <th>税込売上金額</th>
+                            <th>税抜売上金額</th>
+                            <th>消費税</th>
+                            <th>粗利金額</th>
+                            <th>粗利率</th>
+                            <th>買上点数</th>
+                            <th>一点単価</th>
+                            <th>返品金額</th>
+                            <th>返品点数</th>
+                            <th>累計売上金額</th>
+                            <th>累計粗利金額</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table_body">
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>    
+                        </tr>                        
+                    </tbody>
+                    <tfoot id="table_foot">
+                    </tfoot>
+                </table>
+            </div>
+            
+        </div>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<?php
+    /**
+     * @file      発注先検索画面(View)
+     * @author    USE K.Kanda(media-craft.co.jp)
+     * @date      2018/01/22
+     * @version   1.00
+     * @note      発注先検索
+     */
+require_once( SystemParameters::$SANITIZE_SETTING_FILE );
+?>
+<p class="title">発注先選択</p>
+<div id="listArea" style="height:320px;">
+    <table id="listTable" style="width:980px;height:300px;">
+        <thead class="meisai" style="width:980px;">
+            <tr>
+                <th style="width:80px;">
+                <th style="width:180px;">発注先
+                <th style="width:300px;">取扱商品
+                <th style="width:60px;">送料
+                <th style="width:180px;">メールアドレス
+                <th style="width:80px;">HP
+                <th style="width:80px;">動画
+            </tr>
+        </thead>
+        <tbody class="meisai">
+            <?php
+            foreach($makerArr as $key => $val)
+            {
+           	?>
+            <tr>
+                <td style="width:80px;" align="center"><a href="javascript:void(0)" onclick="makerSelected('<?php hsc($val['ma_cd']);?>','<?php hsc($val['ma_name']);?>','<?php hsc(number_format($val['postage']));?>','<?php hsc(number_format($val['free_kin']));?>')"><div class="button_select">選択</div></a>
+                <td style="width:180px;"><?php hsc($val['ma_name']);?>
+                <td style="width:300px;"><?php hsc($val['description']);?>
+                <td style="width:60px;text-align:right;"><?php hsc(number_format($val['postage']));?>
+                <td style="width:180px;"><?php hsc($val['mail_addr']);?>
+                <td style="width:80px;"><?php if($val['url1']!="") {?><a href='<?php hsc($val['url1']);?>' target='_blank'><div class="button_url">閲覧</div></a><?php }?>
+                <td style="width:80px;"><?php if($val['url2']!="") {?><a href='<?php hsc($val['url2']);?>' target='_blank'><div class="button_url">閲覧</div></a><?php }?>
+            </tr>
+            <?php
+            }
+            ?>
+        </tbody>
+   </table>
+</div>
+<div id="cmArea" style="height:200px;">
+	<?php include("OrderCmList.html");?>
+</div>

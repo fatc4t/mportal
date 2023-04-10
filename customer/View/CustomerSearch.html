@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>顧客検索</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="../css/customer/jquery-ui.css" >	
+        <link rel="stylesheet" href="../css/customer/default.css" >
+        <style>
+            body {
+                
+                background-color: whitesmoke;
+            }
+            label {
+              background-color: #0B0B61;
+              color: white;
+              font-weight: bold;
+              padding: 2px;
+              text-transform: uppercase;
+              font-size: 12pt;
+              margin: 1px;
+              display: inline-block;              
+            } 
+            .input_small2{
+                width: 8em;
+            } 
+            thead th {
+                background-color: #0B0B61;
+                border: 1px solid #AAA;
+                color: white;
+                text-align: -webkit-center; 
+            }
+            tbody td {
+                background-color: #fff;
+                border: 1px solid #0B0B61;
+                               
+            }            
+        </style>
+        <script type="text/javascript">
+            var table_size = 20;
+            var pagenb = 0;
+            
+            var keys=[];
+            keys=["cust_cd","cust_nm","cust_kn","tel"]
+            var result = "";
+            thead_nm            = ["","コード","顧客名","顧客カナ","電話番号"];
+            pmst0101_sd         = '<?php echo json_encode(json_encode($mst0101_searchdata)); ?>';
+            ptypmst0101_sd      = JSON.parse(pmst0101_sd.slice(1,-1));
+            working_data        = ptypmst0101_sd;
+            var pagemaxnb = Math.ceil(ptypmst0101_sd.length/table_size)-1 ;
+            function fresult(e){
+                result=e.target.value;
+                //console.log(result);
+                checkboxlst=document.getElementsByName('ckbox_val');
+                //console.log(checkboxlst);
+                for(i=0;i < checkboxlst.length; i++){
+                    checkboxlst[i].checked= false;
+                }
+                document.getElementById(e.target.id).checked= true;
+            }
+            function tbodydata(data,start,nbRow){ 
+                tbod = document.getElementById("tbody_id");
+                tbod.innerHTML = '';
+                if(data.length > 0){ 
+                    if(keys.length <= 0){
+                        keys = Object.keys(data[0]);            
+                    }
+                    ilength=data.length;
+                    if(nbRow > ilength-start){
+                        nbRow=ilength-start;                        
+                    }
+                    for(i=0;i < nbRow ; i++ ){ 
+                        var trow         = tbod.insertRow(i);
+                        var ckbox        = trow.insertCell(0);
+                        var newckBox     = document.createElement('input');
+                        newckBox.type    = 'checkbox';
+                        newckBox.name    = 'ckbox_val';
+                        newckBox.id      = 'ckbox_' + i;
+                        newckBox.value   = data[ilength-start-i-1].cust_cd;
+                        newckBox.onclick = fresult;
+                        ckbox.appendChild(newckBox);
+                        for(j=0;j < keys.length; j++){
+                            var newcell = trow.insertCell(j+1);
+                            newcell.innerHTML = data[ilength-start-i-1][keys[j]];
+                        }
+                    }
+                }                
+            }
+            function datashowpage(showpage){
+                tbodydata(working_data,showpage*table_size,table_size);
+            }
+            function firstpage(){
+                pagenb=0;
+                document.getElementById("bt_previous").setAttribute("disabled", true);
+                document.getElementById("bt_next").removeAttribute("disabled");
+                datashowpage(pagenb);
+            }
+            function lastpage(){
+                pagenb=pagemaxnb;
+                document.getElementById("bt_previous").removeAttribute("disabled");
+                document.getElementById("bt_next").setAttribute("disabled", true);
+                datashowpage(pagenb);
+            }
+            function previous(){
+                pagenb--;
+                if(pagenb > 0){  
+                    document.getElementById("bt_previous").removeAttribute("disabled");
+                }
+                else {
+                    pagenb = 0;
+                    document.getElementById("bt_previous").setAttribute("disabled", true);
+                }
+                if(pagenb < pagemaxnb){
+                    document.getElementById("bt_next").removeAttribute("disabled");
+                }
+                else {
+                    pagenb = pagemaxnb;                    
+                    document.getElementById("bt_next").setAttribute("disabled", true);
+                }                
+                datashowpage(pagenb);
+            }
+            function next(){ 
+                pagenb++;
+                if(pagenb < pagemaxnb){
+                    document.getElementById("bt_next").removeAttribute("disabled");
+                }
+                else {
+                    pagenb = pagemaxnb;                    
+                    document.getElementById("bt_next").setAttribute("disabled", true);
+                }
+                if(pagenb > 0){  
+                    document.getElementById("bt_previous").removeAttribute("disabled");
+                }
+                else {
+                    pagenb = 0;
+                    document.getElementById("bt_previous").setAttribute("disabled", true);
+                }                
+                datashowpage(pagenb);
+            }
+            function searchdata(event_id){
+                if(isNaN(document.getElementById("txt_TEL4").value)){
+                    alert("");
+                    return;
+                }
+                if(isNaN(document.getElementById("txt_TEL").value)){
+                    alert("");
+                    return;
+                }
+                var tel_val     = document.getElementById("txt_TEL").value;
+                var tel4_val    = document.getElementById("txt_TEL4").value;
+                var cust_nm_val = document.getElementById("txt_CUST_NM").value;
+                var cust_kn_val = document.getElementById("txt_CUST_KN").value;
+                if(!tel_val && !tel4_val && !cust_nm_val && !cust_kn_val){
+                    working_data = ptypmst0101_sd;
+                    firstpage();
+                    return;
+                }
+                working_data = [];
+                for(var i = 0 ; i<ptypmst0101_sd.length;i++){
+                    var j=0;
+                    if(tel_val){
+                        if(!ptypmst0101_sd[i].tel){continue;}
+                        if(ptypmst0101_sd[i].tel.indexOf(tel_val) !== -1  ){
+                            j=1;
+                        }
+                        else{continue;}
+                    }
+                    if(tel4_val){
+                        if(!ptypmst0101_sd[i].tel4){continue;}
+                        if(ptypmst0101_sd[i].tel4.indexOf(tel4_val) !== -1  ){
+                            j=1;
+                        }
+                        else{continue;}
+                    }
+                    if(cust_nm_val){
+                        if(!ptypmst0101_sd[i].cust_nm){continue;}
+                        if(ptypmst0101_sd[i].cust_nm.indexOf(cust_nm_val) !== -1  ){
+                            j=1;
+                        }
+                        else{continue;}
+                    }
+                    if(cust_kn_val){
+                        if(!ptypmst0101_sd[i].cust_kn){continue;}
+                        if(ptypmst0101_sd[i].cust_kn.indexOf(cust_kn_val) !== -1  ){
+                            j=1;
+                        }
+                        else{continue;}
+                    }                    
+                    if(j===1){
+                        working_data.push(ptypmst0101_sd[i]);
+                    }
+                }
+                firstpage();
+            }
+            function send_result(){
+                if (result != ""){
+                    spath      = window.location.href;
+                    spath      = spath.split('?');
+                    controler  = spath[1].split('/')[0].split('=')[1];
+                    if(spath[1].indexOf('org_id') !== -1){
+                        org_id = spath[1].split('org_id=')[1].split("&")[0];
+                        spath  = spath[0]+'?param='+controler+'/show&cust_cd='+result+"&org_id="+org_id;
+                    }
+                    else{
+                        spath  = spath[0]+'?param='+controler+'/show&custcd='+result;
+                    }
+                    window.location.replace(spath);
+                }
+            }
+        </script>
+    </head>
+    <body>
+        <div>顧客検索</div>
+        <div>
+            <label class="input_small2" for="txt_CUST_KN"> 顧客名（カナ） </label><input type="text"  id="txt_CUST_KN" onblur="searchdata('txt_CUST_KN')"><br />
+            <label class="input_small2" for="txt_CUST_NM"> 顧客名（漢字） </label><input type="text"  id="txt_CUST_NM" onblur="searchdata('txt_CUST_NM')"><br />             
+            <label class="input_small2" for="txt_TEL"> 電話番号 </label><input type="text" id="txt_TEL" onblur="searchdata('txt_TEL')"><label for="txt_TEL4" > TEL下４桁</label><input type="text" id="txt_TEL4" maxlength="5" onblur="searchdata('txt_TEL4')"><br /><br />
+            <button type="button" id="bt_fisrt" onclick="firstpage()"  >一ページ目</button><button type="button" id="bt_previous" onclick="previous()" disabled >前ページ</button><button type="button" id="bt_next" onclick="next()">次ページ</button><button type="button" id="bt_last" onclick="lastpage()"  >最後ページ</button>
+        </div>
+        <br />
+        <div>
+            <table>
+                <thead id="thead_id">
+                    <tr>
+                        <th>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="tbody_id">
+                    
+                </tbody>
+            </table>
+        </div>
+        <button type="button" id="send_result" onclick="send_result()"  >決定</button>
+        <script type="text/javascript">
+            thead = document.getElementById("thead_id");
+            thead.innerHTML = '';           
+            for(i=0;i < thead_nm.length ; i++ ){
+                field_nm            = document.createElement('th');
+                field_nm.innerHTML  = "";
+                field_nm.innerHTML  = thead_nm[i];
+                thead.appendChild(field_nm);
+            }
+            tbodydata(ptypmst0101_sd,0,table_size);
+           
+        </script>
+    </body>
+</html>

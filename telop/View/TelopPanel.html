@@ -1,0 +1,322 @@
+<?php
+    /**
+     * @file      テロップ画面(View)
+     * @author    millionet oota
+     * @date      2017/01/26
+     * @version   1.00
+     * @note      テロップ画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array('default.css', 'common.js', 'jquery-ui.min.js', 'jquery-ui.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述 
+            include("Common/HtmlHeader.php"); 
+        ?>
+        <script src="../js/telop/jquery/datepicker-ja.js" /></script>
+        <script type="text/javascript">
+            var displayPageNo = 1;
+            var displayRecordCnt = <?php hsc($_SESSION["DISPLAY_RECORD_CNT"]); ?>;
+            var telopItemInfo = null;
+            var telopSort = null;
+            var no_click_cnt = 0;
+            var contents_click_cnt = 0;
+            var link_url_click_cnt = 0;
+            var application_start_sate_click_cnt = 0;
+            var application_end_sate_click_cnt = 0;
+
+            $(document).ready(function()
+            {
+                /**
+                 * テロップ検索
+                 */
+                $('#search').click(function()
+                {
+                    displayPageNo = 1;
+                    // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                    var data = {
+                                  displayPageNo : displayPageNo,
+                                  displayRecordCnt : displayRecordCnt,
+                                  searchContents : $('#contents').val(),
+                                  searchlinkUrl : $('#link_url').val(),
+                                  searchSAppStartDate : $('#minApplicationStartDate').val(),
+                                  searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                               };
+                    var path = 'index.php?param=Telop/search&home=1';
+
+                    // データ更新
+                    setDataForAjax( data, path );
+
+                    // サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+            });
+
+            /**
+             * データの新規情報入力画面遷移
+             */
+            function inputPanelTransition()
+            {
+                var lineInfo = "";
+                var disaInfo = "";
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              telopID : lineInfo,
+                              disabledID : disaInfo,
+                              searchContents : $('#contents').val(),
+                              searchlinkUrl : $('#link_url').val(),
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              sortConditions : telopSort
+                           };
+                var path = 'index.php?param=Telop/addInput&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+                // サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * データの更新情報入力画面遷移
+             */
+            function editPanelTransition(thisLineInfo, thisDisaInfo)
+            {
+                var lineInfo = thisLineInfo;
+                var disaInfo = thisDisaInfo;
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              telopID : lineInfo,
+                              disabledID : disaInfo,
+                              searchContents : $('#contents').val(),
+                              searchlinkUrl : $('#link_url').val(),
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              sortConditions : telopSort
+                           };
+                var path = 'index.php?param=Telop/addInput&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+                // サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * ソート処理
+             */
+            function setColumnInfo(thisItemInfo)
+            {
+                telopItemInfo = thisItemInfo;
+
+                telopSort = 0;
+                if(telopItemInfo == "<?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?>")
+                {
+                    no_click_cnt++;
+                    if((no_click_cnt % 2) != 0)
+                    {
+                        telopSort = 1;
+                    }
+                    else
+                    {
+                        telopSort = 2;
+                    }
+                }
+                else if(telopItemInfo == "内容")
+                {
+                    contents_click_cnt++;
+                    if((title_click_cnt % 2) != 0)
+                    {
+                        telopSort = 3;
+                    }
+                    else
+                    {
+                        telopSort = 4;
+                    }
+                }
+                else if(telopItemInfo == "リンク")
+                {
+                    link_url_click_cnt++;
+                    if((link_url_click_cnt % 2) != 0)
+                    {
+                        telopSort = 5;
+                    }
+                    else
+                    {
+                        telopSort = 6;
+                    }
+                }
+                else if(telopItemInfo === "適用開始日")
+                {
+                    application_start_sate_click_cnt++;
+                    if((application_start_sate_click_cnt % 2) != 0)
+                    {
+                        telopSort = 7;
+                    }
+                    else
+                    {
+                        telopSort = 8;
+                    }
+                }
+                else if(telopItemInfo === "適用終了日")
+                {
+                    application_end_sate_click_cnt++;
+                    if((application_end_sate_click_cnt % 2) != 0)
+                    {
+                        telopSort = 9;
+                    }
+                    else
+                    {
+                        telopSort = 10;
+                    }
+                }
+                
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchContents : $('#contents').val(),
+                              searchlinkUrl : $('#link_url').val(),
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              sortConditions : telopSort
+                           };
+                var path = 'index.php?param=Telop/search&home=1';
+
+                // データ更新
+                setDataForAjax( data, path );
+
+                // サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 表示ページ数選択
+             */
+            function displayPage(pageCnt)
+            {
+                displayPageNo = pageCnt;
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchContents : $('#contents').val(),
+                              searchlinkUrl : $('#link_url').val(),
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              sortConditions : telopSort
+                           };
+                var path = 'index.php?param=Telop/search&home=1';
+                // データ更新
+                setDataForAjax( data, path );
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 表示レコード数選択
+             */
+            function displayRecord(recordCnt)
+            {
+                displayRecordCnt = recordCnt;
+                displayPageNo = 1;
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchContents : $('#contents').val(),
+                              searchlinkUrl : $('#link_url').val(),
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              sortConditions : telopSort
+                           };
+                var path = 'index.php?param=Telop/search&home=1';
+                // データ更新
+                setDataForAjax( data, path );
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             *  DatePickerを設定
+             */
+            $(function()
+            {
+                $( "#minApplicationStartDate, #maxApplicationStartDate" ).datepicker({
+                    showButtonPanel: true,
+                    dateFormat: 'yy/mm/dd',
+                });
+            });
+             
+        </script>
+
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site" style="overflow: auto;">
+            <!-- パンくずリスト -->
+            <?php include("Common/Breadcrumb.php"); ?>
+            <form id="searchForm" name="searchForm" method="POST" action="index.php?param=Telop/search&home=1">
+                <input type="hidden" name="companyID" value="<?php hsc( $_SESSION['COMPANY_ID'] ); ?>">
+                <!-- serchBoardArea -->
+                <div class="serchBoardArea" style=" clear:both; width:99%; margin:5px auto !important; background-color: #ffffff" >
+                    <table>
+                        <tbody>
+                            <tr>
+                                <th style="width:100px">内容</th>
+                                <td style="width:220px">
+                                    <input type="text" name="contents" id="contents" style="width:200px" value="<?php hsc($searchArray['searchContents']); ?>">
+                                </td>
+                                <th style="width:100px">リンク</th>
+                                <td style="width:220px">
+                                    <input type="text" name="link_url" id="contents" style="width:200px" value="<?php hsc($searchArray['searchlinkUrl']); ?>">
+                                </td>
+                                <th style="width:100px">適用日</th>
+                                <td style="width:220px">
+                                    <input type="text" name="minApplicationStartDate" id="minApplicationStartDate" style="width:80px" pattern="\d{4}/\d{2}/\d{2}" title="<?php hsc($Log->getMsgLog('MSG_BASE_0305')); ?>" value="<?php hsc($searchArray['sAppStartDate']); ?>">
+                                    　～　
+                                    <input type="text" name="maxApplicationStartDate" id="maxApplicationStartDate" style="width:80px" pattern="\d{4}/\d{2}/\d{2}" title="<?php hsc($Log->getMsgLog('MSG_BASE_0305')); ?>" value="<?php hsc($searchArray['eAppStartDate']); ?>">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div><!-- /.serchBoardArea -->
+
+                <!-- serchButtonArea -->
+                <div style="text-align: center; white-space: nowrap;" id="styleAlignCenter">
+                    <div style="display: inline-block;" class="serchButtonArea">
+                        <input type="submit" id="search" name="search" href="#" value="検索" class="serch" />
+                    </div><!-- /.serchButtonArea -->
+                    <div style="display: inline-block;" class="logicButtonArea">
+                        <input type="button" id="add" name="add" onClick="inputPanelTransition()" value="　 新規作成" class="add">
+                    </div><!-- /.logicButtonArea -->
+                </div><!-- /#styleAlignCenter -->
+            </form>
+            <form id="modForm" name="modForm" >
+                <?php include("TelopTablePanel.html"); ?>
+            </form>
+
+        </div><!-- /#sb-site -->
+
+        <?php include("../FwCommon/View/Dialog.php"); ?>
+    </body>
+</html>

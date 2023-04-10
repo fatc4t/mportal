@@ -1,0 +1,780 @@
+<?php
+    /**
+     * @file      従業員マスタ画面(View)
+     * @author    USE H.Higashihara
+     * @date      2016/06/09
+     * @version   1.00
+     * @note      従業員マスタ画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array('default.css', 'common.js', 'jquery-ui.min.js', 'jquery-ui.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述 
+            include("Common/HtmlHeader.php"); 
+        ?>
+        <script src="../js/attendance/jquery/datepicker-ja.js" /></script>
+        <script type="text/javascript">
+            var displayPageNo = 1;
+            var displayRecordCnt = <?php hsc($_SESSION["DISPLAY_RECORD_CNT"]); ?>;
+            var userItemInfo = null;
+            var userSort = null;
+            var no_click_cnt = 0;
+            var state_click_cnt = 0;
+            var enrollment_click_cnt = 0;
+            var employeeNo_click_cnt = 0;
+            var employeeName_click_cnt = 0;
+            var tel_click_cnt = 0;
+            var organization_click_cnt = 0;
+            var position_click_cnt = 0;
+            var employment_click_cnt = 0;
+            var section_click_cnt = 0;
+            var wageForm_click_cnt = 0;
+            var baseSalary_click_cnt = 0;
+            var hourlyWage_click_cnt = 0;
+            var hireDate_click_cnt = 0;
+            var leavingDate_click_cnt = 0;
+            var application_click_cnt = 0;
+            var approval_click_cnt = 0;
+            var security_click_cnt = 0;
+            var comment_click_cnt = 0;
+
+            $(document).ready(function()
+            {
+                /**
+                 * 従業員マスタ検索
+                 */
+                $('#search').click(function()
+                {
+                    displayPageNo = 1;
+                    // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                    var data = {
+                                  displayPageNo : displayPageNo,
+                                  displayRecordCnt : displayRecordCnt,
+                                  searchUserNo : $('#userNo').val(),
+                                  searchUserName : $('#userName').val(),
+                                  searchOrganizationID : $('#organizationName').val(),
+                                  searchPositionName : $('#positionName').val(),
+                                  searchEmploymentName : $('#employmentName').val(),
+                                  searchSectionName : $('#sectionName').val(),
+                                  searchWageForm : $('#wageForm').val(),
+                                  searchMinBaseSalary : $('#minBaseSalary').val(),
+                                  searchMaxBaseSalary : $('#maxBaseSalary').val(),
+                                  searchMinHourlyWage : $('#minHourlyWage').val(),
+                                  searchMaxHourlyWage : $('#maxHourlyWage').val(),
+                                  searchSAppStartDate : $('#minApplicationStartDate').val(),
+                                  searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                                  searchSHireDate : $('#start_hire_date').val(),
+                                  searchEHireDate : $('#end_hire_date').val(),
+                                  searchSLeavingDate : $('#start_leaving_date').val(),
+                                  searchELeavingDate : $('#end_leaving_date').val(),
+                                  searchApproval : $('#approval').val(),
+                                  searchSecurity : $('#security').val(),
+                                  searchComment : $('#comment').val(),
+                                  searchApplyCheck : document.getElementById("applyCheck").checked,
+                                  searchApplySchCheck : document.getElementById("applySchCheck").checked,
+                                  searchNonApplyCheck : document.getElementById("nonApplyCheck").checked,
+                                  searchDelCheck : document.getElementById("delCheck").checked,
+                                  searchDuringCheck : document.getElementById("duringCheck").checked,
+                                  searchRetirementCheck : document.getElementById("retirementCheck").checked,
+                                  searchTrialCheck : document.getElementById("trialCheck").checked
+                               };
+                    var path = 'index.php?param=User/search&home=1';
+
+                    // データ更新
+                    setDataForAjax( data, path );
+
+                    // サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+            });
+
+            /**
+             * データの新規情報入力画面遷移
+             */
+            function inputPanelTransition()
+            {
+                var lineInfo = "";
+                var disaInfo = "";
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              userDtailID : lineInfo,
+                              disabledID : disaInfo,
+                              searchUserNo : $('#userNo').val(),
+                              searchUserName : $('#userName').val(),
+                              searchOrganizationID : $('#organizationName').val(),
+                              searchPositionName : $('#positionName').val(),
+                              searchEmploymentName : $('#employmentName').val(),
+                              searchWageForm : $('#wageForm').val(),
+                              searchMinBaseSalary : $('#minBaseSalary').val(),
+                              searchMaxBaseSalary : $('#maxBaseSalary').val(),
+                              searchMinHourlyWage : $('#minHourlyWage').val(),
+                              searchMaxHourlyWage : $('#maxHourlyWage').val(),
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              searchSHireDate : $('#start_hire_date').val(),
+                              searchEHireDate : $('#end_hire_date').val(),
+                              searchSLeavingDate : $('#start_leaving_date').val(),
+                              searchELeavingDate : $('#end_leaving_date').val(),
+                              searchApproval : $('#approval').val(),
+                              searchSecurity : $('#security').val(),
+                              searchComment : $('#comment').val(),
+                              searchApplyCheck : document.getElementById("applyCheck").checked,
+                              searchApplySchCheck : document.getElementById("applySchCheck").checked,
+                              searchNonApplyCheck : document.getElementById("nonApplyCheck").checked,
+                              searchDelCheck : document.getElementById("delCheck").checked,
+                              searchSectionName : $('#sectionName').val(),
+                              searchDuringCheck : document.getElementById("duringCheck").checked,
+                              searchRetirementCheck : document.getElementById("retirementCheck").checked,
+                              searchTrialCheck : document.getElementById("trialCheck").checked,
+                              sortConditions : userSort
+                           };
+                var path = 'index.php?param=User/addInput&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+                // サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * データの更新情報入力画面遷移
+             */
+            function editPanelTransition(thisLineInfo, thisDisaInfo)
+            {
+                var lineInfo = thisLineInfo;
+                var disaInfo = thisDisaInfo;
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              userDtailID : lineInfo,
+                              disabledID : disaInfo,
+                              searchUserNo : $('#userNo').val(),
+                              searchUserName : $('#userName').val(),
+                              searchOrganizationID : $('#organizationName').val(),
+                              searchPositionName : $('#positionName').val(),
+                              searchEmploymentName : $('#employmentName').val(),
+                              searchWageForm : $('#wageForm').val(),
+                              searchMinBaseSalary : $('#minBaseSalary').val(),
+                              searchMaxBaseSalary : $('#maxBaseSalary').val(),
+                              searchMinHourlyWage : $('#minHourlyWage').val(),
+                              searchMaxHourlyWage : $('#maxHourlyWage').val(),
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              searchSHireDate : $('#start_hire_date').val(),
+                              searchEHireDate : $('#end_hire_date').val(),
+                              searchSLeavingDate : $('#start_leaving_date').val(),
+                              searchELeavingDate : $('#end_leaving_date').val(),
+                              searchApproval : $('#approval').val(),
+                              searchSecurity : $('#security').val(),
+                              searchComment : $('#comment').val(),
+                              searchApplyCheck : document.getElementById("applyCheck").checked,
+                              searchApplySchCheck : document.getElementById("applySchCheck").checked,
+                              searchNonApplyCheck : document.getElementById("nonApplyCheck").checked,
+                              searchDelCheck : document.getElementById("delCheck").checked,
+                              searchSectionName : $('#sectionName').val(),
+                              searchDuringCheck : document.getElementById("duringCheck").checked,
+                              searchRetirementCheck : document.getElementById("retirementCheck").checked,
+                              searchTrialCheck : document.getElementById("trialCheck").checked,
+                              sortConditions : userSort
+                           };
+                var path = 'index.php?param=User/addInput&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+                // サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * ソート処理
+             */
+            function setColumnInfo(thisItemInfo)
+            {
+                userItemInfo = thisItemInfo;
+
+                userSort = 0;
+
+                if(userItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?>")
+                {
+                    no_click_cnt++;
+                    if((no_click_cnt % 2) != 0)
+                    {
+                        userSort = 1;
+                    }
+                    else
+                    {
+                        userSort = 2;
+                    }
+                }
+                else if(userItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0849')); ?>")
+                {
+                    state_click_cnt++;
+                    if((state_click_cnt % 2) != 0)
+                    {
+                        userSort = 3;
+                    }
+                    else
+                    {
+                        userSort = 4;
+                    }
+                }
+                else if(userItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0871')); ?>")
+                {
+                    enrollment_click_cnt++;
+                    if((enrollment_click_cnt % 2) != 0)
+                    {
+                        userSort = 5;
+                    }
+                    else
+                    {
+                        userSort = 6;
+                    }
+                }
+                else if(userItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0872')); ?>")
+                {
+                    employeeNo_click_cnt++;
+                    if((employeeNo_click_cnt % 2) != 0)
+                    {
+                        userSort = 7;
+                    }
+                    else
+                    {
+                        userSort = 8;
+                    }
+                }
+                else if(userItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0873')); ?>")
+                {
+                    employeeName_click_cnt++;
+                    if((employeeName_click_cnt % 2) != 0)
+                    {
+                        userSort = 9;
+                    }
+                    else
+                    {
+                        userSort = 10;
+                    }
+                }
+                else if(userItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0874')); ?>")
+                {
+                    tel_click_cnt++;
+                    if((tel_click_cnt % 2) != 0)
+                    {
+                        userSort = 11;
+                    }
+                    else
+                    {
+                        userSort = 12;
+                    }
+                }
+                else if(userItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?>")
+                {
+                    organization_click_cnt++;
+                    if((organization_click_cnt % 2) != 0)
+                    {
+                        userSort = 13;
+                    }
+                    else
+                    {
+                        userSort = 14;
+                    }
+                }
+                else if(userItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0860')); ?>")
+                {
+                    position_click_cnt++;
+                    if((position_click_cnt % 2) != 0)
+                    {
+                        userSort = 15;
+                    }
+                    else
+                    {
+                        userSort = 16;
+                    }
+                }
+                else if(userItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0861')); ?>")
+                {
+                    employment_click_cnt++;
+                    if((employment_click_cnt % 2) != 0)
+                    {
+                        userSort = 17;
+                    }
+                    else
+                    {
+                        userSort = 18;
+                    }
+                }
+                else if(userItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0862')); ?>")
+                {
+                    section_click_cnt++;
+                    if((section_click_cnt % 2) != 0)
+                    {
+                        userSort = 19;
+                    }
+                    else
+                    {
+                        userSort = 20;
+                    }
+                }
+                else if(userItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0875')); ?>")
+                {
+                    wageForm_click_cnt++;
+                    if((wageForm_click_cnt % 2) != 0)
+                    {
+                        userSort = 21;
+                    }
+                    else
+                    {
+                        userSort = 22;
+                    }
+                }
+                else if(userItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0876')); ?>")
+                {
+                    baseSalary_click_cnt++;
+                    if((baseSalary_click_cnt % 2) != 0)
+                    {
+                        userSort = 23;
+                    }
+                    else
+                    {
+                        userSort = 24;
+                    }
+                }
+                else if(userItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0877')); ?>")
+                {
+                    hourlyWage_click_cnt++;
+                    if((hourlyWage_click_cnt % 2) != 0)
+                    {
+                        userSort = 25;
+                    }
+                    else
+                    {
+                        userSort = 26;
+                    }
+                }
+                else if(userItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0878')); ?>")
+                {
+                    hireDate_click_cnt++;
+                    if((hireDate_click_cnt % 2) != 0)
+                    {
+                        userSort = 27;
+                    }
+                    else
+                    {
+                        userSort = 28;
+                    }
+                }
+                else if(userItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0879')); ?>")
+                {
+                    leavingDate_click_cnt++;
+                    if((leavingDate_click_cnt % 2) != 0)
+                    {
+                        userSort = 29;
+                    }
+                    else
+                    {
+                        userSort = 30;
+                    }
+                }
+                else if(userItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0853')); ?>")
+                {
+                    application_click_cnt++;
+                    if((application_click_cnt % 2) != 0)
+                    {
+                        userSort = 31;
+                    }
+                    else
+                    {
+                        userSort = 32;
+                    }
+                }
+                else if(userItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0880')); ?>")
+                {
+                    approval_click_cnt++;
+                    if((approval_click_cnt % 2) != 0)
+                    {
+                        userSort = 33;
+                    }
+                    else
+                    {
+                        userSort = 34;
+                    }
+                }
+                else if(userItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0881')); ?>")
+                {
+                    security_click_cnt++;
+                    if((security_click_cnt % 2) != 0)
+                    {
+                        userSort = 35;
+                    }
+                    else
+                    {
+                        userSort = 36;
+                    }
+                }
+                else if(userItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0892')); ?>")
+                {
+                    comment_click_cnt++;
+                    if((comment_click_cnt % 2) != 0)
+                    {
+                        userSort = 37;
+                    }
+                    else
+                    {
+                        userSort = 38;
+                    }
+                }
+                
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchUserNo : $('#userNo').val(),
+                              searchUserName : $('#userName').val(),
+                              searchOrganizationID : $('#organizationName').val(),
+                              searchPositionName : $('#positionName').val(),
+                              searchEmploymentName : $('#employmentName').val(),
+                              searchSectionName : $('#sectionName').val(),
+                              searchWageForm : $('#wageForm').val(),
+                              searchMinBaseSalary : $('#minBaseSalary').val(),
+                              searchMaxBaseSalary : $('#maxBaseSalary').val(),
+                              searchMinHourlyWage : $('#minHourlyWage').val(),
+                              searchMaxHourlyWage : $('#maxHourlyWage').val(),
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              searchSHireDate : $('#start_hire_date').val(),
+                              searchEHireDate : $('#end_hire_date').val(),
+                              searchSLeavingDate : $('#start_leaving_date').val(),
+                              searchELeavingDate : $('#end_leaving_date').val(),
+                              searchApproval : $('#approval').val(),
+                              searchSecurity : $('#security').val(),
+                              searchComment : $('#comment').val(),
+                              searchApplyCheck : document.getElementById("applyCheck").checked,
+                              searchApplySchCheck : document.getElementById("applySchCheck").checked,
+                              searchNonApplyCheck : document.getElementById("nonApplyCheck").checked,
+                              searchDelCheck : document.getElementById("delCheck").checked,
+                              searchDuringCheck : document.getElementById("duringCheck").checked,
+                              searchRetirementCheck : document.getElementById("retirementCheck").checked,
+                              searchTrialCheck : document.getElementById("trialCheck").checked,
+                              sortConditions : userSort
+                           };
+                var path = 'index.php?param=User/search&home=1';
+
+                // データ更新
+                setDataForAjax( data, path );
+
+                // サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 表示ページ数選択
+             */
+            function displayPage(pageCnt)
+            {
+                displayPageNo = pageCnt;
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchUserNo : $('#userNo').val(),
+                              searchUserName : $('#userName').val(),
+                              searchOrganizationID : $('#organizationName').val(),
+                              searchPositionName : $('#positionName').val(),
+                              searchEmploymentName : $('#employmentName').val(),
+                              searchSectionName : $('#sectionName').val(),
+                              searchWageForm : $('#wageForm').val(),
+                              searchMinBaseSalary : $('#minBaseSalary').val(),
+                              searchMaxBaseSalary : $('#maxBaseSalary').val(),
+                              searchMinHourlyWage : $('#minHourlyWage').val(),
+                              searchMaxHourlyWage : $('#maxHourlyWage').val(),
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              searchSHireDate : $('#start_hire_date').val(),
+                              searchEHireDate : $('#end_hire_date').val(),
+                              searchSLeavingDate : $('#start_leaving_date').val(),
+                              searchELeavingDate : $('#end_leaving_date').val(),
+                              searchApproval : $('#approval').val(),
+                              searchSecurity : $('#security').val(),
+                              searchComment : $('#comment').val(),
+                              searchApplyCheck : document.getElementById("applyCheck").checked,
+                              searchApplySchCheck : document.getElementById("applySchCheck").checked,
+                              searchNonApplyCheck : document.getElementById("nonApplyCheck").checked,
+                              searchDelCheck : document.getElementById("delCheck").checked,
+                              searchDuringCheck : document.getElementById("duringCheck").checked,
+                              searchRetirementCheck : document.getElementById("retirementCheck").checked,
+                              searchTrialCheck : document.getElementById("trialCheck").checked,
+                              sortConditions : userSort
+                           };
+                var path = 'index.php?param=User/search&home=1';
+                // データ更新
+                setDataForAjax( data, path );
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 表示レコード数選択
+             */
+            function displayRecord(recordCnt)
+            {
+                displayRecordCnt = recordCnt;
+                displayPageNo = 1;
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchUserNo : $('#userNo').val(),
+                              searchUserName : $('#userName').val(),
+                              searchOrganizationID : $('#organizationName').val(),
+                              searchPositionName : $('#positionName').val(),
+                              searchEmploymentName : $('#employmentName').val(),
+                              searchSectionName : $('#sectionName').val(),
+                              searchWageForm : $('#wageForm').val(),
+                              searchMinBaseSalary : $('#minBaseSalary').val(),
+                              searchMaxBaseSalary : $('#maxBaseSalary').val(),
+                              searchMinHourlyWage : $('#minHourlyWage').val(),
+                              searchMaxHourlyWage : $('#maxHourlyWage').val(),
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              searchSHireDate : $('#start_hire_date').val(),
+                              searchEHireDate : $('#end_hire_date').val(),
+                              searchSLeavingDate : $('#start_leaving_date').val(),
+                              searchELeavingDate : $('#end_leaving_date').val(),
+                              searchApproval : $('#approval').val(),
+                              searchSecurity : $('#security').val(),
+                              searchComment : $('#comment').val(),
+                              searchApplyCheck : document.getElementById("applyCheck").checked,
+                              searchApplySchCheck : document.getElementById("applySchCheck").checked,
+                              searchNonApplyCheck : document.getElementById("nonApplyCheck").checked,
+                              searchDelCheck : document.getElementById("delCheck").checked,
+                              searchDuringCheck : document.getElementById("duringCheck").checked,
+                              searchRetirementCheck : document.getElementById("retirementCheck").checked,
+                              searchTrialCheck : document.getElementById("trialCheck").checked,
+                              sortConditions : userSort
+                           };
+                var path = 'index.php?param=User/search&home=1';
+                // データ更新
+                setDataForAjax( data, path );
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             *  DatePickerを設定
+             */
+            $(function()
+            {
+                $( "#start_hire_date, #end_hire_date, #start_leaving_date, #end_leaving_date, #minApplicationStartDate, #maxApplicationStartDate" ).datepicker({
+                    showButtonPanel: true,
+                    dateFormat: 'yy/mm/dd',
+                });
+            });
+             
+        </script>
+
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site" style="overflow: auto;">
+            <!-- パンくずリスト -->
+            <?php include("Common/Breadcrumb.php"); ?>
+            <form id="searchForm" name="searchForm" method="POST" action="index.php?param=User/search&home=1">
+                <input type="hidden" name="companyID" value="<?php hsc( $_SESSION['COMPANY_ID'] ); ?>">
+                <!-- serchBoardArea -->
+                <div class="serchBoardArea" style=" clear:both; width:99%; margin:5px auto !important; background-color: #ffffff" >
+                    <table>
+                        <tbody>
+                            <tr>
+                                <th style="width:110px"><?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?></th><!-- 組織名 -->
+                                <td style="width:220px">
+                                    <?php include("../FwCommon/View/SearchOrganizationName.php"); ?>
+                                </td>
+                                <th style="width:110px"><?php hsc($Log->getMsgLog('MSG_BASE_0872')); ?></th><!-- 従業員No -->
+                                <td style="width:110px">
+                                    <?php include("Common/SearchEmployeesNo.php"); ?>
+                                </td>
+                                <th style="width:110px"><?php hsc($Log->getMsgLog('MSG_BASE_0873')); ?></th><!-- 従業員姓名 -->
+                                <td style="width:110px">
+                                    <input type="text" name="userName" id="userName" value="<?php hsc($searchArray['userName']); ?>" style="width:100px" >
+                                </td>
+                                <th style="width:110px"><?php hsc($Log->getMsgLog('MSG_BASE_0860')); ?></th><!-- 役職名 -->
+                                <td style="width:110px">
+                                    <?php include("Common/SearchPositionName.php"); ?>
+                                </td>
+                                <th style="width:110px"><?php hsc($Log->getMsgLog('MSG_BASE_0861')); ?></th><!-- 雇用形態名 -->
+                                <td style="width:110px">
+                                    <?php include("Common/SearchEmploymentName.php"); ?>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0876')); ?></th><!-- 基本給 -->
+                                <td>
+                                    <input type="text" name="minBaseSalary" id="minBaseSalary"  style="width:80px" maxlength="10" value="<?php hsc($searchArray['minBaseSalaey']); ?>">
+                                    　～　
+                                    <input type="text" name="maxBaseSalary" id="maxBaseSalary"  style="width:80px" maxlength="10" value="<?php hsc($searchArray['maxBaseSalaey']); ?>">
+                                </td>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0862')); ?></th><!-- セクション名 -->
+                                <td>
+                                    <?php include("../FwCommon/View/SearchSectionName.php"); ?>
+                                </td>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0875')); ?></th><!-- 賃金形態 -->
+                                <td>
+                                    <?php include("Common/SearchWageForm.php"); ?>
+                                </td>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0881')); ?></th><!-- セキュリティ名 -->
+                                <td>
+                                    <?php include("Common/SearchSecurityName.php"); ?>
+                                </td>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0880')); ?></th><!-- 承認組織 -->
+                                <td>
+                                    <select name="approval" id="approval" style="width: 100px">
+                                        <?php foreach($abbreviatedNameList as $abbreviated) { ?>
+                                            <?php $selected = ""; ?>
+                                            <?php if($abbreviated['abbreviated_name'] == $searchArray['approval']) { ?>
+                                                <?php $selected = "selected"; ?>
+                                            <?php } ?>
+                                            <option value="<?php hsc($abbreviated['abbreviated_name']); ?>" <?php hsc($selected); ?>><?php hsc($abbreviated['abbreviated_name']); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0853')); ?></th><!-- 適用開始日 -->
+                                <td>
+                                    <input type="text" name="minApplicationStartDate" id="minApplicationStartDate" style="width:80px" pattern="\d{4}/\d{2}/\d{2}" title="<?php hsc($Log->getMsgLog('MSG_BASE_0305')); ?>" value="<?php hsc($searchArray['sAppStartDate']); ?>">
+                                    　～　
+                                    <input type="text" name="maxApplicationStartDate" id="maxApplicationStartDate" style="width:80px" pattern="\d{4}/\d{2}/\d{2}" title="<?php hsc($Log->getMsgLog('MSG_BASE_0305')); ?>" value="<?php hsc($searchArray['eAppStartDate']); ?>">
+                                </td>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0878')); ?></th><!-- 入社日 -->
+                                <td colspan="3">
+                                    <input type="text" pattern="\d{4}/\d{2}/\d{2}" title="<?php hsc($Log->getMsgLog('MSG_BASE_0305')); ?>" id="start_hire_date" name="start_hire_date"  style="width:80px" value="<?php hsc($searchArray['startHireDate']); ?>">
+                                    　～　
+                                    <input type="text" pattern="\d{4}/\d{2}/\d{2}" title="<?php hsc($Log->getMsgLog('MSG_BASE_0305')); ?>" id="end_hire_date" name="end_hire_date"  style="width:80px" value="<?php hsc($searchArray['endHireDate']); ?>">
+                                </td>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0879')); ?></th><!-- 退職日 -->
+                                <td colspan="3">
+                                    <input type="text" pattern="\d{4}/\d{2}/\d{2}" title="<?php hsc($Log->getMsgLog('MSG_BASE_0305')); ?>" id="start_leaving_date" name="start_leaving_date" style="width:80px" value="<?php hsc($searchArray['startLeavingDate']); ?>">
+                                    　～　
+                                    <input type="text" pattern="\d{4}/\d{2}/\d{2}" title="<?php hsc($Log->getMsgLog('MSG_BASE_0305')); ?>" id="end_leaving_date" name="end_leaving_date" style="width:80px" value="<?php hsc($searchArray['endLeavingDate']); ?>">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0877')); ?></th><!-- 時給 -->
+                                <td>
+                                    <input type="text" name="minHourlyWage" id="minHourlyWage" style="width:80px" maxlength="10" value="<?php hsc($searchArray['minHourlyWage']); ?>">
+                                    　～　
+                                    <input type="text" name="maxHourlyWage" id="maxHourlyWage" style="width:80px" maxlength="10" value="<?php hsc($searchArray['maxHourlyWage']); ?>">
+                                </td>
+                                <th>コメント</th>
+                                <td colspan="7"><input type="text" name="comment" id="comment" style="width:700px" maxlength="30" value="<?php hsc($searchArray['comment']); ?>"></td>
+                            </tr>
+                            <tr>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0927')); ?></th>
+                                <td colspan="9">
+                                    <?php
+                                        $applyChecked = '';
+                                        if( ( $effFlag & 8 ) )
+                                        {
+                                            $applyChecked = 'checked';
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="applyCheck" id="applyCheck" <?php hsc($applyChecked); ?>> 適用中を表示
+                                    <?php
+                                        $applySchChecked = '';
+                                        if( ( $effFlag & 4 ) )
+                                        {
+                                            $applySchChecked = 'checked';
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="applySchCheck" id="applySchCheck" <?php hsc($applySchChecked); ?>> 適用予定を表示
+                                    <?php
+                                        $nonApplyChecked = '';
+                                        if( ( $effFlag & 2 ) )
+                                        {
+                                            $nonApplyChecked = 'checked';
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="nonApplyCheck" id="nonApplyCheck" <?php hsc($nonApplyChecked); ?>> 適用外を表示
+                                    <?php
+                                        $delChecked = '';
+                                        if( ( $effFlag & 1 ) )
+                                        {
+                                            $delChecked = 'checked';
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="delCheck" id="delCheck" <?php hsc($delChecked); ?>> 削除済みを表示　　
+                                    <?php
+                                        $duringChecked = '';
+                                        if( ( $statusFlag & 4 ) )
+                                        {
+                                            $duringChecked = 'checked';
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="duringCheck" id="duringCheck" <?php hsc($duringChecked); ?>> 在籍中を表示
+                                    <?php
+                                        $retirementChecked = '';
+                                        if( ( $statusFlag & 2 ) )
+                                        {
+                                            $retirementChecked = 'checked';
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="retirementCheck" id="retirementCheck" <?php hsc($retirementChecked); ?>> 退職済を表示
+                                    <?php
+                                        $trialChecked = '';
+                                        if( ( $statusFlag & 1 ) )
+                                        {
+                                            $trialChecked = 'checked';
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="trialCheck" id="trialCheck" <?php hsc($trialChecked); ?>> 試用期間中を表示
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div><!-- /.serchBoardArea -->
+
+                <!-- serchButtonArea -->
+                <div style="text-align: center; white-space: nowrap;" id="styleAlignCenter">
+                    <div style="display: inline-block;" class="serchButtonArea">
+                        <input type="submit" id="search" name="search" href="#" value="検索" class="serch" />
+                    </div><!-- /.serchButtonArea -->
+                    <div style="display: inline-block;" class="logicButtonArea">
+                        <?php $registrationCnt = 0; ?>
+                        <?php foreach( $_SESSION["REGISTRATION"] as $reg ) { ?>
+                            <?php $registrationCnt = $registrationCnt + $reg['organization_id']; ?>
+                        <?php } ?>
+                        <?php $add_disabled = ""; ?>
+                        <?php if(empty($registrationCnt)) { ?>
+                            <?php $add_disabled = "disabled"; ?>
+                        <?php } ?>
+                        <input type="button" id="add" name="add" onClick="inputPanelTransition()" value="　 新規作成" class="add" <?php hsc($add_disabled); ?>>
+                    </div><!-- /.logicButtonArea -->
+                </div><!-- /#styleAlignCenter -->
+            </form>
+            <form id="modForm" name="modForm" >
+                <?php include("UserTablePanel.html"); ?>
+            </form>
+
+        </div><!-- /#sb-site -->
+
+        <?php include("../FwCommon/View/Dialog.php"); ?>
+    </body>
+</html>

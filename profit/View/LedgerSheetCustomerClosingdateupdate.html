@@ -1,0 +1,620 @@
+<?php
+/**
+* @file      締日更新処理 [V]
+* @author    バッタライ
+* @date      2020/03/19
+* @version   1.00
+* @note      締日更新処理
+*/
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+        $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述
+        include("../profit/View/Common/HtmlHeader.php");
+        ?>
+        <script src="../js/profit/jquery/jquery.ui.ympicker.js"></script>
+        <script src="../js/profit/jquery/jquery-migrate-1.0.0.js"></script>
+        <script src="../js/profit/jquery/datepicker-ja.js" ></script>
+        <script src="../js/autofil_v<?php echo $_SESSION['AUTOFIL_VER'] ?>.js" ></script>
+        <script src='../js/PDF/print.min.js'></script>
+        <link rel="stylesheet" type="text/css" href="../js/PDF/print.min.css">
+        <!-- modal script-->
+        <script src="../js/modal/modal.js" ></script>
+        <link rel="stylesheet" href="../css/modal/modal.css" >
+        <script type="text/javascript">
+            Sizelist       = '<?php echo json_encode(json_encode($Sizelist)); ?>';
+            A_Sizelist     = JSON.parse(Sizelist.slice(1,-1));
+            porg_id_list        = '<?php echo json_encode(json_encode($org_id_list)); ?>';
+            data_org            = JSON.parse(porg_id_list.slice(1,-1));
+            ptypcust_detail     = '<?php echo json_encode($cust_detail); ?>';
+            data_cust           = JSON.parse(ptypcust_detail);      
+            searchArray         = '<?php echo json_encode($searchArray); ?>';
+            A_searchArray       = JSON.parse(searchArray);
+            param               = '<?php echo json_encode($param); ?>';
+            A_param             = JSON.parse(param);
+            data                = '<?php echo json_encode($data); ?>';
+            A_data              = JSON.parse(data);
+        </script>
+        <script type="text/javascript">
+            //金額に【.00】削除してコンマを追加するファンクション
+            function numberWithCommas(x,precision = 0) {
+                x = Math.round(Number(x)*Math.pow(10,precision))/Math.pow(10,precision);
+                var parts = x.toString().split(".");
+                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                if(precision){
+                    if(!parts[1]){
+                        parts[1] = 0;
+                    }                    
+                    parts[1]=(parts[1]+"0".repeat(precision)).substr(0,precision);
+                }              
+                return parts.join(".");
+            }
+            
+            function radio_change_management(){
+                var prev = [];
+                document.getElementById("serchTable").addEventListener('change', function(e) {                  
+                    if(e.target.name === "cust_r"){
+                        if(!prev[e.target.name]){
+                            prev[e.target.name]={value:""};
+                        }                        
+                        document.getElementById("cust_select").disabled=true;
+                        if(e.target.value === "" ){
+                            document.getElementById("cust_select").disabled=false;
+                        }
+                    }
+                    prev[e.target.name] = e.target;
+                });
+            }
+            /**
+             *  イベント制御用
+             *
+             */
+            function set_value(s_val){
+                document.serchForm.onbtn.value = s_val;
+            }
+            /**
+             *
+             * スクロール制御
+             *
+             */
+            function SyncScroll(/* elem1, elem2, ... */) {
+                this._elements = [];
+                this._elementOnscroll = this._elementOnscroll.bind(this);
+                this.addElement.apply(this, arguments);
+            }
+            SyncScroll.prototype = {
+                enableHorizontal: true,
+                enableVertical: true,
+                addElement: function (/* elem1, elem2, ... */) {
+                    var elem, i;
+                    for (i = 0; i < arguments.length; i += 1) {
+                        elem = arguments[i];
+                        elem.addEventListener('scroll', this._elementOnscroll, false);
+                        this._elements.push(elem);
+                    }
+                },
+                removeElement: function (/* elem1, elem2, ... */) {
+                    var elem, i, j;
+                    for (i = 0; i < arguments.length; i += 1) {
+                        elem = arguments[i];
+                        elem.removeEventListener('scroll', this._elementOnscroll, false);
+                        j = this._elements.indexOf(elem);
+                        if (j >= 0) {
+                            this._elements.splice(j, 1);
+                        }
+                    }
+                },
+                _elementOnscroll: function (event) {
+                    var i,
+                            elems = this._elements,
+                            elem = event.target,
+                            x = elem.scrollLeft,
+                            y = elem.scrollTop;
+                    if (this.enableHorizontal) {
+                        for (i = 0; i < elems.length; i += 1) {
+                            elem = elems[i];
+                            if (elem === event.target || elem.scrollLeft === x) {
+                                continue;
+                            }
+                            elem.scrollLeft = x;
+                            if (elem.scrollLeft !== x) {
+                                elem.scrollLeft = x + x - elem.scrollLeft;
+                            }
+                        }
+                    }
+                },
+                destroy: function () {
+                    this.removeElement.apply(this, this._elements);
+                }
+            };
+            
+            window.onload = function () {
+                creat_listener();
+                radio_change_management();
+                cust_array = [];
+                modal_create_select("cust_select",cust_array);
+                
+            };
+            //選択した店舗の見出し設定情報を取得
+            function getdata(){
+                if(cust_sumday.value === ''){
+                    alert("※締日を入力してください。");
+                    cust_sumday.focus();
+                    return false;
+                }   
+                //顧客範囲チェックした時のエラーメッセージ                    
+                if(cust_r_selected.checked){
+                    cust_cd.value = cust_list.replace(/^,/,"'").replace(/,/g,"','").replace(/$/,"'");
+                    if(!cust_list){
+                        alert("※顧客を選択してください。");
+                        cust_select.focus();
+                        return false;
+                    }
+                }else{
+                    cust_cd.value = 'false';
+                }
+                result1 = '';
+                gorogoro_message.innerHTML = 'データを検索しています.....';
+                modal_gorogoro.hidden = false;
+               // setTimeout( async function () {
+                    datasend ={};                   
+                    datasend['CUST_SELECT']      = cust_select.value;
+                    datasend['CUST_CD']          = cust_cd.value;
+                    datasend['CUST_SUMDAY']      = cust_sumday.value;
+                    datasend['WELLSET_DATE_NOW'] = wellset_dt.value.replace(/\//g,"");
+                    datasend_sub = [];
+                    $("#table_body input[type=checkbox]:checked").each(function () {                   
+                        var row = $(this).closest("tr")[0];
+                        datasend_sub5 ={};
+                        datasend_sub5['CUST_CHECK']         = row.cells[1].innerHTML;
+                        datasend_sub.push(datasend_sub5);
+                    })
+                    datasend['CUST_CHECK_LIST'] = datasend_sub;
+                    //console.log(datasend);
+                    setTimeout( async function () {
+                    var response = await fetch('./index.php?param=LedgerSheetCustomerClosingdateupdate/getdata',{method: 'joken',body:JSON.stringify(datasend)});
+                    var A_result = await response.json();
+                    A_data = A_result['dataget'];  
+                    modal_gorogoro.hidden = true;
+                    show_data();
+                    
+                },100);
+                
+            }
+            //実行ボタン押した時のファンクション
+            function save_data(){
+                //顧客選択されてない場合エラーメッセージ
+                if( $("input[type='checkbox']:checked").length < 1){
+                    alert('※顧客を選択してください')
+                }else{
+                    
+                    //確認メッセージ
+                    var kakunin = confirm('【'+wellset_dt.value+'】で締処理を行います。よろしいですか?')
+                    //okボタン押下
+                    if(kakunin ===true){
+                        chekeFlg = 'true';
+                        result1 = '';
+                        datasend_1 =[];
+                        gorogoro_message.innerHTML = '　締処理実行中..........';
+                        modal_gorogoro.hidden = false;
+                        /*検索条件：チェックボックスをチェックしている値を取得*/
+                        $("#table_body input[type=checkbox]:checked").each(function () {
+                            var row = $(this).closest("tr")[0];
+
+                            datasend_sub ={};
+                            //alert(row.cells[1].innerHTML);
+                            datasend_sub['CUST_CD']          = row.cells[1].innerHTML;
+                            datasend_sub['WELLSET_DATE']     = row.cells[3].innerHTML.replace(/\//g,"");
+                            datasend_sub['WELLSET_DATE_NOW'] = wellset_dt.value.replace(/\//g,"");
+                            datasend_1.push(datasend_sub);
+
+                            // 締め処理の日付チェック
+                            if(row.cells[3].innerHTML.replace(/\//g,"") >= wellset_dt.value.replace(/\//g,"")){
+                                alert("選択した顧客【" + row.cells[1].innerHTML + "】は、" + wellset_dt.value + "で既に確定されています。");
+                                chekeFlg = 'false';
+                                return false;
+                            }
+                            
+                        })
+                        if(chekeFlg === 'true'){
+                            //   console.log(datasend_1);;
+                            setTimeout( async function () {
+                                var response = await fetch('./index.php?param=LedgerSheetCustomerClosingdateupdate/save_data',{method: 'joken',body:JSON.stringify(datasend_1)});
+                                var A_result = await response.text();
+                                result1 = '';
+                                modal_gorogoro.hidden = true;
+                                getdata();
+                                alert('※締処理完了しました!!');
+                            },100)
+                        }else{
+                            alert('終了');
+                            modal_gorogoro.hidden = true;
+                        }
+                        
+                    }else{  
+                        alert("キャンセルしました");
+                        return false;
+                    } 
+                }                
+            }
+            //解除ボタン押した時のファンクション
+            function Release_data(){
+                //顧客選択されてない場合エラーメッセージ
+                if( $("input[type='checkbox']:checked").length < 1){
+                    alert('※顧客を選択してください')
+                }else{
+                    //確認メッセージ
+                    var kakunin = confirm('※締データの解除処理を行います。よろしいですか？')
+                    //okボタン押下
+                    if(kakunin ===true){
+                        result1    = '';
+                        datasend_2 = [];
+                        gorogoro_message.innerHTML = '　解除処理実行中..........';
+                        modal_gorogoro.hidden = false;                        
+                        /*検索条件：チェックボックスをチェックしている値を取得*/
+                        $("#table_body input[type=checkbox]:checked").each(function () {
+                            var tb_row = $(this).closest("tr")[0];
+                            datasend_sub1 ={};
+                            datasend_sub1['CUST_CD']      = tb_row.cells[1].innerHTML;
+                            datasend_sub1['WELLSET_DATE'] = tb_row.cells[3].innerHTML.replace(/\//g,"");
+                            datasend_2.push(datasend_sub1);
+                        })
+                        /*検索条件で取得した値を返す*
+                        /*console.log(datasend_1);*/
+                        setTimeout( async function () {
+                            var response = await fetch('./index.php?param=LedgerSheetCustomerClosingdateupdate/Release_data',{method: 'joken',body:JSON.stringify(datasend_2)});
+                            var A_result = await response.text();   
+                            result1 = '';
+                            modal_gorogoro.hidden = true;
+                            getdata();
+                           /*完了メッセージ表示*/
+                           alert('※締データの解除処理を完了しました。');                            
+                            /* return true;*/
+                        },100)                        
+                    }else{  
+                        alert("キャンセルしました");
+                        return false;
+                    }    
+                }                
+            } 
+            //データ表示カラム作成
+            function insert_row(row,table_name){
+                var trow          = window[table_name].insertRow();
+                ckbox             = trow.insertCell(0);               
+                cust_cd           = trow.insertCell(1); //顧客コード表示列作成
+                cust_nm           = trow.insertCell(2); //顧客名表示列作成
+                wellset_date      =  trow.insertCell(3); //前回締日表示列作成
+                bef_balance　     =  trow.insertCell(4); //前回残高表示列作成
+                sale_total 　     =  trow.insertCell(5); //今回買上表示列作成 
+                tax_total 　      =  trow.insertCell(6); //今回買上表示列作成 
+                rece_total　      =  trow.insertCell(7); //入金金額表示列作成
+                rece_disc　       =  trow.insertCell(8); //入金値引表示列作成
+                now_balance　     =  trow.insertCell(9); //請求額表示列作成
+                
+                var newckBox     = document.createElement('input');
+                newckBox.type    = 'checkbox';
+                newckBox.name    = 'ckbox_val';
+                newckBox.id      = 'ckbox_' + row['checkbox_id'];
+                newckBox.value   = row["cust_cd"];
+                newckBox.checked = row["check_flg"];
+                
+                ckbox.appendChild(newckBox);                 
+                cust_cd.innerHTML      = row["cust_cd"];
+                cust_nm.innerHTML      = row["cust_nm"];
+                if(row["wellset_date"])wellset_date.innerHTML     = row["wellset_date"].replace(/(\d{4})(\d{2})(\d{2})/g, '$1/$2/$3');
+                bef_balance.innerHTML  = numberWithCommas(row["bef_balance"]);
+                sale_total.innerHTML   = numberWithCommas(row["sale_total"]);
+                tax_total.innerHTML    = numberWithCommas(row["tax_total"]);
+                rece_total.innerHTML   = numberWithCommas(row["rece_total"]);
+                rece_disc.innerHTML    = numberWithCommas(row["rece_disc"]);
+                now_balance.innerHTML  = numberWithCommas(Number(row["bef_balance"]) + Number(row["sale_total"]) +Number(row["tax_total"])　- Number(row["rece_total"]) - Number(row["rece_disc"]));
+            } 
+            //データ表示カラム作成
+            function show_data(){
+                table_body.innerHTML = "";
+                for (i=0; i < A_data.length; i++){
+                    var row_data = [];
+                    row_data = A_data[i];
+                    row_data['checkbox_id'] = i;
+                    insert_row(row_data,'table_body');
+                }
+                if(table_body.innerHTML === ""){
+                    alert('検索条件に紐づくデータはありません');
+                }
+            }
+            //締日入力日付妥当性チェック
+            function check_sumday(e){
+                //console.log(e);
+                if(Number(e.target.value) >= 28  ){           
+                    if(Number(e.target.value) !== 99 ){
+                        alert('※締日は1～28もしくは99（月末）の範囲内で設定してください');
+                    }                   
+                    cust_sumday.value= 99;
+                }else if(e.target.value == ''|| Number(e.target.value) ===0){
+                    
+                    cust_sumday.value=99;
+                }else{
+                    cust_sumday.value=('0'+e.target.value).slice(-2);
+                }
+            }
+            //締日入力フォーマットチェック
+            function check_format(e){
+                console.log(e);
+                cust_sumday.value= e.target.value.replace(/\D/g,'');
+                if(cust_sumday.value ===''){
+                    wellset_dt.value = ''
+                }else{
+                    var today = new Date;
+                    if(cust_sumday.value ==='99'){
+                        var test = new Date(today.getFullYear(),today.getMonth(),1);
+                        wellset_dt.value = test.toISOString().slice(0,10).replace(/-/g,"\/");
+                    }else{
+                        wellset_dt.value = today.toISOString().slice(0,8).replace(/-/g,"\/")+cust_sumday.value;
+                    }                 
+                }
+            }
+            //日付け範囲カレンダー表示ファンクション
+            $(function() {
+                $("#wellset_dt").datepicker({
+                    numberOfMonths: 1,
+                    showCurrentAtPos: 1,
+                    showButtonPanel: true,
+                    dateFormat: 'yy/mm/dd'
+                });
+            });
+        </script>
+            
+        <STYLE type="text/css">
+            .serchListArea 
+            tr:nth-child(even) td {
+                background: transparent; 
+            }
+            /*検索条件ボックス幅と位置移動*/
+            #search_param{
+                overflow: hidden;
+                max-width: 900px;
+                margin-left: auto !important;
+                margin-right: auto !important;
+            } 
+            #table_id{
+                overflow: hidden;
+                max-width: 100%;
+                margin-left: auto !important;
+                margin-right: auto !important;
+            }
+            #data {
+                width:100%;
+                max-height:500px;
+                overflow-x:scroll;
+                overflow-y:scroll;
+                table-layout: fixed;
+            }
+            #header_h {
+                width:calc(100% - 16px);
+                overflow-x:hidden;
+                overflow-y:hidden;       
+            }
+            #table_body td:nth-child(5),
+            #table_body td:nth-child(6),
+            #table_body td:nth-child(7),
+            #table_body td:nth-child(8),
+            #table_body td:nth-child(9){
+                text-align:right;
+            }
+            /*選択幅設定*/
+            #table_body td:first-child,
+            #table_header th:first-child{
+                width:60px; 
+            }
+            /*選択印字位置*/
+            #table_body td:first-child,
+            #table_header th:first-child{
+                text-align:center; 
+            }            
+            /*顧客コード幅設定*/
+            #table_body td:nth-child(2),
+            #table_header th:nth-child(2){
+                width:100px; 
+            }  
+            /*顧客名幅設定*/
+            #table_body td:nth-child(3),
+            #table_header th:nth-child(3){
+                width:260px; 
+            }       
+            /*前回締日幅設定*/
+            #table_body td:nth-child(4),
+            #table_header th:nth-child(4){
+                width:80px; 
+            }
+            /*締処理日テーブル幅設定*/
+            #BEF_wellset_date{
+                width:250px;
+                text-align: right;
+            }
+            /*loading modal*/
+            .loader {
+              float: left;
+              border: 16px solid #f3f3f3;
+              border-radius: 50%;
+              border-top: 16px solid #3498db;
+              width: 50px;
+              height: 50px;
+              -webkit-animation: spin 2s linear infinite; /* Safari */
+              animation: spin 2s linear infinite;
+            }
+
+            /* Safari */
+            @-webkit-keyframes spin {
+              0% { -webkit-transform: rotate(0deg); }
+              100% { -webkit-transform: rotate(360deg); }
+            }
+
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }            
+            .css_gorogoro{
+                background-color: #0D0D70;
+                color: white;
+                margin: auto;
+                padding: 20px;
+                border: 1px solid #888;
+                width: 270px;
+                overflow: hidden;
+                border-radius: 6px;
+                margin-top: 300px;
+            }            
+            #modal_gorogoro{
+                position: fixed; /* Stay in place */
+                z-index: 1; /* Sit on top */
+                padding-top: 100px; /* Location of the box */
+                left: 0;
+                top: 0;
+                width: 100%; /* Full width */
+                height: 100%; /* Full height */
+                overflow: auto; /* Enable scroll if needed */
+                background-color: rgb(0,0,0); /* Fallback color */
+                background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            }
+            
+        </STYLE>
+            
+    </head>
+    <body>
+        <?php
+        if( isset($_GET['home']) ) {
+        if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+        }else{
+        include("Common/PageHeader.php");
+        }
+        }else{
+        include("Common/PageHeader.php");
+        }
+        ?>
+            
+        <?php
+        $checked = '';
+        if (isset($_POST['tenpo'])){
+        $checked = ' checked';
+        }
+        ?>
+        <!-- Site -->
+        <div id="sb-site">
+            <div class="serchListArea">
+                <!-- 検索条件ボックス -->
+                <div id="search_param">
+                    <!--テーブル位置真ん中に設定-->
+                    <table align="center">
+                        <tr>
+                            <td>
+                                <table id="serchTable">
+                                    <tr>
+                                        <th align="center" width="60">請求管理</th>
+                                        <td align="center" width="90">
+                                            締日更新処理
+                                        </td> 
+                                        
+                                        <!--締日入力-->
+                                        <th align="center" width="60">締日</th>
+                                        <td width=50 align="center">
+                                            <input type="text" id="cust_sumday" name="cust_sumday" style="width:30px;" maxlength='2'  value="" onchange="check_sumday(event)" oninput='check_format(event)'>
+                                        </td>        
+                                        <th align="center" width="60">締処理日</th>
+                                        <td align="center" width="100">
+                                            <input type="text" pattern="\d{4}/\d{2}/\d{2}" id="wellset_dt" name="BEF_wellset_date" title="西暦/月の形式で入力してください。" size="8" value=<?php hsc($startDate); ?> >
+                                        </td>                                          
+                                        <!--顧客範囲モーダル表示-->
+                                        <th align="center" width="60">顧客<br />選択</th>
+                                        <td width=150>
+                                            <input type="radio" name="cust_r" id="cust_r_all" value="all" checked> 全顧客<br />
+                                            <input type="radio" name="cust_r" id="cust_r_selected" value=""> 顧客指定&nbsp;&nbsp;
+                                           <select id="cust_select" name="cust_select" disabled onchange="modal_select_mgt(event)"><option value="no">&nbsp;</option></select> <br />
+                                            <input type="text" name="cust_cd" value="" id="cust_cd" hidden>
+                                            <input type="text" name="cust_nm_lst" value="" id="cust_nm_lst" hidden>
+                                        </td>
+                                        <td>
+                                            <!--検索ボタン-->&nbsp;
+                                            <button onClick="getdata()">　検索　</button>&nbsp;
+                                            <!--実行ボタン-->
+                                            <button onClick="save_data()"  id="data_save">　実行　</button>&nbsp;
+                                            <!--解除ボタン-->
+                                            <button onClick="Release_data()" id="Release_data">　解除　</button>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <!-- 顧客モーダル表示 -->
+                                <div id="modal_cust" class="modal">
+                                    <!-- Modal content -->
+                                    <div class="modal-content">
+                                        <?php  include("../modal/View/Modalcustomer.html"); ?>
+                                    </div>
+                                </div>           
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <br />
+                <div style="font-size: 12px;">
+                    &nbsp;<button onclick="$('#data input[type=checkbox]').prop('checked', true); return(false);">一括選択</button>
+                    &nbsp;<button onclick="$('#data input[type=checkbox]').prop('checked', false); return(false);">一括解除</button>                        
+                    <!--<table align="right" id="BEF_wellset_date">-->
+<!--                        <th >締処理日</th>
+                        <td>
+                            <input type="text" pattern="\d{4}/\d{2}/\d{2}" id="wellset_dt" name="BEF_wellset_date" title="西暦/月の形式で入力してください。" size="15" value=<?php hsc($startDate); ?> >
+                        </td>      -->
+                    <!--</table>-->
+                </div>   
+            
+                <div id='modal_gorogoro' hidden >
+                    <div class="css_gorogoro">
+                        <div class="little_box">
+                            <div class="loader" >
+                            </div>
+                        </div>
+                        <div class="float_rigth">
+                              <span id='gorogoro_message'></span><br />　お待ちください..........
+                        </div>
+                    </div>
+                </div>             
+                <!-- 固定ヘッダ -->
+                <table id="table_id">
+                    <tr>
+                        <td>
+                            <!-- 水平ヘッダ -->
+                            <div id="header_h">
+                                <table id='table_header'>
+                                    <tr>
+                                        <th>選択</th>
+                                        <th>顧客コード</th>
+                                        <th>顧客名</th>
+                                        <th >前回締日</th>
+                                        <th>前回残高</th>
+                                        <th>今回買上</th>
+                                        <th>消費税</th>
+                                        <th>入金金額</th>
+                                        <th>入金値引</th>
+                                        <th>請求額</th>
+                                    </tr>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <!-- データ部分  -->
+                            <div id="data">
+                                <table id='table_body'>
+                                    
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <!--<script type="text/javascript" src="../js/profit/jquery/js/scrolltopcontrol2.js"></script>-->
+        </div><!-- /#sb-site --> 
+    </body>
+</html>

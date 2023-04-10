@@ -1,0 +1,367 @@
+<?php
+    /**
+     * @file      組織マスタ画面(View)
+     * @author    USE R.dendo
+     * @date      2016/07/11
+     * @version   1.00
+     * @note      組織マスタ画面(一覧部分)
+     */
+?>
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+            <script src="../js/attendance/jquery/datepicker-ja.js" /></script>
+            <script type="text/javascript">
+                /**
+                 *  DatePickerを設定
+                 */
+                $(function()
+                {
+                    for( var i = 1; i <= <?php hsc(count($organizationList)); ?>; i++ )
+                    {
+                        $( "#applicationDateStartEdit" + i ).datepicker({
+                            showButtonPanel: true,
+                            dateFormat: 'yy/mm/dd',
+                        });
+                    }
+                });
+            </script>
+
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-ajax">
+            
+            <!-- PageMoveArea -->
+                <?php include("../FwCommon/View/PagingArea.php"); ?>
+                <!-- serchListArea -->
+                <!-- 2016/09/19 Y.Sugou -->
+                <?php if( $isScrollBar ) { ?>
+                    <div class="serchListArea" style=" clear:both; width:99%; margin:0px auto ; overflow-y:auto; height:33px; !important;">
+                <?php } else { ?>
+                    <div class="serchListArea" style=" clear:both; width:99%; margin:5px auto !important;">
+                <?php } ?>
+                <!-- ---------------------- -->
+                    <input type="hidden" id="token" name="token" value="<?php hsc($TokenID); ?>">
+                    <table>
+                        <tr>
+                            <th width="37px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0848')) ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?></u><?php hsc($headerArray['organizationNoSortMark']); ?></span></th><!-- No -->
+                            <th width="50px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0849')) ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0849')); ?></u><?php hsc($headerArray['organizationStateSortMark']); ?></span></th><!-- 状態 -->
+                            <th width="50px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0850')) ?>');"><u>部門<br>コード</u><?php hsc($headerArray['departmentCodeSortMark']); ?></span></th><!-- 部門コード -->
+                            <th width="123px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0854')) ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?></u><?php hsc($headerArray['organizationNameSortMark']); ?></span></th><!-- 組織名 -->
+                            <th width="62px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0903')) ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0903')); ?></u><?php hsc($headerArray['abbreviatedNameSortMark']); ?></span></th><!-- 組織略称 --> 
+                            <th width="87px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0853')) ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0853')); ?></u><?php hsc($headerArray['applicationDateStarSortMark']); ?></span></th><!-- 適用開始日 -->
+                            <th width="62px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0855')) ?>');"><u>1日の<br>開始時間</u><?php hsc($headerArray['StartTimeDaySortMark']); ?></span></th><!-- 1日の開始時間 -->
+                            <th width="87px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0904')) ?>');"><u>就業規則<br>優先順位</u><?php hsc($headerArray['prioritySortMark']); ?></span></th><!-- 就業規則優先順位 -->
+                            <th width="111px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0906')) ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0906')); ?></u><?php hsc($headerArray['laborRegulationsNameSortMark']); ?></span></th><!-- 就業規則名 -->
+                            <th width="123px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0856')) ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0856')); ?></u><?php hsc($headerArray['payrollSystemNameSortMark']); ?></span></th><!-- 給与フォーマット -->
+                            <th width="74px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0857')) ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0857')); ?></u><?php hsc($headerArray['upOrganizationNameSortMark']); ?></span></th><!-- 上位組織 -->
+                            <th width="87px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0858')) ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0858')); ?></u><?php hsc($headerArray['authenticationKeySortMark']); ?></span></th><!-- 認証キー -->
+                            <th width="123px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0892')) ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0892')); ?></u><?php hsc($headerArray['commentSortMark']); ?></span></th><!-- コメント -->
+                            <th width="50px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0852')) ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0852')); ?></u><?php hsc($headerArray['organizationDispOrderSortMark']); ?></span></th><!-- 表示順 -->
+                            <th width="111px"></th>
+                        </tr>
+                    </table>
+            <?php if( $isScrollBar ) { ?>
+                </div>
+                <div class="serchListArea" style="width:99%; margin: 0px auto; overflow-y:auto; height:380px; !important;">
+            <?php } ?>
+                <table  id="nameTable" style="background-color: #ffffff">
+                        <?php foreach($organizationList as $organization) { ?>
+                            <?php $organization_no++; ?>
+                            <?php if(!$organizationNoFlag) { ?>
+                                <?php $display_no++; ?>
+                            <?php } ?>
+                            <tr>
+                                <td align = "right" style="width:37px;">
+                                    <?php hsc($display_no); ?>
+                                    <input type="hidden" id="organizationIdMod<?php hsc($organization_no); ?>" name="organizationId<?php hsc($organization_no); ?>" value="<?php hsc($organization['organization_id']); ?>">
+                                    <input type="hidden" id="organizationDetailIdMod<?php hsc($organization_no); ?>" name="organizationDetailId<?php hsc($organization_no); ?>" value="<?php hsc($organization['organization_detail_id']); ?>">
+                                    <input type="hidden" id="updateTime<?php hsc($organization_no); ?>" name="updateTime<?php hsc($organization_no); ?>" value="<?php hsc($organization['mo_update_time']); ?>">
+                                    <input type="hidden" id="modUpdateTime<?php hsc($organization_no); ?>" name="modUpdateTime<?php hsc($organization_no); ?>" value="<?php hsc($organization['mod_update_time']); ?>">
+                                </td>
+                                <!-- 状態を表示 -->
+                                <td align="center" style="width:50px;"><?php hsc($organization['eff_code']); ?>
+                                </td>
+                                <!-- 部門コード -->
+                                <td align = "right" id="oCode<?php hsc($organization_no); ?>" style="width:50px;"><?php hsc($organization['department_code']); ?></td>
+                                <td id="oCode-edit<?php hsc($organization_no); ?>" style="display : none; width:50px;" align = "center">
+                                    <input type="text" pattern="^[0-9A-Za-z]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0302')); ?>" id="codeEdit<?php hsc($organization_no); ?>" name="oCodeEdit<?php hsc($organization_no); ?>" style="width: 44px" maxlength="20" value="<?php hsc($organization['department_code']); ?>" class="En" required>
+                                </td>
+                                <!-- 組織名 -->
+                                <td id="oOrganization<?php hsc($organization_no); ?>" style="width:123px;"><?php hsc($organization['organization_name']); ?></td>
+                                <td id="oOrganization-edit<?php hsc($organization_no); ?>" style="display : none;width:123px;" align = "center">
+                                    <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0302')); ?>" id="organizationNameEdit<?php hsc($organization_no); ?>" name="sOrganization<?php hsc($organization_no); ?>" style="width: 115px" maxlength="128" value="<?php hsc($organization['organization_name']); ?>" class="Em" required>
+                                </td>
+                                <!-- 組織略称 -->
+                                <td id="oAbbreviated_name<?php hsc($organization_no); ?>" style="width:62px;"><?php hsc($organization['abbreviated_name']); ?></td>
+                                <td id="oAbbreviated_name-edit<?php hsc($organization_no); ?>" style="display : none; width:62px;" align = "center">
+                                    <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0302')); ?>" id="abbreviatedNameEdit<?php hsc($organization_no); ?>" name="sOrganization<?php hsc($organization_no); ?>" style="width: 50px" maxlength="128" value="<?php hsc($organization['abbreviated_name']); ?>" class="Em" required>
+                                </td>
+                                <!-- 適用開始日 -->
+                                <td align = "center" id="oApplication_date_start<?php hsc($organization_no); ?>" style="width:87px;"><?php hsc($organization['application_date_start']); ?></td>
+                                <td id="oApplication_date_start-edit<?php hsc($organization_no); ?>" style="display : none; width:87px;" align = "center">
+                                    <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" pattern="\d{4}/\d{2}/\d{2}" id="applicationDateStartEdit<?php hsc($organization_no); ?>" name="oApplication_date_start<?php hsc($organization_no); ?>" style="width: 80px" value="<?php hsc($organization['application_date_start']); ?>" class="En" required>
+                                </td>
+                                <!-- 1日の開始時間 -->
+                                <td align = "center" id="oStart_time_day<?php hsc($organization_no); ?>" style="width:62px;">
+                                <?php
+                                    $startTime = substr($organization['start_time_day'],0,5);
+                                    hsc($startTime); 
+                                ?>
+                                </td>
+                                <td id="oStart_time_day-edit<?php hsc($organization_no); ?>" style="display : none; width:62px;" align = "center">
+                                    <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" id="startTimeDayEdit<?php hsc($organization_no); ?>" name="oApplication_date_start<?php hsc($organization_no); ?>" maxlength="5" style="width: 55px" value="<?php hsc($startTime); ?>" class="En" required>
+                                </td>
+                                <!-- 就業規則優先順位 -->
+                                <td align = "center" id="oPriority_p<?php hsc($organization_no); ?>" style="width:87px;">
+                                    <?php
+                                        if ($organization['priority_o']==1) 
+                                        {
+                                            echo "組織";
+                                        }
+                                        elseif($organization['priority_p']==1)
+                                        {
+                                            echo "役職";
+                                        }
+                                        elseif($organization['priority_e']==1)
+                                        {
+                                            echo "雇用形態";
+                                        }
+                                        else
+                                        {
+                                            echo"未設定";
+                                        }
+                                        ?>
+                                    <br>
+                                    <?php
+                                        if ($organization['priority_o']==2) 
+                                        {
+                                            echo "組織";
+                                        }
+                                        elseif($organization['priority_p']==2)
+                                        {
+                                            echo "役職";
+                                        }
+                                        elseif($organization['priority_e']==2)
+                                        {
+                                            echo "雇用形態";
+                                        }
+                                        else
+                                        {
+                                            echo"未設定";
+                                        }
+                                        ?>
+                                    <br>
+                                    <?php
+                                        if ($organization['priority_o']==3) 
+                                        {
+                                            echo "組織";
+                                        }
+                                        elseif($organization['priority_p']==3)
+                                        {
+                                            echo "役職";
+                                        }
+                                        elseif($organization['priority_e']==3)
+                                        {
+                                            echo "雇用形態";
+                                        }
+                                        else
+                                        {
+                                            echo"未設定";
+                                        }
+                                        ?>
+                                    <br>
+                                </td>
+                                <td align = "center" id="oPriority_p-edit<?php hsc($organization_no); ?>" style="display : none; width:87px;">
+                                <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0904')); ?>" id="priorityNameFirst<?php hsc($organization_no); ?>" name="priorityNameFirst" style="width: 80px">
+                                <?php
+                                if ($organization['priority_o']==1)
+                                {
+                                ?>
+                                        <option value="0">未設定</option>
+                                        <option value="1" selected>組織</option>
+                                        <option value="2">役職</option>
+                                        <option value="3">雇用形態</option>
+                                <?php
+                                }
+                                elseif ($organization['priority_p']==1)
+                                {
+                                ?>
+                                        <option value="0">未設定</option>
+                                        <option value="1">組織</option>
+                                        <option value="2" selected>役職</option>
+                                        <option value="3">雇用形態</option>
+                                 <?php
+                                }
+                                elseif ($organization['priority_e']==1)
+                                {
+                                ?>
+                                        <option value="0">未設定</option>
+                                        <option value="1">組織</option>
+                                        <option value="2">役職</option>
+                                        <option value="3" selected>雇用形態</option>
+                                <?php
+                                }else
+                                {
+                                ?>
+                                        <option value="0" selected>未設定</option>
+                                        <option value="1">組織</option>
+                                        <option value="2">役職</option>
+                                        <option value="3">雇用形態</option>
+                                <?php
+                                }
+                                ?>
+                                </select>
+                                 <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0904')); ?>" id="priorityNameSecond<?php hsc($organization_no); ?>" name="priorityNameSecond" style="width: 80px">
+                                <?php
+                                if ($organization['priority_o']==2)
+                                {
+                                ?>
+                                        <option value="0">未設定</option>
+                                        <option value="1" selected>組織</option>
+                                        <option value="2">役職</option>
+                                        <option value="3">雇用形態</option>
+                                <?php
+                                }
+                                elseif ($organization['priority_p']==2)
+                                {
+                                ?>
+                                        <option value="0">未設定</option>
+                                        <option value="1">組織</option>
+                                        <option value="2" selected>役職</option>
+                                        <option value="3">雇用形態</option>
+                                 <?php
+                                }
+                                elseif ($organization['priority_e']==2)
+                                {
+                                ?>
+                                        <option value="0">未設定</option>
+                                        <option value="1">組織</option>
+                                        <option value="2">役職</option>
+                                        <option value="3" selected>雇用形態</option>
+                                <?php
+                                }else
+                                {
+                                ?>
+                                        <option value="0" selected>未設定</option>
+                                        <option value="1">組織</option>
+                                        <option value="2">役職</option>
+                                        <option value="3">雇用形態</option>
+                                <?php
+                                }
+                                ?>
+                                </select>
+                                
+                                <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0904')); ?>" id="priorityNameThird<?php hsc($organization_no); ?>" name="priorityNameThird" style="width: 80px">
+                                <?php
+                                if ($organization['priority_o']==3)
+                                {
+                                ?>
+                                        <option value="0">未設定</option>
+                                        <option value="1" selected>組織</option>
+                                        <option value="2">役職</option>
+                                        <option value="3">雇用形態</option>
+                                <?php
+                                }
+                                elseif ($organization['priority_p']==3)
+                                {
+                                ?>
+                                        <option value="0">未設定</option>
+                                        <option value="1">組織</option>
+                                        <option value="2" selected>役職</option>
+                                        <option value="3">雇用形態</option>
+                                 <?php
+                                }
+                                elseif ($organization['priority_e']==3)
+                                {
+                                ?>
+                                        <option value="0">未設定</option>
+                                        <option value="1">組織</option>
+                                        <option value="2">役職</option>
+                                        <option value="3" selected>雇用形態</option>
+                                <?php
+                                }else
+                                {
+                                ?>
+                                        <option value="0" selected>未設定</option>
+                                        <option value="1">組織</option>
+                                        <option value="2">役職</option>
+                                        <option value="3">雇用形態</option>
+                                <?php
+                                }
+                                ?>
+                                </select>
+                                </td>
+                                <!--就業規則名-->
+                                <td align="center" id="oLabor_regulations_name<?php hsc($organization_no); ?>" style="width:111px;"><?php hsc($organization['labor_regulations_name']); ?></td>
+                                <td align="center" id="oLabor_regulations_name-edit<?php hsc($organization_no); ?>" style="display : none; width:111px;">
+                                    <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="laborRegulationsNameSelect<?php hsc($organization_no); ?>" name="laborRegulationsNameSelect<?php hsc($organization_no); ?>" style="width: 100px">
+                                        <?php foreach($laborRegNameAddList as $laborRegulations) { ?>
+                                            <?php $selected = ""; ?>
+                                                <?php if($laborRegulations['labor_regulations_id'] == $organization['labor_regulations_id']) { ?>
+                                                    <?php $selected = "selected"; ?>
+                                                <?php } ?>
+                                                    <option value="<?php hsc($laborRegulations['labor_regulations_id']); ?>" <?php hsc($selected); ?>><?php hsc($laborRegulations['labor_regulations_name']); ?></option>
+                                            <?php } ?>
+                                        </select>
+                                </td>
+                                <!--給与フォーマット-->
+                                <td align="center" id="oPayrollFormat<?php hsc($organization_no); ?>" style="width:123px"><?php hsc($organization['payroll_system_name']); ?></td>
+                                <td align="center" id="oPayrollFormat-edit<?php hsc($organization_no); ?>" style="display : none; width:123px;">
+                                    <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="nameSelect<?php hsc($organization_no); ?>" name="nameSelect<?php hsc($organization_no); ?>" style="width: 110px">
+                                        <?php foreach($payrollList as $payroll) { ?>
+                                            <?php $selected = ""; ?>
+                                            <?php if($payroll['payroll_system_id'] == $organization['payroll_system_id']) { ?>
+                                                <?php $selected = "selected"; ?>
+                                            <?php } ?>
+                                            <option value="<?php hsc($payroll['payroll_system_id']); ?>" <?php hsc($selected); ?>><?php hsc($payroll['name']);?></option>
+                                        <?php } ?>
+                                    </select>
+                                </td>
+                                 <!-- 上位組織 -->
+                                <td id="oUpper_level_organization<?php hsc($organization_no); ?>" style="width:74px;"><?php hsc($organization['up_organization_name']); ?></td>
+                                <td id="oUpper_level_organization-edit<?php hsc($organization_no); ?>" style="display : none; width:74px;">
+                                    <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="upperLevelOrganizationSelect<?php hsc($organization_no); ?>" name="sOrganization<?php hsc($organization_no); ?>" style="width: 65px" >
+                                        <?php foreach($upOrganNameList as $abbreviated) { ?>
+                                            <?php $selected = ""; ?>
+                                            <?php if($abbreviated['organization_id'] == $organization['upper_level_organization']) { ?>
+                                                <?php $selected = "selected"; ?>
+                                            <?php } ?>
+                                            <option value="<?php hsc($abbreviated['organization_id']); ?>" <?php hsc($selected); ?>><?php hsc($abbreviated['abbreviated_name']); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </td>
+                                <!-- 認証キー -->
+                                <td align="center" id="oAuthentication_key<?php hsc($organization_no); ?>" style="width:87px;"><?php hsc($organization['authentication_key']); ?></td>
+                                <td align="center" id="oAuthentication_key-edit<?php hsc($organization_no); ?>" style="display : none; width:87px;">
+                                    <input type="text" pattern="^[0-9A-Za-z]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0311')); ?>" id="authenticationKeyEdit<?php hsc($organization_no); ?>" name="modAuthentication_key<?php hsc($organization_no); ?>" style="width: 70px" maxlength="60" value="<?php hsc($organization['authentication_key']); ?>" class="En" required>
+                                </td>
+                                
+                                <!-- コメント -->
+                                <td id="oComment<?php hsc($organization_no); ?>" style="width:123px;"><?php hsc($organization['comment']); ?></td>
+                                <td id="oComment-edit<?php hsc($organization_no); ?>" style="display : none;width:123px;" align = "center">
+                                    <input type="text" id="modComment<?php hsc($organization_no); ?>" name="oComment<?php hsc($organization_no); ?>" style="width: 100px" maxlength="30" value="<?php hsc($organization['comment']); ?>" class="Em">
+                                </td>
+                                
+                                <!-- 表示順 -->
+                                <td align = "right" id="oDisp_order<?php hsc($organization_no); ?>" style="width:50px;"><?php hsc($organization['disp_order']); ?></td>
+                                <td align = "right" id="oDisp_order-edit<?php hsc($organization_no); ?>" style="display : none;width:50px;">
+                                    <input type="text" pattern="^[0-9]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" id="modDispOrder<?php hsc($organization_no); ?>" name="oDisp<?php hsc($organization_no); ?>" style="width: 40px" maxlength="5" value="<?php hsc($organization['disp_order']); ?>" class="En" required>
+                                </td>
+                                <td align="center" style="width:111px;">
+                                    <?php if($organization['eff_code'] == "適用中" or $organization['eff_code'] == "適用予定" ) 
+                                        { ?>
+                                            <input type="button" id="edtBtn<?php hsc($organization_no); ?>" value="<?php hsc($Log->getMsgLog('MSG_BASE_0801')); ?>" onclick="editRow(this)" <?php hsc($organization['cor_disabled']); ?> ><!-- 修正 -->
+                                            <input type="submit" id="edtBtn-mod<?php hsc($organization_no); ?>" name="mod<?php hsc($organization_no); ?>" style="display : none;" value="<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>')" <?php hsc($organization['mod_disabled']); ?>><!-- 更新 -->  
+                                    <?php } ?>
+                                    <?php if($organization['eff_code'] == "適用中" and $organization['is_apply_plan'] == null)
+                                        { ?>
+                                            <input type="button" id="edtBtn-plans<?php hsc($organization_no); ?>" value="<?php hsc($Log->getMsgLog('MSG_BASE_0924')); ?>" onclick="editRow(this)" <?php hsc($organization['cor_disabled']); ?> ><!-- 予定 -->
+                                    <?php } ?>
+                                            <input type="button" id="edtBtn-del<?php hsc($organization_no); ?>" name="del<?php hsc($organization_no); ?>" style="display : none; " value="<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>')" <?php hsc($organization['del_disabled']); ?>><!-- 削除 -->
+                                </td>
+                            </tr>
+                            <?php if($organizationNoFlag) { ?>
+                                <?php $display_no--; ?>
+                            <?php } ?>
+                        <?php } ?>
+                    </table>
+                </div><!-- /.serchListArea -->
+            </div><!-- /.jquery-replace-ajax -->

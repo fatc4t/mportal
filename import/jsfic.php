@@ -1,0 +1,182 @@
+<?php
+try{
+    /**
+     * @file      jicfics
+     * @author    office CRM kanderu
+     * @date     2021/10/18
+     * @version   1.00
+     * @note      jicfics
+     */
+
+    //DBアクセス
+    require_once("DBAccess_Function.php");
+    // ログファイル名
+    $currentdate = date('ymdHis');
+    $logname =  $currentdate;
+	$filename = 'jisfic_data';
+    $log_path = "/var/www/mportal/import/log/" . $logname . $filename.'.log';	
+    //$log_path = "D:/test/" . $logname . $filename.'.log';	
+    
+    //D:\test
+    //schema name
+	$sql  =""; 
+	$sql .= "select schemaname from pg_tables";
+    $sql .= " where tablename = 'mst0201'  order by schemaname ";
+    //$sql  =""; 
+   // $sql .= "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA ";
+//    $sql .= "where schema_name <> 'pg_toast' ";
+//    $sql .= "and schema_name <> 'pg_temp_1'  ";
+//    $sql .= " where  schema_name =  'shiosaka' OR schema_name =  'aokiyakuten' ";
+//    $sql .= "and schema_name <> 'pg_toast_temp_1' ";
+//    $sql .= "and schema_name <> 'pg_catalog' ";
+//    $sql .= "and schema_name <> 'information_schema' ";
+//    $sql .= "and schema_name <> 'acrossring' ";
+//    $sql .= "and schema_name <> 'public' ";
+//    $sql .= "and schema_name <> 'use' ";
+//    $sql .= "and schema_name <> 'akinai' ";
+//    $sql .= "and schema_name <> 'mandr' ";
+//    $sql .= "and schema_name <> 'millionet' ";
+    
+    // SQLの実行
+    $schema1 =  getList($sql);
+    
+    //店舗ループ
+    foreach ($schema1 as $key => $schma) {
+        $schema = $schma['schemaname'];
+
+        //商品マスタデータ
+        $sql = "SELECT distinct(prod_cd) prod_cd FROM ".$schema.".mst0201 where prod_nm = '' order by prod_cd "; 
+        
+         // SQLの実行
+         $result =  getList($sql);
+
+        //商品マスタデータループ
+        foreach ($result as $key => $value) {
+            $prod_cd = $value['prod_cd'];
+            //jisfic data
+            $sql1 = "SELECT * FROM public.m_jicfs_jan_basic where jan_cd = '".$prod_cd."' order by jan_cd ";
+            
+            // SQLの実行
+            $jicfsData = getList($sql1);
+			
+			$arr_length = count($jicfsData);
+            if ($arr_length == '0'){ 
+                error_log($schema."[".$prod_cd."]"."※JSCFICテブルにデータがありません。". "\n".$x . $ex, 3, $log_path);
+                
+            }else{
+                
+                error_log($schema."[".$prod_cd."]"."※JSCFIC商品マスタ更新完了。". "\n".$x . $ex, 3, $log_path);
+                
+            }
+
+            //商品マスタデータ更新ループ
+            foreach ($jicfsData as $key1 => $value1) {
+                //共通商品コード
+                $jan_cd       = $value1['jan_cd'];
+                //商品名
+                $prod_nm1      = $value1['prod_nm'];
+				
+				//全角文字=>半角文字
+				//$str = 'パインリッジ　シュナンＢヴィオニエＴＥＣＨＡＣＡＤＥＭＹ';
+				$prod_nm = mb_convert_kana($prod_nm1,"kva");
+				
+                //商品名称(カナ)
+                $prod_kn      = $value1['prod_kn'];
+                //POSレシート名(カナ)
+                $prod_kn_rk   = $value1['prod_kn_rk'];
+                //表示用規格(カナ)
+                $prod_capa_kn = $value1['prod_capa_kn'];
+                //表示用規格(漢字)
+                $prod_capa_nm = $value1['prod_capa_nm'];
+                //メーカコード
+                //$maker_cd     = $value1['maker_cd'];
+                //希望小売価格
+                //$saleprice    = $value1['saleprice'];
+
+                //商品マスタ更新　mst0201
+                $query  = " UPDATE ".$schema.".mst0201 SET ";
+                //更新日
+                $query .= " upddatetime   =  'now()' ";
+				//
+                $query .= " ,upduser_cd   = 'CSVCONV1'  ";
+                //商品名
+                $query .= " ,prod_nm      = '".$prod_nm."'  ";
+                //共通商品コード
+                $query .= " ,jan_cd       = '".$jan_cd."'  ";
+                ///商品名称(カナ)
+                $query .= " ,prod_kn      = '".$prod_kn."'  ";
+                ///POSレシート名(カナ)
+                $query .= " ,prod_kn_rk   = '".$prod_kn_rk."'  ";
+                ///表示用規格(カナ)
+                $query .= " ,prod_capa_kn = '".$prod_capa_kn."'  ";
+                //表示用規格(漢字)
+                $query .= " ,prod_capa_nm = '".$prod_capa_nm."'  ";
+                //メーカーコード
+                //$query .= " ,maker_cd     = '".$maker_cd."'  ";
+                //希望小売価格
+                //$query .= " ,saleprice    = '".$saleprice."'  "; 
+                //条件
+                $query .= " where  prod_cd = '".$prod_cd."' ";
+                
+                // SQLの実行
+                sqlExec($query);
+
+            //END 商品マスタデータ更新ループ
+            }
+
+         //self mediation
+          // $prod_cd = $value['prod_cd'];
+            //jisfic data
+            //$sql1 = "SELECT * FROM public.m_selfmedi where prod_cd = '".$prod_cd."' order by prod_cd ";
+            
+            // SQLの実行
+            //$self = getList($sql1);
+            
+           // $arr_length = count($self);
+          
+            //if ($arr_length == '0'){ 
+              //  error_log($schema."[".$prod_cd."]"."※self_medicationテブルにデータがありません。". "\n".$x . $ex, 3, $log_path);
+                
+            //}else{
+                
+              //  error_log($schema."[".$prod_cd."]"."※self_medication商品マスタ更新完了。". "\n".$x . $ex, 3, $log_path);
+                
+            //}
+            
+            //商品マスタデータ更新ループ
+            //foreach ($self as $key1 => $value1) {
+                //共通商品コード
+                //$prod_cd       = $value1['prod_cd'];
+
+                //商品マスタ更新　mst0201
+               // $query  = " UPDATE ".$schema.".mst0201 SET ";
+                //更新日
+                //$query .= " upddatetime   =  'now()' ";
+				//
+				//$query .= " ,upduser_cd   = 'CSVCONV2'  ";
+                //商品名
+               // $query .= " ,switch_otc_kbn = '1' ";
+              
+                //条件
+               // $query .= " where  prod_cd = '".$prod_cd."' and switch_otc_kbn <> '1' ";
+                
+                // SQLの実行
+                //sqlExec($query);
+
+            //END 商品マスタデータ更新ループ
+            //}
+        //END  商品マスタデータループ
+         }    
+        
+    //END 店舗ループ  
+    }
+  } catch (Exception $ex) {
+    $msg = "※SQLエラー";
+    echo   $msg; 
+    error_log("処理中にエラーが発生しました" . "\n" . "エラー内容：". "\n".$x . $ex, 3, $log_path);
+    exit;
+   } 
+  // 処理完了ログ出力
+  error_log("完了" . "\n", 3, $log_path);
+                     
+?>

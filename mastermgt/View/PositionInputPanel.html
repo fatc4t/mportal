@@ -1,0 +1,51 @@
+<?php
+    /**
+     * @file      役職マスタ画面(View)
+     * @author    USE S.Kasai
+     * @date      2016/06/15
+     * @version   1.00
+     * @note      役職マスタ画面(新規登録部分)
+     */
+?>
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-input-ajax">
+                <!-- 2016/09/19 Y.Sugou -->
+                <?php if( $isScrollBar ) { ?>
+                    <div class="serchListArea" style="width:99%; margin:5px auto !important; overflow-y:auto; height:28px;">
+                <?php } else { ?>
+                    <div class="serchListArea" style="width:99%; margin:5px auto!important;">
+                <?php } ?>
+                <!-- ---------------------- -->
+                    <table id="addTable" style="background-color: #ffffff">
+                        <tr>
+                            <td align = "center" width="62px">-</td>
+                            <td align = "center" width="62px">-</td>
+                            <td align = "center" width="123px"><input type="text" pattern="^[0-9A-Za-z]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0301')); ?>" id="positionNewCode" name="positionNewCode" style="width: 110px" maxlength="20" value="" class="En" required></td>
+                            <td align = "center" width="246px">
+                                <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="organizationNewName" name="organizationNewName" style="width: 230px" required>
+                                    <?php foreach($abbreviatedList as $abbreviated) { ?>
+                                        <option value="<?php hsc($abbreviated['organization_id']); ?>"><?php hsc($abbreviated['abbreviated_name']); ?></option>
+                                    <?php } ?>
+                                </select>
+                            </td>
+                            <td align = "center" width="246px"><input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0302')); ?>" id="positionNewName" name="positionNewName" style="width: 230px" maxlength="20" value="" class="Em" required></td>
+                            <td align = "center" width="246px">
+                                <select id="laborRegulationsNewName" name="laborRegulationsNewName" style="width: 230px" >
+                                    <?php foreach($laborRegulationsList as $laborRegulations) { ?>
+                                        <option value="<?php hsc($laborRegulations['labor_regulations_id']); ?>"><?php hsc($laborRegulations['labor_regulations_name']); ?></option>
+                                    <?php } ?>
+                                </select>
+                            <td align = "center" width="123px"><input type="text" pattern="[1-9][0-9]*" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" id="newDispOrder" name="newDispOrder" style="width: 100px" maxlength="5" value="" class="En" required></td>
+                            <td align = "center" width="123px">
+                                <?php $add_disabled = ""; ?>
+                                <?php if(empty($regFlag)) { ?>
+                                    <?php $add_disabled = "disabled"; ?>
+                                <?php } ?>
+                                <input type="submit" id="add" name="add" value="<?php hsc($Log->getMsgLog('MSG_BASE_0800')); ?>" <?php hsc($add_disabled); ?>>
+                            </td>
+                        </tr>
+                    </table>
+                </div><!-- /.serchListArea -->
+            </div><!-- /.jquery-replace-input-ajax -->
+

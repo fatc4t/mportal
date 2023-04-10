@@ -1,0 +1,742 @@
+	<?php
+    /**
+     * @file      請求書 [V]
+     * @author    川橋
+     * @date      2020/02/13
+     * @version   1.00
+     * @note      帳票 - 請求書画面控え
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述
+            include("../profit/View/Common/HtmlHeader.php");
+        ?>
+    <script src="../js/profit/jquery/jquery.ui.ympicker.js" /></script>
+    <script src="../js/profit/jquery/jquery-migrate-1.0.0.js" /></script>
+    <script src="../js/profit/jquery/datepicker-ja.js" /></script>
+    <script src="../js/autofil_v<?php echo $_SESSION['AUTOFIL_VER'] ?>.js" ></script>
+    <script src='../js/PDF/print.min.js'></script>
+    <link rel="stylesheet" type="text/css" href="../js/PDF/print.min.css">
+    <!-- modal script-->
+    <script src="../js/modal/modal.js" ></script>
+    <link rel="stylesheet" href="../css/modal/modal.css" >
+    <script type="text/javascript">
+        Sizelist       = '<?php echo json_encode(json_encode($Sizelist)); ?>';
+        A_Sizelist     = JSON.parse(Sizelist.slice(1,-1));
+        porg_id_list        = '<?php echo json_encode(json_encode($org_id_list)); ?>';
+        data_org            = JSON.parse(porg_id_list.slice(1,-1));
+        ptypcust_detail     = '<?php echo json_encode($cust_detail); ?>';
+        data_cust           = JSON.parse(ptypcust_detail);      
+        searchArray         = '<?php echo json_encode($searchArray); ?>';
+        A_searchArray       = JSON.parse(searchArray);
+        param               = '<?php echo json_encode($param); ?>';
+        A_param             = JSON.parse(param);
+        data                = '<?php echo json_encode($data); ?>';
+        A_data              = JSON.parse(data);
+
+        var cust_list = A_searchArray["cust_cd"].replace('false','');
+        if(cust_list){
+            cust_list = ","+cust_list;
+            data_select['cust'] = cust_list;
+        }
+        var org_list = A_searchArray["org_id"].replace('false','');
+        if(org_list){
+            org_list = ","+org_list;
+            data_select['org'] = org_list;
+        }
+    </script>
+    <script type="text/javascript">
+
+            function numberWithCommas(x,precision = 0) {
+                // x : value
+                // precision : precision to return default 0 (no decimal: 99) | 1 => 99.9 | 2 => 99.99 ...
+                x = Math.round(Number(x)*Math.pow(10,precision))/Math.pow(10,precision);
+                var parts = x.toString().split(".");
+                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                if(precision){
+                    if(!parts[1]){
+                        parts[1] = 0;
+                    }
+                    parts[1]=(parts[1]+"0".repeat(precision)).substr(0,precision);
+                }
+                return parts.join(".");
+            }
+            function radio_change_management(){
+                var prev = [];
+                document.getElementById("serchTable").addEventListener('change', function(e) {
+                    //console.log('Previous:', prev[e.target.name] ? prev[e.target.name].value : null);
+                    //console.log(e);
+                    if(e.target.name === "period"){
+                        if(!prev[e.target.name]){
+                            old_id_start="start_date";
+                            old_id_end="end_date";
+                        }else if(prev[e.target.name].value === "day"){
+                            old_id_start="start_date";
+                            old_id_end="end_date";
+                        }else if(prev[e.target.name].value === "month"){
+                            old_id_start="start_dateM";
+                            old_id_end="end_dateM";
+                        }else if(prev[e.target.name].value === "year"){
+                            old_id_start="start_year";
+                            old_id_end="end_year";
+                        }
+                        document.getElementById(old_id_start).hidden=true;
+                        document.getElementById(old_id_end).hidden=true;
+                        document.getElementById(old_id_start).value="";
+                        document.getElementById(old_id_end).value="";
+                        if(e.target.value === "day"){
+                            date_mode = "date";
+                            new_id_start="start_date";
+                            new_id_end="end_date";
+                            // checkbox checked
+                            today = new Date();
+                            document.getElementById(new_id_end).value = today.toISOString().slice(0,10).replace(/-/g,"\/");
+                            today.setMonth(today.getMonth()-1);
+                            document.getElementById(new_id_start).value = today.toISOString().slice(0,10).replace(/-/g,"\/");
+                        }else if(e.target.value === "month"){
+                            date_mode = "dateM";
+                            new_id_start="start_dateM";
+                            new_id_end="end_dateM";
+                            today = new Date();
+                            document.getElementById(new_id_end).value = today.toISOString().slice(0,7).replace(/-/g,"\/");
+                            today.setMonth(today.getMonth()-1);
+                            document.getElementById(new_id_start).value = today.toISOString().slice(0,7).replace(/-/g,"\/");
+                        }else if(e.target.value === "year"){
+                            date_mode = "year";
+                            new_id_start="start_year";
+                            new_id_end="end_year";
+                            today = new Date();
+                            document.getElementById(new_id_end).value = today.toISOString().slice(0,4).replace(/-/g,"\/");
+                            today.setFullYear(today.getFullYear()-1);
+                            document.getElementById(new_id_start).value = today.toISOString().slice(0,4).replace(/-/g,"\/");
+                        }
+                        document.getElementById(new_id_start).hidden=false;
+                        document.getElementById(new_id_end).hidden=false;
+                    }else if(e.target.name === "org_r"){
+                        document.getElementById("tenpo").checked = false;
+                        if(!prev[e.target.name]){
+                            prev[e.target.name]={value:""};
+                        }
+                        document.getElementById("org_select").disabled=true;
+                        if(e.target.value === "" ){
+                            document.getElementById("org_select").disabled=false;
+                        }else if(e.target.value === "compile"){
+                            document.getElementById("tenpo").checked = true;
+                        }
+                    }else if(e.target.name === "cust_r"){
+                        if(!prev[e.target.name]){
+                            prev[e.target.name]={value:""};
+                        }                        
+                        document.getElementById("cust_select").disabled=true;
+                        if(e.target.value === "" ){
+                            document.getElementById("cust_select").disabled=false;
+                        }
+                    }
+                    prev[e.target.name] = e.target;
+                });
+            }
+
+
+        function chf(frm){
+            if( 1 < window.location.search.length )
+                {
+                    csv_data.value = '';
+
+                    // org_id
+                    if(org_r_selected.checked){
+                        // list org name
+                        for(i=0;i<org_select.options.length;i++){
+                            if( !isNaN(org_select.options[i].value) ){
+                                org_nm_lst.value = org_nm_lst.value + ','+org_select.options[i].innerText;
+                            }
+                        }
+                        org_nm_lst.value = org_nm_lst.value.replace(/^,/,"");
+                        org_id.value = org_list.replace(/^,/,"'").replace(/,/g,"','").replace(/$/,"'");
+                        if(!org_list){
+                            alert("店舗を選択してください。");
+                            return false;
+                        }
+                    }else{
+                        org_id.value = false;
+                    }
+
+                    // cust_cd                    
+                    if(cust_r_selected.checked){
+                        // list cust name
+                        for(i=0;i<cust_select.options.length;i++){
+                            if( !isNaN(cust_select.options[i].value) ){
+                                cust_nm_lst.value = cust_nm_lst.value + ','+cust_select.options[i].innerText;
+                            }
+                            cust_nm_lst.value = cust_nm_lst.value.replace(/^,/,"");
+                        }   
+                        cust_cd.value = cust_list.replace(/^,/,"'").replace(/,/g,"','").replace(/$/,"'");
+                        if(!cust_list){
+                            alert("※顧客を選択してください。");
+                            return false;
+                        }
+                    }else{
+                        cust_cd.value = false;
+                    }
+                    
+                    // 締日(1～28 or 99)
+                    var sumday = document.getElementById('sumday').value;
+                    if (sumday !== ''){
+                        var intSumDay = parseInt(sumday, 10);   // 10進数
+                        if (isNaN(intSumDay) === true || (intSumDay !== 99 && (intSumDay < 1 || intSumDay > 28))){
+                            alert("締日が不正です。（指定範囲：1～28,99）");
+                            return false;
+                        }
+                        // 2桁にゼロ拡張
+                        document.getElementById('sumday').value = ('0' + sumday).slice(-2);
+                    }
+
+
+                    // 最初の1文字 (?記号) を除いた文字列を取得する
+                    var query = window.location.search.substring( 1 );
+                    var action = frm.action.split( '?' );
+
+                    // 検索以外の機能実行後だった場合、パラメータを補正する
+                    if(1 < action.length){
+                        frm.action = action[0];
+                    }
+
+                    // クエリの区切り記号 (&) で文字列を配列に分割する
+                    var parameters = query.split( '&' );
+                    if (frm.onbtn.value == 'serch') {
+                      frm.target='_self';
+                        if(1 < parameters.length){
+                             frm.action += '?param=' +frm.elements["codeName"].value + '&home=1';
+                         }else{
+                             frm.action += '?param=' +frm.elements["codeName"].value;
+                        }
+                    }else if (frm.onbtn.value == 'csvoutput'){
+                        //header_text = header_h.getElementsByTagName('tr')[0].innerText.replace(' ▲',"").replace(' ▼',"").replace(/\t/g,",");
+                        header_text = header_h.getElementsByTagName('tr')[1].innerText.replace(' ▲',"").replace(' ▼',"").replace(/\t/g,",");
+                        elem_tr_list = t_body_data.getElementsByTagName('tr');
+                        data_send = [];
+                        //sub header
+                        if(!middle_class_chk.checked){
+                            subheader_text = ",,,現金,,,売掛,,,売上,,";
+                        }else{
+                            subheader_text = ",,,,,現金,,,売掛,,,売上,,";
+                        }
+                        if(prev_year_chk.checked){
+                            subheader_text += ",,前年現金,,,前年売掛,,,,前年売上,,";
+                        }
+                        var csv_data_o = {};
+                        csv_data_o['"0"'] = subheader_text;
+                        csv_data_o['"1"'] = header_text;
+                        var row_nb = 2;
+                        for(i=0;i<elem_tr_list.length;i++){
+                            csv_data_o['"'+row_nb+'"'] = '"'+elem_tr_list[i].innerText.replace(/\t/g,'","')+'"';
+                            row_nb +=1;
+                        }
+                        //console.log(csv_data_o);
+                        csv_data.value = JSON.stringify(csv_data_o);
+                         //return false;
+                        if(1 < parameters.length){
+                             frm.action += '?param=LedgerSheetInvoicing/csvoutput&home=1';
+                         }else{
+                             frm.action += '?param=LedgerSheetInvoicing/csvoutput';
+                        }
+                    }else if (frm.onbtn.value == 'pdfoutput'){
+                        
+                        if (wellset_date.value !== A_searchArray['wellset_date']){
+                            alert('締処理日が変更されています。再検索してください。');
+                            return false;
+                        }
+                        if (sumday !== A_searchArray['sumday']){
+                            alert('締日が変更されています。再検索してください。');
+                            return false;
+                        }
+                        if (org_id.value.replace(/'/g, '') !== A_searchArray['org_id']){
+                            alert('店舗選択が変更されています。再検索してください。');
+                            return false;
+                        }
+                        if (cust_cd.value.replace(/'/g, '') !== A_searchArray['cust_cd']){
+                            alert('顧客選択が変更されています。再検索してください。');
+                            return false;
+                        }
+                        if (chk_Purchase_payment.checked === true  && A_searchArray['chk_Purchase_payment'] === undefined ||
+                            chk_Purchase_payment.checked === false && A_searchArray['chk_Purchase_payment'] !== undefined){
+                            alert('「買上または入金があるものを表示」チェックが変更されています。再検索してください。');
+                            return false;
+                        }
+                        if (chk_Claimable.checked === true  && A_searchArray['chk_Claimable'] === undefined ||
+                            chk_Claimable.checked === false && A_searchArray['chk_Claimable'] !== undefined){
+                            alert('「請求額があるものを表示」チェックが変更されています。再検索してください。');
+                            return false;
+                        }
+                        
+                        //frm.target='_self';
+                        window.open('', 'pdfoutput', 'width=1024,height=768');
+                        frm.target = 'pdfoutput';
+                        if(1 < parameters.length){
+                             frm.action += '?param=LedgerSheetInvoicing/pdfoutput&home=1';
+                         }else{
+                             frm.action += '?param=LedgerSheetInvoicing/pdfoutput';
+                        }
+                    }else{
+                        return false;
+                    }
+                }
+       }
+
+    /**
+     *  イベント制御用
+     *
+     */
+    function set_value(s_val){
+        document.serchForm.onbtn.value = s_val;
+    }
+
+    /**
+     * DatePickerを設定
+     */
+    $(function()
+    {
+        $( "#start_date, #end_date" ).bind('keydown', function (event) {
+            if(event.which == 13){
+                var e = jQuery.Event("keydown");
+                e.which = 9;
+                e.keyCode = 9;
+                $(this).trigger(e);
+                return false;
+            }
+        }).datepicker({
+            numberOfMonths: 2,
+            showCurrentAtPos: 1,
+            showButtonPanel: true,
+            dateFormat: 'yy/mm/dd'
+        });
+        $( "#start_date, #end_date" ).keydown(stopenter);
+
+        function stopenter(e) {
+            if(e.keyCode === 13) {
+                e.stopPropagation();
+                e.preventDefault();
+
+                return false;
+            }
+        }
+    });
+
+    /**
+     *
+     * スクロール制御
+     *
+     */
+        function SyncScroll(/* elem1, elem2, ... */) {
+            this._elements = [];
+            this._elementOnscroll = this._elementOnscroll.bind(this);
+            this.addElement.apply(this, arguments);
+        }
+        SyncScroll.prototype = {
+            enableHorizontal: true,
+            enableVertical: true,
+            addElement: function (/* elem1, elem2, ... */) {
+                var elem, i;
+                for (i = 0; i < arguments.length; i += 1) {
+                    elem = arguments[i];
+                    elem.addEventListener('scroll', this._elementOnscroll, false);
+                    this._elements.push(elem);
+                }
+            },
+            removeElement: function (/* elem1, elem2, ... */) {
+                var elem, i, j;
+                for (i = 0; i < arguments.length; i += 1) {
+                    elem = arguments[i];
+                    elem.removeEventListener('scroll', this._elementOnscroll, false);
+                    j = this._elements.indexOf(elem);
+                    if (j >= 0) {
+                        this._elements.splice(j, 1);
+                    }
+                }
+            },
+            _elementOnscroll: function (event) {
+                var i,
+                    elems = this._elements,
+                    elem = event.target,
+                    x = elem.scrollLeft,
+                    y = elem.scrollTop;
+                if (this.enableHorizontal) {
+                    for (i = 0; i < elems.length; i += 1) {
+                        elem = elems[i];
+                        if (elem === event.target || elem.scrollLeft === x) {
+                            continue;
+                        }
+                        elem.scrollLeft = x;
+                        if (elem.scrollLeft !== x) {
+                            elem.scrollLeft = x + x - elem.scrollLeft;
+                        }
+                    }
+                }
+            },
+            destroy: function () {
+                this.removeElement.apply(this, this._elements);
+            }
+        };
+
+        window.onload = function () {
+            creat_listener();
+            radio_change_management();
+
+            org_array = [];
+            if(A_param["org_r"] === ""){
+                code_list = org_list.replace(/^,/,'').split(',').sort();
+                name_list = A_param["org_nm_lst"].split(',');
+                for(i=0;i<name_list.length;i++){
+                    org_array[code_list[i]] = name_list[i];
+                }
+            }
+            modal_create_select("org_select",org_array);
+            if(org_list){
+                org_r_selected.checked = true;
+                org_select.disabled = false;
+            }
+            if(A_param["org_select"] && A_param["org_select"] !== 'empty'){
+                org_select.value = A_param["org_select"];
+            }
+            if(A_searchArray['tenpo']){
+                document.getElementById("tenpo").checked = true;
+                org_r_compile.checked = true;
+            }
+
+            cust_array = [];
+            if(A_param["cust_r"] === ""){
+                code_list = cust_list.replace(/^,/,'').split(',');
+                name_list = A_param["cust_nm_lst"].split(',');
+                for(i=0;i<name_list.length;i++){
+                    cust_array[code_list[i]] = name_list[i];
+                }          
+            }
+            modal_create_select("cust_select",cust_array);
+            if(cust_list){
+                cust_r_selected.checked = true;
+                cust_select.disabled = false;
+            }
+            if(A_param["cust_select"] && A_param["cust_select"] !== 'empty'){
+                cust_select.value = A_param["cust_select"];
+            }
+        };
+
+        function printPDF(){
+            pdf_header.innerHTML = '日付：'+start_date.value+' ～ '+end_date.value+'　　　　　　店舗： ';
+            if(org_r_all.checked){
+                pdf_header.innerHTML += '全店舗';
+            }else if(org_select.value !== 'empty'){
+                pdf_header.innerHTML += org_select.selectedOptions[0].innerText;
+            }else{
+                A_org_list = org_list.replace(/^,/,'').split(',');
+                for(i=0;i<data_org.length;i++){
+                    if(org_list.indexOf(',' + data_org[i]['org_id']) !== -1){
+                        pdf_header.innerHTML += data_org[i]['org_nm']+'　　';
+                    }
+                }
+            }
+            // 分類選択
+            pdf_header.innerHTML += '<br>分類： ';
+            if(prodclass_r_all.checked){
+                pdf_header.innerHTML += '全分類';
+            }else if(prodclass_select.value !== 'empty'){
+                pdf_header.innerHTML += prodclass_select.selectedOptions[0].innerText;
+            }else{
+                A_prodclass_list = prodclass_list.replace(/^,/,'').split(',');
+                for(i=0;i<data_prodclass.length;i++){
+                    if(prodclass_list.indexOf(',' + data_prodclass[i]['prodclass_cd']) !== -1){
+                        pdf_header.innerHTML += data_prodclass[i]['prodclass_nm']+'　　';
+                    }
+                }
+            }
+
+            style = 'th, td { border: 1px solid #d9d9d9 !important;}';
+            style += " table {font-family: 'Open Sans',sans-serif;font-size:10px;}";
+            style += ' table{border-collapse: collapse;}';
+            style += ' #t_body_data td, #t_footer_data td{text-align: right;}';
+            style += ' #t_body_data tbody tr td:nth-child(1), #t_body_data tbody tr td:nth-child(2), #t_body_data tbody tr td:nth-child(3), #t_body_data tbody tr td:nth-child(4), #t_footer_data tbody td:nth-child(1), #t_footer_data tbody td:nth-child(2), #t_footer_data tbody td:nth-child(3), #t_footer_data tbody td:nth-child(4){text-align: left;}';
+            style += ' #td_test_1,#td_test_1 th{padding-top: 0px; padding-bottom: 0px; border-bottom: none;}';
+            style += ' #td_test_2{padding-top: 1px;}';
+            style += ' #genkin_heater{width:260px;}';
+            style += ' #kake_heater{width:260px;}';
+            style += ' #uriage_heater{width:320px;}';
+            style += ' #prev_year_genkin_heater{width:260px;}';
+            style += ' #prev_year_kake_heater{width:260px;}';
+            style += ' #prev_year_uriage_heater{width:400px;}';
+            style += ' .col_size_80{width: 80px;}';
+            style += ' .col_size_60{width: 60px;}';
+            style += ' .col_size_100{width: 100px;}';
+            style += ' .col_size_150{width: 150px;}';
+            style += ' #tr_sep{display:none;}';
+            style += " #pdf_header{margin-left:20px;font-family: 'Open Sans',sans-serif;font-size:12px;}";
+            style += ' @page {size: A3 landscape; margin: 15px;}';
+            printJS({
+                header:'分類別売上集計表',
+                headerStyle:'font-size:14px;',
+                printable:'PDF_data',
+                type: 'html',
+                scanStyles: false,
+                honorMarginPadding: false,
+                style: style,
+            });
+            pdf_header.innerHTML = '';
+            setTimeout(remove_iframe, 10000);
+        }
+        function remove_iframe(){
+            if(document.getElementById('printJS')){
+                document.getElementById('printJS').parentNode.removeChild(document.getElementById('printJS'));
+            }
+        }
+    </script>
+
+    <STYLE type="text/css">
+    /*テーブルの幅と位置移動 2019/12/04 柴田*/
+        #search_param{
+            overflow: hidden;
+            max-width: 1070px;
+            margin-left: auto !important;
+            margin-right: auto !important;
+        }
+       #search_param th{
+           width:65px;
+       }
+        .chk {
+            vertical-align: text-bottom;
+        }
+
+        #header {
+           width:98%;
+           overflow-x:hidden;overflow-y:hidden;
+        }
+        #data {
+           width:99%;
+           height:720px;
+           overflow-x:hidden; overflow-y:scroll;
+           table-layout: fixed;
+        }
+
+        #div_data td{
+            background: none;
+        }
+        #t_body_data td{
+            text-align: right;
+        }
+        #t_body_data tbody tr td:nth-child(1){
+            text-align: center;
+        }
+        #t_body_data tbody tr td:nth-child(2),
+        #t_body_data tbody tr td:nth-child(3){
+            text-align: left;
+        }
+        #td_test_1,#td_test_1 th{
+            padding-top: 0px;
+            padding-bottom: 0px;
+            border-bottom: none;
+        }
+        #td_test_2{
+            padding-top: 2px;
+        }
+        .col_size_40{
+            width: 40px;
+        }
+        .col_size_80{
+            width: 80px;
+        }
+        .col_size_60{
+            width: 60px;
+        }
+        .col_size_100{
+            width: 100px;
+        }
+        .col_size_150{
+            width: 150px;
+        }
+        .col_size_300{
+            width: 150px;
+        }
+    </STYLE>
+
+    </head>
+    <body>
+<?php
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+
+<?php
+    $checked = '';
+    if (isset($_POST['tenpo'])){
+        $checked = ' checked';
+    }
+?>
+<?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+<!-- Site -->
+<div id="sb-site">
+<form name="serchForm" id="serchForm" action="<?php echo $_SERVER['PHP_SELF']; ?>" method="POST" onsubmit="return chf(this)">
+<div class="serchListArea">
+    <div id="search_param">
+        <div class="serchListArea" id="search_param" >
+            <table align="center">
+                <tr>
+                    <td>
+                        <table id="serchTable">
+                            <tr>
+                                <th id="serchTableTitle" align="left" width="65">帳票</th>
+                                <td align=left width="120" id="serchTableItem">
+                                    請求書
+                                  <input type="hidden" name="codeName" id="codeName" value="LedgerSheetInvoicing/show">
+                                </td>
+                                <th id="serchTableTitle" align="left" width="65">締処理日</th>
+                                <td id="serchTableItem" width=120>
+                                    <select id="wellset_date" name="wellset_date">
+                                        <option value=""></option>
+                                        <?php foreach($wellset_date_list as $row) { ?>
+                                            <?php $selected = ""; ?>
+                                            <?php if($row == $searchArray['wellset_date']) { ?>
+                                                <?php $selected = "selected"; ?>
+                                            <?php } ?>
+                                            <option value="<?php hsc($row); ?>" <?php hsc($selected); ?>><?php hsc($row); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </td>
+                                <th id="serchTableTitle" align="left" width="65">締日</th>
+                                <td id="serchTableItem" width=65>
+                                    <input type="text" id="sumday" name="sumday" style="width:30px;" maxlength='2' value="<?php hsc($searchArray['sumday']); ?>">
+                                </td>
+                                <!-- Modal -->
+                                <th id="serchTableTitle" align="center" width="65">店舗<br />選択</th>
+                                <td align="left" width=180>
+                                        <!--<input type="radio" name="org_r" id="org_r_compile" value="compile"> 企業計<br />-->
+                                        <input type="radio" name="org_r" id="org_r_all" value="all" checked> 全店<br />
+                                        <input type="radio" name="org_r" id="org_r_selected" value=""> 店舗指定&nbsp;&nbsp;
+                                        <select id="org_select" name="org_select" disabled onchange="modal_select_mgt(event)"><option value="no">&nbsp;</option></select>
+                                        <input type="checkbox" name="tenpo" value="Yes" id="tenpo" hidden>
+                                        <input type="text" name="org_id" value="" id="org_id" hidden>
+                                        <input type="text" name="org_nm_lst" value="" id="org_nm_lst" hidden>
+                                </td>
+                                <!-- Modal -->
+                                <th id="serchTableTitle" align="left" width="70">顧客<br />選択</th>
+                                <td id="serchTableItem" width=180>
+                                    <input type="radio" name="cust_r" id="cust_r_all" value="all" checked> 全顧客<br />
+                                    <input type="radio" name="cust_r" id="cust_r_selected" value=""> 顧客指定&nbsp;&nbsp;
+                                    <select id="cust_select" name="cust_select" disabled onchange="modal_select_mgt(event)"><option value="no">&nbsp;</option></select> <br />
+                                    <input type="text" name="cust_cd" value="" id="cust_cd" hidden>
+                                    <input type="text" name="cust_nm_lst" value="" id="cust_nm_lst" hidden> 
+                                </td>
+                            </tr>
+                            <tr>
+                                <th id="serchTableTitle" align="left" width="65">表示<br />設定</th>
+                                <td id="serchTableItem" width=200 colspan="3">
+                                    <input type="checkbox" id="chk_Purchase_payment" name="chk_Purchase_payment" value="1" <?php hsc($searchArray['Purchase_payment_checked']); ?>>買上または入金があるものを表示<br />
+                                    <input type="checkbox" id="chk_Claimable" name="chk_Claimable" value="1" <?php hsc($searchArray['Claimable_checked']); ?>>請求額があるものを表示
+                                </td>
+                                <td colspan="6">
+                                  <input class="submit" type="submit" name="search" id="search" value="　検索　" onClick="set_value('serch')">
+                                  <input type="text" name="csv_data" value="" id="csv_data" hidden>
+                                  <?php if( !empty($data) ) { ;?>
+                                   <!--<input size=10 class="submit" type="submit" name="csvoutput" id="csvoutput" value="CSV出力" onClick="set_value('csvoutput')">-->
+                                   <input size=10 class="submit" type="submit" name="pdfoutput" id="pdfoutput" value="PDF出力" onClick="set_value('pdfoutput')">
+                                   &nbsp;<input type="checkbox" id="chk_Copy" name="chk_Copy" value="1" <?php hsc($searchArray['Copy_checked']); ?>>控えを印刷する
+                                   &nbsp;<input type="checkbox" id="chk_Title" name="chk_Title" value="1" <?php hsc($searchArray['Title_checked']); ?>>タイトルを印字する
+                                   &nbsp;<input type="checkbox" id="chk_Name" name="chk_Name" value="1" <?php hsc($searchArray['Name_checked']); ?>>社名・振込先を印刷する
+                                  <?php } ?>
+                                  <input type="hidden" name="onbtn">
+                                </td>
+                            </tr>
+                        </table>
+                        <!-- The Modal -->
+                        <div id="modal_org" class="modal">
+                            <!-- Modal content -->
+                            <div class="modal-content">
+                                <?php include("../modal/View/Modalorganization.html"); ?>
+                            </div>
+                        </div>
+                        <div id="modal_cust" class="modal">
+                            <!-- Modal content -->
+                            <div class="modal-content">
+                                <?php  include("../modal/View/Modalcustomer.html"); ?>
+                            </div>
+                        </div>           
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+<input type="hidden" id="sort" name="sort">
+<div class="serchListArea" id="div_data">
+<?php if( !empty($data) ) { ;?>
+<div style="font-size: 12px;">
+    <button onclick="$('#data input[type=checkbox]').prop('checked', true); return(false);">一括選択</button>
+    <button onclick="$('#data input[type=checkbox]').prop('checked', false); return(false);">一括解除</button>
+</div>
+<?php } ?>
+<!-- 固定ヘッダ -->
+<table>
+    <tr>
+        <td>
+            <div id="header">
+                <table>
+                    <tr>
+                        <th class="col_size_40">選択</th>
+                        <th class="col_size_100">顧客コード</th>
+                        <th class="col_size_300">顧客名</th>
+                        <th class="col_size_80">前回残高</th>
+                        <th class="col_size_80">今回買上</th>
+                        <th class="col_size_80">消費税</th>
+                        <th class="col_size_80">入金金額</th>
+                        <th class="col_size_80">入金値引</th>
+                        <th class="col_size_80">請求額</th>
+                    </tr>
+                </table>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <!-- データ部分  -->
+            <div id="data">
+                <table id="t_body_data">
+<?php foreach($data as $row) { ?>
+                    <tr>
+                        <td class="col_size_40"><input type="checkbox" name="chk_cust_cd[]" value="<?php hsc($row['cust_cd']); ?>" checked></td>
+                        <td class="col_size_100"><?php hsc($row['cust_cd']); ?></td>
+                        <td class="col_size_300"><?php hsc($row['cust_nm']); ?></td>
+                        <td class="col_size_80"><?php hsc(number_format($row['bef_balance'])); ?></td>
+                        <td class="col_size_80"><?php hsc(number_format($row['sale_total']-$row['sale_tax'])); ?></td>
+                        <td class="col_size_80"><?php hsc(number_format($row['sale_tax'])); ?></td>
+                        <td class="col_size_80"><?php hsc(number_format($row['rece_total'])); ?></td>
+                        <td class="col_size_80"><?php hsc(number_format($row['rece_disc'])); ?></td>
+                        <td class="col_size_80"><?php hsc(number_format($row['now_balance'])); ?></td>
+                    </tr>
+<?php } ?>
+                </table>
+            </div>
+        </td>
+    </tr>
+</table>
+<div id="footer" style="float:right;">
+    <table style="width:160px;">
+        <tr>
+            <th>該当件数</th>
+            <td class="col_size_80" style="text-align:right;"><?php hsc(number_format(count($data))); ?></td>
+        </tr>
+    </table>    
+</div>
+</div>
+</form>
+<!--<script type="text/javascript" src="../jquery/js/scrolltopcontrol.js"></script>
+スクロールしながらページのトップに戻る-->
+</div><!-- /#sb-site -->
+
+</body>
+</html>

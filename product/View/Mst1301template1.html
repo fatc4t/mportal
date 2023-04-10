@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>m-portal</title>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8">
+        <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+        <?php include("../home/View/Common/HtmlHeader.php"); ?>        
+        <script type="text/javascript" src="../../FwCommon/js/common.js" ></script>
+        <script type="text/javascript" src="../js/template1/common.js" ></script> 
+        <script type="text/javascript" src="../js/template1/jquery-ui.min.js" ></script>
+        <!--ADDSTR 20201118 kanderu    -->
+<!--        Enterキーを押すと、次のフィールドに移動します-->
+        <script type="text/javascript" src="../../FwCommon/js/EnterFocus.js" ></script>
+<!--ADDEND 20201118 kanderu    -->
+        <link rel="stylesheet" href="../css/product/jquery-ui.css" >	
+        <link rel="stylesheet" href="../css/product/default.css" >	         
+        <script type="text/javascript" src="../js/product/jquery/datepicker-ja.js" /></script>
+        <script type="text/javascript">
+            $.datepicker.setDefaults( $.datepicker.regional[ "ja" ] );
+            $(function()
+            {
+                $( "#txt_SALE_PLAN_STR_DT, #txt_SALE_PLAN_END_DT" ).datepicker({
+                    showButtonPanel: true,
+                    beforeShow: function( input ) {
+                        setTimeout(function() {
+                            var buttonPane = $( input )
+                                .datepicker( "widget" )
+                                .find( ".ui-datepicker-buttonpane" );
+
+                            $( "<button>", {
+                                text: "クリア",
+                                click: function() {
+                                    //Code to clear your date field (text box, read only field etc.) I had to remove the line below and add custom code here
+                                    $.datepicker._clearDate( input );
+                                }
+                            }).appendTo( buttonPane ).addClass("ui-datepicker-clear ui-state-default ui-priority-primary ui-corner-all");
+                        }, 1 );
+                    },
+                    onChangeMonthYear: function( year, month, instance ) {
+                        setTimeout(function() {
+                            var buttonPane = $( instance )
+                                .datepicker( "widget" )
+                                .find( ".ui-datepicker-buttonpane" );
+
+                            $( "<button>", {
+                                text: "クリア",
+                                click: function() {
+                                    //Code to clear your date field (text box, read only field etc.) I had to remove the line below and add custom code here
+                                    $.datepicker._clearDate( instance.input );
+                                }
+                            }).appendTo( buttonPane ).addClass("ui-datepicker-clear ui-state-default ui-priority-primary ui-corner-all");
+                        }, 1 );
+                    }
+                });
+            });
+
+            controller      = "<?php echo $controller ; ?>";
+            jss_rc   = "../js/"+controller.toLowerCase()+"/template1.js";
+            var script  = document.createElement('script');
+            script.src  = jss_rc;
+            script.type ="text/javascript";            
+            document.head.appendChild(script);
+            var link    = document.createElement('link');
+            link.rel    = "stylesheet";
+            link.href   = "../css/"+controller.toLowerCase()+"/template1.css";
+            document.head.appendChild(link);
+            
+            pagetitle       = "<?php echo $pagetitle ; ?>";
+            addrow          = "<?php echo $addrow ; ?>";
+            save            = "<?php echo $save ; ?>";
+            pr_key_list     = "<?php echo $pr_key_list; ?>";
+            pr_key_id       = '<?php echo json_encode(json_encode($pr_key_id)); ?>';
+            A_pr_key_id     = JSON.parse(pr_key_id.slice(1,-1));
+            key             = '<?php echo json_encode(json_encode($key)); ?>';
+            A_key           = JSON.parse(key.slice(1,-1));
+            title           = '<?php echo json_encode(json_encode($title)); ?>';
+            A_title         = JSON.parse(title.slice(1,-1));
+            data            = '<?php echo json_encode(json_encode($data)); ?>';
+            working_data    = JSON.parse(data.slice(1,-1));
+            //
+            abbreviated_list    = '<?php echo json_encode(json_encode($abbreviatedNameList)); ?>';
+            A_abbreviated_list  = JSON.parse(abbreviated_list.slice(1,-1));
+            destination     = "<?php hsc($destination); ?>";
+            //orgn_id         = "<?php hsc($orgn_id); ?>";
+            orgn_id         = "<?php hsc($aryKeys['organization_id']); ?>";
+            //
+            sale_plan_cd            = "<?php hsc($aryKeys['sale_plan_cd']); ?>";
+            sale_plan_nm_load       = "<?php hsc($aryKeys['sale_plan_nm']); ?>";
+            sale_plan_str_dt_load   = "<?php hsc($aryKeys['sale_plan_str_dt']); ?>";
+            sale_plan_end_dt_load   = "<?php hsc($aryKeys['sale_plan_end_dt']); ?>";
+            //
+            //pmst0201_sd         = '<?php echo json_encode(json_encode($mst0201_searchdata)); ?>';
+            //A_pmst0201_sd       = JSON.parse(pmst0201_sd.slice(1,-1));
+
+            var new_data    = [];
+            var upd_data    = [];
+            var del_data    = [];
+            
+            function thead_crea(thead_nm){
+                thead = document.getElementById("thead_template");
+                thead.innerHTML = '';
+                // button_del
+                field_nm            = document.createElement('th');                
+                field_nm.innerHTML  = "&nbsp;&nbsp;&nbsp;";
+                thead.appendChild(field_nm);
+                // button_det
+                field_nm            = document.createElement('th');                
+                field_nm.innerHTML  = "&nbsp;&nbsp;&nbsp;";
+                thead.appendChild(field_nm);
+
+                for(i=0;i < thead_nm.length ; i++ ){
+                    if (thead_nm[i] === ""){ continue; }
+                    field_nm            = document.createElement('th');
+                    field_nm.innerHTML  = "";
+                    field_nm.innerHTML  = thead_nm[i];
+                    thead.appendChild(field_nm);
+                }                
+            }
+
+            function tbody_crea(work_data){
+                tbod = document.getElementById("tbody_template");
+                tbod.innerHTML = '';
+                var plus = 0;
+                for(i=0;i < work_data.length ; i++ ){
+                        
+                    var trow         = tbod.insertRow();
+                    var ckbox        = trow.insertCell(0);
+                    var newbutton       = document.createElement('button');
+                    newbutton.name      = 'button_del';
+                    newbutton.id        = 'del_' + i;
+                    newbutton.value     = i;
+                    newbutton.innerHTML = "削除";
+                    newbutton.onclick = del_row;
+                    ckbox.appendChild(newbutton);
+
+                    var ckbox        = trow.insertCell(1);
+                    var newbutton       = document.createElement('button');
+                    newbutton.name      = 'button_det';
+                    newbutton.id        = 'det_' + i;
+                    newbutton.value     = i;
+                    newbutton.innerHTML = "詳細";
+                    newbutton.onclick = show_detail;
+                    ckbox.appendChild(newbutton);
+            
+                    for(j=0;j < A_key.length; j++){
+                        //var newcell     = trow.insertCell(j+1);
+                        var newcell     = trow.insertCell(j+2);
+                        var newinput   = document.createElement('input');
+                        newinput.type       = 'text';
+                        newinput.name       = A_key[j];
+                        newinput.id         = A_key[j]+"_"+i;
+                        newinput.onchange  = f_change;
+                        newinput.onblur    = f_blur;
+                        newinput.onkeydown = f_keydown;
+                        newinput.onkeypress = f_keypress;
+                        newinput.oninput    = f_input;
+                        newinput.value      = work_data[i][A_key[j]];
+                        newinput.setAttribute("readonly", "readonly");
+                        newcell.appendChild(newinput);
+                    }
+                }
+
+// 行で値入力しないので追加用行は生成しない
+//                var trow         = tbod.insertRow();
+//                var ckbox        = trow.insertCell(0);
+//                var newbutton       = document.createElement('button');
+//                newbutton.name      = 'button_add';
+//                newbutton.id        = 'add';
+//                newbutton.value     = work_data.length;
+//                newbutton.innerHTML = "追加";
+//                newbutton.onclick = add_row;
+//                newbutton.setAttribute("disabled", true);
+//                ckbox.appendChild(newbutton);
+//
+//                var ckbox        = trow.insertCell(1);
+//                var newbutton       = document.createElement('button');
+//                newbutton.name      = 'button_det';
+//                newbutton.id        = 'det_' + work_data.length;
+//                newbutton.value     = work_data.length;
+//                newbutton.innerHTML = "詳細";
+//                newbutton.onclick = show_detail;
+//                ckbox.appendChild(newbutton);
+//
+//                for(j=0;j < A_key.length; j++){
+//                    //var newcell = trow.insertCell(j+1);
+//                    var newcell = trow.insertCell(j+2);
+//                    var newinput = document.createElement('input');
+//                    newinput.type       = 'text';
+//                    newinput.name       = A_key[j];
+//                    newinput.id         = A_key[j]+"_"+work_data.length;
+//                    newinput.onchange   = f_change;
+//                    newinput.onblur     = f_blur;
+//                    newinput.onkeydown  = f_keydown;
+//                    newinput.onkeypress = f_keypress;
+//                    newinput.oninput    = f_input;
+//                    newinput.value      = "";
+//                    newcell.appendChild(newinput);
+//                }
+
+                if(addrow == 0){
+                    list = document.getElementsByName('button_del');
+                    for(i=0;i<list.length;i++){
+                        list[i].setAttribute("disabled", true);
+                    }
+                    document.getElementById("add").setAttribute("disabled", true);
+                }
+                if(save == 0){
+                    document.getElementById('send_result').setAttribute("disabled", true);
+                }
+            }
+            function f_change(e){
+                T_f_change(e);
+            }
+            function f_blur(e){
+                T_f_blur(e);
+            }
+            function f_keydown(e){
+                result = T_f_keydown(e);
+                return result;
+            }
+            function f_keypress(e){
+                T_f_keypress(e);
+            }
+            function f_input(e){
+                T_f_input(e);
+            }
+            function add_row(e){
+                res = T_addrow(e);
+                
+                if (res === "ok"){
+                    newval           = +e.target.value +1;
+                    elemt            = document.getElementById("add");
+                    elemt.id         = 'del_'+e.target.value;
+                    elemt.name       = 'button_del';
+                    elemt.innerHTML  = "削除";
+                    elemt.onclick   = del_row;
+                    
+// 行で値入力しないので追加用行は生成しない
+//                    tbod = document.getElementById("tbody_template");
+//                    var trow         = tbod.insertRow();
+//                    var ckbox        = trow.insertCell(0);
+//                    var newbutton       = document.createElement('button');
+//                    newbutton.name      = 'button_add';
+//                    newbutton.id        = 'add';
+//                    newbutton.value     = newval;
+//                    newbutton.innerHTML = "追加";
+//                    newbutton.disabled  = true;
+//                    newbutton.onclick  = add_row;
+//                    ckbox.appendChild(newbutton);
+//
+//                    var ckbox        = trow.insertCell(1);
+//                    var newbutton       = document.createElement('button');
+//                    newbutton.name      = 'button_det';
+//                    newbutton.id        = 'det_' + newval;
+//                    newbutton.value     = newval;
+//                    newbutton.innerHTML = "詳細";
+//                    newbutton.onclick = show_detail;
+//                    ckbox.appendChild(newbutton);
+//            
+//                    for(j=0;j < A_key.length; j++){
+//                        //var newcell = trow.insertCell(j+1);
+//                        var newcell = trow.insertCell(j+2);
+//                        var newinput = document.createElement('input');
+//                        newinput.type       = 'text';
+//                        newinput.name       = A_key[j];
+//                        newinput.id         = A_key[j]+"_"+newval;
+//                        newinput.onchange   = f_change;
+//                        newinput.onblur     = f_blur;
+//                        newinput.onkeydown  = f_keydown;
+//                        newinput.oninput     = f_input;
+//                        newinput.value      = "";
+//                        newcell.appendChild(newinput);
+//                    }                    
+//                elemt           = document.getElementById("add");
+//                elemnt_f_id     = A_pr_key_id[0] +"_"+elemt.value;
+//                elemnt_f        = document.getElementById(elemnt_f_id);
+//                elemnt_f.focus();
+
+                    if (Object.keys(working_data).length > 0){
+                        document.getElementById("txt_SALE_PLAN_STR_DT").setAttribute("disabled", true);
+                        document.getElementById("txt_SALE_PLAN_END_DT").setAttribute("disabled", true);
+                    }
+                }
+            }
+            function del_row(e){
+                rowIndex=0;
+                elements=document.getElementsByName('button_del');
+                for(i=0;i<elements.length;i++){
+                    if (elements[i].value === e.target.value){
+                        rowIndex=i;
+                        break;
+                    }
+                }
+                res = T_delrow(e);
+                if (res === "ok"){
+                    // e.target.value is not equal rowIndex of HTMLTableElement
+                    //tbod = document.getElementById("tbody_template").deleteRow(e.target.value);
+                    tbod = document.getElementById("tbody_template").deleteRow(rowIndex);
+
+                    if (Object.keys(working_data).length === 0){
+                        document.getElementById("txt_SALE_PLAN_STR_DT").removeAttribute("disabled");
+                        document.getElementById("txt_SALE_PLAN_END_DT").removeAttribute("disabled");
+                    }
+                }
+            }
+            function send_result(){
+
+                // 特売企画名
+                if (document.getElementById("txt_SALE_PLAN_NM").value === ""){
+                    alert("※特売企画名を入力してください。");
+                    document.getElementById("txt_SALE_PLAN_NM").focus();
+                    return false;
+                }
+                // 特売期間
+                var sale_str_inp = document.getElementById("txt_SALE_PLAN_STR_DT").value;
+                var sale_end_inp = document.getElementById("txt_SALE_PLAN_END_DT").value;
+                if (sale_str_inp === ""){
+                    alert("※特売期間(開始)を入力してください。");
+                    document.getElementById("txt_SALE_PLAN_STR_DT").focus();
+                    return false;
+                }
+                if (sale_end_inp === ""){
+                    alert("※特売期間(終了)を入力してください。");
+                    document.getElementById("txt_SALE_PLAN_END_DT").focus();
+                    return false;
+                }
+                if (DateDiff(sale_str_inp, sale_end_inp) < 0){
+                    alert("※特売期間(開始)が終了日を超えています。");
+                    document.getElementById("txt_SALE_PLAN_END_DT").focus();
+                    return false;
+                }
+        
+                if (new_data.length === 0 && upd_data.length === 0 && del_data.length === 0 &&
+                    document.getElementById("txt_SALE_PLAN_NM").value     === sale_plan_nm_load &&
+                    document.getElementById("txt_SALE_PLAN_STR_DT").value === sale_plan_str_dt_load &&
+                    document.getElementById("txt_SALE_PLAN_END_DT").value === sale_plan_end_dt_load){
+                    alert("※更新データはありません。");
+                    return false;
+                }
+
+                if(confirm("※データ保存します。よろしいですか？")){
+                //data_send   = T_send_result();
+                    data_send   = T_send_result(orgn_id);
+ //               var xhr     = new XMLHttpRequest();
+ //               xhr.open("post", spath, true);
+ //               xhr.setRequestHeader('Content-Type', 'application/json');
+ //               xhr.send(data_send); 
+                //setDataForAjax( data_send, spath,'ajaxScreenUpdate' );
+                }
+            }
+            
+            function reset_data(){
+                T_reset_data();
+                if (Object.keys(working_data).length > 0){
+                    document.getElementById("txt_SALE_PLAN_STR_DT").setAttribute("disabled", true);
+                    document.getElementById("txt_SALE_PLAN_END_DT").setAttribute("disabled", true);
+                }
+            }
+            function all_reset(){
+                spath       = window.location.href;
+                spath       = spath.split('?'); 
+                spath       = spath[0]+'?param='+destination+'/show&home=1';
+                window.location.replace(spath);
+            }
+            function show_detail(e){
+                var sale_plan_nm = encodeURI(document.getElementById('txt_SALE_PLAN_NM').value);
+                var sale_plan_str_dt = document.getElementById('txt_SALE_PLAN_STR_DT').value;
+                var sale_plan_end_dt = document.getElementById('txt_SALE_PLAN_END_DT').value;
+                var ref = e.target.value;
+                var row = encodeURI(JSON.stringify(working_data[ref]));
+                // open Dialog to show Sale Plan Detail Informations.
+                spath       = window.location.href;
+                spath       = spath.split('?'); 
+                spath       = spath[0]+'?param=Mst1301/detail&orgnid='+orgn_id+'&cd='+sale_plan_cd+'&nm='+sale_plan_nm+'&sdt='+sale_plan_str_dt+'&edt='+sale_plan_end_dt+'&line='+ref+'&row='+row;
+                openDialog(spath);
+            }
+            function openDialog(url) {
+                document.getElementById('hid_detail_values').value = "";
+                var iframeStyle = 'min-width     : 100%; ' +
+                                  'height        : 100%; ' +
+                                  'padding-top   : 0; ' +
+                                  'padding-right : 0; ' +
+                                  'padding-bottom: 0; ' +
+                                  'padding-left  : 0;';
+                //var iframe = $('<iframe frameborder="0" src="' + url + '" style="' + iframeStyle + '"></iframe>');
+                var iframe = $('<iframe id="detailDialog" frameborder="0" src="' + url + '" style="' + iframeStyle + '"></iframe>');
+                var dialogOptions = {
+                    //width : 640,
+                    //height: 480,
+                    width : 950,
+                    height: 820,
+                    title : '特売マスタ明細',
+                    modal : true
+                };
+                iframe.dialog(dialogOptions);
+            }
+            function closeDialog(ref){
+                // 閉じる
+                $('#detailDialog').dialog('close');
+                // 破棄
+                $('#detailDialog').dialog('destroy');
+                // ダイアログ入力データ
+                var dlg_data = document.getElementById('hid_detail_values').value;
+                var A_dlg_data = JSON.parse(dlg_data);
+                if (A_dlg_data['line'] === ''){
+                    // add_row
+                    tbod = document.getElementById("tbody_template");
+                    var trow         = tbod.insertRow();
+                    var ckbox        = trow.insertCell(0);
+                    var newbutton       = document.createElement('button');
+                    newbutton.name      = 'button_add';
+                    newbutton.id        = 'add';
+                    newbutton.value     = working_data.length;
+                    newbutton.innerHTML = "追加";
+                    newbutton.onclick = add_row;
+                    //newbutton.setAttribute("disabled", true);
+                    ckbox.appendChild(newbutton);
+
+                    var ckbox        = trow.insertCell(1);
+                    var newbutton       = document.createElement('button');
+                    newbutton.name      = 'button_det';
+                    newbutton.id        = 'det_' + working_data.length;
+                    newbutton.value     = working_data.length;
+                    newbutton.innerHTML = "詳細";
+                    newbutton.onclick = show_detail;
+                    ckbox.appendChild(newbutton);
+
+                    for(j=0;j < A_key.length; j++){
+                        //var newcell = trow.insertCell(j+1);
+                        var newcell = trow.insertCell(j+2);
+                        var newinput = document.createElement('input');
+                        newinput.type       = 'text';
+                        newinput.name       = A_key[j];
+                        newinput.id         = A_key[j]+"_"+working_data.length;
+                        newinput.onchange   = f_change;
+                        newinput.onblur     = f_blur;
+                        newinput.onkeydown  = f_keydown;
+                        newinput.onkeypress = f_keypress;
+                        newinput.oninput    = f_input;
+                        //newinput.value      = "";
+                        newinput.value      = A_dlg_data[A_key[j]];
+                        newinput.setAttribute("readonly", "readonly");
+                        newcell.appendChild(newinput);
+                    }
+                    // 追加ボタンクリックイベント発火
+                    var elem = document.getElementById("add");
+                    var evt = document.createEvent("HTMLEvents");
+                    evt.initEvent("click", true, false);
+                    elem.dispatchEvent(evt);
+                }
+                else{
+                    // upd_row
+                    ref = A_dlg_data['line'];
+                    for(j=0;j < A_key.length; j++){
+                        if (document.getElementById(A_key[j]+"_"+ref).value !== A_dlg_data[A_key[j]]){
+                            document.getElementById(A_key[j]+"_"+ref).value = A_dlg_data[A_key[j]];
+                            if (A_key[j] === 'prod_nm' || A_key[j] === 'prod_capa_nm' || A_key[j] === 'costprice' || A_key[j] === 'saleprice'){ continue; }
+                            // 値変更イベント発火
+                            var elem = document.getElementById(A_key[j]+"_"+ref);
+                            var evt = document.createEvent("HTMLEvents");
+                            evt.initEvent("change", true, false);
+                            elem.dispatchEvent(evt);
+                        }
+                    }
+                }
+                return false;
+            }
+            function openDialogS(url) {
+                var iframeStyle = 'min-width     : 100%; ' +
+                                  'height        : 100%; ' +
+                                  'padding-top   : 0.2em; ' +
+                                  'padding-right : 0; ' +
+                                  'padding-bottom: 0; ' +
+                                  'padding-left  : 0;';
+                //var iframe = $('<iframe frameborder="0" src="' + url + '" style="' + iframeStyle + '"></iframe>');
+                var iframe = $('<iframe id="searchDialog" frameborder="0" src="' + url + '" style="' + iframeStyle + '"></iframe>');
+                var dialogOptions = {
+                    //width : 640,
+                    //height: 480,
+                    width : 880,
+                    height: 800,
+                    title : '特売検索',
+                    modal : true
+                };
+                iframe.dialog(dialogOptions);
+            }
+            function closeDialogS(result){
+                // 閉じる
+                $('#searchDialog').dialog('close');
+                // 破棄
+                $('#searchDialog').dialog('destroy');         
+                // 画面遷移
+                spath = window.location.href;
+                spath = spath.split('?'); 
+               
+                spath = spath[0]+'?param='+destination+'/show&search='+result;
+                window.location.replace(spath);
+                return false;
+            }
+            function searchdata(){
+                spath       = window.location.href;
+                spath       = spath.split('?'); 
+                spath       = spath[0]+'?param=Mst1301/search&type=s';
+                window.location.replace(spath);
+                openDialogS(spath);
+            }
+            function all_delete()
+            {
+                if(confirm("※データ削除します。よろしいですか？")){
+                    spath       = window.location.href;
+                    spath       = spath.split('?'); 
+                    spath       = spath[0]+'?param='+destination+'/alldelete&orgnid='+orgn_id+'&cd='+sale_plan_cd;
+                    window.location.replace(spath);
+                }
+            }
+            function add_detail()
+            {
+                var sale_plan_nm = encodeURI(document.getElementById('txt_SALE_PLAN_NM').value);
+                var sale_plan_str_dt = document.getElementById('txt_SALE_PLAN_STR_DT').value;
+                var sale_plan_end_dt = document.getElementById('txt_SALE_PLAN_END_DT').value;
+                if (sale_plan_str_dt === ''){
+                    alert('※特売期間(開始)を入力してください。');
+                    document.getElementById('txt_SALE_PLAN_STR_DT').focus();
+                    return false;
+                }
+                if (sale_plan_end_dt === ''){
+                    alert('※特売期間(終了)を入力してください。');
+                    document.getElementById('txt_SALE_PLAN_END_DT').focus();
+                    return false;
+                }                
+                
+                spath       = window.location.href;
+                spath       = spath.split('?'); 
+                spath       = spath[0]+'?param=Mst1301/detail&orgnid='+orgn_id+'&cd='+sale_plan_cd+'&nm='+sale_plan_nm+'&sdt='+sale_plan_str_dt+'&edt='+sale_plan_end_dt;
+                //window.location.replace(spath);
+                openDialog(spath);
+            }
+
+            /**
+             * ２つの日付の差を日数で求める
+             */
+            function DateDiff(strDay1, strDay2)
+            {
+                //比較する日付オブジェクトを２つ定義する
+                var day1 = new Date(strDay1);
+                var day2 = new Date(strDay2);
+ 
+                //差日を求める（86,400,000ミリ秒＝１日）
+                return Math.ceil((day2 - day1) / 86400000);
+            }
+//ADDSTR 2020/11/02 kanderu
+        window.onload = function () { 
+            if (document.getElementById("cmb_ORGANIZATION_ID").value ==='' ){
+                document.getElementById("txt_SECT_CD").disabled = true;  
+            }
+        };
+//ADDEND 2020/11/02 kanderu
+            
+        </script>
+            
+        <style type="text/css">
+            .group_no_float{
+              clear: both;
+
+            }
+            .blocline_left {
+              float : left;
+              padding-left: 1em;
+              vertical-align: middle;
+            }
+            .blocline_right{
+               margin-left: 50px;
+               padding-left: 30em;
+            }
+            /* add/replace value setting at template1.css */
+            /* button_det */
+            thead#thead_template th:nth-child(1),
+            tbody#tbody_template tr td:nth-child(1),
+            thead#thead_template th:nth-child(2),
+            tbody#tbody_template tr td:nth-child(2){
+                width: 4em;
+            }
+            /* prod_cd */
+            thead#thead_template th:nth-child(3),
+            tbody#tbody_template tr td:nth-child(3){
+                width: 10em;
+            }
+            thead#thead_template th:nth-child(4),
+            tbody#tbody_template tr td:nth-child(4){
+                width: 31em;
+            }
+            /* sale_plan_str_dt1, sale_plan_end_dt1, sale_plan_str_dt2, sale_plan_end_dt2 */
+            thead#thead_template th:nth-child(5),
+            tbody#tbody_template tr td:nth-child(5),
+            thead#thead_template th:nth-child(6),
+            tbody#tbody_template tr td:nth-child(6),
+            thead#thead_template th:nth-child(7),
+            tbody#tbody_template tr td:nth-child(7),
+            thead#thead_template th:nth-child(8),
+            tbody#tbody_template tr td:nth-child(8){
+                width: 10em;
+            }
+            /* invisible cells */
+            thead#thead_template th:nth-child(9),
+            tbody#tbody_template tr td:nth-child(9),
+            thead#thead_template th:nth-child(10),
+            tbody#tbody_template tr td:nth-child(10),
+            thead#thead_template th:nth-child(11),
+            tbody#tbody_template tr td:nth-child(11),
+            thead#thead_template th:nth-child(12),
+            tbody#tbody_template tr td:nth-child(12),
+            thead#thead_template th:nth-child(13),
+            tbody#tbody_template tr td:nth-child(13),
+            thead#thead_template th:nth-child(14),
+            tbody#tbody_template tr td:nth-child(14),
+            thead#thead_template th:nth-child(15),
+            tbody#tbody_template tr td:nth-child(15),
+            thead#thead_template th:nth-child(16),
+            tbody#tbody_template tr td:nth-child(16),
+            thead#thead_template th:nth-child(17),
+            tbody#tbody_template tr td:nth-child(17),
+            thead#thead_template th:nth-child(18),
+            tbody#tbody_template tr td:nth-child(18),
+            thead#thead_template th:nth-child(19),
+            tbody#tbody_template tr td:nth-child(19),
+            thead#thead_template th:nth-child(20),
+            tbody#tbody_template tr td:nth-child(20),
+            thead#thead_template th:nth-child(21),
+            tbody#tbody_template tr td:nth-child(21)
+            {
+                display: none;
+            }
+            input{
+                width: -webkit-fill-available;
+                width: -moz-available;
+            }
+/*//ADDSTR kanderu            */
+        .blocline_right2{
+           float : right;
+           margin-right: 200px;
+           padding-left :1em;
+           vertical-align: middle;
+           max-width: 50%;
+           margin-left: 450px;
+           margin-top: -50px;
+        }
+           
+/*//ADDEND kanderu            */
+        </style>
+    </head>
+    <body>
+        <?php
+              include("../home/View/Common/PageHeader.php");
+
+        ?> 
+     
+    <!-- Site -->
+    <div id="sb-site" style="overflow: auto;">
+     
+        <h4 id="pagetitle"></h4>
+        <div style="color:#FF0000; font-weight:bold;"><?php if (Count($aryErrMsg) > 0) hsc('　'.join('<br />',$aryErrMsg)); ?></div>
+        <div class="group_no_float">
+            <div class="blocline_left">
+                <label for "cmb_ORGANIZATION_ID">　組織名</label>
+                <select id="cmb_ORGANIZATION_ID" name="cmb_ORGANIZATION_ID">
+                <?php foreach($abbreviatedNameList as $abbreviated) { ?>
+                    <option value="<?php hsc($abbreviated['organization_id']); ?>" <?php hsc($selected); ?>><?php hsc($abbreviated['abbreviated_name']); ?></option>
+                <?php } ?>
+                </select>
+                &nbsp;&nbsp;&nbsp;
+                <label for="txt_SALE_PLAN_CD">特売企画コード</label>
+                <input type="text" id="txt_SALE_PLAN_CD" name="txt_SALE_PLAN_CD" maxlength="4" style="width:60px;">
+                &nbsp;<label id="lbl_MODE" style="display:none; height:24px; padding:2px 5px;"></label>
+            </div>
+            <div class="blocline_right"><button type="button" id="bt_search" onclick="searchdata()">検索</button></div>
+        </div>
+        <div class="group_no_float">
+            <div class="blocline_left">
+                <label for="txt_SALE_PLAN_NM">　特売企画名</label>
+                <input type="text" id="txt_SALE_PLAN_NM" name="txt_SALE_PLAN_NM" style="width:325px;"><br />
+                <label for="txt_SALE_PLAN_STR_DT">　特売期間　</label>
+                <input type="text" id="txt_SALE_PLAN_STR_DT" name="txt_SALE_PLAN_STR_DT" style="width:150px;" readonly>&nbsp;～&nbsp;<input type="text" id="txt_SALE_PLAN_END_DT" name="txt_SALE_PLAN_END_DT" style="width:150px;" readonly>
+<!--                 <div class="blocline_right2"><label id="lbl_INSDATETIME">作成日時:</label><br />
+                <label id="lbl_UPDDATETIME">更新日時:</label>    </div>-->
+            </div>
+        </div>
+         
+        <script type="text/javascript">
+            document.getElementById('cmb_ORGANIZATION_ID').value    = orgn_id;
+            document.getElementById('txt_SALE_PLAN_CD').value       = sale_plan_cd;
+            document.getElementById('txt_SALE_PLAN_NM').value       = sale_plan_nm_load;
+            document.getElementById('txt_SALE_PLAN_STR_DT').value   = sale_plan_str_dt_load;
+            document.getElementById('txt_SALE_PLAN_END_DT').value   = sale_plan_end_dt_load;
+            //
+            document.getElementById('txt_SALE_PLAN_NM').setAttribute("disabled", true);
+            document.getElementById('txt_SALE_PLAN_STR_DT').setAttribute("disabled", true);
+            document.getElementById('txt_SALE_PLAN_END_DT').setAttribute("disabled", true);
+            //
+            document.getElementById('cmb_ORGANIZATION_ID').addEventListener("change",function(){
+//                iorgn_id = document.getElementById("cmb_ORGANIZATION_ID").value;
+//                spath = window.location.href;
+//                spath = spath.split('?'); 
+//                spath = spath[0]+'?param='+destination+'/show&orgnid='+iorgn_id;
+//                window.location.replace(spath);
+                document.getElementById("txt_SALE_PLAN_CD").value = "";
+                document.getElementById("txt_SALE_PLAN_CD").focus();
+            });
+            document.getElementById("txt_SALE_PLAN_CD").addEventListener("blur",function(){
+                iorgn_id = document.getElementById("cmb_ORGANIZATION_ID").value;
+                iplan_cd = document.getElementById("txt_SALE_PLAN_CD").value;
+                if (iorgn_id !== "" && iplan_cd !== ""){
+                    if(!isNaN(iplan_cd)){
+                        iplan_cd = parseInt(iplan_cd);
+                        iplan_cd = ("0000" + iplan_cd).slice(-4);
+                        String(iplan_cd);
+                        document.getElementById("txt_SALE_PLAN_CD").value = iplan_cd ;
+                        spath = window.location.href;
+                        spath = spath.split('?');
+                        spath = spath[0]+'?param='+destination+'/show&orgnid='+iorgn_id+'&cd='+iplan_cd;
+                        window.location.replace(spath);
+                    }
+                    else{
+                        alert("※特売企画コードは数字で入力してください。");
+                        document.getElementById("txt_SALE_PLAN_CD").value = "";
+                        document.getElementById("txt_SALE_PLAN_CD").focus();
+                    }
+                }
+            });
+
+            if (orgn_id && sale_plan_cd){
+                document.getElementById("cmb_ORGANIZATION_ID").setAttribute("disabled", true);
+                document.getElementById("txt_SALE_PLAN_CD").setAttribute("disabled", true);
+                //
+                document.getElementById('txt_SALE_PLAN_NM').removeAttribute("disabled");
+//                today = new Date();
+//                //document.getElementById("txt_INSDATE").value     =   today.getFullYear()+'/'+today.getUTCMonth()+1+'/'+('00'+today.getUTCDate()).slice(-2);
+//                //document.getElementById("lbl_INSDATETIME").innerHTML             =	"作成日時:"+ document.getElementById("txt_INSDATE").value;
+//                //document.getElementById("lbl_UPDDATETIME").innerHTML             =	"更新日時:"+ document.getElementById("txt_INSDATE").value;
+//                var insdate = today.getFullYear()+'/'+('00'+(today.getUTCMonth()+1)).slice(-2)+'/'+('00'+today.getUTCDate()).slice(-2);
+//                document.getElementById("lbl_INSDATETIME").innerHTML             =	"作成日時:"+ insdate;
+//                document.getElementById("lbl_UPDDATETIME").innerHTML             =	"更新日時:"+ insdate;
+//                                today = new Date();
+                //document.getElementById("txt_INSDATE").value     =   today.getFullYear()+'/'+today.getUTCMonth()+1+'/'+('00'+today.getUTCDate()).slice(-2);
+                //document.getElementById("lbl_INSDATETIME").innerHTML             = "作成日時:"+ document.getElementById("txt_INSDATE").value;
+                //document.getElementById("lbl_UPDDATETIME").innerHTML             = "更新日時:"+ document.getElementById("txt_INSDATE").value;
+  
+                // モード
+                document.getElementById('lbl_MODE').style.display = '';
+                document.getElementById('lbl_MODE').style.color = '#FFFFFF';
+                if (working_data.length ===0){
+                    document.getElementById('lbl_MODE').style.background = '#FF0000';
+                    document.getElementById('lbl_MODE').innerHTML = '新規';
+                    // 特売期間入力可能に
+                    document.getElementById('txt_SALE_PLAN_STR_DT').removeAttribute("disabled");
+                    document.getElementById('txt_SALE_PLAN_END_DT').removeAttribute("disabled");
+                }
+                else{
+                    document.getElementById('lbl_MODE').style.background = '#0000FF';
+                    document.getElementById('lbl_MODE').innerHTML = '更新';
+                }
+            }
+             // ラベル項目
+          
+        </script>
+        <div class="group_no_float">
+            <div class="blocline_left">
+<!--        <form onkeydown="return EnterFocus(event)" >-->
+        <div class="table_container">
+            <table id="table_template">
+                 <thead id="thead_template">
+                     <tr>
+                        <th>
+                        </th>                         
+                     </tr>
+                 </thead>
+                 <tbody id="tbody_template">
+                     
+                 </tbody>
+            </table>        
+        </div>
+<!--        </form>-->
+        <?php if (isset($aryKeys['organization_id']) && isset($aryKeys['sale_plan_cd'])){ ?>
+        <div>
+            <br />
+            &nbsp;<button type="button" id="add_detail" onclick="add_detail()"  >行追加</button>&nbsp;&nbsp;&nbsp;
+            <button type="button" id="send_result" onclick="send_result()"  >一括配信</button>&nbsp;&nbsp;&nbsp;
+            <button type="button" id="reset_data" onclick="reset_data()"  >取消</button>&nbsp;&nbsp;&nbsp;
+            <button type="button" id="all_reset" onclick="all_reset()"  >再検索</button>&nbsp;&nbsp;&nbsp;
+            <button type="button" id="all_delete" onclick="all_delete()"  >全削除</button>
+        </div>
+            </div>
+        </div>
+        <?php } ?>
+    </div><!-- /#sb-site -->
+        <script type="text/javascript">
+                thead_crea(A_title);
+                //tbody_crea(working_data);
+                if (orgn_id && sale_plan_cd){
+                    tbody_crea(working_data);
+                }
+                document.getElementById('pagetitle').innerHTML = "&nbsp;" + pagetitle;
+                //
+                if (orgn_id && sale_plan_cd){
+                    document.getElementById('all_delete').setAttribute("disabled", true);
+                    if (working_data.length > 0){
+                        document.getElementById('all_delete').removeAttribute("disabled");
+                        
+                    }
+                }
+        </script>
+        <input type="hidden" id="hid_detail_values">
+    </body>
+</html>

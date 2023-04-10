@@ -1,0 +1,200 @@
+<?php
+    /**
+     * @file      VOID設定画面(View)
+     * @author    millionet oota
+     * @date      2016/06/30
+     * @version   1.00
+     * @note      VOID設定画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述 
+            include("../profit/View/Common/HtmlHeader.php"); 
+        ?>
+    </head>
+    <body>
+        <?php include("Common/PageHeader.php");
+        ?>
+        <!-- Site -->
+        <div id="sb-site">
+<form id="serchForm" action="pos_brand.php?cd=5&k_code=&k_name=&k_df=" method="post">
+<br />
+<table align="center" class="serchBoardArea">
+<tr>
+<td>
+	<table id="serchTable">
+		<tr>
+			<th id="serchTableTitle" align="center" width="80">種別コード</th>
+			<td id="serchTableItem"><input type="text" size="7" name="k_code" value=""></td>
+			<th id="serchTableTitle" align="center" width="80">POS種別名</th>
+			<td id="serchTableItem"><input type="text" size="15" name="k_name" value=""></td>
+			<th id="serchTableTitle" align="center" width="80">削除</th>
+			<td id="serchTableItem"><select name=k_df>
+<option value="0" selected>未</option>
+<option value="1">全て</option>
+</select>
+</td>
+
+		</tr>
+	</table>
+</td>
+</tr>
+<td>
+                <!-- serchButtonArea -->
+                <div class="serchButtonArea">
+                    <p align=center>
+                        <input type="submit" id="search" name="search" value="検索" class="serch">
+                    </p>
+                </div><!-- /.serchButtonArea -->
+</td>
+</table>
+</form>
+<form name="dataForm" id="dataForm" action="pos_brand.php?cd=2&page=1&k_code=&k_name=&k_df=" method="post">
+                <div class="PageMoveArea">
+                    <table>
+                        <tr>
+                            <td>
+                                <a href="#" onClick="displayPage(1)" ><<</a>
+                            </td>
+                            <td>
+                                <a href="#" onClick="displayPage(1)" ><</a>
+                            </td>
+                                                                <td>
+                                        <a href="#" onClick="displayPage(1)" class="current">1</a>
+                                    </td>
+                                                                <td>
+                                        <a href="#" onClick="displayPage(2)" class="">2</a>
+                                    </td>
+                                                                <td>
+                                        <a href="#" onClick="displayPage(3)" class="">3</a>
+                                    </td>
+                                                                <td>
+                                        <a href="#" onClick="displayPage(4)" class="">4</a>
+                                    </td>
+                                                                <td>
+                                        <a href="#" onClick="displayPage(5)" class="">5</a>
+                                    </td>
+                                                                <td>
+                                        ...
+                                    </td>
+                                    <td>
+                                        <a href="#" onClick="displayPage(15)" class="">15</a>
+                                    </td>
+                                                        <td>
+                                <a href="#" onClick="displayPage(2)" >></a>
+                            </td>
+                            <td>
+                                <a href="#" onClick="displayPage(15)" >>></a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th colspan="2" rowspan="2">　表示数：</th>
+                            <td>
+                                <a href="#" onClick="displayRecord(10)" class="current">10</a>
+                            </td>
+                            <td>
+                                <a href="#" onClick="displayRecord(30)" class="">30</a>
+                            </td>
+                            <td>
+                                <a href="#" onClick="displayRecord(50)" class="">50</a>
+                            </td>
+                            <td>
+                                <a href="#" onClick="displayRecord(100)" class="">100</a>
+                            </td>
+                        </tr>
+                    </table>
+                </div><!-- /.PageMoveArea -->
+<div class="serchListArea">
+<table id="viewList" align="center">
+<thead>
+	<tr>
+		<th id="viewList" align="center" width="20">no</th>
+		<th id="viewList" align="center" width="70">表示順</th>
+		<th id="viewList" align="center" width="80">種別コード</th>
+		<th id="viewList" align="center" width="130">POS種別名</th>
+		<th id="viewList" align="center" width="130">よみがな</th>
+		<th id="viewList" align="center" width="130">初回登録日</th>
+		<th id="viewList" align="center" width="130">更新日</th>
+		<th id="viewList" align="center" width="50">削除</th>
+	</tr>
+</thead>
+<tbody>
+	<tr id="viewList"><td id="viewList" align=center>1</td>
+<td id="viewList" align=center>1</td>
+<td id="viewList" align=left><a href="pos_brand.php?cd=1&key_id=0000000000000001&page=1&k_code=&k_name=&k_df=" target="_self">0001</a></td>
+<td id="viewList" align=left>未使用</td>
+<td id="viewList" align=left>みしよう</td>
+<td id="viewList" align=center>2014-03-17 17:40:37</td>
+<td id="viewList" align=center>2016-06-17 09:26:21</td>
+<td id="viewList" align=center></td>
+</tr>
+<tr id="viewList"><td id="viewList" align=center>2</td>
+<td id="viewList" align=center>2</td>
+<td id="viewList" align=left><a href="pos_brand.php?cd=1&key_id=0000000000000002&page=1&k_code=&k_name=&k_df=" target="_self">0002</a></td>
+<td id="viewList" align=left>東芝テック</td>
+<td id="viewList" align=left>とうしばてっく</td>
+<td id="viewList" align=center>2014-03-17 17:41:11</td>
+<td id="viewList" align=center>2016-06-17 09:26:32</td>
+<td id="viewList" align=center></td>
+</tr>
+<tr id="viewList"><td id="viewList" align=center>3</td>
+<td id="viewList" align=center>5</td>
+<td id="viewList" align=left><a href="pos_brand.php?cd=1&key_id=0000000000000003&page=1&k_code=&k_name=&k_df=" target="_self">0005</a></td>
+<td id="viewList" align=left>NEC</td>
+<td id="viewList" align=left>えぬえーしー</td>
+<td id="viewList" align=center>2014-03-17 17:41:35</td>
+<td id="viewList" align=center>2016-06-17 17:41:43</td>
+<td id="viewList" align=center></td>
+</tr>
+</tbody>
+</table>
+
+<br />
+<div class="serchBoardArea">
+<table id="inputTable" align="center">
+	<tr>
+		<th id="inputTableTitle" align="center" width="30">no</th>
+		<th id="inputTableTitle" align="center" width="70">表示順</th>
+		<th id="inputTableTitle" align="center" width="80">種別コード</th>
+		<th id="inputTableTitle" align="center" width="130">POS種別名</th>
+		<th id="inputTableTitle" align="center" width="130">よみがな</th>
+		<th id="inputTableTitle" align="center" width="130">初回登録日</th>
+		<th id="inputTableTitle" align="center" width="130">更新日</th>
+	</tr>
+	<tr>
+<td id="inputTableItem" align="center">4</td>
+<td id="inputTableItem" align="center"><input id="dsp" type="text" size="4" name="dsp" value=0 style="ime-mode:disabled;text-align:right;"></td>
+<td id="inputTableItem" align="center"><input id="code" type="text" size="7" name="code" value=""></td>
+<td id="inputTableItem" align="center"><input id="name" type="text" size="15" name="name" value=""></td>
+<td id="inputTableItem" align="center"><input id="name_yomi" type="text" size="15" name="name_yomi" value=""></td>
+<td id="inputTableItem" align="center"></td>
+<td id="inputTableItem" align="center"></td>
+</tr>
+</table>
+</div>
+<br />
+<p align=center><input class="submit" type="submit" name="submit" value="追加">
+</p>
+</form>
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<script type="text/javascript" src="../jquery/js/scrolltopcontrol2.js"></script> <!--スクロールしながらページのトップに戻る-->
+        </div><!-- /#sb-site -->
+    </body>
+</html>

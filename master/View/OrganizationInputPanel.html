@@ -1,0 +1,102 @@
+<?php
+    /**
+     * @file      組織マスタ画面(View)
+     * @author    USE R.dendo
+     * @date      2016/07/11
+     * @version   1.00
+     * @note      組織マスタ画面(新規登録部分)
+     */
+?>
+            <script src="../js/attendance/jquery/datepicker-ja.js" /></script>
+            <script type="text/javascript">
+                /**
+                 *  DatePickerを設定
+                 */
+                 $(function()
+                {
+                    $( "#newApplicationDateStart" ).datepicker({
+                        showButtonPanel: true,
+                        dateFormat: 'yy/mm/dd',
+                    });
+                });
+            </script>
+
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-input-ajax">
+                <!-- 2016/09/19 Y.Sugou -->
+                <?php if( $isScrollBar ) { ?>
+                    <div class="serchListArea" style="width:99%; margin:5px auto; overflow-y:auto; height:71px; !important;">
+                <?php } else { ?>
+                    <div class="serchListArea" style="width:99%; margin:5px auto!important;">
+                <?php } ?>
+                <!-- ---------------------- -->
+                    <table id="addTable" style="background-color: #ffffff">
+                        <tr>
+                            <td align = "center" width="37px">-</td><!-- No -->
+                            <td align = "center" width="50px">-</td><!-- 状態 -->
+                            <td align = "center" width="50px"><input type="text" pattern="^[0-9A-Za-z]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0301')); ?>" id="departmentNewCode" name="departmentNewCode" style="width:44px" maxlength="20" value="" class="En" required></td><!-- 部門コード -->
+                            <td align = "center" width="123px"><input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0315')); ?>" id="organizationNewName" name="organizationNewName" style="width:115px" maxlength="128" value="" class="Em" required></td><!-- 組織名 -->
+                            <td align = "center" width="62px"><input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0315')); ?>" id="abbreviatedNewName" name="abbreviatedNewName" style="width:50px" maxlength="128" value="" class="Em" required></td><!-- 組織略称 -->
+                            <td align = "center" width="87px"><input type="text" pattern="\d{4}/\d{2}/\d{2}" title="<?php hsc($Log->getMsgLog('MSG_BASE_0305')); ?>" id="newApplicationDateStart" name="newApplicationDateStart" style="width:80px" value="" class="En" required></td><!-- 適用開始日 -->
+                            <td align = "center" width="62px"><input type="text" pattern = "^([0-1][0-9]|[2][0-3]):[0-5][0-9]$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0312')); ?>" id="newStartTimeDay" name="newStartTimeDay" style="width:55px" maxlength="5" value="" class="En" required></td><!-- 一日の開始時間 -->
+                            
+                            <td align = "center" width="87px" id="priorityNewName" required>
+                                <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="priorityNewNameFirst" name="priorityNewNameFirst" style="width: 80px">
+                                        <option value="0"></option>
+                                        <option value="1">組織</option>
+                                        <option value="2">役職</option>
+                                        <option value="3">雇用形態</option>
+                                </select>
+                                <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="priorityNewNameSecond" name="priorityNewNameSecond" style="width: 80px">
+                                        <option value="0"></option>
+                                        <option value="1">組織</option>
+                                        <option value="2">役職</option>
+                                        <option value="3">雇用形態</option>
+                                </select>
+                                <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="priorityNewNameThird" name="priorityNewNameThird" style="width: 80px">
+                                        <option value="0"></option>
+                                        <option value="1">組織</option>
+                                        <option value="2">役職</option>
+                                        <option value="3">雇用形態</option>
+                                </select>
+                            </td><!-- 就業規則優先順位 -->
+
+                            <td align = "center" width="111px">
+                                <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="laborRegulationsNewName" name="laborRegulationsNewName" style="width: 100px" >
+                                        <?php foreach($laborRegNameAddList as $laborRegulations) { ?>
+                                            <option value="<?php hsc($laborRegulations['labor_regulations_id']); ?>"><?php hsc($laborRegulations['labor_regulations_name']); ?></option>
+                                        <?php } ?>
+                                </select>
+                            </td><!-- 就業規則 -->
+
+                             <td align = "center" width="123px" required>
+                                <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="payrollNewName" name="payrollNewName" style="width: 110px">
+                                    <?php foreach($payrollList as $payroll) { ?>
+                                        <option value="<?php hsc($payroll['payroll_system_id']); ?>"><?php hsc($payroll['name']);?></option>
+                                    <?php } ?>
+                                </select>
+                            </td><!-- 給与フォーマット -->
+
+                             <td align = "center" width="74px">
+                                <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="upperLevelOrganizationNewName" name="upperLevelOrganizationNewName" style="width: 65px">
+                                    <?php foreach($upOrganNameList as $abbreviated) { ?>
+                                        <option value="<?php hsc($abbreviated['organization_id']); ?>"><?php hsc($abbreviated['abbreviated_name']);?></option>
+                                    <?php } ?>
+                            </td><!-- 上位組織 -->
+
+                            <td align = "center" width="87px"><input type="text" pattern="^[0-9A-Za-z]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0311')); ?>" id="newAuthenticationKey" name="newAuthenticationKey" style="width: 80px" maxlength="60" value="" class="En" required></td><!-- 認証キー -->
+                            <td align = "center" width="123px"><input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0316')); ?>" id="newComment" name="newComment" style="width: 100px" maxlength="30" value="" class="Em"></td><!-- コメント -->
+                            <td align = "center" width="50px"><input type="text" pattern="^[0-9A-Za-z]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" id="newDispOrder" name="newDispOrder" style="width: 40px" maxlength="5" value="" class="En" required></td><!-- 表示順 -->
+                            <td width="111px" align="center">
+                                <?php $add_disabled = ""; ?>
+                                <?php if(empty($regFlag)) { ?>
+                                    <?php $add_disabled = "disabled"; ?>
+                                <?php } ?>
+                                <input type="submit" id="add" name="add" value="<?php hsc($Log->getMsgLog('MSG_BASE_0800')); ?>" <?php hsc($add_disabled); ?> >
+                            </td>
+                        </tr>
+                    </table>
+                </div><!-- /.serchListArea -->
+            </div><!-- /.jquery-replace-input-ajax -->
+

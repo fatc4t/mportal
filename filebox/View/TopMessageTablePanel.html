@@ -1,0 +1,71 @@
+<?php
+    /**
+     * @file        トップメッセージ画面(View)
+     * @author      millionet oota
+     * @date        2017/01/26
+     * @version     1.00
+     * @note        トップメッセージ画面
+     */
+?>
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-ajax">
+
+
+            <!-- serchListArea -->
+            <?php if( $isScrollBar ) { ?>
+                <div class="serchListArea" style=" clear:both; width:1211px; margin:0px auto !important;">
+            <?php } else { ?>
+                <div class="serchListArea" style=" clear:both; width:1193px; margin:5px auto !important;">
+            <?php } ?>
+            <!-- ---------------------- -->
+                    <table>
+                        <tbody>
+                            <tr>
+                                <th width="37px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?></u><?php hsc($headerArray['topMessageNoSortMark']); ?></span></th><!-- No -->
+                                <th width="50px"><span onClick="setColumnInfo('タイトル');"><u>タイトル</u><?php hsc($headerArray['titleSortMark']); ?></span></th>
+                                <th width="70px"><span onClick="setColumnInfo('内容');"><u>内容</u><?php hsc($headerArray['contentsSortMark']); ?></span></th>
+                                <th width="62px"><span onClick="setColumnInfo('サムネイル名');"><u>サムネイル名</u><?php hsc($headerArray['thumbnailSortMark']); ?></span></th>
+                                <th width="87px"><span onClick="setColumnInfo('添付ファイル名');"><u>添付ファイル名</u><?php hsc($headerArray['fileMark']); ?></span></th>
+                                <th width="50px"><span onClick="setColumnInfo('閲覧数');"><u>閲覧数</u><?php hsc($headerArray['viewerCountSortMark']); ?></span></th>
+                                <th width="62px"><span onClick="setColumnInfo('作成日');"><u>作成日</u><?php hsc($headerArray['registrationTimeSortMark']); ?></span></th>
+                                <?php if( $isScrollBar ) { ?>
+                                    <td width="18px" style="border-style:none;" ></td>
+                                <?php } ?>
+                                <!-- ---------------------- -->
+                            </tr>
+                </table>
+            <?php if( $isScrollBar ) { ?>
+                </div>
+                <div class="serchListArea" style="width:1211px; margin: 0px auto; overflow-y:auto; height:400px; !important;">
+            <?php } ?>
+                <table id="nameTable">
+                            <?php foreach($topMessageList as $topMessage) { ?>
+                                <?php $topMessage_no++; ?>
+                                <?php if(!$topMessageNoSortFlag) { ?>
+                                    <?php $display_no++; ?>
+                                <?php } ?>
+                                <tr>
+                                    <td align="right" style="width:37px;"><?php hsc($display_no); ?></td>
+                                    <?php 
+                                        if(!empty($topMessage['updateDisabled'])){
+                                            $isUpdateDisabled = 1;
+                                        }else{
+                                            $isUpdateDisabled = 0;
+                                        }
+                                    ?>
+                                    <td align="center" style="width:50px;"><span onClick="editPanelTransition(<?php hsc($topMessage['top_message_id']); ?>, <?php hsc($isUpdateDisabled); ?>)"><a href="#"><?php hsc($topMessage['title']); ?></a></span></td>
+                                    <td align="center" style="width:70px;"><?php hsc($topMessage['contents']); ?></td>
+                                    <td style="width:62px;"><?php hsc($topMessage['thumbnail']); ?></td>
+                                    <td style="width:87px;"><?php hsc($topMessage['file']); ?></td>
+                                    <td style="width:50px;"><?php hsc($topMessage['viewer_count']); ?></td>
+                                    <td align="center" style="width:62px;"><?php hsc($topMessage['registration_time']); ?></td>
+                                </tr>
+                                <?php if($topMessageNoSortFlag) { ?>
+                                      <?php $display_no--; ?>
+                                <?php } ?>
+                            <?php } ?>
+                        </tbody>
+                    </table>
+                </div><!-- /.serchListArea -->
+           </div><!-- /.jquery-replace-ajax -->

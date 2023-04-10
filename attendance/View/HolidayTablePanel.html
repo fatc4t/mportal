@@ -1,0 +1,122 @@
+<?php
+    /**
+     * @file      休日マスタ画面(View)
+     * @author    USE S.Kasai
+     * @date      2016/06/09
+     * @version   1.00
+     * @note      休日マスタ画面(一覧部分)
+     */
+?>
+        <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+        <!-- ajax差し替えエリア -->
+        <div id="jquery-replace-ajax">
+
+            <!-- PageMoveArea -->
+            <?php include("../FwCommon/View/PagingArea.php"); ?>
+            
+            <!-- serchListArea -->
+                <?php if( $isScrollBar ) { ?>
+                    <div class="serchListArea" style=" clear:both; width:99%; margin:0px auto !important; overflow-y:auto; height:25px;">
+                <?php } else { ?>
+                    <div class="serchListArea" style=" clear:both; width:99%; margin:5px auto !important;">
+                <?php } ?>
+                <!-- ---------------------- -->
+                <input type="hidden" id="token" name="token" value="<?php hsc($TokenID); ?>">
+                <table>
+                    <tr>
+                        <th width="37px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?></u><?php hsc($headerArray['holidayNoSortMark']); ?></span></th>             <!--No-->
+                        <th width="37px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0849')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0849')); ?></u><?php hsc($headerArray['holidayStateSortMark']); ?></span></th>          <!--状態-->
+                        <th width="123px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0851')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0851')); ?></u><?php hsc($headerArray['holidayCodeSortMark']); ?></span></th>           <!--コード-->
+                        <th width="173px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?></u><?php hsc($headerArray['holidayOrganizationSortMark']); ?></span></th>  <!--組織名-->
+                        <th width="173px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0863')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0863')); ?></u><?php hsc($headerArray['holidayNameNameSortMark']); ?></span></th>      <!--休日名称名-->
+                        <th width="160px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0864')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0864')); ?></u><?php hsc($headerArray['holidayNameSortMark']); ?></span></th>          <!--休日名-->
+                        <th width="99px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0865')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0865')); ?></u><?php hsc($headerArray['holidayWorkingHoursSortMark']); ?></span></th>  <!--勤務時間-->
+                        <th width="87px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0866')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0866')); ?></u><?php hsc($headerArray['holidayWorkingDaySortMark']); ?></span></th>    <!--勤務日数-->
+                        <th width="185px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0892')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0892')); ?></u><?php hsc($headerArray['holidayCommentSortMark']); ?></span></th>       <!--コメント-->
+                        <th width="62px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0852')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0852')); ?></u><?php hsc($headerArray['holidayDispOrderSortMark']); ?></span></th>      <!--表示順-->
+                        <th width="99px"></th>
+                    </tr>
+                </table>
+            <?php if( $isScrollBar ) { ?>
+                </div>
+                <div class="serchListArea" style="width:99%; margin: 0px auto; overflow-y:auto; height:300px; !important;">
+            <?php } ?>
+                <table id="nameTable" style="background-color: #ffffff">
+                    <?php foreach($holidayList as $holiday) { ?>
+                        <?php $holiday_no++; ?>
+                        <?php if(!$holidayNoSortFlag) { ?>
+                            <?php $display_no++; ?>
+                        <?php } ?>
+                        <tr>
+                            <input type="hidden" id="holidayIdMod<?php hsc($holiday_no); ?>" name="holidayId<?php hsc($holiday_no); ?>" value="<?php hsc($holiday['holiday_id']); ?>">
+                            <input type="hidden" id="updateTime<?php hsc($holiday_no); ?>" name="updateTime<?php hsc($holiday_no); ?>" value="<?php hsc($holiday['update_time']); ?>">
+                            <td align="right" style="width:37px;"><?php hsc($display_no); ?></td>
+                            <?php $del_state = ""; ?>
+                            <?php if(!empty($holiday['is_del'])) { ?>
+                                <?php $del_state = "削除"; ?>
+                            <?php } ?>
+                            <td align="center" style="width:37px;"><?php hsc($del_state); ?></td>
+                            <td id="sCode<?php hsc($holiday_no); ?>" style="width:123px;"><?php hsc($holiday['code']); ?></td>
+                            <td id="sCode-edit<?php hsc($holiday_no); ?>" style="display : none; width:123px;" align="center">
+                                <input type="text" pattern="^[0-9A-Za-z]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0301')); ?>" id="holidayCodeMod<?php hsc($holiday_no); ?>" name="sCode<?php hsc($holiday_no); ?>" size="15" maxlength="20" value="<?php hsc($holiday['code']); ?>" class="En" required>
+                            </td>
+                            <td id="sOrganization<?php hsc($holiday_no); ?>" style="width:173px;"><?php hsc($holiday['abbreviated_name']); ?></td>
+                            <td id="sOrganization-edit<?php hsc($holiday_no); ?>" style="display : none;width:173px;" align="center">
+                                <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="holidayOrganizationMod<?php hsc($holiday_no); ?>" name="sOrganization<?php hsc($holiday_no); ?>" style="width: 160px" >
+                                    <?php foreach($abbreviatedList as $abbreviated) { ?>
+                                        <?php $selected = ""; ?>
+                                        <?php if($abbreviated['organization_id'] == $holiday['organization_id']) { ?>
+                                            <?php $selected = "selected"; ?>
+                                        <?php } ?>
+                                        <option value="<?php hsc($abbreviated['organization_id']); ?>" <?php hsc($selected); ?>><?php hsc($abbreviated['abbreviated_name']); ?></option>
+                                    <?php } ?>
+                                </select>
+                            </td>
+                            <td id="sHolidayNameName<?php hsc($holiday_no); ?>" style="width:173px;"><?php hsc($holiday['holiday_name']); ?></td>
+                            <td id="sHolidayNameName-edit<?php hsc($holiday_no); ?>" style="display : none;width:173px;" align="center">
+                                <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="holidayNameNameMod<?php hsc($holiday_no); ?>" name="sHolidayNameName<?php hsc($holiday_no); ?>" style="width: 160px" >
+                                    <?php foreach($holidayNameAddList as $holidayNameName) { ?>
+                                        <?php $selected = ""; ?>
+                                        <?php if($holidayNameName['holiday_name_id'] == $holiday['holiday_name_id']) { ?>
+                                            <?php $selected = "selected"; ?>
+                                        <?php } ?>
+                                        <option value="<?php hsc($holidayNameName['holiday_name_id']); ?>" <?php hsc($selected); ?>><?php hsc($holidayNameName['holiday_name']); ?></option>
+                                    <?php } ?>
+                                </select>
+                            </td>
+                            <td id="sHolidayName<?php hsc($holiday_no); ?>" style="width:160px;"><?php hsc($holiday['holiday']); ?></td>
+                            <td id="sHolidayName-edit<?php hsc($holiday_no); ?>" style="display : none;width:160px;" align="center">
+                                <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0302')); ?>" id="holidayNameMod<?php hsc($holiday_no); ?>" name="sHolidayName<?php hsc($holiday_no); ?>" size="20" maxlength="20" value="<?php hsc($holiday['holiday']); ?>" class="Em" required>
+                            </td>
+                            <td id="sWorkingHours<?php hsc($holiday_no); ?>" align="right" style="width:99px;"><?php hsc( $this->changeTimeFromMinute( $holiday['working_hours']) ); ?> 時間</td>
+                            <td id="sWorkingHours-edit<?php hsc($holiday_no); ?>" style="display : none;width:99px;" align="right">
+                                <input type="text" pattern="(0[0-9]|[1-9][0-9]|[1-9][0-9][0-9])(:[0-5][0-9])" title="<?php hsc($Log->getMsgLog('MSG_BASE_0311')); ?>" id="workingHoursMod<?php hsc($holiday_no); ?>" name="sWorkingHours<?php hsc($holiday_no); ?>" size="6" maxlength="6" value="<?php hsc( $this->changeTimeFromMinute( $holiday['working_hours'] ) ); ?>" class="En" > 時間
+                            </td>
+                            <td id="sWorkingDay<?php hsc($holiday_no); ?>" align="right" style="width:87px;"><?php hsc($holiday['working_day']); ?> 日</td>
+                            <td id="sWorkingDay-edit<?php hsc($holiday_no); ?>" style="display : none; width:87px;" align="right" >
+                                <input type="text" pattern="^(\d{1,3})(\.\d{1,2})?$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0309')); ?>" id="workingDayMod<?php hsc($holiday_no); ?>" name="sWorkingDay<?php hsc($holiday_no); ?>" size="6" maxlength="6" value="<?php hsc($holiday['working_day']); ?>" class="En" > 日
+                            </td>
+                            <td id="sComment<?php hsc($holiday_no); ?>" style="width:185px;"><?php hsc($holiday['comment']); ?></td>
+                            <td id="sComment-edit<?php hsc($holiday_no); ?>" style="display : none; width:185px;" align="center">
+                                <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0308')); ?>" id="commentMod<?php hsc($holiday_no); ?>" name="sComment<?php hsc($holiday_no); ?>" size="25" maxlength="30" value="<?php hsc($holiday['comment']); ?>" class="Em" >
+                            </td>
+                            <td id="sDisp<?php hsc($holiday_no); ?>" align="right" style="width:62px;"><?php hsc($holiday['disp_order']); ?></td>
+                            <td id="sDisp-edit<?php hsc($holiday_no); ?>" style="display : none; width:62px;" align="center">
+                                <input type="text" pattern="[1-9][0-9]*" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" id="modDispOrder<?php hsc($holiday_no); ?>" name="sDisp<?php hsc($holiday_no); ?>" size="4" maxlength="5" value="<?php hsc($holiday['disp_order']); ?>" class="En" required>
+                            </td>
+                            <td align="center" style="width:99px;">
+                                <?php if(empty($holiday['is_del'])) { ?>
+                                    <input type="button" id="edtBtn<?php hsc($holiday_no); ?>" value="<?php hsc($Log->getMsgLog('MSG_BASE_0801')); ?>" onclick="editRow(this)" <?php hsc($holiday['cor_disabled']); ?>>
+                                    <input type="submit" id="edtBtn-mod<?php hsc($holiday_no); ?>" name="mod<?php hsc($holiday_no); ?>" style="display : none" value="<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>')" <?php hsc($holiday['mod_disabled']); ?>>
+                                    <input type="button" id="edtBtn-del<?php hsc($holiday_no); ?>" name="del<?php hsc($holiday_no); ?>" style="display : none" value="<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>')" <?php hsc($holiday['del_disabled']); ?>>
+                                <?php } ?>
+                            </td>
+                        </tr>
+                        <?php if($holidayNoSortFlag) { ?>
+                            <?php $display_no--; ?>
+                        <?php } ?>
+                    <?php } ?>
+                </table>
+            </div><!-- /.serchListArea -->
+
+        </div><!-- /.jquery-replace-ajax -->

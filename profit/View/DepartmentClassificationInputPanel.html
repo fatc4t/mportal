@@ -1,0 +1,47 @@
+<?php
+    /**
+     * @file      POS種別マスタ画面(View)
+     * @author    millionet oota
+     * @date      2016/07/14
+     * @version   1.00
+     * @note      POS種別マスタ画面(新規登録部分)
+     */
+?>
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-input-ajax">
+                <div class="serchListArea">
+                    <table id="addTable">
+                        <tr>
+                            <!-- No -->
+                            <td width="5%">-</td>
+                            <!-- 表示順 -->
+                            <td width="5%">
+                                <input type="text" pattern="[1-9][0-9]*" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" id="newDispOrder" name="newDispOrder" size="5" maxlength="5" value="" class="En" required>
+                            </td>
+                            <!-- POS種別コード -->
+                            <td width="15%">
+                                <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="mappingType" name="mappingType" style="width: 150px" required>
+                                        <option value="大分類">大分類</option>
+                                </select>
+                            </td>
+                            <!-- POS種別名 -->
+                            <td width="15%">
+                                <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0302')); ?>" id="posBrandNewName" name="posBrandNewName" size="30" maxlength="20" value="" class="Em" required>
+                            </td>
+                            <!-- よみがな -->
+                            <td width="15%">
+                                <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0302')); ?>" id="posBrandNewNameKana" name="posBrandNewNameKana" size="30" maxlength="20" value="" class="Em" required>
+                            </td>
+                            <!-- 状態 -->
+                            <td width="10%">-</td>
+                            <td width="10%" align="center">
+                                <div class="logicButtonArea">
+                                    <input type="submit" id="add" name="add" value="<?php hsc($Log->getMsgLog('MSG_BASE_0800')); ?>" class="add">
+                                </div><!-- /.logicButtonArea -->
+                            </td>
+                        </tr>
+                    </table>
+                </div><!-- /.serchListArea -->
+            </div><!-- /.jquery-replace-input-ajax -->
+

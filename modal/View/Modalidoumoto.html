@@ -1,0 +1,52 @@
+<script type="text/javascript">
+   
+    if(!pagenb){
+        pagenb=[];
+    }       
+    pagenb["org"] = 0;
+    if(!table_keys){
+        table_keys=[];
+    }    
+    table_keys["org"]=[];
+    table_keys["org"]=["org_id","org_nm"]    
+</script>
+<div>
+    <h2>移動元検索</h2>
+    <div class="modal_org_search">
+        <div class="modal_org_left" id="modal_org_param">
+            <label class="modal_org_label" for="modal_org_org_id"> コード 　 ：　</label><input type="text"  id="modal_org_org_id" class="modal_org_code"><br />
+            <label class="modal_org_label" for="modal_org_org_nm" > 移動元名 ：　</label><input type="text"  id="modal_org_org_nm" class="modal_org_name">
+        </div>
+        <button type="button" id="modal_org_search_org" onclick="modal_search(event)"  class="modal_org_left search_btn">表示</button>
+    </div>
+    <br />
+    <div>
+        <table id="modal_org_table_id" class="modal_org_table">
+            <thead>
+                <tr>
+                    <th>選択</th>
+                    <th>コード</th>
+                    <th>店舗名</th>
+                </tr>
+            </thead>
+            <tbody id="modal_org_table_body">
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>                        
+            </tbody>
+        </table>
+    </div>
+    <br />
+    <div>
+        <div class="modal_div_btn">
+            <button type="button" id="modal_org_unselect" onclick="modal_unselect(event)"  >一括解除</button>
+            <button type="button" id="modal_org_select" onclick="modal_select(event)"  >一括選択</button>        
+            <button type="button" id="modal_org_befpage" onclick="modal_befpage(event)"  >前ページ</button>        
+            <button type="button" id="modal_org_nextpage" onclick="modal_nextpage(event)"  >次ページ</button>        
+            <button type="button" id="modal_org_validate" onclick="modal_validate(event)"  >決定</button>        
+            <button type="button" id="modal_org_close" onclick="modal_close(event)"  >終了</button>        
+        </div>
+    </div>
+</div>

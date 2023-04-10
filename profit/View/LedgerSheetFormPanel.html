@@ -1,0 +1,1190 @@
+<?php
+    /**
+     * @file      帳票設定マスタ画面(View)
+     * @author    millionet oota
+     * @date      2016/06/30
+     * @version   1.00
+     * @note      帳票設定マスタ画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array( 'default.css',
+                                'common.js', 
+                                'jquery-ui.min.js', 
+                                'jquery-ui.css' );    // cssまたはｊｓファイルを拡張子付きで配列に記述 
+            include("../profit/View/Common/HtmlHeader.php"); 
+        ?>
+
+        <script type="text/javascript">
+            var lineInfo = null;
+            var btnInfo  = null;
+            var displayPageNo = 1;
+            var displayRecordCnt = 10;
+            var ledgerSheetFormItemInfo = null;
+            var ledgerSheetFormSort = null;
+            var no_click_count = 0;
+            var disporder_click_count = 0;
+            var ledger_sheet_form_code_click_count = 0;
+            var ledger_sheet_form_name_click_count = 0;
+            var ledger_sheet_form_name_kana_click_count = 0;
+            var header_click_count = 0;
+            var logic_click_count = 0;
+            var c_year_click_count = 0;
+            var c_month_click_count = 0;
+            var c_day_click_count = 0;
+            var c_kikan_click_count = 0;
+            var c_staff_click_count = 0;
+            var c_staff_bumon_click_count = 0;
+            var c_menu_click_count = 0;
+            var c_menu_bumon_click_count = 0;
+            var c_jikan_click_count = 0;
+            var c_jikantai_click_count = 0;
+            var c_time1_click_count = 0;
+            var c_time2_click_count = 0;
+            var c_time3_click_count = 0;
+            var c_time4_click_count = 0;
+            var c_time5_click_count = 0;
+            var c_time6_click_count = 0;
+            var c_time7_click_count = 0;
+            var c_time8_click_count = 0;
+            var c_time9_click_count = 0;
+            var c_time10_click_count = 0;
+            var c_time11_click_count = 0;
+            var c_time12_click_count = 0;
+            var c_time13_click_count = 0;
+            var c_time14_click_count = 0;
+            var c_time15_click_count = 0;
+            var c_time16_click_count = 0;
+            var c_time17_click_count = 0;
+            var c_time18_click_count = 0;
+            var c_time19_click_count = 0;
+            var c_time20_click_count = 0;
+            var c_time21_click_count = 0;
+            var c_time22_click_count = 0;
+            var c_time23_click_count = 0;
+            var c_time24_click_count = 0;
+            var registration_time_click_count = 0;
+            var update_time_click_count = 0;
+            var state_click_count = 0;
+            
+            $(document).ready(function()
+            {
+                /**
+                 * 検索ボタンクリック
+                 */
+                $('#search').click(function()
+                {
+                    displayPageNo = 1;
+
+                    // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                    var data = {
+                                  displayPageNo : displayPageNo,
+                                  displayRecordCnt : displayRecordCnt,
+                                  searchLedgerSheetFormCode : $('#ledgerSheetFormCode').val(),
+                                  searchLedgerSheetFormName : $('#ledgerSheetFormName').val(),
+                                  searchDelF : document.getElementById("delF").checked,
+                                  sortConditions  : 0
+                               };
+                    var path = 'index.php?param=LedgerSheetForm/search&home=1';
+
+                    // データ更新
+                    setDataForAjax( data, path );
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+                /**
+                 * 登録ボタンクリック
+                 */
+                $('#addForm').submit(function(event)
+                {
+                    event.preventDefault();
+                    document.getElementById("dialog_add").textContent='<?php hsc(SystemParameters::$NEW_DIALOG_MSG); ?>';
+                    
+                    $("#dialog_add").dialog('open');
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+                /**
+                 * 更新/削除ボタンクリック
+                 */
+                $('#modForm').submit(function(event)
+                {
+                    
+                    event.preventDefault();
+                    if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>' )
+                    {
+                        document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$UPDATE_DIALOG_MSG); ?>';
+                    }
+                    else
+                    {
+                        document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$DELETE_DIALOG_MSG); ?>';
+                    }
+                    
+                    $("#dialog_mod").dialog('open');
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+                
+            });
+
+            /*
+             * editRow: 編集ボタン該当行の内容を入力・編集またモード切り替え
+             */
+            function editRow(obj)
+            {
+                var objTR = obj.parentNode.parentNode.parentNode;
+                var rowId = objTR.sectionRowIndex;
+                var rowCount = nameTable.rows.length - 1;
+
+                // モードの切り替えはボタンの値で判定	
+                $('#sDisp' + rowId).css('display' , 'none');
+                $('#sDisp-edit' + rowId).val($('#sDisp').text()).css('display' , '');
+                $('#sLedgerSheetFormCode' + rowId).css('display' , 'none');
+                $('#sLedgerSheetFormCode-edit' + rowId).val($('#sLedgerSheetFormCode').text()).css('display' , '');
+                $('#sLedgerSheetFormName' + rowId).css('display' , 'none');
+                $('#sLedgerSheetFormName-edit' + rowId).val($('#sLedgerSheetFormName').text()).css('display' , '');
+                $('#sLedgerSheetFormNameKana' + rowId).css('display' , 'none');
+                $('#sLedgerSheetFormNameKana-edit' + rowId).val($('#sLedgerSheetFormNameKana').text()).css('display' , '');
+                $('#sHeader' + rowId).css('display' , 'none');
+                $('#sHeader-edit' + rowId).val($('#sHeader').text()).css('display' , '');
+                $('#sLogic' + rowId).css('display' , 'none');
+                $('#sLogic-edit' + rowId).val($('#sLogic').text()).css('display' , '');
+                $('#sCYear' + rowId).css('display' , 'none');
+                $('#sCYear-edit' + rowId).val($('#sCYear').text()).css('display' , '');
+                $('#sCMonth' + rowId).css('display' , 'none');
+                $('#sCMonth-edit' + rowId).val($('#sCMonth').text()).css('display' , '');
+                $('#sCDay' + rowId).css('display' , 'none');
+                $('#sCDay-edit' + rowId).val($('#sCDay').text()).css('display' , '');
+                $('#sCKikan' + rowId).css('display' , 'none');
+                $('#sCKikan-edit' + rowId).val($('#sCKikan').text()).css('display' , '');
+                $('#sCStaff' + rowId).css('display' , 'none');
+                $('#sCStaff-edit' + rowId).val($('#sCStaff').text()).css('display' , '');
+                $('#sCStaffBumon' + rowId).css('display' , 'none');
+                $('#sCStaffBumon-edit' + rowId).val($('#sCStaffBumon').text()).css('display' , '');
+                $('#sCMenu' + rowId).css('display' , 'none');
+                $('#sCMenu-edit' + rowId).val($('#sCMenu').text()).css('display' , '');
+                $('#sCMenuBumon' + rowId).css('display' , 'none');
+                $('#sCMenuBumon-edit' + rowId).val($('#sCMenuBumon').text()).css('display' , '');
+                $('#sCJikan' + rowId).css('display' , 'none');
+                $('#sCJikan-edit' + rowId).val($('#sCJikan').text()).css('display' , '');
+                $('#sCJikantai' + rowId).css('display' , 'none');
+                $('#sCJikantai-edit' + rowId).val($('#sCJikantai').text()).css('display' , '');
+                $('#sCTime1' + rowId).css('display' , 'none');
+                $('#sCTime1-edit' + rowId).val($('#sCTime1').text()).css('display' , '');
+                $('#sCTime2' + rowId).css('display' , 'none');
+                $('#sCTime2-edit' + rowId).val($('#sCTime2').text()).css('display' , '');
+                $('#sCTime3' + rowId).css('display' , 'none');
+                $('#sCTime3-edit' + rowId).val($('#sCTime3').text()).css('display' , '');
+                $('#sCTime4' + rowId).css('display' , 'none');
+                $('#sCTime4-edit' + rowId).val($('#sCTime4').text()).css('display' , '');
+                $('#sCTime5' + rowId).css('display' , 'none');
+                $('#sCTime5-edit' + rowId).val($('#sCTime5').text()).css('display' , '');
+                $('#sCTime6' + rowId).css('display' , 'none');
+                $('#sCTime6-edit' + rowId).val($('#sCTime6').text()).css('display' , '');
+                $('#sCTime7' + rowId).css('display' , 'none');
+                $('#sCTime7-edit' + rowId).val($('#sCTime7').text()).css('display' , '');
+                $('#sCTime8' + rowId).css('display' , 'none');
+                $('#sCTime8-edit' + rowId).val($('#sCTime8').text()).css('display' , '');
+                $('#sCTime9' + rowId).css('display' , 'none');
+                $('#sCTime9-edit' + rowId).val($('#sCTime9').text()).css('display' , '');
+                $('#sCTime10' + rowId).css('display' , 'none');
+                $('#sCTime10-edit' + rowId).val($('#sCTime10').text()).css('display' , '');
+                $('#sCTime11' + rowId).css('display' , 'none');
+                $('#sCTime11-edit' + rowId).val($('#sCTime11').text()).css('display' , '');
+                $('#sCTime12' + rowId).css('display' , 'none');
+                $('#sCTime12-edit' + rowId).val($('#sCTime12').text()).css('display' , '');
+                $('#sCTime13' + rowId).css('display' , 'none');
+                $('#sCTime13-edit' + rowId).val($('#sCTime13').text()).css('display' , '');
+                $('#sCTime14' + rowId).css('display' , 'none');
+                $('#sCTime14-edit' + rowId).val($('#sCTime14').text()).css('display' , '');
+                $('#sCTime15' + rowId).css('display' , 'none');
+                $('#sCTime15-edit' + rowId).val($('#sCTime15').text()).css('display' , '');
+                $('#sCTime16' + rowId).css('display' , 'none');
+                $('#sCTime16-edit' + rowId).val($('#sCTime16').text()).css('display' , '');
+                $('#sCTime17' + rowId).css('display' , 'none');
+                $('#sCTime17-edit' + rowId).val($('#sCTime17').text()).css('display' , '');
+                $('#sCTime18' + rowId).css('display' , 'none');
+                $('#sCTime18-edit' + rowId).val($('#sCTime18').text()).css('display' , '');
+                $('#sCTime19' + rowId).css('display' , 'none');
+                $('#sCTime19-edit' + rowId).val($('#sCTime19').text()).css('display' , '');
+                $('#sCTime20' + rowId).css('display' , 'none');
+                $('#sCTime20-edit' + rowId).val($('#sCTime20').text()).css('display' , '');
+                $('#sCTime21' + rowId).css('display' , 'none');
+                $('#sCTime21-edit' + rowId).val($('#sCTime21').text()).css('display' , '');
+                $('#sCTime22' + rowId).css('display' , 'none');
+                $('#sCTime22-edit' + rowId).val($('#sCTime22').text()).css('display' , '');
+                $('#sCTime23' + rowId).css('display' , 'none');
+                $('#sCTime23-edit' + rowId).val($('#sCTime23').text()).css('display' , '');
+                $('#sCTime24' + rowId).css('display' , 'none');
+                $('#sCTime24-edit' + rowId).val($('#sCTime24').text()).css('display' , '');
+                $('#edtBtn' + rowId).css('display' , 'none');
+                $('#edtBtn-mod' + rowId).css('display' , '');
+                $('#edtBtn-del' + rowId).css('display' , '');
+                $('#add').prop('disabled', true);
+
+                for(var i = 1; i <= rowCount; i++)
+                {
+                    $('#edtBtn' + i).prop('disabled', true);
+                }
+            }
+
+            /**
+             * 行情報を設定
+             */
+            function setLineInfo(thisLineInfo, thisBtnInfo)
+            {
+                lineInfo = thisLineInfo;
+                btnInfo  = thisBtnInfo;
+                return false;
+            }
+
+            /**
+             * ソート処理
+             */
+            function setColumnInfo(thisItemInfo)
+            {
+               ledgerSheetFormItemInfo = thisItemInfo;
+
+                ledgerSheetFormSort = 0;
+                // No
+                if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0810')); ?>")
+                {
+                    no_click_count++;
+                    if((no_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 1;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 2;
+                    }
+                }
+                // 表示順
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0811')); ?>")
+                {
+                    disporder_click_count++;
+                    if((disporder_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 3;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 4;
+                    }
+                }
+                // 帳票設定コード
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0840')); ?>")
+                {
+                     
+                    mapping_type_click_count++;
+                    if((mapping_type_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 5;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 6;
+                    }
+                }
+                // 帳票設定名
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0842')); ?>" )
+                {
+                    link_click_count++;
+                    if((link_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 7;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 8;
+                    }
+                }
+                // 帳票設定名かな
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0843')); ?>" )
+                {
+                    list_f_click_count++;
+                    if((list_f_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 9;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 10;
+                    }
+                }
+                // ヘッダー情報
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0844')); ?>" )
+                {
+                    mapping_code_click_count++;
+                    if((mapping_code_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 11;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 12;
+                    }
+                }
+                // 表示ロジック
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0845')); ?>" )
+                {
+                    mapping_name_click_count++;
+                    if((mapping_name_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 13;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 14;
+                    }
+                }
+                // 集計種別-年
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 15;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 16;
+                    }
+                }
+                // 集計種別-月
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 17;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 18;
+                    }
+                }
+                // 集計種別-日
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 19;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 20;
+                    }
+                }
+                // 集計種別-期間
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 21;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 22;
+                    }
+                }
+                // 集計種別-スタッフ
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 23;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 24;
+                    }
+                }
+                // 集計種別-スタッフ部門
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 25;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 26;
+                    }
+                }
+                // 集計種別-メニュー
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 27;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 28;
+                    }
+                }
+                // 集計種別-メニュー部門
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 29;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 30;
+                    }
+                }
+                // 集計種別-時間
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 31;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 32;
+                    }
+                }
+                // 集計種別-時間帯
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 33;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 34;
+                    }
+                }
+                // 表示時間キー1
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 35;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 36;
+                    }
+                }
+                // 表示時間キー2
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 37;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 38;
+                    }
+                }
+                // 表示時間キー3
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 39;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 40;
+                    }
+                }
+                // 表示時間キー4
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 41;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 42;
+                    }
+                }
+                // 表示時間キー5
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 43;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 44;
+                    }
+                }
+                // 表示時間キー6
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 45;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 46;
+                    }
+                }
+                // 表示時間キー7
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 47;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 48;
+                    }
+                }
+                // 表示時間キー8
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 49;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 50;
+                    }
+                }
+                // 表示時間キー9
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 51;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 52;
+                    }
+                }
+                // 表示時間キー10
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 53;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 54;
+                    }
+                }
+                // 表示時間キー11
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 55;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 56;
+                    }
+                }
+                // 表示時間キー12
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 57;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 58;
+                    }
+                }
+                // 表示時間キー13
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 59;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 60;
+                    }
+                }
+                // 表示時間キー14
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 61;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 62;
+                    }
+                }
+                // 表示時間キー15
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 63;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 64;
+                    }
+                }
+                // 表示時間キー16
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 65;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 66;
+                    }
+                }
+                // 表示時間キー17
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 67;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 68;
+                    }
+                }
+                // 表示時間キー18
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 69;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 70;
+                    }
+                }
+                // 表示時間キー19
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 71;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 72;
+                    }
+                }
+                // 表示時間キー20
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 73;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 74;
+                    }
+                }
+                // 表示時間キー21
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 75;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 76;
+                    }
+                }
+                // 表示時間キー22
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 77;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 78;
+                    }
+                }
+                // 表示時間キー23
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 79;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 80;
+                    }
+                }
+                // 表示時間キー24
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 81;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 82;
+                    }
+                }
+                // 初回登録日
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0813')); ?>" )
+                {
+                    registration_time_click_count++;
+                    if((registration_time_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 83;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 84;
+                    }
+                }
+                // 更新日
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0814')); ?>" )
+                {
+                    update_time_click_count++;
+                    if((update_time_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 85;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 86;
+                    }
+                }
+                // 状態
+                else if(ledgerSheetFormItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0815')); ?>" )
+                {
+                    state_click_count++;
+                    if((state_click_count % 2) != 0)
+                    {
+                        ledgerSheetFormSort = 87;
+                    }
+                    else
+                    {
+                        ledgerSheetFormSort = 88;
+                    }
+                }
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchLedgerSheetFormCode : $('#ledgerSheetFormCode').val(),
+                              searchLedgerSheetFormName : $('#ledgerSheetFormName').val(),
+                              searchDelF : document.getElementById("delF").checked,
+                              sortConditions : ledgerSheetFormSort 
+                           };
+                var path = 'index.php?param=LedgerSheetForm/search&home=1';
+  
+                // データ更新
+                setDataForAjax( data, path );
+
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 表示レコード数選択
+             */
+            function displayRecord(recordCnt)
+            {
+                displayRecordCnt = recordCnt;
+                displayPageNo = 1;
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchLedgerSheetFormCode : $('#ledgerSheetFormCode').val(),
+                              searchLedgerSheetFormName : $('#ledgerSheetFormName').val(),
+                              searchDelF : document.getElementById("delF").checked,
+                              sortConditions : ledgerSheetFormSort
+                           };
+                var path = 'index.php?param=LedgerSheetForm/search&home=1';
+                // データ更新
+                setDataForAjax( data, path );
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 表示ページ数選択
+             */
+            function displayPage(pageCnt)
+            {
+                displayPageNo = pageCnt;
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchLedgerSheetFormCode : $('#ledgerSheetFormCode').val(),
+                              searchLedgerSheetFormName : $('#ledgerSheetFormName').val(),
+                              searchDelF : document.getElementById("delF").checked,
+                              sortConditions : ledgerSheetFormSort 
+                           };
+                var path = 'index.php?param=LedgerSheetForm/search&home=1';
+                // データ更新
+                setDataForAjax( data, path );
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 新規作成データの設定
+             */
+            function setAddData()
+            {
+
+                displayPageNo = 1;
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchLedgerSheetFormCode : $('#ledgerSheetFormCode').val(),
+                              searchLedgerSheetFormName : $('#ledgerSheetFormName').val(),
+                              searchDelF : document.getElementById("delF").checked,
+                              sortConditions : ledgerSheetFormSort,
+                              ledgerSheetFormCode : $('#ledgerSheetFormCodeNew').val(),
+                              ledgerSheetFormName : $('#ledgerSheetFormNameNew').val(),
+                              ledgerSheetFormNameKana : $('#ledgerSheetFormNameKanaNew').val(),
+                              header : $('#headerNew').val(),
+                              logic : $('#logicNew').val(),
+                              cYear : $('#cYearNew').val(),
+                              cMonth : $('#cMonthNew').val(),
+                              cDay : $('#cDayNew').val(),
+                              cKikan : $('#cKikanNew').val(),
+                              cStaff : $('#cStaffNew').val(),
+                              cStaffBumon : $('#cStaffBumonNew').val(),
+                              cMenu : $('#cMenuNew').val(),
+                              cMenuBumon : $('#cMenuBumonNew').val(),
+                              cJikan : $('#cJikanNew').val(),
+                              cJikantai : $('#cJikantaiNew').val(),
+                              cTime1 : $('#cTime1New').val(),
+                              cTime2 : $('#cTime2New').val(),
+                              cTime3 : $('#cTime3New').val(),
+                              cTime4 : $('#cTime4New').val(),
+                              cTime5 : $('#cTime5New').val(),
+                              cTime6 : $('#cTime6New').val(),
+                              cTime7 : $('#cTime7New').val(),
+                              cTime8 : $('#cTime8New').val(),
+                              cTime9 : $('#cTime9New').val(),
+                              cTime10 : $('#cTime10New').val(),
+                              cTime11 : $('#cTime11New').val(),
+                              cTime12 : $('#cTime12New').val(),
+                              cTime13 : $('#cTime13New').val(),
+                              cTime14 : $('#cTime14New').val(),
+                              cTime15 : $('#cTime15New').val(),
+                              cTime16 : $('#cTime16New').val(),
+                              cTime17 : $('#cTime17New').val(),
+                              cTime18 : $('#cTime18New').val(),
+                              cTime19 : $('#cTime19New').val(),
+                              cTime20 : $('#cTime20New').val(),
+                              cTime21 : $('#cTime21New').val(),
+                              cTime22 : $('#cTime22New').val(),
+                              cTime23 : $('#cTime23New').val(),
+                              cTime24 : $('#cTime24New').val(),
+                              dispOrder : $('#newDispOrder').val(),
+                              token : $('#token').val()
+                           };
+                var path = 'index.php?param=LedgerSheetForm/add&home=1';
+
+                // データ更新
+                setDataForAjax( data, path );
+
+                // 新規登録エリア設定
+                setInputArea();
+
+            }
+
+            /**
+             * 更新用データの設定
+             */
+            function setModData()
+            {
+                var objTR = lineInfo.parentNode.parentNode.parentNode;
+                var rowId = objTR.sectionRowIndex;
+                var data = null;
+                var path = '';
+                
+                if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>' )
+                {
+                    path = 'index.php?param=LedgerSheetForm/mod';
+                }
+                else
+                {
+                    path = 'index.php?param=LedgerSheetForm/del&home=1';
+                }
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                data = {
+                          displayPageNo : displayPageNo,
+                          displayRecordCnt : displayRecordCnt,
+                          searchLedgerSheetFormCode : $('#ledgerSheetFormCode').val(),
+                          searchLedgerSheetFormName : $('#ledgerSheetFormName').val(),
+                          searchDelF : document.getElementById("delF").checked,
+                          sortConditions : ledgerSheetFormSort,
+                          ledgerSheetFormCode : $('#ledgerSheetFormCodeMod' + rowId).val(),
+                          ledgerSheetFormName : $('#ledgerSheetFormNameMod' + rowId).val(),
+                          ledgerSheetFormNameKana : $('#ledgerSheetFormNameKanaMod' + rowId).val(),
+                          header : $('#headerMod' + rowId).val(),
+                          logic : $('#logicMod' + rowId).val(),
+                          cYear : $('#cYearMod' + rowId).val(),
+                          cMonth : $('#cMonthMod' + rowId).val(),
+                          cDay : $('#cDayMod'  + rowId).val(),
+                          cKikan : $('#cKikanMod'  + rowId).val(),
+                          cStaff : $('#cStaffMod'  + rowId).val(),
+                          cStaffBumon : $('#cStaffBumonMod'  + rowId).val(),
+                          cMenu : $('#cMenuMod'  + rowId).val(),
+                          cMenuBumon : $('#cMenuBumonMod'  + rowId).val(),
+                          cJikan : $('#cJikanMod'  + rowId).val(),
+                          cJikantai : $('#cJikantaiMod'  + rowId).val(),
+                          cTime1 : $('#cTime1Mod'  + rowId).val(),
+                          cTime2 : $('#cTime2Mod'  + rowId).val(),
+                          cTime3 : $('#cTime3Mod'  + rowId).val(),
+                          cTime4 : $('#cTime4Mod'  + rowId).val(),
+                          cTime5 : $('#cTime5Mod'  + rowId).val(),
+                          cTime6 : $('#cTime6Mod'  + rowId).val(),
+                          cTime7 : $('#cTime7Mod'  + rowId).val(),
+                          cTime8 : $('#cTime8Mod'  + rowId).val(),
+                          cTime9 : $('#cTime9Mod'  + rowId).val(),
+                          cTime10 : $('#cTime10Mod'  + rowId).val(),
+                          cTime11 : $('#cTime11Mod'  + rowId).val(),
+                          cTime12 : $('#cTime12Mod'  + rowId).val(),
+                          cTime13 : $('#cTime13Mod'  + rowId).val(),
+                          cTime14 : $('#cTime14Mod'  + rowId).val(),
+                          cTime15 : $('#cTime15Mod'  + rowId).val(),
+                          cTime16 : $('#cTime16Mod'  + rowId).val(),
+                          cTime17 : $('#cTime17Mod'  + rowId).val(),
+                          cTime18 : $('#cTime18Mod'  + rowId).val(),
+                          cTime19 : $('#cTime19Mod'  + rowId).val(),
+                          cTime20 : $('#cTime20Mod'  + rowId).val(),
+                          cTime21 : $('#cTime21Mod'  + rowId).val(),
+                          cTime22 : $('#cTime22Mod'  + rowId).val(),
+                          cTime23 : $('#cTime23Mod'  + rowId).val(),
+                          cTime24 : $('#cTime24Mod'  + rowId).val(),
+                          dispOrder : $('#sDispMod'  + rowId).val(),
+                          updateTime : $('#updateTime'  + rowId).val(),
+                          token : $('#token').val()
+                       };
+
+                // データ更新
+                setDataForAjax( data, path, 'jquery-replace-ajax', false );
+                
+            }
+
+            /**
+             * 更新キャンセル
+             */
+            function cancel()
+            {
+                
+                var data = null;
+                var path = '';
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                data = {
+                          displayPageNo : displayPageNo,
+                          displayRecordCnt : displayRecordCnt,
+                          searchLedgerSheetFormCode : $('#ledgerSheetFormCode').val(),
+                          searchLedgerSheetFormName : $('#ledgerSheetFormName').val(),
+                          searchDelF : document.getElementById("delF").checked,
+                          sortConditions : ledgerSheetFormSort,
+                          token : $('#token').val()
+                       };
+
+                // 検索する為、パスを変更する
+                path = 'index.php?param=LedgerSheetForm/search&home=1';
+
+                // データ更新
+                setDataForAjax( data, path );
+                
+                // 新規データをクリア
+                $('#ledgerSheetFormCodeNew').val('');
+                $('#ledgerSheetFormNameNew').val('');
+                $('#ledgerSheetFormNameKanaNew').val('');
+                $('#headerNew').val('');
+                $('#logicNew').val('');
+                $('#cYearNew').val('');
+                $('#cMonthNew').val('');
+                $('#cDayNew').val('');
+                $('#cKikanNew').val('');
+                $('#cStaffNew').val('');
+                $('#cStaffBumonNew').val('');
+                $('#cMenuNew').val('');
+                $('#cMenuBumonNew').val('');
+                $('#cJikanNew').val('');
+                $('#cJikantaiNew').val('');
+                $('#cTime1New').val('');
+                $('#cTime2New').val('');
+                $('#cTime3New').val('');
+                $('#cTime4New').val('');
+                $('#cTime5New').val('');
+                $('#cTime6New').val('');
+                $('#cTime7New').val('');
+                $('#cTime8New').val('');
+                $('#cTime9New').val('');
+                $('#cTime10New').val('');
+                $('#cTime11New').val('');
+                $('#cTime12New').val('');
+                $('#cTime13New').val('');
+                $('#cTime14New').val('');
+                $('#cTime15New').val('');
+                $('#cTime16New').val('');
+                $('#cTime17New').val('');
+                $('#cTime18New').val('');
+                $('#cTime19New').val('');
+                $('#cTime20New').val('');
+                $('#cTime21New').val('');
+                $('#cTime22New').val('');
+                $('#cTime23New').val('');
+                $('#cTime24New').val('');
+            }
+
+            /**
+             * 新規登録エリア設定
+             */
+            function setInputArea()
+            {
+                var data = null;
+                var path = '';
+
+                // 検索用セクションリスト更新用パス
+                path = 'index.php?param=LedgerSheetForm/inputArea&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, "jquery-replace-input-ajax" );
+            }
+            
+        </script>
+
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site">
+            <!-- パンくずリスト -->
+            <?php include("Common/Breadcrumb.php"); ?>
+            <form id="searchForm" name="searchForm" method="post" action="index.php?param=LedgerSheetForm/search&home=1" >
+            <input type="hidden" name="companyID" value="<?php hsc( $_SESSION['COMPANY_ID'] ); ?>">
+            <!-- serchBoardArea -->
+            <div class="serchBoardArea">
+                <table id="serchTable">
+                    <tr>
+			<th id="serchTableTitle" align="center" width="80">帳票コード</th>
+			<td id="serchTableItem">
+                            <input type="text" size="15" name="ledgerSheetFormCode" id="ledgerSheetFormCode" value="">
+                        </td>
+			<th id="serchTableTitle" align="center" width="80">帳票名</th>
+			<td id="serchTableItem">
+                            <input type="text" size="15" name="ledgerSheetFormName" id="ledgerSheetFormName" value="">
+                        </td>
+			<th id="serchTableTitle" align="center" width="80">削除</th>
+			<td id="serchTableItem">
+                            <input type="checkbox" name="delF" id="delF" />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <!-- /.serchBoardArea -->
+
+            <!-- serchButtonArea -->
+            <div class="serchButtonArea">
+                <p align=center>
+                    <input type="submit" id="search" name="search" href="#" value="検索" class="serch">
+                    <input type="button" id="add" name="add" onClick="inputPanelTransition()" value="新規作成" class="serch">
+                </p>
+            </div>
+            <!-- /.serchButtonArea -->
+            </form>
+
+            <!-- 　結果一覧エリア -->
+            <form id="modForm" name="modForm" >
+                <?php include("LedgerSheetFormTablePanel.html"); ?>
+            </form>
+            <!-- /.結果一覧エリア -->
+
+            <br />
+            <script type="text/javascript" src="../jquery/js/scrolltopcontrol2.js"></script> <!--スクロールしながらページのトップに戻る-->
+        </div><!-- /#sb-site -->
+        
+        <!-- ダイアログ用エリア -->
+        <?php include("../FwCommon/View/Dialog.php"); ?>
+    </body>
+</html>

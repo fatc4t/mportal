@@ -1,0 +1,310 @@
+<?php
+    /**
+     * @file      タイムレコーダー画面(View)
+     * @author    millionet oota
+     * @date      2016/08/16
+     * @version   1.00
+     * @note      タイムレコーダー画面
+     */
+?>
+
+
+<html>
+    <head>
+        <?php
+            $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述 
+            $add = ''; 
+            include("Common/HtmlHeader.php"); 
+        ?>
+    <link rel="stylesheet" href="../../css/attendance/clock.css">
+    <script src="../../js/attendance/clock.js"></script>
+
+    <!-- キーボードでの打刻処理用 -->
+    <script type="text/javascript">
+      document.onkeydown = keydown;
+
+      // キーボードの押下で反応するスクリプト
+      function keydown() {
+        if (event.keyCode == 118) {
+            btChange("2");
+        }
+
+        if (event.keyCode == 119) {
+            btChange("3");
+        }
+
+        if (event.keyCode == 120) {
+            btChange("4");
+        }
+
+        if (event.keyCode == 121) {
+            btChange("5");
+        }
+
+      }
+
+      // ボタンを直接クリックしたときに反応するスクリプト
+      function btChange(f) {
+        switch (f){
+            // 出勤
+          case '2':
+            document.getElementById("bt1").style.backgroundColor='#0000FF';
+            document.getElementById("bt1").style.color='#FFFFFF';
+            document.getElementById("bt2").style.backgroundColor='';
+            document.getElementById("bt2").style.color='';
+            document.getElementById("bt3").style.backgroundColor='';
+            document.getElementById("bt3").style.color='';
+            document.getElementById("bt4").style.backgroundColor='';
+            document.getElementById("bt4").style.color='';
+            document.getElementById("embossingType").value = "2";
+            break;
+            // 休憩IN
+          case '3':
+            document.getElementById("bt1").style.backgroundColor='';
+            document.getElementById("bt1").style.color='';
+            document.getElementById("bt2").style.backgroundColor='#FF0000';
+            document.getElementById("bt2").style.color='#FFFFFF';
+            document.getElementById("bt3").style.backgroundColor='';
+            document.getElementById("bt3").style.color='';
+            document.getElementById("bt4").style.backgroundColor='';
+            document.getElementById("bt4").style.color='';
+            document.getElementById("embossingType").value = "3";
+            break;
+            // 休憩out
+          case '4':
+            document.getElementById("bt1").style.backgroundColor='';
+            document.getElementById("bt1").style.color='';
+            document.getElementById("bt2").style.backgroundColor='';
+            document.getElementById("bt2").style.color='';
+            document.getElementById("bt3").style.backgroundColor='#00FF00';
+            document.getElementById("bt3").style.color='#FFFFFF';
+            document.getElementById("bt4").style.backgroundColor='';
+            document.getElementById("bt4").style.color='';
+            document.getElementById("embossingType").value = "4";
+            break;
+            // 退勤
+          case '5':
+            document.getElementById("bt1").style.backgroundColor='';
+            document.getElementById("bt1").style.color='';
+            document.getElementById("bt2").style.backgroundColor='';
+            document.getElementById("bt2").style.color='';
+            document.getElementById("bt3").style.backgroundColor='';
+            document.getElementById("bt3").style.color='';
+            document.getElementById("bt4").style.backgroundColor='#800000';
+            document.getElementById("bt4").style.color='#FFFFFF';
+            document.getElementById("embossingType").value = "5";
+            break;
+        }
+        
+        // パスワード入力BOXを初期化
+        document.forms[0].password.focus(); 
+        
+      }
+
+      // パスワード入力箇所のエンターーキーで反応するスクリプト
+      function embossing() {
+        if (event.keyCode == 13) {
+            f = document.forms[0];
+
+            <?php
+            // 判定するのに小文字にする
+            $browser = strtolower($_SERVER['HTTP_USER_AGENT']);
+            ?>
+            
+            // ユーザーエージェントの情報を基に判定
+            <?php
+            if (strstr($browser , 'edge')) {
+            ?>
+                alert('ご使用のブラウザはEdgeです。このブラウザでは正常に動作しません。Google Chromeかsafariをお使いください。');
+            <?php
+            } else if (strstr($browser , 'trident') || strstr($browser , 'msie')) {
+            ?>
+                alert('ご使用のブラウザはInternet Explorerです。このブラウザでは正常に動作しません。Google Chromeかsafariをお使いください。');
+            <?php
+            } else if (strstr($browser , 'chrome')) {
+            ?>
+                // モードチェック
+                if(f.mode.value == 1){
+                    // 店舗認証へ
+                    if( f.action.indexOf('test') > -1){
+                        f.action = f.action.replace('test','setTenpoTokutei');
+                    }else if(f.action.indexOf('setEmbossing') > -1){
+                        f.action = f.action.replace('setEmbossing','setTenpoTokutei');
+                    }
+                    f.submit;
+                }else{
+                    // 打刻処理へ
+                    if( f.action.indexOf('test') > -1){
+                        f.action = f.action.replace('test','setEmbossing');
+                    }else if(f.action.indexOf('setTenpoTokutei') > -1){
+                        f.action = f.action.replace('setTenpoTokutei','setEmbossing');
+                    }
+                    f.submit;
+                }
+            <?php
+            } else if (strstr($browser , 'firefox')) {
+            ?>
+                alert('ご使用のブラウザはFirefoxです。このブラウザでは正常に動作しません。Google Chromeかsafariをお使いください。');
+            <?php
+            } else if (strstr($browser , 'safari')) {
+            ?>
+                // モードチェック
+                if(f.mode.value == 1){
+                    // 店舗認証へ
+                    f.action += 'index.php?param=EmbossingWeb/setTenpoTokutei&CompanyID=' + f.companyID.value;
+                    f.submit;
+                }else{
+                    // 打刻処理へ
+                    f.action += 'index.php?param=EmbossingWeb/setEmbossing&CompanyID=' + f.companyID.value;
+                    f.submit;
+                }
+            <?php
+            } else if (strstr($browser , 'opera')) {
+            ?>
+                alert('ご使用のブラウザはOperaです。このブラウザでは正常に動作しません。Google Chromeかsafariをお使いください。');
+            <?php
+            } else {
+            ?>
+                alert('ご使用のブラウザは不明なです。このブラウザでは正常に動作しません。Google Chromeかsafariをお使いください。');
+            <?php
+            }
+            ?>
+
+        }
+      }
+    
+      // 打刻後のメッセージ表示処理
+    function init() {
+        // ボタンの制御
+        btChange(document.getElementById("embossingType").value);
+
+        // パスワード入力BOXを初期化
+        document.forms[0].password.focus(); 
+        
+        moveTo(0,0);
+        resizeTo(screen.availWidth,screen.availHeight);
+    }
+
+    $(function(){
+        $("input[type='text']").focus(function(){
+            $(this).prop('type','tel');
+        }).blur(function(){
+            $(this).prop('type','text');
+        }).bind("paste",function(){
+            return false;
+        }).keydown(function(eo){
+            if (eo.keyCode==229){
+                return false;
+            }
+        });
+    });
+
+    </script>
+    
+    <style>
+
+    #middle {
+    }
+
+    #left_frame {
+            float: left;
+            width: 50%;
+            margin: 10px;
+            padding: 10px
+    }
+
+    #right_frame {
+            margin: 10px;
+            padding: 10px
+    }
+    .spacer {
+    	height: 200px;
+    }
+    
+    .scr {
+        overflow: hidden;   /* スクロール表示 */ 
+    }
+    
+    </style>
+    </head>
+<body onLoad="init()">
+<form name="TimerecorderLeft" method="post">
+<input type="hidden" name="companyID" value="<?php hsc( $companyID ); ?>">
+<input type="hidden" name="mode" value="<?php hsc( $mode ); ?>">
+<input type="hidden" name="embossingType" id ="embossingType" value="<?php hsc( $embossingType ); ?>">
+<div id="middle">
+	<div id="left_frame">
+        <!-- 左側表示域 -->    
+            <!-- 時計枠 -->
+            <div id="clock_frame">
+            <p align="center" style="padding-left:85px;"><img src="../img/attendance/timerecorder-title_long.png" width="100%"></p>
+            <!-- 打刻店舗名 -->
+                <!-- 日付部分 -->
+                <span id="clock_date"></span>
+                <!-- 時刻部分 -->
+                <span id="clock_time"></span>
+            </div>
+            <!-- 打刻コード入力域 -->
+            <p align=center>&nbsp;</p>
+            <!-- モードに合わせてボタン表示  -->
+            <p align=center>
+                <input id="bt1" type="button" value="出勤(F7)"    onClick="btChange('2');" style="font-size:20px">
+                <input id="bt2" type="button" value="休憩IN(F8)"  onClick="btChange('3');" style="font-size:20px">
+                <input id="bt3" type="button" value="休憩OUT(F9)" onClick="btChange('4');" style="font-size:20px">
+                <input id="bt4" type="button" value="退勤(F10)"   onClick="btChange('5');" style="font-size:20px">
+            </p>
+            <p align=center>
+                <input id="password" type="text" name="password" style="height:40px;font-size:25px;" onkeydown="embossing(this);">
+            </p>
+            <p id="errMsg" align=center style="font-size: 30px;"><?php hsc( $errMes ); ?></p>
+            <p id="messegeArie" style="border:1px solid #1515ba; border-radius:12px; padding: 0.5em;">
+                <font size=4 >組織&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：<?php hsc( $organizationName ); ?></font>
+                <br>
+                <font size=4 >社員コード&nbsp;：<?php hsc( $userCode ); ?></font>
+                <br>
+                <font size=4 >社員名&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;：<?php hsc( $userName ); ?></font>
+                <br>
+                <font size=4 >メッセージ&nbsp;：<?php hsc( $messege ); ?></font>
+            </p>
+            </div>
+
+	<div id="right_frame">
+            <p align=Right>
+                <input id="bt5" type="button" value="閉じる"   onClick="window.close();" style="font-size:16px">
+            </p>
+            <!-- 右側表示域 -->
+            <div align=center>
+                <!-- タイトル -->
+                <font size=6 style="width:100%;border-style: solid;">打刻履歴</font>
+            </div>
+            <div align=center>
+                <div class="scr">
+                    <!-- 打刻履歴表示域 -->
+                    <table>
+                        <?php if( !empty($embossingList) ) { ?>
+                        <?php foreach($embossingList as $embossing) { ?>
+                        <tr>
+                            <!-- 打刻時間 -->
+                            <td><?php hsc($embossing['date_time']); ?></td>
+                            <!-- 打刻種別 -->
+                            <?php if($embossing['embossing_type'] == '2'){ ?>
+                            <td style="background:#0000FF;color:#FFFFFF">出勤</td>
+                            <?php }else if($embossing['embossing_type'] == 3){ ?>
+                            <td style="background:#FF0000;color:#FFFFFF">休憩IN</td>
+                            <?php }else if($embossing['embossing_type'] == 4){ ?>
+                            <td style="background:#00FF00;color:#FFFFFF">休憩OUT</td>
+                            <?php }else if($embossing['embossing_type'] == 5){ ?>
+                            <td style="background:#800000;color:#FFFFFF">退勤</td>
+                            <?php }?>
+                            <!-- 従業員名 -->
+                            <td><?php hsc($embossing['user_name']); ?></td>
+                        </tr>
+                        <?php }} ?>
+                    </table>
+                </div>
+            </div>
+	</div>
+</div>
+</form>
+</body>
+</html>

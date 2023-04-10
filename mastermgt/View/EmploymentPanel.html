@@ -1,0 +1,608 @@
+<?php
+    /**
+     * @file      雇用形態マスタ画面(View)
+     * @author    USE K.Narita
+     * @date      2016/06/09
+     * @version   1.00
+     * @note      雇用形態マスタ画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array( 'default.css', 'common.js', 'jquery-ui.min.js', 'jquery-ui.css' ); // cssまたはｊｓファイルを拡張子付きで配列に記述
+            include("Common/HtmlHeader.php"); 
+        ?>
+        <script type="text/javascript">
+            var lineInfo = null;
+            var btnInfo  = null;
+            var displayPageNo = 1;
+            var displayRecordCnt = <?php hsc($_SESSION["DISPLAY_RECORD_CNT"]); ?>;
+            var EmploymentItemInfo = null;
+            var employmentSort = null;
+            var no_click_count = 0;
+            var state_click_count = 0;
+            var code_click_count = 0;
+            var organization_click_count = 0;
+            var employment_click_count = 0;
+            var labor_regulations_click_count = 0;
+            var disporder_click_count = 0;
+            $(document).ready(function()
+            {
+                /**
+                 * 検索ボタンクリック
+                 */
+                $('#search').click(function()
+                {
+                    event.preventDefault();
+                    
+                    displayPageNo = 1;
+
+                    // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                    var data = {
+                                  displayPageNo : displayPageNo,
+                                  displayRecordCnt : displayRecordCnt,
+                                  searchCodeName : $('#codeName').val(),
+                                  searchOrganizatioID : $('#organizationName').val(),
+                                  searchEmploymentName : $('#employmentName').val(),
+                                  searchLaborRegulationsID : $('#laborRegulationsName').val(),
+                                  searchDelF : document.getElementById("delF").checked,
+                                  sortConditions  : 0
+                               };
+                    var path = 'index.php?param=Employment/search&home=1';
+
+                    // データ更新
+                    setDataForAjax( data, path );
+
+                    // 新規登録エリア設定
+                    setInputArea();
+                    
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+                /**
+                 * 登録ボタンクリック
+                 */
+                $('#addForm').submit(function(event)
+                {
+                    event.preventDefault();
+                    
+                    document.getElementById("dialog_add").textContent='<?php hsc(SystemParameters::$NEW_DIALOG_MSG); ?>';
+                    
+                    $("#dialog_add").dialog('open');
+                    
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+                /**
+                 * 更新/削除ボタンクリック
+                 */
+                $('#modForm').submit(function(event)
+                {
+                    event.preventDefault();
+
+                    if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>' )
+                    {
+                        document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$UPDATE_DIALOG_MSG); ?>';
+                    }
+                    else
+                    {
+                        document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$DELETE_DIALOG_MSG); ?>';
+                    }
+                    
+                    $("#dialog_mod").dialog('open');
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+                
+            });
+
+            /*
+             * editRow: 編集ボタン該当行の内容を入力・編集またモード切り替え
+             */
+            function editRow(obj)
+            {
+                var objTR = obj.parentNode.parentNode;
+                var rowId = objTR.sectionRowIndex + 1;
+                var rowCount = nameTable.rows.length;
+
+                // モードの切り替えはボタンの値で判定    
+                $('#sCode' + rowId).css('display' , 'none');
+                $('#sCode-edit' + rowId).val($('#sCode').text()).css('display' , '');
+                $('#sOrganization' + rowId).css('display' , 'none');
+                $('#sOrganization-edit' + rowId).val($('#sOrganization').text()).css('display' , '');
+                $('#sEmployment' + rowId).css('display' , 'none');
+                $('#sEmployment-edit' + rowId).val($('#sEmployment').text()).css('display' , '');
+                $('#sLaborRegulations' + rowId).css('display' , 'none');
+                $('#sLaborRegulations-edit' + rowId).val($('#sLaborRegulations').text()).css('display' , '');
+                $('#sDisp' + rowId).css('display' , 'none');
+                $('#sDisp-edit' + rowId).val($('#sDisp').text()).css('display' , '');
+                $('#edtBtn' + rowId).css('display' , 'none');
+                $('#edtBtn-mod' + rowId).css('display' , '');
+                $('#edtBtn-del' + rowId).css('display' , '');
+                $('#add').prop('disabled', true);
+                for(var i = 1; i <= rowCount; i++)
+                {
+                  $('#edtBtn' + i).prop('disabled', true);
+                }
+                setOrganizationMod(rowId);
+                setLaborRegulationsMod(rowId);
+            }
+
+            /**
+             * 行情報を設定
+             */
+            function setLineInfo(thisLineInfo, thisBtnInfo)
+            {
+                lineInfo = thisLineInfo;
+                btnInfo  = thisBtnInfo;
+                
+                if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0803")); ?>' )
+                {
+                    document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$DELETE_DIALOG_MSG); ?>';
+                    $("#dialog_mod").dialog('open');
+                }
+                
+                return false;
+            }
+
+            /**
+             * ソート処理
+             */
+            function setColumnInfo(thisItemInfo)
+            {
+                EmploymentItemInfo = thisItemInfo;
+
+                employmentSort = 0;
+
+                if(EmploymentItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?>")
+                {
+                    no_click_count++;
+                    if((no_click_count % 2) != 0)
+                    {
+                        employmentSort = 1;
+                    }
+                    else
+                    {
+                        employmentSort = 2;
+                    }
+                }
+                else if(EmploymentItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0849')); ?>")
+                {
+                    state_click_count++;
+                    if((state_click_count % 2) != 0)
+                    {
+                        employmentSort = 3;
+                    }
+                    else
+                    {
+                        employmentSort = 4;
+                    }
+                }
+                else if(EmploymentItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0851')); ?>")
+                {
+                    code_click_count++;
+                    if((code_click_count % 2) != 0)
+                    {
+                        employmentSort = 5;
+                    }
+                    else
+                    {
+                        employmentSort = 6;
+                    }
+                }
+                else if(EmploymentItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?>")
+                {
+                    organization_click_count++;
+                    if((organization_click_count % 2) != 0)
+                    {
+                        employmentSort = 7;
+                    }
+                    else
+                    {
+                        employmentSort = 8;
+                    }
+                }
+                else if(EmploymentItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0861')); ?>")
+                {
+                    employment_click_count++;
+                    if((employment_click_count % 2) != 0)
+                    {
+                        employmentSort = 9;
+                    }
+                    else
+                    {
+                        employmentSort = 10;
+                    }
+                }
+                else if(EmploymentItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0859')); ?>")
+                {
+                    labor_regulations_click_count++;
+                    if((labor_regulations_click_count % 2) != 0)
+                    {
+                        employmentSort = 11;
+                    }
+                    else
+                    {
+                        employmentSort = 12;
+                    }
+                }
+                else if(EmploymentItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0852')); ?>")
+                {
+                    disporder_click_count++;
+                    if((disporder_click_count % 2) != 0)
+                    {
+                        employmentSort = 13;
+                    }
+                    else
+                    {
+                        employmentSort = 14;
+                    }
+                }
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchCodeName : $('#codeName').val(),
+                              searchOrganizatioID : $('#organizationName').val(),
+                              searchEmploymentName : $('#employmentName').val(),
+                              searchLaborRegulationsID : $('#laborRegulationsName').val(),
+                              searchDelF : document.getElementById("delF").checked,
+                              sortConditions : employmentSort 
+                           };
+                var path = 'index.php?param=Employment/search&home=1';
+                // データ更新
+                setDataForAjax( data, path );
+
+                // 新規登録エリア設定
+                setInputArea();
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 表示レコード数選択
+             */
+            function displayRecord(recordCnt)
+            {
+                displayRecordCnt = recordCnt;
+                displayPageNo = 1;
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchCodeName : $('#codeName').val(),
+                              searchOrganizatioID : $('#organizationName').val(),
+                              searchEmploymentName : $('#employmentName').val(), 
+                              searchLaborRegulationsID : $('#laborRegulationsName').val(),
+                              searchDelF : document.getElementById("delF").checked,
+                              sortConditions : employmentSort 
+                           };
+                var path = 'index.php?param=Employment/search&home=1';
+                // データ更新
+                setDataForAjax( data, path );
+
+                // 新規登録エリア設定
+                setInputArea();
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 表示ページ数選択
+             */
+            function displayPage(pageCnt)
+            {
+                displayPageNo = pageCnt;
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchCodeName : $('#codeName').val(),
+                              searchOrganizatioID : $('#organizationName').val(),
+                              searchEmploymentName : $('#employmentName').val(), 
+                              searchLaborRegulationsID : $('#laborRegulationsName').val(),
+                              searchDelF : document.getElementById("delF").checked,
+                              sortConditions : employmentSort 
+                           };
+                var path = 'index.php?param=Employment/search&home=1';
+                // データ更新
+                setDataForAjax( data, path );
+
+                // 新規登録エリア設定
+                setInputArea();
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+            
+            /**
+             * 新規作成データの設定
+             */
+            function setAddData()
+            {
+                displayPageNo = 1;
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchCodeName : $('#codeName').val(),
+                              searchOrganizatioID : $('#organizationName').val(),
+                              searchEmploymentName : $('#employmentName').val(),
+                              searchLaborRegulationsID : $('#laborRegulationsName').val(),
+                              searchDelF : document.getElementById("delF").checked,
+                              sortConditions : employmentSort,
+                              employmentCode : $('#employmentNewCode').val(),
+                              organizationId : $('#organizationNewName').val(),
+                              employmentName : $('#employmentNewName').val(),
+                              laborRegulationsId : $('#laborRegulationsNewName').val() == '' ? 0 : $('#laborRegulationsNewName').val(),
+                              dispOrder : $('#newDispOrder').val(),
+                              token : $('#token').val()
+                           };
+                var path = 'index.php?param=Employment/add&home=1';
+
+                // データ更新
+                setDataForAjax( data, path );
+
+                // 新規登録エリア設定
+                setInputArea();
+
+                setSearchCodeName();
+                setSearchEmploymentName();
+            }
+            
+            /**
+             * 更新用データの設定
+             */
+            function setModData()
+            {
+                var objTR = lineInfo.parentNode.parentNode;
+                var rowId = objTR.sectionRowIndex + 1;
+                var data = null;
+                var path = '';
+                if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>' )
+                {
+                    path = 'index.php?param=Employment/mod&home=1';
+                }
+                else
+                {
+                    path = 'index.php?param=Employment/del&home=1';
+                }
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                data = {
+                          displayPageNo : displayPageNo,
+                          displayRecordCnt : displayRecordCnt,
+                          searchCodeName : $('#codeName').val(),
+                          searchOrganizatioID : $('#organizationName').val(),
+                          searchEmploymentName : $('#employmentName').val(),
+                          searchLaborRegulationsID : $('#laborRegulationsName').val(),
+                          searchDelF : document.getElementById("delF").checked,
+                          sortConditions : employmentSort,
+                          employmentID : $('#employmentIdMod' + rowId).val(),
+                          employmentCode : $('#employmentCodeMod' + rowId).val(),
+                          organizationId : $('#employmentOrganizationMod' + rowId).val(),
+                          employmentName : $('#employmentNameMod'  + rowId).val(),
+                          laborRegulationsId : $('#employmentLaborRegulationsMod'  + rowId).val() == '' ? 0 : $('#employmentLaborRegulationsMod'  + rowId).val(),
+                          dispOrder : $('#modDispOrder'  + rowId).val(),
+                          updateTime : $('#updateTime'  + rowId).val(),
+                          token : $('#token').val()
+                       };
+
+                // データ更新
+                setDataForAjax( data, path,'jquery-replace-ajax', false );
+
+                // 新規登録エリア設定
+                setInputArea();
+
+                setSearchCodeName();
+                setSearchEmploymentName();
+            }
+            
+            
+            /**
+             * 更新キャンセル
+             */
+            function cancel()
+            {
+                var data = null;
+                var path = '';
+                
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                data = {
+                          displayPageNo : displayPageNo,
+                          displayRecordCnt : displayRecordCnt,
+                          searchCodeName : $('#codeName').val(),
+                          searchOrganizatioID : $('#organizationName').val(),
+                          searchEmploymentName : $('#employmentName').val(),
+                          searchLaborRegulationsID : $('#laborRegulationsName').val(),
+                          searchDelF : document.getElementById("delF").checked,
+                          sortConditions  : employmentSort,
+                          token : $('#token').val()
+                       };
+
+                // 検索する為、パスを変更する
+                path = 'index.php?param=Employment/search&home=1';
+
+                // データ更新
+                setDataForAjax( data, path );
+
+                // 新規登録エリア設定
+                setInputArea();
+
+                // 新規データをクリア
+                $('#employmentNewCode').val('');
+                $('#organizationNewName').val('');
+                $('#employmentNewName').val('');
+                $('#laborRegulationsNewName').val('');
+                $('#newDispOrder').val('');
+
+            }
+
+            /**
+             * 検索用コードリスト更新
+             */
+            function setSearchCodeName()
+            {
+                var data = null;
+                var path = '';
+
+                // 検索用コードリスト更新用パス
+                path = 'index.php?param=Employment/searchCodeName&home=1';
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                data = {
+                          searchCodeName : $('#codeName').val(),
+                       };
+
+                // データ更新
+                setDataForAjax( data, path, "jquery-replace-SearchCodeName-ajax" );
+            }
+
+            /**
+             * 検索用雇用形態名リスト更新
+             */
+            function setSearchEmploymentName()
+            {
+                var data = null;
+                var path = '';
+
+                // 検索用雇用形態名リスト更新用パス
+                path = 'index.php?param=Employment/searchEmploymentName&home=1';
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                data = {
+                          searchEmploymentName : $('#employmentName').val(),
+                       };
+
+                // データ更新
+                setDataForAjax( data, path, "jquery-replace-SearchEmploymentName-ajax" );
+            }
+
+            
+            
+            /**
+             * 新規登録エリア設定
+             */
+             function setInputArea()
+             {
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchCodeName : $('#codeName').val(),
+                              searchOrganizatioID : $('#organizationName').val(),
+                              searchEmploymentName : $('#employmentName').val(), 
+                              searchLaborRegulationsID : $('#laborRegulationsName').val(),
+                              searchDelF : document.getElementById("delF").checked,
+                              sortConditions : employmentSort 
+                           };
+                
+                // 検索用雇用形態リスト更新用パス
+                var path = 'index.php?param=Employment/inputArea&home=1';
+                
+                // データ更新
+                setDataForAjax( data, path, "jquery-replace-input-ajax" );
+             }
+            
+            /**
+             * 編集登録時のアクセス権限内組織名の表示
+             */
+            function setOrganizationMod(rowId)
+            {
+                var orgVal = $('#employmentOrganizationMod' + rowId).val();
+                // 表示の切り替え
+                $("#employmentOrganizationMod" +rowId).prop("required", true);
+                $('#employmentOrganizationMod' + rowId).val(orgVal);
+            }
+             
+            /**
+             * 編集登録時のアクセス権限内就業規則の表示
+             */
+            function setLaborRegulationsMod(rowId)
+            {
+                var orgVal = $('#employmentLaborRegulationsMod' + rowId).val();
+                // 表示の切り替え
+                $('#employmentLaborRegulationsMod' + rowId).val(orgVal);
+            }
+
+        </script>
+        
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+            <!-- Site -->
+            <div id="sb-site" style="overflow: auto;">
+                <!-- パンくずリスト -->
+                <?php include("Common/Breadcrumb.php"); ?>
+            
+            <form id="searchForm" name="searchForm" method="POST" action="index.php?param=Employment/search&home=1">
+                <input type="hidden" name="companyID" value="<?php hsc( $_SESSION['COMPANY_ID'] ); ?>">
+                <!-- serchBoardArea -->
+                <div class="serchBoardArea" style="width:99%; margin:5px auto !important; background-color: #ffffff"  >
+                    <table>
+                        <tbody>
+                            <tr>
+                                <th style="width:110px"><?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?></th>
+                                <td style="width:220px">
+                                    <?php include("../FwCommon/View/SearchOrganizationName.php"); ?>
+                                </td>
+                                <th style="width:110px"><?php hsc($Log->getMsgLog('MSG_BASE_0851')); ?></th>
+                                <td style="width:110px">
+                                    <?php include("../FwCommon/View/SearchCodeName.php"); ?>
+                                </td>
+                                <th style="width:110px"><?php hsc($Log->getMsgLog('MSG_BASE_0861')); ?></th>
+                                <td style="width:110px">
+                                    <?php include("Common/SearchEmploymentName.php"); ?>
+                                </td>
+                                <th style="width:110px"><?php hsc($Log->getMsgLog('MSG_BASE_0859')); ?></th>
+                                <td style="width:110px">
+                                    <?php include("../FwCommon/View/SearchLaborRegulationsName.php"); ?>
+                                </td>
+                                <th style="width:110px"><?php hsc($Log->getMsgLog('MSG_BASE_0927')); ?></th>
+                                <td style="width:110px"><input type="checkbox" name="delF" id="delF" /> <?php hsc($Log->getMsgLog('MSG_BASE_0899')); ?></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div><!-- /.serchBoardArea -->
+
+                <!-- serchButtonArea -->
+                <div class="serchButtonArea">
+                    <p align=center>
+                        <input type="submit" id="search" name="search" href="#" value="検索" class="serch" />
+                    </p>
+                </div><!-- /.serchButtonArea -->
+            </form>
+            
+            <form id="modForm" name="modForm" >
+                <?php include("EmploymentTablePanel.html"); ?>
+            </form>
+            
+            <!-- searchListArea -->
+            <form id="addForm" name="addForm">
+                <?php include("EmploymentInputPanel.html"); ?>
+            </form>
+        </div><!-- /.sb-site -->
+
+        <?php include("../FwCommon/View/Dialog.php"); ?>
+    </body>
+</html>

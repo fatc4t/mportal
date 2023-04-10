@@ -1,0 +1,2436 @@
+<?php
+    /**
+     * @file      顧客画面(View)
+     * @author    K.Sakamoto
+     * @date      2017/08/31
+     * @version   1.00
+     * @note      顧客画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array('default.css', 'common.js', 'jquery-ui.min.js', 'jquery-ui.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述 
+            include("Common/HtmlHeader.php"); 
+        ?>
+        <script src="../js/customer/jquery/datepicker-ja.js" /></script>
+        <script type="text/javascript">
+            var displayPageNo = 1;
+            var displayRecordCnt = <?php hsc($_SESSION["DISPLAY_RECORD_CNT"]); ?>;
+            var customerItemInfo = null;
+            var customerSort = null;
+            var no_click_cnt = 0;
+            var cust_cd_cnt = 0;
+            var cust_nm_cnt = 0;
+            var cust_kn_cnt = 0;
+            var zip_cnt = 0;
+            var addr1_cnt = 0;
+            var addr2_cnt = 0;
+            var addr3_cnt = 0;
+            var tel_cnt = 0;
+            var fax_cnt = 0;
+            var hphone_cnt = 0;
+            var email_cnt = 0;
+            var imode_cnt = 0;
+            var birth_cnt = 0;
+            var sex_cnt = 0;
+            var memorial_cnt = 0;
+            var shop_cd_cnt = 0;
+            var cust_type_cd_cnt = 0;
+            var area_cd_cnt = 0;
+            var staff_cd_cnt = 0;
+            var dm_type_cnt = 0;
+            var option_flag_cnt = 0;
+            var dissenddm_cnt = 0;
+            var dissendemail_cnt = 0;
+            var dissendimode_cnt = 0;
+            var publish_cnt = 0;
+            var limitdate_cnt = 0;
+            var renew_cnt = 0;
+            var fees_rece_kbn_cnt = 0;
+            var cred_impo_kbn_cnt = 0;
+            var cust_sumday_cnt = 0;
+            var tax_calc_kbn_cnt = 0;
+            var tax_frac_kbn_cnt = 0;
+            var note1_cnt = 0;
+            var note2_cnt = 0;
+            var note3_cnt = 0;
+            var note4_cnt = 0;
+            var note5_cnt = 0;
+            var cust_b_cd1_cnt = 0;
+            var cust_b_cd2_cnt = 0;
+            var cust_b_cd3_cnt = 0;
+            var cust_b_cd4_cnt = 0;
+            var cust_b_cd5_cnt = 0;
+            var cust_b_cd6_cnt = 0;
+            var cust_b_cd7_cnt = 0;
+            var cust_b_cd8_cnt = 0;
+            var cust_b_cd9_cnt = 0;
+            var cust_b_cd10_cnt = 0;
+            var fst_visit_dt_cnt = 0;
+            var lst_visit_dt_cnt = 0;
+            var lst_shop_cd_cnt = 0;
+            var visit_cnt_cnt = 0;
+            var all_total_cnt = 0;
+            var all_profit_cnt = 0;
+            var all_point_cnt = 0;
+
+            $(document).ready(function()
+            {
+                /**
+                 * 顧客検索
+                 */
+                $('#search').click(function()
+                {
+                    displayPageNo = 1;
+                    // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                    var data = {
+                                displayPageNo : displayPageNo,
+                                displayRecordCnt : displayRecordCnt,
+                                searchMinCustCd : $('#minCustCd').val(),
+                                searchMaxCustCd : $('#maxCustCd').val(),
+                                searchCustNm : $('#custNm').val(),
+                                searchCustKn : $('#custKn').val(),
+                                searchCustKnNullCheck : document.getElementById("custKnNullCheck").checked,
+                                searchMinBirth : $('#minBirth').val(),
+                                searchMaxBirth : $('#maxBirth').val(),
+                                searchBirthNullCheck : document.getElementById("birthNullCheck").checked,
+                                searchBirthMonth : $('#birthMonth').val(),
+                                searchMinMemorial : $('#minMemorial').val(),
+                                searchMaxMemorial : $('#maxMemorial').val(),
+                                searchMemorialNullCheck : document.getElementById("memorialNullCheck").checked,
+                                searchZip : $('#zip').val(),
+                                searchZipNullCheck : document.getElementById("zipNullCheck").checked,
+                                searchSex : $('#sex').val(),
+                                searchSexNullCheck : document.getElementById("sexNullCheck").checked,
+                                searchAddr1 : $('#addr1').val(),
+                                searchAddr1NullCheck : document.getElementById("addr1NullCheck").checked,
+                                searchAddr2 : $('#addr2').val(),
+                                searchAddr2NullCheck : document.getElementById("addr2NullCheck").checked,
+                                searchAddr3 : $('#addr3').val(),
+                                searchAddr3NullCheck : document.getElementById("addr3NullCheck").checked,
+                                searchCustSumDay : $('#custSumDay').val(),
+                                searchCustSumDayNullCheck : document.getElementById("custSumDayNullCheck").checked,
+                                searchFeesReceKbn : $('#feesReceKbn').val(),
+                                searchFeesReceKbnNullCheck : document.getElementById("feesReceKbnNullCheck").checked,
+                                searchCredImpoKbn : $('#credImpoKbn').val(),
+                                searchCredImpoKbnNullCheck : document.getElementById("credImpoKbnNullCheck").checked,
+                                searchMinPublish : $('#minPublish').val(),
+                                searchMaxPublish : $('#maxPublish').val(),
+                                searchPublishNullCheck : document.getElementById("publishNullCheck").checked,
+                                searchMinLimitdate : $('#minLimitdate').val(),
+                                searchMaxLimitdate : $('#maxLimitdate').val(),
+                                searchLimitdateNullCheck : document.getElementById("limitdateNullCheck").checked,
+                                searchMinRenew : $('#minRenew').val(),
+                                searchMaxRenew : $('#maxRenew').val(),
+                                searchRenewNullCheck : document.getElementById("renewNullCheck").checked,
+                                searchDissenddm : $('[name=dissenddm]:checked').val(),
+                                searchDissendemail : $('[name=dissendemail]:checked').val(),
+                                searchDissendimode : $('[name=dissendimode]:checked').val(),
+                                searchTaxCalcKbn : $('[name=taxCalcKbn]:checked').val(),
+                                searchTaxFracKbn : $('[name=taxFracKbn]:checked').val(),
+                                searchTel : $('#tel').val(),
+                                searchTelNullCheck : document.getElementById("telNullCheck").checked,
+                                searchFax : $('#fax').val(),
+                                searchTaxNullCheck : document.getElementById("faxNullCheck").checked,
+                                searchHphone : $('#hphone').val(),
+                                searchHphoneNullCheck : document.getElementById("hphoneNullCheck").checked,
+                                searchEmail : $('#email').val(),
+                                searchEmailNullCheck : document.getElementById("emailNullCheck").checked,
+                                searchImode : $('#imode').val(),
+                                searchImodeNullCheck : document.getElementById("imodeNullCheck").checked,
+                                searchOrganizationName : $('#organizationName').val(),
+                                searchOrganizationNameNullCheck : document.getElementById("organizationNameNullCheck").checked,
+                                searchCustTypeCd : $('#custTypeCd').val(),
+                                searchCustTypeCdNullCheck : document.getElementById("custTypeCdNullCheck").checked,
+                                searchAreaCd : $('#areaCd').val(),
+                                searchAreaCdNullCheck : document.getElementById("areaCdNullCheck").checked,
+                                searchUserNo : $('#userNo').val(),
+                                searchUserNoNullCheck : document.getElementById("userNoNullCheck").checked,
+                                searchMinLstVisitDt : $('#minLstVisitDt').val(),
+                                searchMaxLstVisitDt : $('#maxLstVisitDt').val(),
+                                searchLstVisitDtNullCheck : document.getElementById("lstVisitDtNullCheck").checked,
+                                searchLastOrganizationName : $('#lastOrganizationName').val(),
+                                searchLastOrganizationNameNullCheck : document.getElementById("lastOrganizationNameNullCheck").checked,
+                                searchNote1 : $('#note1').val(),
+                                searchNote1NullCheck : document.getElementById("note1NullCheck").checked,
+                                searchNote2 : $('#note2').val(),
+                                searchNote2NullCheck : document.getElementById("note2NullCheck").checked,
+                                searchNote3 : $('#note3').val(),
+                                searchNote3NullCheck : document.getElementById("note3NullCheck").checked,
+                                searchNote4 : $('#note4').val(),
+                                searchNote4NullCheck : document.getElementById("note4NullCheck").checked,
+                                searchNote5 : $('#note5').val(),
+                                searchNote5NullCheck : document.getElementById("note5NullCheck").checked,
+                                searchCustBCd01 : $('#custBCd01').val(),
+                                searchCustBCd01NullCheck : document.getElementById("custBCd01NullCheck").checked,
+                                searchCustBCd02 : $('#custBCd02').val(),
+                                searchCustBCd02NullCheck : document.getElementById("custBCd02NullCheck").checked,
+                                searchCustBCd03 : $('#custBCd03').val(),
+                                searchCustBCd03NullCheck : document.getElementById("custBCd03NullCheck").checked,
+                                searchCustBCd04 : $('#custBCd04').val(),
+                                searchCustBCd04NullCheck : document.getElementById("custBCd04NullCheck").checked,
+                                searchCustBCd05 : $('#custBCd05').val(),
+                                searchCustBCd05NullCheck : document.getElementById("custBCd05NullCheck").checked,
+                                searchCustBCd06 : $('#custBCd06').val(),
+                                searchCustBCd06NullCheck : document.getElementById("custBCd06NullCheck").checked,
+                                searchCustBCd07 : $('#custBCd07').val(),
+                                searchCustBCd07NullCheck : document.getElementById("custBCd07NullCheck").checked,
+                                searchCustBCd08 : $('#custBCd08').val(),
+                                searchCustBCd08NullCheck : document.getElementById("custBCd08NullCheck").checked,
+                                searchCustBCd09 : $('#custBCd09').val(),
+                                searchCustBCd09NullCheck : document.getElementById("custBCd09NullCheck").checked,
+                                searchCustBCd10 : $('#custBCd10').val(),
+                                searchCustBCd10NullCheck : document.getElementById("custBCd10NullCheck").checked,
+                                searchMinTrandate : $('#minTrandate').val(),
+                                searchMaxTrandate : $('#maxTrandate').val(),
+                                searchMinTotal : $('#minTotal').val(),
+                                searchMaxTotal : $('#maxTotal').val(),
+                                searchMinVisitCnt : $('#minVisitCnt').val(),
+                                searchMaxVisitCnt : $('#maxVisitCnt').val(),
+                                searchProdCd01 : $('#prodCd01').val(),
+                                searchProdCd02 : $('#prodCd02').val(),
+                                searchProdCd03 : $('#prodCd03').val(),
+                                searchProdCd04 : $('#prodCd04').val(),
+                                searchProdCd05 : $('#prodCd05').val(),
+                                searchProdCd06 : $('#prodCd06').val(),
+                                searchProdCd07 : $('#prodCd07').val(),
+                                searchProdCd08 : $('#prodCd08').val(),
+                                searchProdCd09 : $('#prodCd09').val(),
+                                searchProdCd10 : $('#prodCd10').val(),
+                                };
+                    var path = 'index.php?param=Customer/search&home=1';
+
+                    // データ更新
+                    setDataForAjax( data, path );
+
+                    // サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+            });
+
+            /**
+             * データの新規情報入力画面遷移
+             */
+            function inputPanelTransition()
+            {
+                var lineInfo = "";
+                var disaInfo = "";
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                                searchMinCustCd : $('#minCustCd').val(),
+                                searchMaxCustCd : $('#maxCustCd').val(),
+                                searchCustNm : $('#custNm').val(),
+                                searchCustKn : $('#custKn').val(),
+                                searchCustKnNullCheck : document.getElementById("custKnNullCheck").checked,
+                                searchMinBirth : $('#minBirth').val(),
+                                searchMaxBirth : $('#maxBirth').val(),
+                                searchBirthNullCheck : document.getElementById("birthNullCheck").checked,
+                                searchBirthMonth : $('#birthMonth').val(),
+                                searchMinMemorial : $('#minMemorial').val(),
+                                searchMaxMemorial : $('#maxMemorial').val(),
+                                searchMemorialNullCheck : document.getElementById("memorialNullCheck").checked,
+                                searchZip : $('#zip').val(),
+                                searchZipNullCheck : document.getElementById("zipNullCheck").checked,
+                                searchSex : $('#sex').val(),
+                                searchSexNullCheck : document.getElementById("sexNullCheck").checked,
+                                searchAddr1 : $('#addr1').val(),
+                                searchAddr1NullCheck : document.getElementById("addr1NullCheck").checked,
+                                searchAddr2 : $('#addr2').val(),
+                                searchAddr2NullCheck : document.getElementById("addr2NullCheck").checked,
+                                searchAddr3 : $('#addr3').val(),
+                                searchAddr3NullCheck : document.getElementById("addr3NullCheck").checked,
+                                searchCustSumDay : $('#custSumDay').val(),
+                                searchCustSumDayNullCheck : document.getElementById("custSumDayNullCheck").checked,
+                                searchFeesReceKbn : $('#feesReceKbn').val(),
+                                searchFeesReceKbnNullCheck : document.getElementById("feesReceKbnNullCheck").checked,
+                                searchCredImpoKbn : $('#credImpoKbn').val(),
+                                searchCredImpoKbnNullCheck : document.getElementById("credImpoKbnNullCheck").checked,
+                                searchMinPublish : $('#minPublish').val(),
+                                searchMaxPublish : $('#maxPublish').val(),
+                                searchPublishNullCheck : document.getElementById("publishNullCheck").checked,
+                                searchMinLimitdate : $('#minLimitdate').val(),
+                                searchMaxLimitdate : $('#maxLimitdate').val(),
+                                searchLimitdateNullCheck : document.getElementById("limitdateNullCheck").checked,
+                                searchMinRenew : $('#minRenew').val(),
+                                searchMaxRenew : $('#maxRenew').val(),
+                                searchRenewNullCheck : document.getElementById("renewNullCheck").checked,
+                                searchDissenddm : $('[name=dissenddm]:checked').val(),
+                                searchDissendemail : $('[name=dissendemail]:checked').val(),
+                                searchDissendimode : $('[name=dissendimode]:checked').val(),
+                                searchTaxCalcKbn : $('[name=taxCalcKbn]:checked').val(),
+                                searchTaxFracKbn : $('[name=taxFracKbn]:checked').val(),
+                                searchTel : $('#tel').val(),
+                                searchTelNullCheck : document.getElementById("telNullCheck").checked,
+                                searchFax : $('#fax').val(),
+                                searchTaxNullCheck : document.getElementById("faxNullCheck").checked,
+                                searchHphone : $('#hphone').val(),
+                                searchHphoneNullCheck : document.getElementById("hphoneNullCheck").checked,
+                                searchEmail : $('#email').val(),
+                                searchEmailNullCheck : document.getElementById("emailNullCheck").checked,
+                                searchImode : $('#imode').val(),
+                                searchImodeNullCheck : document.getElementById("imodeNullCheck").checked,
+                                searchOrganizationName : $('#organizationName').val(),
+                                searchOrganizationNameNullCheck : document.getElementById("organizationNameNullCheck").checked,
+                                searchCustTypeCd : $('#custTypeCd').val(),
+                                searchCustTypeCdNullCheck : document.getElementById("custTypeCdNullCheck").checked,
+                                searchAreaCd : $('#areaCd').val(),
+                                searchAreaCdNullCheck : document.getElementById("areaCdNullCheck").checked,
+                                searchUserNo : $('#userNo').val(),
+                                searchUserNoNullCheck : document.getElementById("userNoNullCheck").checked,
+                                searchMinLstVisitDt : $('#minLstVisitDt').val(),
+                                searchMaxLstVisitDt : $('#maxLstVisitDt').val(),
+                                searchLstVisitDtNullCheck : document.getElementById("lstVisitDtNullCheck").checked,
+                                searchLastOrganizationName : $('#lastOrganizationName').val(),
+                                searchLastOrganizationNameNullCheck : document.getElementById("lastOrganizationNameNullCheck").checked,
+                                searchNote1 : $('#note1').val(),
+                                searchNote1NullCheck : document.getElementById("note1NullCheck").checked,
+                                searchNote2 : $('#note2').val(),
+                                searchNote2NullCheck : document.getElementById("note2NullCheck").checked,
+                                searchNote3 : $('#note3').val(),
+                                searchNote3NullCheck : document.getElementById("note3NullCheck").checked,
+                                searchNote4 : $('#note4').val(),
+                                searchNote4NullCheck : document.getElementById("note4NullCheck").checked,
+                                searchNote5 : $('#note5').val(),
+                                searchNote5NullCheck : document.getElementById("note5NullCheck").checked,
+                                searchCustBCd01 : $('#custBCd01').val(),
+                                searchCustBCd01NullCheck : document.getElementById("custBCd01NullCheck").checked,
+                                searchCustBCd02 : $('#custBCd02').val(),
+                                searchCustBCd02NullCheck : document.getElementById("custBCd02NullCheck").checked,
+                                searchCustBCd03 : $('#custBCd03').val(),
+                                searchCustBCd03NullCheck : document.getElementById("custBCd03NullCheck").checked,
+                                searchCustBCd04 : $('#custBCd04').val(),
+                                searchCustBCd04NullCheck : document.getElementById("custBCd04NullCheck").checked,
+                                searchCustBCd05 : $('#custBCd05').val(),
+                                searchCustBCd05NullCheck : document.getElementById("custBCd05NullCheck").checked,
+                                searchCustBCd06 : $('#custBCd06').val(),
+                                searchCustBCd06NullCheck : document.getElementById("custBCd06NullCheck").checked,
+                                searchCustBCd07 : $('#custBCd07').val(),
+                                searchCustBCd07NullCheck : document.getElementById("custBCd07NullCheck").checked,
+                                searchCustBCd08 : $('#custBCd08').val(),
+                                searchCustBCd08NullCheck : document.getElementById("custBCd08NullCheck").checked,
+                                searchCustBCd09 : $('#custBCd09').val(),
+                                searchCustBCd09NullCheck : document.getElementById("custBCd09NullCheck").checked,
+                                searchCustBCd10 : $('#custBCd10').val(),
+                                searchCustBCd10NullCheck : document.getElementById("custBCd10NullCheck").checked,
+                                searchMinTrandate : $('#minTrandate').val(),
+                                searchMaxTrandate : $('#maxTrandate').val(),
+                                searchMinTotal : $('#minTotal').val(),
+                                searchMaxTotal : $('#maxTotal').val(),
+                                searchMinVisitCnt : $('#minVisitCnt').val(),
+                                searchMaxVisitCnt : $('#maxVisitCnt').val(),
+                                searchProdCd01 : $('#prodCd01').val(),
+                                searchProdCd02 : $('#prodCd02').val(),
+                                searchProdCd03 : $('#prodCd03').val(),
+                                searchProdCd04 : $('#prodCd04').val(),
+                                searchProdCd05 : $('#prodCd05').val(),
+                                searchProdCd06 : $('#prodCd06').val(),
+                                searchProdCd07 : $('#prodCd07').val(),
+                                searchProdCd08 : $('#prodCd08').val(),
+                                searchProdCd09 : $('#prodCd09').val(),
+                                searchProdCd10 : $('#prodCd10').val(),
+                                sortConditions : customerSort
+                           };
+                var path = 'index.php?param=Customer/addInput&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+                // サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * データの更新情報入力画面遷移
+             */
+            function editPanelTransition(thisCustId)
+            {
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                                custID : thisCustId,
+                                searchMinCustCd : $('#minCustCd').val(),
+                                searchMaxCustCd : $('#maxCustCd').val(),
+                                searchCustNm : $('#custNm').val(),
+                                searchCustKn : $('#custKn').val(),
+                                searchCustKnNullCheck : document.getElementById("custKnNullCheck").checked,
+                                searchMinBirth : $('#minBirth').val(),
+                                searchMaxBirth : $('#maxBirth').val(),
+                                searchBirthNullCheck : document.getElementById("birthNullCheck").checked,
+                                searchBirthMonth : $('#birthMonth').val(),
+                                searchMinMemorial : $('#minMemorial').val(),
+                                searchMaxMemorial : $('#maxMemorial').val(),
+                                searchMemorialNullCheck : document.getElementById("memorialNullCheck").checked,
+                                searchZip : $('#zip').val(),
+                                searchZipNullCheck : document.getElementById("zipNullCheck").checked,
+                                searchSex : $('#sex').val(),
+                                searchSexNullCheck : document.getElementById("sexNullCheck").checked,
+                                searchAddr1 : $('#addr1').val(),
+                                searchAddr1NullCheck : document.getElementById("addr1NullCheck").checked,
+                                searchAddr2 : $('#addr2').val(),
+                                searchAddr2NullCheck : document.getElementById("addr2NullCheck").checked,
+                                searchAddr3 : $('#addr3').val(),
+                                searchAddr3NullCheck : document.getElementById("addr3NullCheck").checked,
+                                searchCustSumDay : $('#custSumDay').val(),
+                                searchCustSumDayNullCheck : document.getElementById("custSumDayNullCheck").checked,
+                                searchFeesReceKbn : $('#feesReceKbn').val(),
+                                searchFeesReceKbnNullCheck : document.getElementById("feesReceKbnNullCheck").checked,
+                                searchCredImpoKbn : $('#credImpoKbn').val(),
+                                searchCredImpoKbnNullCheck : document.getElementById("credImpoKbnNullCheck").checked,
+                                searchMinPublish : $('#minPublish').val(),
+                                searchMaxPublish : $('#maxPublish').val(),
+                                searchPublishNullCheck : document.getElementById("publishNullCheck").checked,
+                                searchMinLimitdate : $('#minLimitdate').val(),
+                                searchMaxLimitdate : $('#maxLimitdate').val(),
+                                searchLimitdateNullCheck : document.getElementById("limitdateNullCheck").checked,
+                                searchMinRenew : $('#minRenew').val(),
+                                searchMaxRenew : $('#maxRenew').val(),
+                                searchRenewNullCheck : document.getElementById("renewNullCheck").checked,
+                                searchDissenddm : $('[name=dissenddm]:checked').val(),
+                                searchDissendemail : $('[name=dissendemail]:checked').val(),
+                                searchDissendimode : $('[name=dissendimode]:checked').val(),
+                                searchTaxCalcKbn : $('[name=taxCalcKbn]:checked').val(),
+                                searchTaxFracKbn : $('[name=taxFracKbn]:checked').val(),
+                                searchTel : $('#tel').val(),
+                                searchTelNullCheck : document.getElementById("telNullCheck").checked,
+                                searchFax : $('#fax').val(),
+                                searchTaxNullCheck : document.getElementById("faxNullCheck").checked,
+                                searchHphone : $('#hphone').val(),
+                                searchHphoneNullCheck : document.getElementById("hphoneNullCheck").checked,
+                                searchEmail : $('#email').val(),
+                                searchEmailNullCheck : document.getElementById("emailNullCheck").checked,
+                                searchImode : $('#imode').val(),
+                                searchImodeNullCheck : document.getElementById("imodeNullCheck").checked,
+                                searchOrganizationName : $('#organizationName').val(),
+                                searchOrganizationNameNullCheck : document.getElementById("organizationNameNullCheck").checked,
+                                searchCustTypeCd : $('#custTypeCd').val(),
+                                searchCustTypeCdNullCheck : document.getElementById("custTypeCdNullCheck").checked,
+                                searchAreaCd : $('#areaCd').val(),
+                                searchAreaCdNullCheck : document.getElementById("areaCdNullCheck").checked,
+                                searchUserNo : $('#userNo').val(),
+                                searchUserNoNullCheck : document.getElementById("userNoNullCheck").checked,
+                                searchMinLstVisitDt : $('#minLstVisitDt').val(),
+                                searchMaxLstVisitDt : $('#maxLstVisitDt').val(),
+                                searchLstVisitDtNullCheck : document.getElementById("lstVisitDtNullCheck").checked,
+                                searchLastOrganizationName : $('#lastOrganizationName').val(),
+                                searchLastOrganizationNameNullCheck : document.getElementById("lastOrganizationNameNullCheck").checked,
+                                searchNote1 : $('#note1').val(),
+                                searchNote1NullCheck : document.getElementById("note1NullCheck").checked,
+                                searchNote2 : $('#note2').val(),
+                                searchNote2NullCheck : document.getElementById("note2NullCheck").checked,
+                                searchNote3 : $('#note3').val(),
+                                searchNote3NullCheck : document.getElementById("note3NullCheck").checked,
+                                searchNote4 : $('#note4').val(),
+                                searchNote4NullCheck : document.getElementById("note4NullCheck").checked,
+                                searchNote5 : $('#note5').val(),
+                                searchNote5NullCheck : document.getElementById("note5NullCheck").checked,
+                                searchCustBCd01 : $('#custBCd01').val(),
+                                searchCustBCd01NullCheck : document.getElementById("custBCd01NullCheck").checked,
+                                searchCustBCd02 : $('#custBCd02').val(),
+                                searchCustBCd02NullCheck : document.getElementById("custBCd02NullCheck").checked,
+                                searchCustBCd03 : $('#custBCd03').val(),
+                                searchCustBCd03NullCheck : document.getElementById("custBCd03NullCheck").checked,
+                                searchCustBCd04 : $('#custBCd04').val(),
+                                searchCustBCd04NullCheck : document.getElementById("custBCd04NullCheck").checked,
+                                searchCustBCd05 : $('#custBCd05').val(),
+                                searchCustBCd05NullCheck : document.getElementById("custBCd05NullCheck").checked,
+                                searchCustBCd06 : $('#custBCd06').val(),
+                                searchCustBCd06NullCheck : document.getElementById("custBCd06NullCheck").checked,
+                                searchCustBCd07 : $('#custBCd07').val(),
+                                searchCustBCd07NullCheck : document.getElementById("custBCd07NullCheck").checked,
+                                searchCustBCd08 : $('#custBCd08').val(),
+                                searchCustBCd08NullCheck : document.getElementById("custBCd08NullCheck").checked,
+                                searchCustBCd09 : $('#custBCd09').val(),
+                                searchCustBCd09NullCheck : document.getElementById("custBCd09NullCheck").checked,
+                                searchCustBCd10 : $('#custBCd10').val(),
+                                searchCustBCd10NullCheck : document.getElementById("custBCd10NullCheck").checked,
+                                searchMinTrandate : $('#minTrandate').val(),
+                                searchMaxTrandate : $('#maxTrandate').val(),
+                                searchMinTotal : $('#minTotal').val(),
+                                searchMaxTotal : $('#maxTotal').val(),
+                                searchMinVisitCnt : $('#minVisitCnt').val(),
+                                searchMaxVisitCnt : $('#maxVisitCnt').val(),
+                                searchProdCd01 : $('#prodCd01').val(),
+                                searchProdCd02 : $('#prodCd02').val(),
+                                searchProdCd03 : $('#prodCd03').val(),
+                                searchProdCd04 : $('#prodCd04').val(),
+                                searchProdCd05 : $('#prodCd05').val(),
+                                searchProdCd06 : $('#prodCd06').val(),
+                                searchProdCd07 : $('#prodCd07').val(),
+                                searchProdCd08 : $('#prodCd08').val(),
+                                searchProdCd09 : $('#prodCd09').val(),
+                                searchProdCd10 : $('#prodCd10').val(),
+                                sortConditions : customerSort
+                           };
+                var path = 'index.php?param=Customer/addInput&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+                // サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * ソート処理
+             */
+            function setColumnInfo(thisItemInfo)
+            {
+                customerItemInfo = thisItemInfo;
+
+                customerSort = 0;
+
+                if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?>")
+                {
+                    no_click_cnt++;
+                    if((no_click_cnt % 2) != 0)
+                    {
+                        customerSort = 1;
+                    }
+                    else
+                    {
+                        customerSort = 2;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0850')); ?>")
+                {
+                    cust_cd_cnt++;
+                    if((cust_cd_cnt % 2) != 0)
+                    {
+                        customerSort = 3;
+                    }
+                    else
+                    {
+                        customerSort = 4;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0851')); ?>")
+                {
+                    cust_nm_cnt++;
+                    if((cust_nm_cnt % 2) != 0)
+                    {
+                        customerSort = 5;
+                    }
+                    else
+                    {
+                        customerSort = 6;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0852')); ?>")
+                {
+                    cust_kn_cnt++;
+                    if((cust_kn_cnt % 2) != 0)
+                    {
+                        customerSort = 7;
+                    }
+                    else
+                    {
+                        customerSort = 8;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0853')); ?>")
+                {
+                    zip_cnt++;
+                    if((zip_cnt % 2) != 0)
+                    {
+                        customerSort = 9;
+                    }
+                    else
+                    {
+                        customerSort = 10;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?>")
+                {
+                    addr1_cnt++;
+                    if((addr1_cnt % 2) != 0)
+                    {
+                        customerSort = 11;
+                    }
+                    else
+                    {
+                        customerSort = 12;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0855')); ?>")
+                {
+                    addr2_cnt++;
+                    if((addr2_cnt % 2) != 0)
+                    {
+                        customerSort = 13;
+                    }
+                    else
+                    {
+                        customerSort = 14;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0856')); ?>")
+                {
+                    addr3_cnt++;
+                    if((addr3_cnt % 2) != 0)
+                    {
+                        customerSort = 15;
+                    }
+                    else
+                    {
+                        customerSort = 16;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0857')); ?>")
+                {
+                    tel_cnt++;
+                    if((tel_cnt % 2) != 0)
+                    {
+                        customerSort = 17;
+                    }
+                    else
+                    {
+                        customerSort = 18;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0858')); ?>")
+                {
+                    fax_cnt++;
+                    if((fax_cnt % 2) != 0)
+                    {
+                        customerSort = 19;
+                    }
+                    else
+                    {
+                        customerSort = 20;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0859')); ?>")
+                {
+                    hphone_cnt++;
+                    if((hphone_cnt % 2) != 0)
+                    {
+                        customerSort = 21;
+                    }
+                    else
+                    {
+                        customerSort = 22;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0860')); ?>")
+                {
+                    email_cnt++;
+                    if((email_cnt % 2) != 0)
+                    {
+                        customerSort = 23;
+                    }
+                    else
+                    {
+                        customerSort = 24;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0861')); ?>")
+                {
+                    imode_cnt++;
+                    if((imode_cnt % 2) != 0)
+                    {
+                        customerSort = 25;
+                    }
+                    else
+                    {
+                        customerSort = 26;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0862')); ?>")
+                {
+                    birth_cnt++;
+                    if((birth_cnt % 2) != 0)
+                    {
+                        customerSort = 27;
+                    }
+                    else
+                    {
+                        customerSort = 28;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0863')); ?>")
+                {
+                    sex_cnt++;
+                    if((sex_cnt % 2) != 0)
+                    {
+                        customerSort = 29;
+                    }
+                    else
+                    {
+                        customerSort = 30;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0864')); ?>")
+                {
+                    memorial_cnt++;
+                    if((memorial_cnt % 2) != 0)
+                    {
+                        customerSort = 31;
+                    }
+                    else
+                    {
+                        customerSort = 32;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0865')); ?>")
+                {
+                    shop_cd_cnt++;
+                    if((shop_cd_cnt % 2) != 0)
+                    {
+                        customerSort = 33;
+                    }
+                    else
+                    {
+                        customerSort = 34;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0866')); ?>")
+                {
+                    cust_type_cd_cnt++;
+                    if((cust_type_cd_cnt % 2) != 0)
+                    {
+                        customerSort = 35;
+                    }
+                    else
+                    {
+                        customerSort = 36;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0867')); ?>")
+                {
+                    area_cd_cnt++;
+                    if((area_cd_cnt % 2) != 0)
+                    {
+                        customerSort = 37;
+                    }
+                    else
+                    {
+                        customerSort = 38;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0868')); ?>")
+                {
+                    staff_cd_cnt++;
+                    if((staff_cd_cnt % 2) != 0)
+                    {
+                        customerSort = 39;
+                    }
+                    else
+                    {
+                        customerSort = 40;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0869')); ?>")
+                {
+                    dm_type_cnt++;
+                    if((dm_type_cnt % 2) != 0)
+                    {
+                        customerSort = 41;
+                    }
+                    else
+                    {
+                        customerSort = 42;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0870')); ?>")
+                {
+                    option_flag_cnt++;
+                    if((option_flag_cnt % 2) != 0)
+                    {
+                        customerSort = 43;
+                    }
+                    else
+                    {
+                        customerSort = 44;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0871')); ?>")
+                {
+                    dissenddm_cnt++;
+                    if((dissenddm_cnt % 2) != 0)
+                    {
+                        customerSort = 45;
+                    }
+                    else
+                    {
+                        customerSort = 46;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0872')); ?>")
+                {
+                    dissendemail_cnt++;
+                    if((dissendemail_cnt % 2) != 0)
+                    {
+                        customerSort = 47;
+                    }
+                    else
+                    {
+                        customerSort = 48;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0873')); ?>")
+                {
+                    dissendimode_cnt++;
+                    if((dissendimode_cnt % 2) != 0)
+                    {
+                        customerSort = 49;
+                    }
+                    else
+                    {
+                        customerSort = 50;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0874')); ?>")
+                {
+                    publish_cnt++;
+                    if((publish_cnt % 2) != 0)
+                    {
+                        customerSort = 51;
+                    }
+                    else
+                    {
+                        customerSort = 52;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0875')); ?>")
+                {
+                    limitdate_cnt++;
+                    if((limitdate_cnt % 2) != 0)
+                    {
+                        customerSort = 53;
+                    }
+                    else
+                    {
+                        customerSort = 54;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0876')); ?>")
+                {
+                    renew_cnt++;
+                    if((renew_cnt % 2) != 0)
+                    {
+                        customerSort = 55;
+                    }
+                    else
+                    {
+                        customerSort = 56;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0877')); ?>")
+                {
+                    fees_rece_kbn_cnt++;
+                    if((fees_rece_kbn_cnt % 2) != 0)
+                    {
+                        customerSort = 57;
+                    }
+                    else
+                    {
+                        customerSort = 58;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0878')); ?>")
+                {
+                    cred_impo_kbn_cnt++;
+                    if((cred_impo_kbn_cnt % 2) != 0)
+                    {
+                        customerSort = 59;
+                    }
+                    else
+                    {
+                        customerSort = 60;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0879')); ?>")
+                {
+                    cust_sumday_cnt++;
+                    if((cust_sumday_cnt % 2) != 0)
+                    {
+                        customerSort = 61;
+                    }
+                    else
+                    {
+                        customerSort = 62;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0880')); ?>")
+                {
+                    tax_calc_kbn_cnt++;
+                    if((tax_calc_kbn_cnt % 2) != 0)
+                    {
+                        customerSort = 63;
+                    }
+                    else
+                    {
+                        customerSort = 64;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0881')); ?>")
+                {
+                    tax_frac_kbn_cnt++;
+                    if((tax_frac_kbn_cnt % 2) != 0)
+                    {
+                        customerSort = 65;
+                    }
+                    else
+                    {
+                        customerSort = 66;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0882')); ?>")
+                {
+                    note1_cnt++;
+                    if((note1_cnt % 2) != 0)
+                    {
+                        customerSort = 67;
+                    }
+                    else
+                    {
+                        customerSort = 68;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0883')); ?>")
+                {
+                    note2_cnt++;
+                    if((note2_cnt % 2) != 0)
+                    {
+                        customerSort = 69;
+                    }
+                    else
+                    {
+                        customerSort = 70;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0884')); ?>")
+                {
+                    note3_cnt++;
+                    if((note3_cnt % 2) != 0)
+                    {
+                        customerSort = 71;
+                    }
+                    else
+                    {
+                        customerSort = 72;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0885')); ?>")
+                {
+                    note4_cnt++;
+                    if((note4_cnt % 2) != 0)
+                    {
+                        customerSort = 73;
+                    }
+                    else
+                    {
+                        customerSort = 74;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0886')); ?>")
+                {
+                    note5_cnt++;
+                    if((note5_cnt % 2) != 0)
+                    {
+                        customerSort = 75;
+                    }
+                    else
+                    {
+                        customerSort = 76;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0887')); ?>")
+                {
+                    cust_b_cd1_cnt++;
+                    if((cust_b_cd1_cnt % 2) != 0)
+                    {
+                        customerSort = 77;
+                    }
+                    else
+                    {
+                        customerSort = 78;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0888')); ?>")
+                {
+                    cust_b_cd2_cnt++;
+                    if((cust_b_cd2_cnt % 2) != 0)
+                    {
+                        customerSort = 79;
+                    }
+                    else
+                    {
+                        customerSort = 80;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0889')); ?>")
+                {
+                    cust_b_cd3_cnt++;
+                    if((cust_b_cd3_cnt % 2) != 0)
+                    {
+                        customerSort = 81;
+                    }
+                    else
+                    {
+                        customerSort = 82;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0890')); ?>")
+                {
+                    cust_b_cd4_cnt++;
+                    if((cust_b_cd4_cnt % 2) != 0)
+                    {
+                        customerSort = 83;
+                    }
+                    else
+                    {
+                        customerSort = 84;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0891')); ?>")
+                {
+                    cust_b_cd5_cnt++;
+                    if((cust_b_cd5_cnt % 2) != 0)
+                    {
+                        customerSort = 85;
+                    }
+                    else
+                    {
+                        customerSort = 86;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0892')); ?>")
+                {
+                    cust_b_cd6_cnt++;
+                    if((cust_b_cd6_cnt % 2) != 0)
+                    {
+                        customerSort = 87;
+                    }
+                    else
+                    {
+                        customerSort = 88;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0893')); ?>")
+                {
+                    cust_b_cd7_cnt++;
+                    if((cust_b_cd7_cnt % 2) != 0)
+                    {
+                        customerSort = 89;
+                    }
+                    else
+                    {
+                        customerSort = 90;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0894')); ?>")
+                {
+                    cust_b_cd8_cnt++;
+                    if((cust_b_cd8_cnt % 2) != 0)
+                    {
+                        customerSort = 91;
+                    }
+                    else
+                    {
+                        customerSort = 92;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0895')); ?>")
+                {
+                    cust_b_cd9_cnt++;
+                    if((cust_b_cd9_cnt % 2) != 0)
+                    {
+                        customerSort = 93;
+                    }
+                    else
+                    {
+                        customerSort = 94;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0896')); ?>")
+                {
+                    cust_b_cd10_cnt++;
+                    if((cust_b_cd10_cnt % 2) != 0)
+                    {
+                        customerSort = 95;
+                    }
+                    else
+                    {
+                        customerSort = 96;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0897')); ?>")
+                {
+                    fst_visit_dt_cnt++;
+                    if((fst_visit_dt_cnt % 2) != 0)
+                    {
+                        customerSort = 97;
+                    }
+                    else
+                    {
+                        customerSort = 98;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0898')); ?>")
+                {
+                    lst_visit_dt_cnt++;
+                    if((lst_visit_dt_cnt % 2) != 0)
+                    {
+                        customerSort = 99;
+                    }
+                    else
+                    {
+                        customerSort = 100;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0899')); ?>")
+                {
+                    lst_shop_cd_cnt++;
+                    if((lst_shop_cd_cnt % 2) != 0)
+                    {
+                        customerSort = 101;
+                    }
+                    else
+                    {
+                        customerSort = 102;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0900')); ?>")
+                {
+                    visit_cnt_cnt++;
+                    if((visit_cnt_cnt % 2) != 0)
+                    {
+                        customerSort = 103;
+                    }
+                    else
+                    {
+                        customerSort = 104;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0901')); ?>")
+                {
+                    all_total_cnt++;
+                    if((all_total_cnt % 2) != 0)
+                    {
+                        customerSort = 105;
+                    }
+                    else
+                    {
+                        customerSort = 106;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0902')); ?>")
+                {
+                    all_profit_cnt++;
+                    if((all_profit_cnt % 2) != 0)
+                    {
+                        customerSort = 107;
+                    }
+                    else
+                    {
+                        customerSort = 108;
+                    }
+                }
+                else if(customerItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0903')); ?>")
+                {
+                    all_point_cnt++;
+                    if((all_point_cnt % 2) != 0)
+                    {
+                        customerSort = 109;
+                    }
+                    else
+                    {
+                        customerSort = 110;
+                    }
+                }
+                
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                                displayPageNo : displayPageNo,
+                                displayRecordCnt : displayRecordCnt,
+                                searchMinCustCd : $('#minCustCd').val(),
+                                searchMaxCustCd : $('#maxCustCd').val(),
+                                searchCustNm : $('#custNm').val(),
+                                searchCustKn : $('#custKn').val(),
+                                searchCustKnNullCheck : document.getElementById("custKnNullCheck").checked,
+                                searchMinBirth : $('#minBirth').val(),
+                                searchMaxBirth : $('#maxBirth').val(),
+                                searchBirthNullCheck : document.getElementById("birthNullCheck").checked,
+                                searchBirthMonth : $('#birthMonth').val(),
+                                searchMinMemorial : $('#minMemorial').val(),
+                                searchMaxMemorial : $('#maxMemorial').val(),
+                                searchMemorialNullCheck : document.getElementById("memorialNullCheck").checked,
+                                searchZip : $('#zip').val(),
+                                searchZipNullCheck : document.getElementById("zipNullCheck").checked,
+                                searchSex : $('#sex').val(),
+                                searchSexNullCheck : document.getElementById("sexNullCheck").checked,
+                                searchAddr1 : $('#addr1').val(),
+                                searchAddr1NullCheck : document.getElementById("addr1NullCheck").checked,
+                                searchAddr2 : $('#addr2').val(),
+                                searchAddr2NullCheck : document.getElementById("addr2NullCheck").checked,
+                                searchAddr3 : $('#addr3').val(),
+                                searchAddr3NullCheck : document.getElementById("addr3NullCheck").checked,
+                                searchCustSumDay : $('#custSumDay').val(),
+                                searchCustSumDayNullCheck : document.getElementById("custSumDayNullCheck").checked,
+                                searchFeesReceKbn : $('#feesReceKbn').val(),
+                                searchFeesReceKbnNullCheck : document.getElementById("feesReceKbnNullCheck").checked,
+                                searchCredImpoKbn : $('#credImpoKbn').val(),
+                                searchCredImpoKbnNullCheck : document.getElementById("credImpoKbnNullCheck").checked,
+                                searchMinPublish : $('#minPublish').val(),
+                                searchMaxPublish : $('#maxPublish').val(),
+                                searchPublishNullCheck : document.getElementById("publishNullCheck").checked,
+                                searchMinLimitdate : $('#minLimitdate').val(),
+                                searchMaxLimitdate : $('#maxLimitdate').val(),
+                                searchLimitdateNullCheck : document.getElementById("limitdateNullCheck").checked,
+                                searchMinRenew : $('#minRenew').val(),
+                                searchMaxRenew : $('#maxRenew').val(),
+                                searchRenewNullCheck : document.getElementById("renewNullCheck").checked,
+                                searchDissenddm : $('[name=dissenddm]:checked').val(),
+                                searchDissendemail : $('[name=dissendemail]:checked').val(),
+                                searchDissendimode : $('[name=dissendimode]:checked').val(),
+                                searchTaxCalcKbn : $('[name=taxCalcKbn]:checked').val(),
+                                searchTaxFracKbn : $('[name=taxFracKbn]:checked').val(),
+                                searchTel : $('#tel').val(),
+                                searchTelNullCheck : document.getElementById("telNullCheck").checked,
+                                searchFax : $('#fax').val(),
+                                searchTaxNullCheck : document.getElementById("faxNullCheck").checked,
+                                searchHphone : $('#hphone').val(),
+                                searchHphoneNullCheck : document.getElementById("hphoneNullCheck").checked,
+                                searchEmail : $('#email').val(),
+                                searchEmailNullCheck : document.getElementById("emailNullCheck").checked,
+                                searchImode : $('#imode').val(),
+                                searchImodeNullCheck : document.getElementById("imodeNullCheck").checked,
+                                searchOrganizationName : $('#organizationName').val(),
+                                searchOrganizationNameNullCheck : document.getElementById("organizationNameNullCheck").checked,
+                                searchCustTypeCd : $('#custTypeCd').val(),
+                                searchCustTypeCdNullCheck : document.getElementById("custTypeCdNullCheck").checked,
+                                searchAreaCd : $('#areaCd').val(),
+                                searchAreaCdNullCheck : document.getElementById("areaCdNullCheck").checked,
+                                searchUserNo : $('#userNo').val(),
+                                searchUserNoNullCheck : document.getElementById("userNoNullCheck").checked,
+                                searchMinLstVisitDt : $('#minLstVisitDt').val(),
+                                searchMaxLstVisitDt : $('#maxLstVisitDt').val(),
+                                searchLstVisitDtNullCheck : document.getElementById("lstVisitDtNullCheck").checked,
+                                searchLastOrganizationName : $('#lastOrganizationName').val(),
+                                searchLastOrganizationNameNullCheck : document.getElementById("lastOrganizationNameNullCheck").checked,
+                                searchNote1 : $('#note1').val(),
+                                searchNote1NullCheck : document.getElementById("note1NullCheck").checked,
+                                searchNote2 : $('#note2').val(),
+                                searchNote2NullCheck : document.getElementById("note2NullCheck").checked,
+                                searchNote3 : $('#note3').val(),
+                                searchNote3NullCheck : document.getElementById("note3NullCheck").checked,
+                                searchNote4 : $('#note4').val(),
+                                searchNote4NullCheck : document.getElementById("note4NullCheck").checked,
+                                searchNote5 : $('#note5').val(),
+                                searchNote5NullCheck : document.getElementById("note5NullCheck").checked,
+                                searchCustBCd01 : $('#custBCd01').val(),
+                                searchCustBCd01NullCheck : document.getElementById("custBCd01NullCheck").checked,
+                                searchCustBCd02 : $('#custBCd02').val(),
+                                searchCustBCd02NullCheck : document.getElementById("custBCd02NullCheck").checked,
+                                searchCustBCd03 : $('#custBCd03').val(),
+                                searchCustBCd03NullCheck : document.getElementById("custBCd03NullCheck").checked,
+                                searchCustBCd04 : $('#custBCd04').val(),
+                                searchCustBCd04NullCheck : document.getElementById("custBCd04NullCheck").checked,
+                                searchCustBCd05 : $('#custBCd05').val(),
+                                searchCustBCd05NullCheck : document.getElementById("custBCd05NullCheck").checked,
+                                searchCustBCd06 : $('#custBCd06').val(),
+                                searchCustBCd06NullCheck : document.getElementById("custBCd06NullCheck").checked,
+                                searchCustBCd07 : $('#custBCd07').val(),
+                                searchCustBCd07NullCheck : document.getElementById("custBCd07NullCheck").checked,
+                                searchCustBCd08 : $('#custBCd08').val(),
+                                searchCustBCd08NullCheck : document.getElementById("custBCd08NullCheck").checked,
+                                searchCustBCd09 : $('#custBCd09').val(),
+                                searchCustBCd09NullCheck : document.getElementById("custBCd09NullCheck").checked,
+                                searchCustBCd10 : $('#custBCd10').val(),
+                                searchCustBCd10NullCheck : document.getElementById("custBCd10NullCheck").checked,
+                                searchMinTrandate : $('#minTrandate').val(),
+                                searchMaxTrandate : $('#maxTrandate').val(),
+                                searchMinTotal : $('#minTotal').val(),
+                                searchMaxTotal : $('#maxTotal').val(),
+                                searchMinVisitCnt : $('#minVisitCnt').val(),
+                                searchMaxVisitCnt : $('#maxVisitCnt').val(),
+                                searchProdCd01 : $('#prodCd01').val(),
+                                searchProdCd02 : $('#prodCd02').val(),
+                                searchProdCd03 : $('#prodCd03').val(),
+                                searchProdCd04 : $('#prodCd04').val(),
+                                searchProdCd05 : $('#prodCd05').val(),
+                                searchProdCd06 : $('#prodCd06').val(),
+                                searchProdCd07 : $('#prodCd07').val(),
+                                searchProdCd08 : $('#prodCd08').val(),
+                                searchProdCd09 : $('#prodCd09').val(),
+                                searchProdCd10 : $('#prodCd10').val(),
+                                sortConditions : customerSort
+                           };
+                var path = 'index.php?param=Customer/search&home=1';
+
+                // データ更新
+                setDataForAjax( data, path );
+
+                // サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 表示ページ数選択
+             */
+            function displayPage(pageCnt)
+            {
+                displayPageNo = pageCnt;
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                                displayPageNo : displayPageNo,
+                                displayRecordCnt : displayRecordCnt,
+                                searchMinCustCd : $('#minCustCd').val(),
+                                searchMaxCustCd : $('#maxCustCd').val(),
+                                searchCustNm : $('#custNm').val(),
+                                searchCustKn : $('#custKn').val(),
+                                searchCustKnNullCheck : document.getElementById("custKnNullCheck").checked,
+                                searchMinBirth : $('#minBirth').val(),
+                                searchMaxBirth : $('#maxBirth').val(),
+                                searchBirthNullCheck : document.getElementById("birthNullCheck").checked,
+                                searchBirthMonth : $('#birthMonth').val(),
+                                searchMinMemorial : $('#minMemorial').val(),
+                                searchMaxMemorial : $('#maxMemorial').val(),
+                                searchMemorialNullCheck : document.getElementById("memorialNullCheck").checked,
+                                searchZip : $('#zip').val(),
+                                searchZipNullCheck : document.getElementById("zipNullCheck").checked,
+                                searchSex : $('#sex').val(),
+                                searchSexNullCheck : document.getElementById("sexNullCheck").checked,
+                                searchAddr1 : $('#addr1').val(),
+                                searchAddr1NullCheck : document.getElementById("addr1NullCheck").checked,
+                                searchAddr2 : $('#addr2').val(),
+                                searchAddr2NullCheck : document.getElementById("addr2NullCheck").checked,
+                                searchAddr3 : $('#addr3').val(),
+                                searchAddr3NullCheck : document.getElementById("addr3NullCheck").checked,
+                                searchCustSumDay : $('#custSumDay').val(),
+                                searchCustSumDayNullCheck : document.getElementById("custSumDayNullCheck").checked,
+                                searchFeesReceKbn : $('#feesReceKbn').val(),
+                                searchFeesReceKbnNullCheck : document.getElementById("feesReceKbnNullCheck").checked,
+                                searchCredImpoKbn : $('#credImpoKbn').val(),
+                                searchCredImpoKbnNullCheck : document.getElementById("credImpoKbnNullCheck").checked,
+                                searchMinPublish : $('#minPublish').val(),
+                                searchMaxPublish : $('#maxPublish').val(),
+                                searchPublishNullCheck : document.getElementById("publishNullCheck").checked,
+                                searchMinLimitdate : $('#minLimitdate').val(),
+                                searchMaxLimitdate : $('#maxLimitdate').val(),
+                                searchLimitdateNullCheck : document.getElementById("limitdateNullCheck").checked,
+                                searchMinRenew : $('#minRenew').val(),
+                                searchMaxRenew : $('#maxRenew').val(),
+                                searchRenewNullCheck : document.getElementById("renewNullCheck").checked,
+                                searchDissenddm : $('[name=dissenddm]:checked').val(),
+                                searchDissendemail : $('[name=dissendemail]:checked').val(),
+                                searchDissendimode : $('[name=dissendimode]:checked').val(),
+                                searchTaxCalcKbn : $('[name=taxCalcKbn]:checked').val(),
+                                searchTaxFracKbn : $('[name=taxFracKbn]:checked').val(),
+                                searchTel : $('#tel').val(),
+                                searchTelNullCheck : document.getElementById("telNullCheck").checked,
+                                searchFax : $('#fax').val(),
+                                searchTaxNullCheck : document.getElementById("faxNullCheck").checked,
+                                searchHphone : $('#hphone').val(),
+                                searchHphoneNullCheck : document.getElementById("hphoneNullCheck").checked,
+                                searchEmail : $('#email').val(),
+                                searchEmailNullCheck : document.getElementById("emailNullCheck").checked,
+                                searchImode : $('#imode').val(),
+                                searchImodeNullCheck : document.getElementById("imodeNullCheck").checked,
+                                searchOrganizationName : $('#organizationName').val(),
+                                searchOrganizationNameNullCheck : document.getElementById("organizationNameNullCheck").checked,
+                                searchCustTypeCd : $('#custTypeCd').val(),
+                                searchCustTypeCdNullCheck : document.getElementById("custTypeCdNullCheck").checked,
+                                searchAreaCd : $('#areaCd').val(),
+                                searchAreaCdNullCheck : document.getElementById("areaCdNullCheck").checked,
+                                searchUserNo : $('#userNo').val(),
+                                searchUserNoNullCheck : document.getElementById("userNoNullCheck").checked,
+                                searchMinLstVisitDt : $('#minLstVisitDt').val(),
+                                searchMaxLstVisitDt : $('#maxLstVisitDt').val(),
+                                searchLstVisitDtNullCheck : document.getElementById("lstVisitDtNullCheck").checked,
+                                searchLastOrganizationName : $('#lastOrganizationName').val(),
+                                searchLastOrganizationNameNullCheck : document.getElementById("lastOrganizationNameNullCheck").checked,
+                                searchNote1 : $('#note1').val(),
+                                searchNote1NullCheck : document.getElementById("note1NullCheck").checked,
+                                searchNote2 : $('#note2').val(),
+                                searchNote2NullCheck : document.getElementById("note2NullCheck").checked,
+                                searchNote3 : $('#note3').val(),
+                                searchNote3NullCheck : document.getElementById("note3NullCheck").checked,
+                                searchNote4 : $('#note4').val(),
+                                searchNote4NullCheck : document.getElementById("note4NullCheck").checked,
+                                searchNote5 : $('#note5').val(),
+                                searchNote5NullCheck : document.getElementById("note5NullCheck").checked,
+                                searchCustBCd01 : $('#custBCd01').val(),
+                                searchCustBCd01NullCheck : document.getElementById("custBCd01NullCheck").checked,
+                                searchCustBCd02 : $('#custBCd02').val(),
+                                searchCustBCd02NullCheck : document.getElementById("custBCd02NullCheck").checked,
+                                searchCustBCd03 : $('#custBCd03').val(),
+                                searchCustBCd03NullCheck : document.getElementById("custBCd03NullCheck").checked,
+                                searchCustBCd04 : $('#custBCd04').val(),
+                                searchCustBCd04NullCheck : document.getElementById("custBCd04NullCheck").checked,
+                                searchCustBCd05 : $('#custBCd05').val(),
+                                searchCustBCd05NullCheck : document.getElementById("custBCd05NullCheck").checked,
+                                searchCustBCd06 : $('#custBCd06').val(),
+                                searchCustBCd06NullCheck : document.getElementById("custBCd06NullCheck").checked,
+                                searchCustBCd07 : $('#custBCd07').val(),
+                                searchCustBCd07NullCheck : document.getElementById("custBCd07NullCheck").checked,
+                                searchCustBCd08 : $('#custBCd08').val(),
+                                searchCustBCd08NullCheck : document.getElementById("custBCd08NullCheck").checked,
+                                searchCustBCd09 : $('#custBCd09').val(),
+                                searchCustBCd09NullCheck : document.getElementById("custBCd09NullCheck").checked,
+                                searchCustBCd10 : $('#custBCd10').val(),
+                                searchCustBCd10NullCheck : document.getElementById("custBCd10NullCheck").checked,
+                                searchMinTrandate : $('#minTrandate').val(),
+                                searchMaxTrandate : $('#maxTrandate').val(),
+                                searchMinTotal : $('#minTotal').val(),
+                                searchMaxTotal : $('#maxTotal').val(),
+                                searchMinVisitCnt : $('#minVisitCnt').val(),
+                                searchMaxVisitCnt : $('#maxVisitCnt').val(),
+                                searchProdCd01 : $('#prodCd01').val(),
+                                searchProdCd02 : $('#prodCd02').val(),
+                                searchProdCd03 : $('#prodCd03').val(),
+                                searchProdCd04 : $('#prodCd04').val(),
+                                searchProdCd05 : $('#prodCd05').val(),
+                                searchProdCd06 : $('#prodCd06').val(),
+                                searchProdCd07 : $('#prodCd07').val(),
+                                searchProdCd08 : $('#prodCd08').val(),
+                                searchProdCd09 : $('#prodCd09').val(),
+                                searchProdCd10 : $('#prodCd10').val(),
+                                sortConditions : customerSort
+                           };
+                var path = 'index.php?param=Customer/search&home=1';
+                // データ更新
+                setDataForAjax( data, path );
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 表示レコード数選択
+             */
+            function displayRecord(recordCnt)
+            {
+                displayRecordCnt = recordCnt;
+                displayPageNo = 1;
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                                displayPageNo : displayPageNo,
+                                displayRecordCnt : displayRecordCnt,
+                                searchMinCustCd : $('#minCustCd').val(),
+                                searchMaxCustCd : $('#maxCustCd').val(),
+                                searchCustNm : $('#custNm').val(),
+                                searchCustKn : $('#custKn').val(),
+                                searchCustKnNullCheck : document.getElementById("custKnNullCheck").checked,
+                                searchMinBirth : $('#minBirth').val(),
+                                searchMaxBirth : $('#maxBirth').val(),
+                                searchBirthNullCheck : document.getElementById("birthNullCheck").checked,
+                                searchBirthMonth : $('#birthMonth').val(),
+                                searchMinMemorial : $('#minMemorial').val(),
+                                searchMaxMemorial : $('#maxMemorial').val(),
+                                searchMemorialNullCheck : document.getElementById("memorialNullCheck").checked,
+                                searchZip : $('#zip').val(),
+                                searchZipNullCheck : document.getElementById("zipNullCheck").checked,
+                                searchSex : $('#sex').val(),
+                                searchSexNullCheck : document.getElementById("sexNullCheck").checked,
+                                searchAddr1 : $('#addr1').val(),
+                                searchAddr1NullCheck : document.getElementById("addr1NullCheck").checked,
+                                searchAddr2 : $('#addr2').val(),
+                                searchAddr2NullCheck : document.getElementById("addr2NullCheck").checked,
+                                searchAddr3 : $('#addr3').val(),
+                                searchAddr3NullCheck : document.getElementById("addr3NullCheck").checked,
+                                searchCustSumDay : $('#custSumDay').val(),
+                                searchCustSumDayNullCheck : document.getElementById("custSumDayNullCheck").checked,
+                                searchFeesReceKbn : $('#feesReceKbn').val(),
+                                searchFeesReceKbnNullCheck : document.getElementById("feesReceKbnNullCheck").checked,
+                                searchCredImpoKbn : $('#credImpoKbn').val(),
+                                searchCredImpoKbnNullCheck : document.getElementById("credImpoKbnNullCheck").checked,
+                                searchMinPublish : $('#minPublish').val(),
+                                searchMaxPublish : $('#maxPublish').val(),
+                                searchPublishNullCheck : document.getElementById("publishNullCheck").checked,
+                                searchMinLimitdate : $('#minLimitdate').val(),
+                                searchMaxLimitdate : $('#maxLimitdate').val(),
+                                searchLimitdateNullCheck : document.getElementById("limitdateNullCheck").checked,
+                                searchMinRenew : $('#minRenew').val(),
+                                searchMaxRenew : $('#maxRenew').val(),
+                                searchRenewNullCheck : document.getElementById("renewNullCheck").checked,
+                                searchDissenddm : $('[name=dissenddm]:checked').val(),
+                                searchDissendemail : $('[name=dissendemail]:checked').val(),
+                                searchDissendimode : $('[name=dissendimode]:checked').val(),
+                                searchTaxCalcKbn : $('[name=taxCalcKbn]:checked').val(),
+                                searchTaxFracKbn : $('[name=taxFracKbn]:checked').val(),
+                                searchTel : $('#tel').val(),
+                                searchTelNullCheck : document.getElementById("telNullCheck").checked,
+                                searchFax : $('#fax').val(),
+                                searchTaxNullCheck : document.getElementById("faxNullCheck").checked,
+                                searchHphone : $('#hphone').val(),
+                                searchHphoneNullCheck : document.getElementById("hphoneNullCheck").checked,
+                                searchEmail : $('#email').val(),
+                                searchEmailNullCheck : document.getElementById("emailNullCheck").checked,
+                                searchImode : $('#imode').val(),
+                                searchImodeNullCheck : document.getElementById("imodeNullCheck").checked,
+                                searchOrganizationName : $('#organizationName').val(),
+                                searchOrganizationNameNullCheck : document.getElementById("organizationNameNullCheck").checked,
+                                searchCustTypeCd : $('#custTypeCd').val(),
+                                searchCustTypeCdNullCheck : document.getElementById("custTypeCdNullCheck").checked,
+                                searchAreaCd : $('#areaCd').val(),
+                                searchAreaCdNullCheck : document.getElementById("areaCdNullCheck").checked,
+                                searchUserNo : $('#userNo').val(),
+                                searchUserNoNullCheck : document.getElementById("userNoNullCheck").checked,
+                                searchMinLstVisitDt : $('#minLstVisitDt').val(),
+                                searchMaxLstVisitDt : $('#maxLstVisitDt').val(),
+                                searchLstVisitDtNullCheck : document.getElementById("lstVisitDtNullCheck").checked,
+                                searchLastOrganizationName : $('#lastOrganizationName').val(),
+                                searchLastOrganizationNameNullCheck : document.getElementById("lastOrganizationNameNullCheck").checked,
+                                searchNote1 : $('#note1').val(),
+                                searchNote1NullCheck : document.getElementById("note1NullCheck").checked,
+                                searchNote2 : $('#note2').val(),
+                                searchNote2NullCheck : document.getElementById("note2NullCheck").checked,
+                                searchNote3 : $('#note3').val(),
+                                searchNote3NullCheck : document.getElementById("note3NullCheck").checked,
+                                searchNote4 : $('#note4').val(),
+                                searchNote4NullCheck : document.getElementById("note4NullCheck").checked,
+                                searchNote5 : $('#note5').val(),
+                                searchNote5NullCheck : document.getElementById("note5NullCheck").checked,
+                                searchCustBCd01 : $('#custBCd01').val(),
+                                searchCustBCd01NullCheck : document.getElementById("custBCd01NullCheck").checked,
+                                searchCustBCd02 : $('#custBCd02').val(),
+                                searchCustBCd02NullCheck : document.getElementById("custBCd02NullCheck").checked,
+                                searchCustBCd03 : $('#custBCd03').val(),
+                                searchCustBCd03NullCheck : document.getElementById("custBCd03NullCheck").checked,
+                                searchCustBCd04 : $('#custBCd04').val(),
+                                searchCustBCd04NullCheck : document.getElementById("custBCd04NullCheck").checked,
+                                searchCustBCd05 : $('#custBCd05').val(),
+                                searchCustBCd05NullCheck : document.getElementById("custBCd05NullCheck").checked,
+                                searchCustBCd06 : $('#custBCd06').val(),
+                                searchCustBCd06NullCheck : document.getElementById("custBCd06NullCheck").checked,
+                                searchCustBCd07 : $('#custBCd07').val(),
+                                searchCustBCd07NullCheck : document.getElementById("custBCd07NullCheck").checked,
+                                searchCustBCd08 : $('#custBCd08').val(),
+                                searchCustBCd08NullCheck : document.getElementById("custBCd08NullCheck").checked,
+                                searchCustBCd09 : $('#custBCd09').val(),
+                                searchCustBCd09NullCheck : document.getElementById("custBCd09NullCheck").checked,
+                                searchCustBCd10 : $('#custBCd10').val(),
+                                searchCustBCd10NullCheck : document.getElementById("custBCd10NullCheck").checked,
+                                searchMinTrandate : $('#minTrandate').val(),
+                                searchMaxTrandate : $('#maxTrandate').val(),
+                                searchMinTotal : $('#minTotal').val(),
+                                searchMaxTotal : $('#maxTotal').val(),
+                                searchMinVisitCnt : $('#minVisitCnt').val(),
+                                searchMaxVisitCnt : $('#maxVisitCnt').val(),
+                                searchProdCd01 : $('#prodCd01').val(),
+                                searchProdCd02 : $('#prodCd02').val(),
+                                searchProdCd03 : $('#prodCd03').val(),
+                                searchProdCd04 : $('#prodCd04').val(),
+                                searchProdCd05 : $('#prodCd05').val(),
+                                searchProdCd06 : $('#prodCd06').val(),
+                                searchProdCd07 : $('#prodCd07').val(),
+                                searchProdCd08 : $('#prodCd08').val(),
+                                searchProdCd09 : $('#prodCd09').val(),
+                                searchProdCd10 : $('#prodCd10').val(),
+                                sortConditions : customerSort
+                           };
+                var path = 'index.php?param=Customer/search&home=1';
+                // データ更新
+                setDataForAjax( data, path );
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             *  DatePickerを設定
+             */
+            $(function()
+            {
+                $( "#minBirth, #maxBirth, #minMemorial, #maxMemorial, #minPublish, #maxPublish, \n\
+                    #minLimitdate, #maxLimitdate, #minRenew, #maxRenew, #minLstVisitDt, #maxLstVisitDt, \n\
+                    #minTrandate, #maxTrandate" ).datepicker({
+                    showButtonPanel: true,
+                    dateFormat: 'yy/mm/dd',
+                });
+            });
+             
+        </script>
+
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site" style="overflow: auto;">
+            <!-- パンくずリスト -->
+            <?php include("Common/Breadcrumb.php"); ?>
+
+
+
+            <form id="searchForm" name="searchForm" method="POST" action="index.php?param=Customer/search&home=1">
+                <input type="hidden" name="companyID" value="<?php hsc( $_SESSION['COMPANY_ID'] ); ?>">
+
+                <!-- serchBoardArea -->
+                <div class="serchBoardArea" style=" clear:both; width:99%; margin:5px auto !important;" >
+                    <table>
+                        <tbody>
+                            <tr>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0850')); ?></th><!-- 顧客コード -->
+                                <td style="width:300px">
+                                    <input type="text" name="minCustCd" id="minCustCd" style="width:100px" maxlength="8" value="<?php hsc($searchArray['minCustCd']); ?>">
+                                    　～　
+                                    <input type="text" name="maxCustCd" id="maxCustCd" style="width:100px" maxlength="8" value="<?php hsc($searchArray['maxCustCd']); ?>">
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0851')); ?></th><!-- 顧客名 -->
+                                <td style="width:300px">
+                                    <input type="text" name="custNm" id="custNm" value="<?php hsc($searchArray['custNm']); ?>" style="width:200px" maxlength="40">
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0852')); ?></th><!-- 顧客カナ -->
+                                <td style="width:300px">
+                                    <input type="text" name="custKn" id="custKn" value="<?php hsc($searchArray['custKn']); ?>" style="width:200px" maxlength="40">
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['custKnNullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="custKnNullCheck" id="custKnNullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0862')); ?></th><!-- 生年月日 -->
+                                <td style="width:300px">
+                                    <input type="text" name="minBirth" id="minBirth" style="width:100px" maxlength="10" value="<?php hsc($searchArray['minBirth']); ?>" pattern="\d{4}/\d{2}/\d{2}" >
+                                    　～　
+                                    <input type="text" name="maxBirth" id="maxBirth" style="width:100px" maxlength="10" value="<?php hsc($searchArray['maxBirth']); ?>" pattern="\d{4}/\d{2}/\d{2}" >
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['birthNullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="birthNullCheck" id="birthNullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0905')); ?></th><!-- 誕生月 -->
+                                <td style="width:300px">
+                                    <input type="text" name="birthMonth" id="birthMonth" value="<?php hsc($searchArray['birthMonth']); ?>" style="width:100px" maxlength="2"><?php hsc($Log->getMsgLog('MSG_CUST_0004')); ?>                              
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0864')); ?></th><!-- 記念日 -->
+                                <td style="width:300px">
+                                    <input type="text" name="minMemorial" id="minMemorial" style="width:100px" maxlength="10" value="<?php hsc($searchArray['minMemorial']); ?>" pattern="\d{4}/\d{2}/\d{2}" >
+                                    　～　
+                                    <input type="text" name="maxMemorial" id="maxMemorial" style="width:100px" maxlength="10" value="<?php hsc($searchArray['maxMemorial']); ?>" pattern="\d{4}/\d{2}/\d{2}" >
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['memorialNullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="memorialNullCheck" id="memorialNullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0853')); ?></th><!-- 郵便番号 -->
+                                <td style="width:300px">
+                                    <input type="text" name="zip" id="zip" style="width:100px" maxlength="10" value="<?php hsc($searchArray['zip']); ?>" pattern="\d{3}-\d{4}" >
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['zipNullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="zipNullCheck" id="zipNullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0863')); ?></th><!-- 性別 -->
+                                <td style="width:300px" colspan="3">
+                                    <select id="sex" name="sex" style="width:100px">
+                                        <?php
+                                            $sex1 = '';
+                                            $sex2 = '';
+                                            if($searchArray['sex'] === '1')
+                                            {
+                                                $sex1 = 'Selected';
+                                            }
+                                            else if($searchArray['sex'] === '2')
+                                            {
+                                                $sex2 = 'Selected';
+                                            }
+                                        ?>
+                                        <option value=""></option>
+                                        <option value="1" <?php hsc($sex1); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0002')); ?></option>
+                                        <option value="2" <?php hsc($sex2); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0003')); ?></option>
+                                    </select>
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['sexNullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="sexNullCheck" id="sexNullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?></th><!-- 住所1 -->
+                                <td style="width:300px">
+                                    <input type="text" name="addr1" id="addr1" value="<?php hsc($searchArray['addr1']); ?>" style="width:250px" maxlength="60">
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['addr1NullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="addr1NullCheck" id="addr1NullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0855')); ?></th><!-- 住所2 -->
+                                <td style="width:300px">
+                                    <input type="text" name="addr2" id="addr2" value="<?php hsc($searchArray['addr2']); ?>" style="width:250px" maxlength="60">
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['addr2NullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="addr2NullCheck" id="addr2NullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0856')); ?></th><!-- 住所3 -->
+                                <td style="width:300px">
+                                    <input type="text" name="addr3" id="addr3" value="<?php hsc($searchArray['addr3']); ?>" style="width:250px" maxlength="60">
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['addr3NullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="addr3NullCheck" id="addr3NullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0879')); ?></th><!-- 顧客締日 -->
+                                <td style="width:300px">
+                                    <input type="text" name="custSumDay" id="custSumDay" value="<?php hsc($searchArray['custSumDay']); ?>" style="width:50px" maxlength="2" pattern="\d{2}" >
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['custSumDayNullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="custSumDayNullCheck" id="custSumDayNullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0877')); ?></th><!-- 会費未入金区分 -->
+                                <td style="width:300px">
+                                    <select id="feesReceKbn" name="feesReceKbn" style="width:100px">
+                                        <?php
+                                            $feesReceKbn0 = '';
+                                            $feesReceKbn1 = '';
+                                            if($searchArray['feesReceKbn'] === '0')
+                                            {
+                                                $feesReceKbn0 = 'Selected';
+                                            }
+                                            else if($searchArray['feesReceKbn'] === '1')
+                                            {
+                                                $feesReceKbn1 = 'Selected';
+                                            }
+                                        ?>
+                                        <option value=""></option>
+                                        <option value="0" <?php hsc($feesReceKbn0); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0005')); ?></option>
+                                        <option value="1" <?php hsc($feesReceKbn1); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0006')); ?></option>
+                                    </select>
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['feesReceKbnNullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="feesReceKbnNullCheck" id="feesReceKbnNullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0878')); ?></th><!-- 掛売不可区分 -->
+                                <td style="width:300px">
+                                    <select id="credImpoKbn" name="credImpoKbn" style="width:100px">
+                                        <?php
+                                            $credImpoKbn0 = '';
+                                            $credImpoKbn1 = '';
+                                            if($searchArray['credImpoKbn'] === '0')
+                                            {
+                                                $credImpoKbn0 = 'Selected';
+                                            }
+                                            else if($searchArray['credImpoKbn'] === '1')
+                                            {
+                                                $credImpoKbn1 = 'Selected';
+                                            }
+                                        ?>
+                                        <option value=""></option>
+                                        <option value="0" <?php hsc($credImpoKbn0); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0007')); ?></option>
+                                        <option value="1" <?php hsc($credImpoKbn1); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0008')); ?></option>
+                                    </select>
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['credImpoKbnNullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="credImpoKbnNullCheck" id="credImpoKbnNullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0874')); ?></th><!-- カード発行日 -->
+                                <td style="width:300px">
+                                    <input type="text" name="minPublish" id="minPublish" style="width:100px" maxlength="10" value="<?php hsc($searchArray['minPublish']); ?>" pattern="\d{4}/\d{2}/\d{2}" >
+                                    　～　
+                                    <input type="text" name="maxPublish" id="maxPublish" style="width:100px" maxlength="10" value="<?php hsc($searchArray['maxPublish']); ?>" pattern="\d{4}/\d{2}/\d{2}" >
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['publishNullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="publishNullCheck" id="publishNullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0875')); ?></th><!-- カード有効期限 -->
+                                <td style="width:300px">
+                                    <input type="text" name="minLimitdate" id="minLimitdate" style="width:100px" maxlength="10" value="<?php hsc($searchArray['minLimitdate']); ?>" pattern="\d{4}/\d{2}/\d{2}" >
+                                    　～　
+                                    <input type="text" name="maxLimitdate" id="maxLimitdate" style="width:100px" maxlength="10" value="<?php hsc($searchArray['maxLimitdate']); ?>" pattern="\d{4}/\d{2}/\d{2}" >
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['limitdateNullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="limitdateNullCheck" id="limitdateNullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0876')); ?></th><!-- カード更新日 -->
+                                <td style="width:300px">
+                                    <input type="text" name="minRenew" id="minRenew" style="width:100px" maxlength="10" value="<?php hsc($searchArray['minRenew']); ?>" pattern="\d{4}/\d{2}/\d{2}" >
+                                    　～　
+                                    <input type="text" name="maxRenew" id="maxRenew" style="width:100px" maxlength="10" value="<?php hsc($searchArray['maxRenew']); ?>" pattern="\d{4}/\d{2}/\d{2}" >
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['renewNullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="renewNullCheck" id="renewNullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0871')); ?></th><!-- DM発送区分 -->
+                                <td style="width:300px">
+                                    <?php
+                                        $dissenddm0 = '';
+                                        $dissenddm1 = '';
+                                        $dissenddm9 = '';
+                                        if($searchArray['dissenddm'] === '0')
+                                        {
+                                            $dissenddm0 = 'checked';
+                                        }
+                                        else if($searchArray['dissenddm'] === '1')
+                                        {
+                                            $dissenddm1 = 'checked';
+                                        }
+                                        else
+                                        {
+                                            $dissenddm9 = 'checked';
+                                        }
+                                    ?>
+                                    <input type="radio" id="dissenddm9" name="dissenddm" value="9" <?php hsc($dissenddm9); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0009')); ?> <!-- 全て -->
+                                    <input type="radio" id="dissenddm0" name="dissenddm" value="0" <?php hsc($dissenddm0); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0010')); ?> <!-- 発送可 -->
+                                    <input type="radio" id="dissenddm1" name="dissenddm" value="1" <?php hsc($dissenddm1); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0011')); ?> <!-- 発送不可 -->
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0872')); ?></th><!-- Eメール送信区分 -->
+                                <td style="width:300px">
+                                    <?php
+                                        $dissendemail0 = '';
+                                        $dissendemail1 = '';
+                                        $dissendemail9 = '';
+                                        if($searchArray['dissendemail'] === '0')
+                                        {
+                                            $dissendemail0 = 'checked';
+                                        }
+                                        else if($searchArray['dissendemail'] === '1')
+                                        {
+                                            $dissendemail1 = 'checked';
+                                        }
+                                        else
+                                        {
+                                            $dissendemail9 = 'checked';
+                                        }
+                                    ?>
+                                    <input type="radio" id="dissendemail9" name="dissendemail" value="9" <?php hsc($dissendemail9); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0009')); ?> <!-- 全て -->
+                                    <input type="radio" id="dissendemail0" name="dissendemail" value="0" <?php hsc($dissendemail0); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0012')); ?> <!-- 送信可 -->
+                                    <input type="radio" id="dissendemail1" name="dissendemail" value="1" <?php hsc($dissendemail1); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0013')); ?> <!-- 送信不可 -->
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0873')); ?></th><!-- 携帯メール送信区分 -->
+                                <td style="width:300px">
+                                    <?php
+                                        $dissendimode0 = '';
+                                        $dissendimode1 = '';
+                                        $dissendimode9 = '';
+                                        if($searchArray['dissendimode'] === '0')
+                                        {
+                                            $dissendimode0 = 'checked';
+                                        }
+                                        else if($searchArray['dissendimode'] === '1')
+                                        {
+                                            $dissendimode1 = 'checked';
+                                        }
+                                        else
+                                        {
+                                            $dissendimode9 = 'checked';
+                                        }
+                                    ?>
+                                    <input type="radio" id="dissendimode9" name="dissendimode" value="9" <?php hsc($dissendimode9); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0009')); ?> <!-- 全て -->
+                                    <input type="radio" id="dissendimode0" name="dissendimode" value="0" <?php hsc($dissendimode0); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0012')); ?> <!-- 送信可 -->
+                                    <input type="radio" id="dissendimode1" name="dissendimode" value="1" <?php hsc($dissendimode1); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0013')); ?> <!-- 送信不可 -->
+                                </td>
+                            </tr>
+                            <tr>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0880')); ?></th><!-- 消費税計算単位 -->
+                                <td style="width:300px">
+                                    <?php
+                                        $taxCalcKbn1 = '';
+                                        $taxCalcKbn2 = '';
+                                        $taxCalcKbn3 = '';
+                                        $taxCalcKbn4 = '';
+                                        $taxCalcKbn9 = '';
+                                        if($searchArray['taxCalcKbn'] === '1')
+                                        {
+                                            $taxCalcKbn1 = 'checked';
+                                        }
+                                        else if($searchArray['taxCalcKbn'] === '2')
+                                        {
+                                            $taxCalcKbn2 = 'checked';
+                                        }
+                                        else if($searchArray['taxCalcKbn'] === '3')
+                                        {
+                                            $taxCalcKbn3 = 'checked';
+                                        }
+                                        else if($searchArray['taxCalcKbn'] === '4')
+                                        {
+                                            $taxCalcKbn4 = 'checked';
+                                        }
+                                        else
+                                        {
+                                            $taxCalcKbn9 = 'checked';
+                                        }
+                                    ?>
+                                    <input type="radio" id="taxCalcKbn9" name="taxCalcKbn" value="9" <?php hsc($taxCalcKbn9); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0009')); ?> <!-- 全て -->
+                                    <input type="radio" id="taxCalcKbn1" name="taxCalcKbn" value="1" <?php hsc($taxCalcKbn1); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0014')); ?> <!-- 請求単位 -->
+                                    <input type="radio" id="taxCalcKbn2" name="taxCalcKbn" value="2" <?php hsc($taxCalcKbn2); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0015')); ?> <!-- 伝票単位 -->
+                                    <input type="radio" id="taxCalcKbn3" name="taxCalcKbn" value="3" <?php hsc($taxCalcKbn3); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0016')); ?> <!-- 明細単位 -->
+                                    <input type="radio" id="taxCalcKbn4" name="taxCalcKbn" value="4" <?php hsc($taxCalcKbn4); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0017')); ?> <!-- 親子単位 -->
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0881')); ?></th><!-- 消費税端数処理 -->
+                                <td style="width:300px" colspan="3">
+                                    <?php
+                                        $taxFracKbn1 = '';
+                                        $taxFracKbn2 = '';
+                                        $taxFracKbn3 = '';
+                                        $taxFracKbn9 = '';
+                                        if($searchArray['taxFracKbn'] === '1')
+                                        {
+                                            $taxFracKbn1 = 'checked';
+                                        }
+                                        else if($searchArray['taxFracKbn'] === '2')
+                                        {
+                                            $taxFracKbn2 = 'checked';
+                                        }
+                                        else if($searchArray['taxFracKbn'] === '3')
+                                        {
+                                            $taxFracKbn3 = 'checked';
+                                        }
+                                        else
+                                        {
+                                            $taxFracKbn9 = 'checked';
+                                        }
+                                    ?>
+                                    <input type="radio" id="taxFracKbn9" name="taxFracKbn" value="9" <?php hsc($taxFracKbn9); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0009')); ?> <!-- 全て -->
+                                    <input type="radio" id="taxFracKbn1" name="taxFracKbn" value="1" <?php hsc($taxFracKbn1); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0018')); ?> <!-- 切捨て -->
+                                    <input type="radio" id="taxFracKbn2" name="taxFracKbn" value="2" <?php hsc($taxFracKbn2); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0019')); ?> <!-- 四捨五入 -->
+                                    <input type="radio" id="taxFracKbn3" name="taxFracKbn" value="3" <?php hsc($taxFracKbn3); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0020')); ?> <!-- 四捨五入 -->
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div><!-- /.serchBoardArea -->
+                
+<div onclick="drop_menu_cust1();" style=" clear:both; width:99%; margin:5px auto !important;">
+    <li><u>検索条件 - 顧客情報</u></li>
+</div>
+<div id="drop_menu_cust1" style="display: none">
+                <div class="serchBoardArea" style=" clear:both; width:99%; margin:5px auto !important;" >
+                    <table>
+                        <tbody>
+                            <tr>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0857')); ?></th><!-- TEL -->
+                                <td style="width:300px">
+                                    <input type="text" name="tel" id="tel" style="width:150px" maxlength="20" value="<?php hsc($searchArray['tel']); ?>">
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['telNullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="telNullCheck" id="telNullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0858')); ?></th><!-- FAX -->
+                                <td style="width:300px">
+                                    <input type="text" name="fax" id="fax" style="width:150px" maxlength="20" value="<?php hsc($searchArray['fax']); ?>">
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['faxNullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="faxNullCheck" id="faxNullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0859')); ?></th><!-- 携帯 -->
+                                <td style="width:300px">
+                                    <input type="text" name="hphone" id="hphone" style="width:150px" maxlength="20" value="<?php hsc($searchArray['hphone']); ?>">
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['hphoneNullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="hphoneNullCheck" id="hphoneNullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0860')); ?></th><!-- Eメール -->
+                                <td style="width:300px">
+                                    <input type="text" name="email" id="email" style="width:250px" maxlength="100" value="<?php hsc($searchArray['email']); ?>">
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['emailNullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="emailNullCheck" id="emailNullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0861')); ?></th><!-- 携帯メール -->
+                                <td style="width:300px">
+                                    <input type="text" name="imode" id="imode" style="width:250px" maxlength="100" value="<?php hsc($searchArray['imode']); ?>">
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['imodeNullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="imodeNullCheck" id="imodeNullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0865')); ?></th><!-- 登録店舗 -->
+                                <td style="width:300px">
+                                    <?php include("Common/SearchOrganizationName.php"); ?>
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['organizationNameNullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="organizationNameNullCheck" id="organizationNameNullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0866')); ?></th><!-- 顧客分類 -->
+                                <td style="width:300px">
+                                    <?php include("Common/SearchCustomerClassificationName.php"); ?>
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['custTypeCdNullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="custTypeCdNullCheck" id="custTypeCdNullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0867')); ?></th><!-- 地区 -->
+                                <td style="width:300px">
+                                    <?php include("Common/SearchAreaName.php"); ?>
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['areaCdNullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="areaCdNullCheck" id="areaCdNullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0868')); ?><?php hsc($Log->getMsgLog('MSG_CUST_0021')); ?></th><!-- 担当者-->
+                                <td style="width:300px">
+                                    <?php include("Common/SearchEmployeesNo.php"); ?>
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['userNoNullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="userNoNullCheck" id="userNoNullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0898')); ?></th><!-- 最終来店日 -->
+                                <td style="width:300px">
+                                    <input type="text" name="minLstVisitDt" id="minLstVisitDt" style="width:100px" maxlength="10" value="<?php hsc($searchArray['minLstVisitDt']); ?>" pattern="\d{4}/\d{2}/\d{2}" >
+                                    　～　
+                                    <input type="text" name="maxLstVisitDt" id="maxLstVisitDt" style="width:100px" maxlength="10" value="<?php hsc($searchArray['maxLstVisitDt']); ?>" pattern="\d{4}/\d{2}/\d{2}" >
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['lstVisitDtNullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="lstVisitDtNullCheck" id="lstVisitDtNullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0899')); ?></th><!-- 最終来店店舗 -->
+                                <td style="width:300px" colspan="3">
+                                    <?php include("Common/SearchLastOrganizationName.php"); ?>
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['lastOrganizationNameNullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="lastOrganizationNameNullCheck" id="lastOrganizationNameNullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+</div>
+<div onclick="drop_menu_cust2();" style=" clear:both; width:99%; margin:5px auto !important;">
+    <li><u>検索条件 - 顧客メモ</u></li>
+</div>
+<div id="drop_menu_cust2" style="display: none">
+                <div class="serchBoardArea" style=" clear:both; width:99%; margin:5px auto !important;" >
+                    <table>
+                        <tbody>
+                            <tr>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0882')); ?></th><!-- メモ1 -->
+                                <td style="width:300px">
+                                    <input type="text" name="note1" id="note1" value="<?php hsc($searchArray['note1']); ?>" style="width:250px" maxlength="40">
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['note1NullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="note1NullCheck" id="note1NullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0883')); ?></th><!-- メモ2 -->
+                                <td style="width:300px">
+                                    <input type="text" name="note2" id="note2" value="<?php hsc($searchArray['note2']); ?>" style="width:250px" maxlength="40">
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['note2NullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="note2NullCheck" id="note2NullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0884')); ?></th><!-- メモ3 -->
+                                <td style="width:300px">
+                                    <input type="text" name="note3" id="note3" value="<?php hsc($searchArray['note3']); ?>" style="width:250px" maxlength="40">
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['note3NullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="note3NullCheck" id="note3NullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0885')); ?></th><!-- メモ4 -->
+                                <td style="width:300px">
+                                    <input type="text" name="note4" id="note4" value="<?php hsc($searchArray['note4']); ?>" style="width:250px" maxlength="40">
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['note4NullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="note4NullCheck" id="note4NullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0886')); ?></th><!-- メモ5 -->
+                                <td style="width:300px" colspan="3">
+                                    <input type="text" name="note5" id="note5" value="<?php hsc($searchArray['note5']); ?>" style="width:250px" maxlength="40">
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['note5NullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="note5NullCheck" id="note5NullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+</div>
+<div onclick="drop_menu_cust3();" style=" clear:both; width:99%; margin:5px auto !important;">
+    <li><u>検索条件 - 顧客備考</u></li>
+</div>
+<div id="drop_menu_cust3" style="display: none">
+                <div class="serchBoardArea" style=" clear:both; width:99%; margin:5px auto !important;" >
+                    <table>
+                        <tbody>
+                            <tr>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0887')); ?></th><!-- 顧客備考01 -->
+                                <td style="width:300px">
+                                    <?php include("Common/SearchCustomerRemarks01Name.php"); ?>
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['custBCd01NullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="custBCd01NullCheck" id="custBCd01NullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0888')); ?></th><!-- 顧客備考02 -->
+                                <td style="width:300px">
+                                    <?php include("Common/SearchCustomerRemarks02Name.php"); ?>
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['custBCd02NullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="custBCd02NullCheck" id="custBCd02NullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0889')); ?></th><!-- 顧客備考03 -->
+                                <td style="width:300px">
+                                    <?php include("Common/SearchCustomerRemarks03Name.php"); ?>
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['custBCd03NullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="custBCd03NullCheck" id="custBCd03NullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0890')); ?></th><!-- 顧客備考04 -->
+                                <td style="width:300px">
+                                    <?php include("Common/SearchCustomerRemarks04Name.php"); ?>
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['custBCd04NullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="custBCd04NullCheck" id="custBCd04NullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0891')); ?></th><!-- 顧客備考05 -->
+                                <td style="width:300px">
+                                    <?php include("Common/SearchCustomerRemarks05Name.php"); ?>
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['custBCd05NullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="custBCd05NullCheck" id="custBCd05NullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0892')); ?></th><!-- 顧客備考06 -->
+                                <td style="width:300px">
+                                    <?php include("Common/SearchCustomerRemarks06Name.php"); ?>
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['custBCd06NullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="custBCd06NullCheck" id="custBCd06NullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0893')); ?></th><!-- 顧客備考07 -->
+                                <td style="width:300px">
+                                    <?php include("Common/SearchCustomerRemarks07Name.php"); ?>
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['custBCd07NullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="custBCd07NullCheck" id="custBCd07NullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0894')); ?></th><!-- 顧客備考08 -->
+                                <td style="width:300px">
+                                    <?php include("Common/SearchCustomerRemarks08Name.php"); ?>
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['custBCd08NullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="custBCd08NullCheck" id="custBCd08NullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0895')); ?></th><!-- 顧客備考09 -->
+                                <td style="width:300px">
+                                    <?php include("Common/SearchCustomerRemarks09Name.php"); ?>
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['custBCd09NullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="custBCd09NullCheck" id="custBCd09NullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0896')); ?></th><!-- 顧客備考10 -->
+                                <td style="width:300px" colspan="5">
+                                    <?php include("Common/SearchCustomerRemarks10Name.php"); ?>
+                                    <?php
+                                        $checked = "";
+                                        if($searchArray['custBCd10NullCheck'] === 'true' )
+                                        {
+                                            $checked = "checked";
+                                        }
+                                    ?>
+                                    <input type="checkbox" name="custBCd10NullCheck" id="custBCd10NullCheck" <?php hsc($checked); ?>><?php hsc($Log->getMsgLog('MSG_CUST_0001')); ?>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+</div>
+<div onclick="drop_menu_cust4();" style=" clear:both; width:99%; margin:5px auto !important;">
+    <li><u>検索条件 - 売上情報</u></li>
+</div>
+<div id="drop_menu_cust4" style="display: none">
+                <div class="serchBoardArea" style=" clear:both; width:99%; margin:5px auto !important;" >
+                    <table>
+                        <tbody>
+                            <tr>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0906')); ?></th><!-- 売上日 -->
+                                <td style="width:300px">
+                                    <input type="text" name="minTrandate" id="minTrandate" style="width:100px" maxlength="10" value="<?php hsc($searchArray['minTrandate']); ?>" pattern="\d{4}/\d{2}/\d{2}" >
+                                    　～　
+                                    <input type="text" name="maxTrandate" id="maxTrandate" style="width:100px" maxlength="10" value="<?php hsc($searchArray['maxTrandate']); ?>" pattern="\d{4}/\d{2}/\d{2}" >
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0907')); ?></th><!-- 利用金額 -->
+                                <td style="width:300px">
+                                    <input type="text" name="minTotal" id="minTotal" style="width:100px" maxlength="10" value="<?php hsc($searchArray['minTotal']); ?>">
+                                    　～　
+                                    <input type="text" name="maxTotal" id="maxTotal" style="width:100px" maxlength="10" value="<?php hsc($searchArray['maxTotal']); ?>">
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0900')); ?></th><!-- 来店回数 -->
+                                <td style="width:300px">
+                                    <input type="text" name="minVisitCnt" id="minVisitCnt" style="width:100px" maxlength="10" value="<?php hsc($searchArray['minVisitCnt']); ?>">
+                                    　～　
+                                    <input type="text" name="maxVisitCnt" id="maxVisitCnt" style="width:100px" maxlength="10" value="<?php hsc($searchArray['maxVisitCnt']); ?>">
+                                </td>
+                           </tr>
+                            <tr>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0908')); ?></th><!-- 商品コード1 -->
+                                <td style="width:300px">
+                                    <?php include("Common/SearchProfitMenu01Name.php"); ?>
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0909')); ?></th><!-- 商品コード2 -->
+                                <td style="width:300px">
+                                    <?php include("Common/SearchProfitMenu02Name.php"); ?>
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0910')); ?></th><!-- 商品コード3 -->
+                                <td style="width:300px">
+                                    <?php include("Common/SearchProfitMenu03Name.php"); ?>
+                                </td>
+                           </tr>
+                            <tr>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0911')); ?></th><!-- 商品コード4 -->
+                                <td style="width:300px">
+                                    <?php include("Common/SearchProfitMenu04Name.php"); ?>
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0912')); ?></th><!-- 商品コード5 -->
+                                <td style="width:300px">
+                                    <?php include("Common/SearchProfitMenu05Name.php"); ?>
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0913')); ?></th><!-- 商品コード6 -->
+                                <td style="width:300px">
+                                    <?php include("Common/SearchProfitMenu06Name.php"); ?>
+                                </td>
+                           </tr>
+                            <tr>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0914')); ?></th><!-- 商品コード7 -->
+                                <td style="width:300px">
+                                    <?php include("Common/SearchProfitMenu07Name.php"); ?>
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0915')); ?></th><!-- 商品コード7 -->
+                                <td style="width:300px">
+                                    <?php include("Common/SearchProfitMenu08Name.php"); ?>
+                                </td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0916')); ?></th><!-- 商品コード8 -->
+                                <td style="width:300px">
+                                    <?php include("Common/SearchProfitMenu09Name.php"); ?>
+                                </td>
+                           </tr>
+                            <tr>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0917')); ?></th><!-- 商品コード10 -->
+                                <td style="width:300px" colspan="5">
+                                    <?php include("Common/SearchProfitMenu10Name.php"); ?>
+                                </td>
+                           </tr>
+                        </tbody>
+                    </table>
+                </div>
+</div>
+
+                <!-- serchButtonArea -->
+                <div style="text-align: center; white-space: nowrap;" id="styleAlignCenter">
+                    <div style="display: inline-block;" class="serchButtonArea">
+                        <input type="submit" id="search" name="search" href="#" value="検索" class="serch" />
+                    </div><!-- /.serchButtonArea -->
+                    <div style="display: inline-block;" class="logicButtonArea">
+                        <input type="button" id="add" name="add" onClick="inputPanelTransition()" value="　 新規作成" class="add">
+                    </div><!-- /.logicButtonArea -->
+                </div><!-- /#styleAlignCenter -->
+            </form>
+            <form id="modForm" name="modForm" >
+                <?php include("CustomerTablePanel.html"); ?>
+            </form>
+
+        </div><!-- /#sb-site -->
+
+        <?php include("../FwCommon/View/Dialog.php"); ?>
+    </body>
+</html>

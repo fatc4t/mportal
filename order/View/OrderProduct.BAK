@@ -1,0 +1,1064 @@
+<?php
+    /**
+     * @file      発注品マスタ画面(View)
+     * @author    尉
+     * @date      2019/07/03
+     * @version   1.00
+     * @note      発注品マスタ
+     */
+?>
+<!DOCTYPE html>
+<html>
+    
+<head>
+<?php
+require_once( SystemParameters::$SANITIZE_SETTING_FILE );
+            $fileNames = array( 'default.css',
+                                'common.js', 
+                                'jquery-ui.min.js',
+                                'jquery-ui.css',
+                                'viewpos.js'
+                                );    // cssまたはｊｓファイルを拡張子付きで配列に記述 
+            include("Common/HtmlHeader.php");
+                                          
+?>
+
+<script src="../js/order/jquery/datepicker-ja.js" ></script>
+<script src="../js/order/modal.js" ></script>
+<script type="text/javascript" src="../../FwCommon/js/common.js" ></script>
+<script type="text/javascript" src="../js/template1/jquery-ui.min.js" ></script>
+<link rel="stylesheet" href="../css/modal/modal.css" >
+<script type="text/javascript" src="../js/order/jquery-barcode.js"></script>
+<script type="text/javascript">
+pjic_id_list        = '<?php echo json_encode(json_encode($jic_id_list)); ?>';
+data_jic            = JSON.parse(pjic_id_list.slice(1,-1));
+ptypdata            = '<?php echo json_encode($data); ?>';
+A_Data              = JSON.parse(ptypdata); 
+pprod_k_cd1_list    = '<?php echo json_encode(json_encode($prod_k_cd1_list)); ?>';
+data_prodkcd1         = JSON.parse(pprod_k_cd1_list.slice(1,-1));
+//pprod_k_cd2_list    = '<?php echo json_encode(json_encode($prod_k_cd2_list)); ?>';
+//data_prodkcd2         = JSON.parse(pprod_k_cd2_list.slice(1,-1));
+//pprod_k_cd3_list    = '<?php echo json_encode(json_encode($prod_k_cd3_list)); ?>';
+//data_prodkcd3         = JSON.parse(pprod_k_cd3_list.slice(1,-1));
+//pprod_k_cd4_list    = '<?php echo json_encode(json_encode($prod_k_cd4_list)); ?>';
+//data_prodkcd4         = JSON.parse(pprod_k_cd4_list.slice(1,-1));
+//pprod_k_cd5_list    = '<?php echo json_encode(json_encode($prod_k_cd5_list)); ?>';
+//data_prodkcd5         = JSON.parse(pprod_k_cd5_list.slice(1,-1));
+
+var imgslist = [];  
+var select_list = [];   
+
+var fileTypes = [
+    'image/jpeg',
+    'image/pjpeg',
+    'image/png'
+]
+
+function validFileType(file) {
+    for(var i = 0; i < fileTypes.length; i++) {
+        if(file.type === fileTypes[i]) {
+        return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * 登録ボタンクリック
+ */
+$(document).ready(function() 
+{
+    $('#addForm').submit(function(event)
+    {
+        if( '<?php hsc($mode); ?>' === "新規登録")
+        {
+            // 一覧画面新規作成ボタンから遷移してきた場合
+            document.getElementById("dialog_add").textContent='<?php hsc(SystemParameters::$NEW_DIALOG_MSG); ?>';
+            $("#dialog_add").dialog('open');
+        }
+        else
+        {   
+            document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$UPDATE_DIALOG_MSG); ?>';
+            $("#dialog_mod").dialog('open');
+        }
+	//サブミット後、ページをリロードしないようにする    
+	return false;
+    });
+});
+
+/**
+ * 新規登録
+ */
+function addDataForAjax()
+{
+	//ajax
+	var path = "./index.php?param=OrderProduct/save";
+	$.ajax({
+            url: path,
+            type: "POST",
+            data: $("#addForm").serialize(),  // 検索など引数を渡す必要があるときこれを使う
+            success: function(rtnData) {
+                document.getElementById("dialog").textContent='データを追加しました。';
+                $("#dialog").dialog('open'); 
+            },
+            error:function(xhr, textStatus, error) {
+                var errMsg = 'Error : ' + error;
+                            //エラーメッセージの表示
+                            alert('DBエラーが発生しました。');
+            }
+	});
+};
+
+/**
+ * 編集
+ */
+function modDataForAjax()
+{
+	//ajax
+	var path = "./index.php?param=OrderProduct/save";
+	$.ajax({
+            url: path,
+            type: "POST",
+            data: $("#addForm").serialize(),  // 検索など引数を渡す必要があるときこれを使う
+            success: function(rtnData) {
+                document.getElementById("dialog").textContent='データを更新致しました。';
+                $("#dialog").dialog('open'); 
+            },
+            error:function(xhr, textStatus, error) {
+                var errMsg = 'Error : ' + error;
+                            //エラーメッセージの表示
+                            alert('DBエラーが発生しました。');
+            }
+	});
+};
+
+/**
+ * 初期化
+ */
+function initView(){
+    var url = "./index.php?param=OrderProduct/show&home=1";
+    location.href=url;
+}
+
+/**
+ * JANコード自動"0"埋める処理
+ */
+$(function() {  
+    $('#prod_cd').on('change',function()
+    {  
+	var addZeros = "";
+        for(var i = 0; i < (4 - $(this).val().length); i++){
+            addZeros += "0";
+        }
+        $(this).val(addZeros + $(this).val());
+	return false;
+    });
+    $('#gs1_cd').on('change',function()
+    {  
+	var addZeros = "";
+        for(var i = 0; i < (9 - $(this).val().length); i++){
+            addZeros += "0";
+        }
+        $(this).val(addZeros + $(this).val());
+	return false;
+    });
+    $('#jan_cd').on('change',function()
+    {  
+	var addZeros = "";
+        for(var i = 0; i < (13 - $(this).val().length); i++){
+            addZeros += "0";
+        }
+        $(this).val(addZeros + $(this).val());
+        $("#barcode").css("background-color", "#FFF");
+        $("#barcode").empty().barcode($(this).val(), "ean13", {barWidth:3.9, barHeight:63,showHRI:true});
+	return false;
+    });
+});
+
+/**
+ * 商品説明翻訳切り替え処理
+ */
+function lTranslate(lan){
+    for(i = 1; i < 6; i++){
+        if(i == lan){
+            $('#syosai' + i).show();
+        }else{
+            $('#syosai' + i).hide();
+        }
+    }   
+}
+
+/**
+ * 画像アップロード表示処理
+ */
+function updateImageDisplay(){
+   
+    // element get
+    var input = document.querySelector('#file');
+    var curFiles = input.files;
+    var image = document.querySelector('#main_img');
+    var image_1 = document.querySelector('#sub_img_1');
+    var image_2 = document.querySelector('#sub_img_2');
+    var image_3 = document.querySelector('#sub_img_3');
+    var image_4 = document.querySelector('#sub_img_4');
+    var image_5 = document.querySelector('#sub_img_5');
+    $("#imgs").val("");
+    image.src = "";
+    var select_sub = 0;
+    var upload_sub = 0;
+    for(var j = 0; j < 5; j++){
+        if($("#sub_img_" + (j + 1).toString()).css('border-left-style') !== 'none'){
+            select_sub++;
+        }
+        if($("#sub_img_" + (j + 1).toString()).attr("src") !== ""){
+            upload_sub++;
+        }
+    } 
+
+    if(select_sub > 0){
+        if(curFiles.length !== select_sub){
+            alert('ファイルを' + select_sub + '枚で選択してください。');
+            return;
+        }
+    }  
+    else if(curFiles.length > 5 - upload_sub){
+        alert('ファイルを'+ (5 - upload_sub) +'枚まで選択してください。');
+        return;
+    }
+   
+    if(curFiles.length === 0) {
+    } else {
+        var index = 0;
+        
+        for(var i = 0; i < curFiles.length; i++) {         
+//            if(validFileType(curFiles[i])) {           
+                if(i === 0){ 
+                    image.src = window.URL.createObjectURL(curFiles[i]);
+                }               
+                for(var j = index; j < 5; j++) {
+                    index = index + 1;
+                    if(select_sub > 0 && $("#sub_img_" + (j + 1).toString()).css('border-left-style') !== 'none'){
+                        $("#sub_img_" + (j + 1).toString()).attr('src', window.URL.createObjectURL(curFiles[i]));
+                        imgslist[j] = curFiles[i];
+                        break;
+                    }else if(select_sub == 0 && $("#sub_img_" + (j + 1).toString()).attr("src") == ""){
+                        $("#sub_img_" + (j + 1).toString()).attr('src', window.URL.createObjectURL(curFiles[i]));
+                        imgslist[j] = curFiles[i];
+                        break;
+                    }
+                }
+                
+//            } 
+//            else 
+//            {
+//                alert('画像ファイルを選択してください。');
+ //           }       
+        }
+        if(imgslist.length >= 1 && imgslist[0] && imgslist[0].slice(-4) !== ".pdf"){
+            var reader = new FileReader();
+            var src = "";  
+            reader.readAsDataURL(imgslist[0]); 
+            reader.onload = function(e){
+            src = e.target.result; 
+                $("#img_1").val(src);
+            }; 
+        }
+        if(imgslist.length >= 2 && imgslist[1] && imgslist[1].slice(-4) !== ".pdf"){
+            var reader = new FileReader();
+            var src = "";  
+            reader.readAsDataURL(imgslist[1]);  
+            reader.onload = function(e){
+            src = e.target.result; 
+                $("#img_2").val(src);
+            };
+        }
+        if(imgslist.length >= 3 && imgslist[2] && imgslist[2].slice(-4) !== ".pdf"){
+            var reader = new FileReader();
+            var src = "";  
+            reader.readAsDataURL(imgslist[2]);  
+            reader.onload = function(e){
+            src = e.target.result; 
+                $("#img_3").val(src);
+            };
+        }
+        if(imgslist.length >= 4 && imgslist[3] && imgslist[3].slice(-4) !== ".pdf"){
+            var reader = new FileReader();
+            var src = "";  
+            reader.readAsDataURL(imgslist[3]);  
+            reader.onload = function(e){
+            src = e.target.result; 
+                $("#img_4").val(src);
+            }; 
+        }
+        if(imgslist.length === 5 && imgslist[4] && imgslist[4].slice(-4) !== ".pdf"){
+            var reader = new FileReader();
+            var src = "";  
+            reader.readAsDataURL(imgslist[4]);  
+            reader.onload = function(e){
+            src = e.target.result; 
+                $("#img_5").val(src);
+            }; 
+        }    
+    }       
+} 
+
+/**
+ * サブ画像クリック処理
+ */
+$(function() {  
+    $('.sub_img').on('click',function()
+    { 
+        if($(this).css('border-left-style') === 'none'){
+            $('#main_img').attr('src',$(this).attr('src'));
+        }
+        if($(this).css('border-left-style') === 'none'){
+            $(this).css('border', '2px solid red');
+        }else{
+            $(this).css('border', 'none');
+        }
+	return false;
+    });
+});
+
+/**
+ * 画像Changeボタン押下処理
+ */
+$(function() {  
+    $('#img_change').on('click',function()
+    { 
+        $('#sub_img_4').toggle();
+        $('#sub_img_5').toggle();
+        $('#sub_img_1').toggle();
+        $('#sub_img_2').toggle();
+        if($(this).val() === '→'){
+            $('#sub_img_3').css('margin-left', '10px');
+            $(this).val('←');
+        }else{
+            $('#sub_img_3').css('margin-left', '30px');
+            $(this).val('→');
+        }
+	return false;
+    });
+});
+
+/**
+ * 初期表示処理
+ */
+window.onload = function () {   
+
+    /** 商品カテゴリが必須ではないため、編集モードでも開けるように判別分を変更 */
+//    if('<?php echo $Form["prod_k_cd1"] ?>' != "" || '<?php echo $mode ?>' == "新規登録" ){
+        for(var i=0;i<data_prodkcd1.length;i++){
+            var x = document.getElementById("prodkcd1_select");
+            var op = document.createElement("option");
+            op.text = data_prodkcd1[i]['prod_k_nm'];
+            op.value = data_prodkcd1[i]['prod_k_cd'];
+            x.add(op,1); 
+        };
+        $('#prodkcd1_select').val('<?php echo $Form["prod_k_cd1"] ?>');
+//    }
+
+        /** 商品カテゴリ2 */
+        if('<?php echo $Form["prod_k_cd2"] ?>' != ""){
+            $("#prodkcd2_select").removeAttr("disabled");
+            var prod_kbn_list = [];
+            prod_kbn_list.push('<?php echo $Form["prod_k_cd1"] ?>');
+            set_prodkbn_list(2, prod_kbn_list);         
+        }
+        
+        /** 商品カテゴリ3 */
+        if('<?php echo $Form["prod_k_cd3"] ?>' != ""){
+            $("#prodkcd3_select").removeAttr("disabled");
+            var prod_kbn_list = [];
+            prod_kbn_list.push('<?php echo $Form["prod_k_cd1"] ?>');
+            prod_kbn_list.push('<?php echo $Form["prod_k_cd2"] ?>');
+            set_prodkbn_list(3, prod_kbn_list);              
+        }
+        
+        /** 商品カテゴリ4 */
+        if('<?php echo $Form["prod_k_cd4"] ?>' != ""){
+            $("#prodkcd4_select").removeAttr("disabled");
+            var prod_kbn_list = [];
+            prod_kbn_list.push('<?php echo $Form["prod_k_cd1"] ?>');
+            prod_kbn_list.push('<?php echo $Form["prod_k_cd2"] ?>');
+            prod_kbn_list.push('<?php echo $Form["prod_k_cd3"] ?>');
+            set_prodkbn_list(4, prod_kbn_list);           
+        }
+        
+        /** 商品カテゴリ5 */
+        if('<?php echo $Form["prod_k_cd5"] ?>' != ""){
+            $("#prodkcd5_select").removeAttr("disabled");
+            var prod_kbn_list = [];
+            prod_kbn_list.push('<?php echo $Form["prod_k_cd1"] ?>');
+            prod_kbn_list.push('<?php echo $Form["prod_k_cd2"] ?>');
+            prod_kbn_list.push('<?php echo $Form["prod_k_cd3"] ?>');
+            prod_kbn_list.push('<?php echo $Form["prod_k_cd4"] ?>');
+            set_prodkbn_list(5, prod_kbn_list); 
+        }
+        
+        setTimeout(function(){ 
+            if('<?php echo $Form["prod_k_cd2"] ?>' != null){
+                $('#prodkcd2_select').val('<?php echo $Form["prod_k_cd2"] ?>');
+            }; 
+            if('<?php echo $Form["prod_k_cd3"] ?>' != null){
+                $('#prodkcd3_select').val('<?php echo $Form["prod_k_cd3"] ?>');
+            }
+            if('<?php echo $Form["prod_k_cd4"] ?>' != null){
+                $('#prodkcd4_select').val('<?php echo $Form["prod_k_cd4"] ?>');
+            }
+            if('<?php echo $Form["prod_k_cd5"] ?>' != null){
+                $('#prodkcd5_select').val('<?php echo $Form["prod_k_cd5"] ?>');
+            }
+        }, 300);
+
+        
+};
+
+function array_move(arr, old_index, new_index) {
+    if (new_index >= arr.length) {
+        var k = new_index - arr.length + 1;
+        while (k--) {
+            arr.push(undefined);
+        }
+    }
+    arr.splice(new_index, 0, arr.splice(old_index - 1, 1)[0]);
+    return arr;
+};
+
+//自動採番ボタン押下処理
+$(function() {  
+    $('#autoNum').on('click',function()
+    {  
+        //ajax
+        var path = "./index.php?param=OrderProduct/autoNum";
+        $.ajax({
+            url: path,
+            type: "POST",
+            success: function(rtnData) {
+                //事業者コード
+                $("#gs1_cd").val(rtnData.trim().slice(-8, -4)) 
+                
+                //JAN コードのチェックデジットの計算
+                var odd_sum = 0;
+                var even_sum = 0;
+                var chars = rtnData.trim().split('');
+                for(var i = 0; i < chars.length; i++){
+                    if(i % 2 == 1){
+                        odd_sum += parseInt(chars[i]);
+                    }else{
+                        even_sum += parseInt(chars[i]);
+                    }
+                }
+                var checkdigit = 10 - parseInt((odd_sum * 3 + even_sum).toString().slice(-1));
+                
+                //JANコード
+                $("#jan_cd").val(rtnData.trim() + checkdigit.toString());
+                //商品コード
+                $("#prod_cd").val(rtnData.trim() + checkdigit.toString());
+                $("#barcode").css("background-color", "#FFF");
+                $("#barcode").empty().barcode($("#jan_cd").val(), "ean13", {barWidth:3.9, barHeight:63,showHRI:true});
+            },
+            error:function(xhr, textStatus, error) {
+                alert("自動採番失敗しました。");
+            }
+        }); 
+    });
+});
+
+function prodkbn_change(event){
+    if(document.getElementById(event.target.id).value != "no"){
+        if(event.target.id == "prodkcd1_select"){
+            $("#prodkcd2_select").removeAttr("disabled");
+            var prod_kbn_list = [];
+            prod_kbn_list.push($("#prodkcd1_select").val());
+            set_prodkbn_list(2, prod_kbn_list);
+        }
+        if(event.target.id == "prodkcd2_select"){
+            $("#prodkcd3_select").removeAttr("disabled");
+            var prod_kbn_list = [];
+            prod_kbn_list.push($("#prodkcd1_select").val());
+            prod_kbn_list.push($("#prodkcd2_select").val());
+            set_prodkbn_list(3, prod_kbn_list);
+        }
+        if(event.target.id == "prodkcd3_select"){
+            $("#prodkcd4_select").removeAttr("disabled");
+            var prod_kbn_list = [];
+            prod_kbn_list.push($("#prodkcd1_select").val());
+            prod_kbn_list.push($("#prodkcd2_select").val());
+            prod_kbn_list.push($("#prodkcd3_select").val());
+            set_prodkbn_list(4, prod_kbn_list);
+        }
+        if(event.target.id == "prodkcd4_select"){
+            $("#prodkcd5_select").removeAttr("disabled");
+            var prod_kbn_list = [];
+            prod_kbn_list.push($("#prodkcd1_select").val());
+            prod_kbn_list.push($("#prodkcd2_select").val());
+            prod_kbn_list.push($("#prodkcd3_select").val());
+            prod_kbn_list.push($("#prodkcd4_select").val());
+            set_prodkbn_list(5, prod_kbn_list);
+        }
+        if(event.target.id == "prodkcd5_select"){
+            
+        }
+    }else{
+        if(event.target.id == "prodkcd1_select"){
+            $("#prodkcd2_select").attr("disabled","disabled");
+            $("#prodkcd3_select").attr("disabled","disabled");
+            $("#prodkcd4_select").attr("disabled","disabled");
+            $("#prodkcd5_select").attr("disabled","disabled");
+            $("#prodkcd2_select").val("no");
+            $("#prodkcd3_select").val("no");
+            $("#prodkcd4_select").val("no");
+            $("#prodkcd5_select").val("no"); 
+        }
+        if(event.target.id == "prodkcd2_select"){
+            $("#prodkcd3_select").attr("disabled","disabled");
+            $("#prodkcd4_select").attr("disabled","disabled");
+            $("#prodkcd5_select").attr("disabled","disabled");
+            $("#prodkcd3_select").val("no");
+            $("#prodkcd4_select").val("no");
+            $("#prodkcd5_select").val("no");  
+        }
+        if(event.target.id == "prodkcd3_select"){        
+            $("#prodkcd4_select").attr("disabled","disabled");
+            $("#prodkcd5_select").attr("disabled","disabled");
+            $("#prodkcd4_select").val("no");
+            $("#prodkcd5_select").val("no");  
+        }
+        if(event.target.id == "prodkcd4_select"){
+            $("#prodkcd5_select").attr("disabled","disabled");
+            $("#prodkcd5_select").val("no");  
+        }
+    }
+    
+}
+
+function set_prodkbn_list(prod_type, prod_kbn_list){
+         //ajax
+        var path = "./index.php?param=OrderProduct/setProdKbn";
+        $.ajax({
+            url: path,
+            type: "POST",
+            data: {     prod_type:prod_type,
+                        prod_kbn_list:prod_kbn_list
+                   },
+            success: function(rtnData) {
+                if(prod_type == 2){
+                    data_prodkcd2         = JSON.parse(rtnData);
+                    var x = document.getElementById("prodkcd2_select");
+                    $('#prodkcd2_select').empty();
+                    var op = document.createElement("option");
+                    op.text = "";
+                    op.value = "no";
+                    x.add(op,1); 
+                    for(var i=0;i<data_prodkcd2.length;i++){
+                        var op = document.createElement("option");
+                        op.text = data_prodkcd2[i]['prod_k_nm'];
+                        op.value = data_prodkcd2[i]['prod_k_cd'];
+                        x.add(op,1); 
+                    };
+                    
+                }
+                if(prod_type == 3){
+                    data_prodkcd3         = JSON.parse(rtnData);
+                    var x = document.getElementById("prodkcd3_select");
+                    $('#prodkcd3_select').empty();
+                    var op = document.createElement("option");
+                    op.text = "";
+                    op.value = "no";
+                    x.add(op,1); 
+                    for(var i=0;i<data_prodkcd3.length;i++){
+                        var op = document.createElement("option");
+                        op.text = data_prodkcd3[i]['prod_k_nm'];
+                        op.value = data_prodkcd3[i]['prod_k_cd'];
+                        x.add(op,1); 
+                    };
+                     
+                }
+                if(prod_type == 4){
+                    data_prodkcd4         = JSON.parse(rtnData);
+                    var x = document.getElementById("prodkcd4_select");
+                    $('#prodkcd4_select').empty();
+                    var op = document.createElement("option");
+                    op.text = "";
+                    op.value = "no";
+                    x.add(op,1); 
+                    for(var i=0;i<data_prodkcd4.length;i++){
+                        var op = document.createElement("option");
+                        op.text = data_prodkcd4[i]['prod_k_nm'];
+                        op.value = data_prodkcd4[i]['prod_k_cd'];
+                        x.add(op,1); 
+                    };
+                     
+                }
+                if(prod_type == 5){
+                    data_prodkcd5         = JSON.parse(rtnData);
+                    var x = document.getElementById("prodkcd5_select");
+                    $('#prodkcd5_select').empty();
+                    var op = document.createElement("option");
+                    op.text = "";
+                    op.value = "no";
+                    x.add(op,1); 
+                     for(var i=0;i<data_prodkcd5.length;i++){
+                        var op = document.createElement("option");
+                        op.text = data_prodkcd5[i]['prod_k_nm'];
+                        op.value = data_prodkcd5[i]['prod_k_cd'];
+                        x.add(op,1); 
+                    };
+                     
+                }
+               
+            },
+            error:function(xhr, textStatus, error) {
+                alert("商品区分取得失敗しました。");
+            }
+        }); 
+}
+
+$(document).ready(function() 
+{
+    //JANコード生成
+    if($("#jan_cd").val() !== ""){
+        $("#barcode").css("background-color", "#FFF");
+        $("#barcode").empty().barcode($("#jan_cd").val(), 
+                                 "ean13", 
+                                 {barWidth:3.9, barHeight:63,showHRI:true});
+    }
+    
+    //画像生成
+    var imgAddr = "";
+    
+    if($("#imgs").val() !== "" ){
+        imgAddr = $("#imgs").val().split(",");
+        for(var i = 1; i < imgAddr.length; i++){
+            var sub_img = "#sub_img_" + i.toString();
+            $(sub_img).attr('src', imgAddr[i]); 
+            $("#img_" + i.toString()).val(imgAddr[i]);
+        }
+
+        var main_img = document.querySelector('#main_img');
+        main_img.src = imgAddr[1];
+    }
+    
+    //数字フォーマット
+    if($('#prod_cd').val() !== ""){ //編集モード
+        //checkNumFormat(document.querySelector('#irisuu'),4);
+        //checkNumFormat(document.querySelector('#case_num'),7);
+        //checkNumFormat(document.querySelector('#min_lot'),5);
+        var tanka = $("#tanka").val();
+        $("#tanka").val(tanka.replace('.00',''));
+        checkNumFormat(document.querySelector('#tanka'),7);
+        var tanka = $("#teika").val();
+        $("#teika").val(tanka.replace('.00',''));
+        checkNumFormat(document.querySelector('#teika'),7);
+    }
+    
+    if( '<?php hsc($mode); ?>' === "新規登録")
+    {
+        //$("#prod_cd").removeAttr("readOnly");
+        $("#autoNum").removeAttr("disabled");
+    }  
+});
+
+// ページ移動用スクリプト
+$(function(){
+   // #で始まるアンカーをクリックした場合に処理
+   $('a[href^=#]').click(function() {
+      // スクロールの速度
+      var speed = 400; // ミリ秒
+      // アンカーの値取得
+      var href= $(this).attr("href");
+      // 移動先を取得
+      var target = $(href == "#" || href == "" ? 'html' : href);
+      // 移動先を数値で取得
+      var position = target.offset().top;
+      // スムーススクロール
+      $('body,html').animate({scrollTop:position}, speed, 'swing');
+      return false;
+   });
+});
+</script>
+
+</head>
+<body>
+<?php
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+<!-- Site -->
+<style type="text/css">
+#addForm table {
+	margin:10px auto;
+	/*border-collapse:*/
+}
+#addForm table th {
+	background-color:#FF6928;
+	color:#FFF;
+	width:150px;
+	text-align:left;
+	border:1px solid #FFF;
+        padding-left:10px;
+}
+#addForm table td {
+	background-color:#FFF;
+        border:1px solid #FFF;
+}
+#addForm table td.btnArea {
+	background:none;
+        border:none;
+	text-align:right;
+}
+.hissu {
+	color:#F00;
+}
+input[type=checkbox] {
+	vertical-align:baseline;
+}
+input[type=button] {
+	float:right;
+        width:100px;
+        height:40px;
+}
+input[type=submit] {
+	float:right;
+        width:100px;
+        height:40px;
+}
+input[type=radio] {
+	display:none;
+}
+input[type=radio] + label {
+	display:block;
+        width:100%;
+        height:100%;
+        background:#ccc;
+        text-align: center;
+        color:#333;
+        line-height: 29px;
+}
+
+input:checked + label{
+        background: #333333;
+        color:#fff;
+}
+caption {
+	padding:5px;
+}
+#addForm ul {
+        width:500px;
+        height:18px;
+        position:relative;
+        display:flex;
+        list-style: none;
+}
+#addForm li {
+        border:1px solid #FFF;
+        height:29px;
+        flex:1;
+        list-style: none;
+}
+#lbl_file {
+     background: #FF6928;
+     color: #fff;
+     cursor: pointer;
+     padding: 5px 10px;
+     margin: 0 10px 0 0;
+     display: inline-block;
+}
+h2{
+     text-align:left;
+}
+</style>
+<div id="sb-site" class="order_prod" style="overflow: auto;">
+    <!-- パンくずリスト -->
+    <?php include("Common/Breadcrumb.php"); ?>
+    <form id="addForm" name="addForm" action="index.php?param=OrderProduct/show&home=1" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="pha_id" id="pha_id" value="<?php hsc($Form['pha_id']);?>">
+        <input type="hidden" name="ma_cd" id="ma_cd" value="<?php hsc($Form['ma_cd']);?>">
+        <input type="hidden" name="imgs" id="imgs" value="<?php hsc($Form['imgs']);?>">
+        <input type="hidden" name="img_1" id="img_1" value="">
+        <input type="hidden" name="img_2" id="img_2" value="">
+        <input type="hidden" name="img_3" id="img_3" value="">
+        <input type="hidden" name="img_4" id="img_4" value="">
+        <input type="hidden" name="img_5" id="img_5" value="">
+        <div style="height:480px;margin-top:0px;" >
+            <div style="float:left;width:400px;padding-left:10px;">
+                <img style="width:360px;height:348px;" id="main_img" src="">
+                <label for="file" id="lbl_file">画像を追加
+                <input type="file" name="file" style="display:none;" id="file" multiple onChange="updateImageDisplay()" >
+                </label>
+                <label for="file" id="lbl_file">画像を削除
+                <input type="file" name="dfile" style="display:none;" id="dfile" multiple onChange="dImageDisplay()" >
+                </label></br></br>
+                <img style="width:70px;height:70px;margin-left:10px;border:none;" id="sub_img_1" class="sub_img" src="">
+                <img style="width:70px;height:70px;margin-left:30px;border:none;" id="sub_img_2" class="sub_img" src="">
+                <img style="width:70px;height:70px;margin-left:30px;border:none;" id="sub_img_3" class="sub_img" src="">
+                <img style="width:70px;height:70px;margin-left:30px;display:none;border:none;" id="sub_img_4" class="sub_img" src="">
+                <img style="width:70px;height:70px;margin-left:30px;display:none;border:none;" id="sub_img_5" class="sub_img" src="">
+                <input type="button" id="img_change" class="img" value="→" style="width:50px;float:none;height:70px;margin-left:20px;"> 
+            </div>
+            <div id="search_param" style="width:1200px;">
+                <div>
+                    <table id="prodInfo" style="display:inline;margin-left:60px;">
+                    <tr>
+                        <th>モード</th>
+                        <td colspan="3">
+                            <input type="text" name="mode" id="mode" value="<?php hsc($mode);?>" readonly style="border:1px solid #FFF;">
+                        </td>
+                    </tr>
+                    <tr style="width:100px">
+                        <th>JANコード</th>
+                        <td colspan="3">
+                            <input type="text" oninput="return checkNumInput(this,13)" size="16" name="jan_cd" id="jan_cd" value="<?php hsc($Form['jan_cd']);?>" title="商品コード" class="En" >
+                        </td>    
+                    </tr>
+                    <tr>
+                        <th>商品コード<span class="hissu">*</span></th>
+                        <td>
+                            <input type="text" size="16" oninput="return checkNumInput(this,4)" pattern="[0-9]*$" name="prod_cd" id="prod_cd" value="<?php hsc($Form['pro_cd']);?>" title="商品アイテムコード" class="En" required>
+                            <input type="button" id="autoNum" name="autoNum" value="自動採番" style="height:inherit" disabled>
+                        </td><td></td><td></td>      
+                    <tr>
+                      <th>商品名</th>
+                        <td colspan="3"><input type="text" maxlength="100" title="<?php hsc($Log->getMsgLog('MSG_BASE_0318')); ?>" size="80" name="prod_nm" id="prod_nm" value="<?php hsc($Form['pro_name']);?>" class="Em"></td>
+                    </tr>
+                    <tr>
+                      <th>商品カナ</th>
+                        <td colspan="3"><input type="text" pattern="^[\uFF66-\uFF9D\x20-\x26\x28-\x7E]*$" maxlength="100" title="<?php hsc($Log->getMsgLog('MSG_BASE_0320')); ?>" size="80" name="prod_kn" id="prod_kn" value="<?php hsc($Form['prod_kn']);?>" class="Em"></td>
+                    </tr>
+                    <tr>
+                        <th>内容量</th>
+                        <td>
+                            <input type="text" maxlength="25" pattern="[^\x27]*$" title="内容量" size="25" name="youryo" id="youryo" value="<?php hsc($Form['youryo']);?>">
+                        </td>
+                        <th>賞味期限</th>
+                        <td>
+                            <input type="text" maxlength="12" pattern="[^\x27]*$" size="25" title="賞味期限"  name="best_before" id="best_before" value="<?php hsc($Form['best_before']);?>">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>商品サイズ</th>
+                        <td>
+                            <input type="text" maxlength="25" pattern="[^\x27]*$" title="商品サイズ" size="25" name="prod_size" id="prod_size" value="<?php hsc($Form['prod_size']);?>">
+                        </td>
+                        <th>注文単位</th>
+                        <td>
+                            <input type="text" maxlength="25" pattern="[^\x27]*$" title="注文単位" size="25" name="order_unit" id="order_unit" value="<?php hsc($Form['order_unit']);?>">
+                        </td>
+                    </tr>
+                    <tr>
+                      <th>最低ケース納品単位</th>
+                      <td>
+                          <input type="text" maxlength="25" pattern="[^\x27]*$" title="最低ケース納品単位" size="25" name="min_lot" id="min_lot" value="<?php hsc($Form['min_lot']);?>">
+                      </td>
+                        <th>希望小売価格</th>
+                        <td>
+                            <input type="text" pattern="^(0|[1-9]\d{0,2}(,\d{3})*(,\d{3})*)$" oncopy="return false" onpaste="return false" oninput="return checkNumInput(this,7)" onfocus="commaRemove(this)" onblur="checkNumFormat(this)" title="希望小売価格"  maxlength="25" size="25" name="teika" id="teika" class="En" value="<?php hsc($Form['teika']);?>">
+                        </td>
+                    </tr>
+                    <tr>
+                      <th>ケースサイズ</th>
+                      <td>
+                          <input type="text" maxlength="25" pattern="[^\x27]*$" title="ケースサイズ" size="25" name="case_num" id="case_num" value="<?php hsc($Form['case_num']);?>">
+                      </td>
+                        <th>単価</th>
+                        <td>
+                            <input type="text" pattern="^(0|[1-9]\d{0,2}(,\d{3})*(,\d{3})*)$" oncopy="return false" onpaste="return false" oninput="return checkNumInput(this,7)" onfocus="commaRemove(this)" onblur="checkNumFormat(this)" title="単価" size="25" maxlength="25" name="tanka" id="tanka" class="En" value="<?php hsc($Form['tanka']);?>">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>商品紹介URL</th>
+                        <td colspan="3">
+                            <input type="text" maxlength="100" title="<?php hsc($Log->getMsgLog('MSG_BASE_0318')); ?>" size="80" name="url1" id="url1" value="<?php hsc($Form['url1']);?>">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>特許（日本）</th>
+                        <td colspan="3">
+                            <input type="text" maxlength="100" title="<?php hsc($Log->getMsgLog('MSG_BASE_0318')); ?>" size="80" name="patent" id="patent" value="<?php hsc($Form['patent']);?>">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>商品カテゴリ１</th>
+                        <td colspan="3">
+                            <select style="width:100%" id="prodkcd1_select" name="prodkcd1_select" onchange="prodkbn_change(event)">
+                                <option value="no">&nbsp;
+                                </option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>商品カテゴリ２</th>
+                        <td colspan="3">
+                            <select style="width:100%" id="prodkcd2_select" name="prodkcd2_select" onchange="prodkbn_change(event)" disabled>
+                                <option value="no">&nbsp;
+                                </option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>商品カテゴリ３</th>
+                        <td colspan="3">
+                            <select style="width:100%" id="prodkcd3_select" name="prodkcd3_select" onchange="prodkbn_change(event)" disabled>
+                                <option value="no">&nbsp;
+                                </option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>商品カテゴリ４</th>
+                        <td colspan="3">
+                            <select style="width:100%" id="prodkcd4_select" name="prodkcd4_select" onchange="prodkbn_change(event)" disabled>
+                                <option value="no">&nbsp;
+                                </option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>商品カテゴリ５</th>
+                        <td colspan="3">
+                            <select style="width:100%" id="prodkcd5_select" name="prodkcd5_select" onchange="prodkbn_change(event)" disabled>
+                                <option value="no">&nbsp;
+                                </option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="#sec1">ページの一番下へ</a>
+                        </td>
+                    </tr>
+                    </table>
+                </div>
+                <div style="margin-top:10px;width:1250px" id="prod_syosai">
+                    <table style="display:inline;width:1200px;margin-left:460px;">
+                        <tr>
+                          <th>商品特徴</th>
+                          <td style="height:18px;background-color:#FFC7AF;border:none">
+                              <ul>
+                                  <li>
+                                      <input type="radio" name="language1" id="language1" checked>
+                                      <label for="language1" onClick="lTranslate('1')">日本語</label>
+                                  </li>
+                                  <li>
+                                      <input type="radio" name="language1" id="language2">
+                                      <label for="language2" onClick="lTranslate('2')">英語</label>
+                                  </li>
+                                  <li>
+                                      <input type="radio" name="language1" id="language3">
+                                      <label for="language3" onClick="lTranslate('3')">韓国語</label>
+                                  </li>
+                                  <li>
+                                      <input type="radio" name="language1" id="language4">
+                                      <label for="language4" onClick="lTranslate('4')">中国語</label>
+                                  </li>
+                                  <li>
+                                      <input type="radio" name="language1" id="language5">
+                                      <label for="language5" onClick="lTranslate('5')">台湾語</label>
+                                  </li>
+                              </ul>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td colspan="2">
+                               <textarea  style="width:735px;" rows="5" id="syosai1" name="syosai1" maxlength="1000" class="lantext" title="<?php hsc($Log->getMsgLog('MSG_BASE_0318')); ?>"><?php hsc($Form['syosai1']);?></textarea>  
+                               <textarea  style="width:735px;display:none;" rows="5" id="syosai2" name="syosai2" maxlength="1000" class="lantext" title="<?php hsc($Log->getMsgLog('MSG_BASE_0318')); ?>"><?php hsc($Form['syosai2']);?></textarea>
+                               <textarea  style="width:735px;display:none;" rows="5" id="syosai3" name="syosai3" maxlength="1000" class="lantext" title="<?php hsc($Log->getMsgLog('MSG_BASE_0318')); ?>"><?php hsc($Form['syosai3']);?></textarea>
+                               <textarea  style="width:735px;display:none;" rows="5" id="syosai4" name="syosai4" maxlength="1000" class="lantext" title="<?php hsc($Log->getMsgLog('MSG_BASE_0318')); ?>"><?php hsc($Form['syosai4']);?></textarea>
+                               <textarea  style="width:735px;display:none;" rows="5" id="syosai5" name="syosai5" maxlength="1000" class="lantext" title="<?php hsc($Log->getMsgLog('MSG_BASE_0318')); ?>"><?php hsc($Form['syosai5']);?></textarea>
+                          </td>  
+                        </tr>
+                    </table>                 
+                </div>
+            </div>
+        </div>
+        <div style="height:220px;width:1200px;">
+            <div style="float:left;width:400px;">
+                <div>
+                    <table style="margin-left:10px;width:360px;">
+                        <tr>
+                            <th style="text-align:center;">
+                                販売トーク／勧め方
+                            </th>
+                        </tr>
+                        <tr>
+                            <td>
+                                <textarea  style="width:360px;ime-mode:active;" rows="6" id="allergy_material" name="allergy_material" maxlength="1000" class="lantext" title="<?php hsc($Log->getMsgLog('MSG_BASE_0318')); ?>"><?php hsc($Form['allergy_material']);?></textarea>
+                            </td>  
+                        </tr>
+                    </table>
+                </div>
+                <!-- バーコード表示  -->
+                <div style="height:200px;">
+                    <div style="float:left;min-width:360px;height:80px;margin-top:30px;margin-left:10px; border:solid 1px" id="barcode"></div>
+                </div>
+            </div>
+           <div style="height:130px;">
+                <table style="float:left;margin-left:60px;margin-top:150px;">   
+                    <tr>
+                        <th>お召し上がり方<br>ご利用方法</th>
+                        <td colspan="3">
+                            <textarea  style="width:585px;" rows="4" id="method" name="method" maxlength="100" class="lantext" title="<?php hsc($Log->getMsgLog('MSG_BASE_0318')); ?>"><?php hsc($Form['method']);?></textarea>  
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>利用シーン</th>
+                        <td colspan="3">
+                            <textarea  style="width:585px;" rows="4" id="use_scene" name="use_scene" maxlength="100" class="lantext" title="<?php hsc($Log->getMsgLog('MSG_BASE_0318')); ?>"><?php hsc($Form['use_scene']);?></textarea>  
+                        </td>
+                    </tr>
+<!--                    <tr>
+                      <th>原産国</th>
+                      <td>
+                          <input type="text" maxlength="100" pattern="[^\x27]*$" title="原産国" size="80" name="gensan" id="gensan" value="<?php hsc($Form['gensan']);?>">
+                      </td>
+                    </tr>-->
+                    <tr>
+                      <th>栄養／成分表示</th>
+                      <td>
+                           <textarea  style="width:585px;" rows="4" id="eiyouseibun" name="eiyouseibun" maxlength="1000" class="lantext" title="<?php hsc($Log->getMsgLog('MSG_BASE_0318')); ?>"><?php hsc($Form['eiyouseibun']);?></textarea>  
+                      </td>
+                    </tr>
+                    <tr>
+                      <th>！使用上の注意！</th>
+                      <td>
+                           <textarea  style="width:585px;" rows="4" id="siyoujyounotyui" name="siyoujyounotyui" maxlength="1000" class="lantext" title="<?php hsc($Log->getMsgLog('MSG_BASE_0318')); ?>"><?php hsc($Form['siyoujyounotyui']);?></textarea>  
+                      </td>
+                    </tr>
+                    <tr>
+                        <th>保存方法</th>
+                        <td colspan="3">
+                            <input type="text" maxlength="100" title="<?php hsc($Log->getMsgLog('MSG_BASE_0318')); ?>" size="80" name="store_temp" id="store_temp" value="<?php hsc($Form['store_temp']);?>">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>原材料名</th>
+                        <td>
+                            <input type="text" maxlength="100" pattern="[^\x27]*$" title="原材料名" size="80" name="genzairyomei" id="genzairyomei" value="<?php hsc($Form['genzairyomei']);?>">
+                        </td>
+                    </tr>
+                    <tr>
+                      <th>輸入者/販売元</th>
+                      <td>
+                          <input type="text" maxlength="100" pattern="[^\x27]*$" title="輸入者/販売元" size="80" name="hannbaimoto" id="hannbaimoto" value="<?php hsc($Form['hannbaimoto']);?>">
+                      </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div style="width:1000px;" id="sec1">             
+            <input type="submit" id="add" class="add" name="add" value="登録する">         
+            <input type="button" id ="return" value="戻る" onClick="location.href='./index.php?param=OrderProduct/show&home=1'">
+        </div>
+    </form>
+</div><!-- /#sb-site -->  
+<?php include("../FwCommon/View/Dialog.php"); ?>
+</body>
+</html>

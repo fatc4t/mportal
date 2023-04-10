@@ -1,0 +1,85 @@
+body {
+	background-color: #ffffff;
+	margin-top:10px;
+	margin-bottom:0px;
+	margin-left:0px;
+	margin-right:0px;
+-webkit-print-color-adjust: exact;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  border: 1px solid #000000;
+}
+
+table.head{
+  border-collapse: collapse;
+  border-spacing: 0;
+  border: 1px solid #ffffff;
+  font-size: 12px;
+}
+
+th {
+  color: #000;
+  background: #A4A4A4 !important;
+  padding: 2px 2px;
+  vertical-align: middle;
+  border-spacing: 0;
+  border: 1px solid #000000;
+  font-size: 12px;
+}
+
+th.total{
+  color: #000;
+  background: #A4A4A4 !important;
+  padding: 2px 2px;
+  vertical-align: middle;
+  border-spacing: 0;
+  border: 1px solid #000000;
+  font-size: 20px;
+}
+
+td {
+  padding: 2px 2px;
+  vertical-align: middle;
+  border-spacing: 0;
+  border: 1px solid #000000;
+  font-size: 12px;
+}
+
+td.total{
+  padding: 2px 2px;
+  vertical-align: middle;
+  border-spacing: 0;
+  border: 1px solid #000000;
+  font-size: 20px;
+}
+
+td.head{
+  padding: 2px 2px;
+  vertical-align: middle;
+  border-spacing: 0;
+  border: 1px solid #ffffff;
+  font-size: 12px;
+}
+
+td.title{
+  padding: 2px 2px;
+  vertical-align: middle;
+  border-spacing: 0;
+  border: 1px solid #ffffff;
+  font-size: 20px;
+}
+
+td.shop {
+  padding: 2px 2px;
+  vertical-align: middle;
+  border-spacing: 0;
+  border: 1px solid #000000;
+  font-size: 12px;
+}
+
+.PageBreak {
+  page-break-before: always;
+}

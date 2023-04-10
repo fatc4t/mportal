@@ -1,0 +1,409 @@
+<?php header('X-Frame-Options: SAMEORIGIN'); ?>
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>ミックスマッチ検索</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!--<link rel="stylesheet" href="../css/product/jquery-ui.css" >	
+        <link rel="stylesheet" href="../css/product/default.css" >	        -->
+        <style>
+            body {
+              /*font-family: MS Gothic;*/
+                background-color: whitesmoke;
+            }
+            label {
+              background-color: #0B0B61;
+              color: white;
+              font-weight: bold;
+              padding: 2px;
+              text-transform: uppercase;
+            /*font-size: 12pt;*/
+              font-size: 11pt;
+              margin: 1px;
+              display: inline-block;              
+            } 
+            .input_small2{
+                width: 8em;
+            } 
+            thead#thead_id th {
+                background-color: #0B0B61;
+                border: 1px solid #AAA;
+                color: white;
+                text-align: -webkit-center;
+                font-size: 11pt;
+            }
+            tbody#tbody_id {
+                background-color: #fff;
+                border: 1px solid #0B0B61;
+                font-size: 11pt;
+            }
+            /* organization */
+            thead#thead_id th:nth-child(2),
+            tbodytbody_id tr td:nth-child(2){
+                width: 12em;
+            }
+            /* code */
+            thead#thead_id th:nth-child(3),
+            tbodytbody_id tr td:nth-child(3){
+                width: 6em;                
+            }
+            thead#thead_id th:nth-child(4),
+            tbodytbody_id tr td:nth-child(4),
+            thead#thead_id th:nth-child(5),
+            tbodytbody_id tr td:nth-child(5),
+            thead#thead_id th:nth-child(6),
+            tbodytbody_id tr td:nth-child(6),
+            thead#thead_id th:nth-child(7),
+            tbodytbody_id tr td:nth-child(7),
+            thead#thead_id th:nth-child(8),
+            tbodytbody_id tr td:nth-child(8),
+            thead#thead_id th:nth-child(9),
+            tbodytbody_id tr td:nth-child(9),
+            thead#thead_id th:nth-child(10),
+            tbodytbody_id tr td:nth-child(10),
+            thead#thead_id th:nth-child(11),
+            tbodytbody_id tr td:nth-child(11){
+                width: 8em;
+            }
+            tbody  {
+                background-color: #fff;
+                border: 1px solid #0B0B61;
+            }
+            td {
+                background-color: #fff;
+                border: 1px solid #0B0B61;
+                
+            }  
+        </style>
+
+        <script type="text/javascript" src="../js/product/jquery/jquery.min.js"></script>
+        <script type="text/javascript" src="../js/template1/jquery-ui.min.js" ></script>
+        <link rel="stylesheet" href="../css/product/jquery-ui.css" >	
+        <script src="../js/product/jquery/datepicker-ja.js" /></script>
+        <script type="text/javascript">
+            $.datepicker.setDefaults( $.datepicker.regional[ "ja" ] );
+            $(function()
+            {
+                $( "#txt_EXPIRA_DT" ).datepicker({
+                    showButtonPanel: true,
+                    beforeShow: function( input ) {
+                        setTimeout(function() {
+                            var buttonPane = $( input )
+                                .datepicker( "widget" )
+                                .find( ".ui-datepicker-buttonpane" );
+
+                            $( "<button>", {
+                                text: "クリア",
+                                click: function() {
+                                    //Code to clear your date field (text box, read only field etc.) I had to remove the line below and add custom code here
+                                    $.datepicker._clearDate( input );
+                                }
+                            }).appendTo( buttonPane ).addClass("ui-datepicker-clear ui-state-default ui-priority-primary ui-corner-all");
+                        }, 1 );
+                    },
+                    onChangeMonthYear: function( year, month, instance ) {
+                        setTimeout(function() {
+                            var buttonPane = $( instance )
+                                .datepicker( "widget" )
+                                .find( ".ui-datepicker-buttonpane" );
+
+                            $( "<button>", {
+                                text: "クリア",
+                                click: function() {
+                                    //Code to clear your date field (text box, read only field etc.) I had to remove the line below and add custom code here
+                                    $.datepicker._clearDate( instance.input );
+                                }
+                            }).appendTo( buttonPane ).addClass("ui-datepicker-clear ui-state-default ui-priority-primary ui-corner-all");
+                        }, 1 );
+                    }
+                });
+            });
+
+            var table_size = 30;
+            var pagenb = 0;
+            
+            var keys=[];
+            keys=["abbreviated_name","mixmatch_cd", "expira_str", "expira_end","unit_amoun1","unit_money1","unit_amoun2","unit_money2","unit_amoun3","unit_money3"];
+            var result = "";
+            thead_nm            = ["","組織名","コード","開始日","終了日","単位数量1","金額1","単位数量2","金額2","単位数量3","金額3"];
+            pmst5201_sd         = '<?php echo json_encode(json_encode($mst5201_searchdata)); ?>';
+            ptypmst5201_sd      = JSON.parse(pmst5201_sd.slice(1,-1));
+            working_data        = ptypmst5201_sd;
+            //pmst0201_sd         = '<?php echo json_encode(json_encode($mst0201_searchdata)); ?>';
+            //ptypmst0201_sd      = JSON.parse(pmst0201_sd.slice(1,-1));
+            pmst0201_sd         = <?php $prefix = '';echo '[';foreach($mst0201_searchdata as $row){echo $prefix,json_encode(json_encode($row));$prefix = ',';};echo ']'; ?>;
+            ptypmst0201_sd      = getJson();
+            var pagemaxnb = Math.ceil(ptypmst5201_sd.length/table_size)-1 ;
+            //
+            abbreviated_list    = '<?php echo json_encode(json_encode($abbreviatedNameList)); ?>';
+            A_abbreviated_list  = JSON.parse(abbreviated_list.slice(1,-1));
+            destination = "<?php echo $destination; ?>";
+            
+             function getJson(){
+                var str = [];
+                for(i = 1; i < pmst0201_sd.length; i++){
+                    str.push(JSON.parse(pmst0201_sd.slice(i,i+1 )));
+                };
+                return str;
+            }
+
+            function fresult(e){
+                result=e.target.value;
+                //console.log(result);
+                checkboxlst=document.getElementsByName('ckbox_val');
+                //console.log(checkboxlst);
+                for(i=0;i < checkboxlst.length; i++){
+                    checkboxlst[i].checked= false;
+                }
+                document.getElementById(e.target.id).checked= true;
+            }
+            function tbodydata(data,start,nbRow){ 
+                tbod = document.getElementById("tbody_id");
+                tbod.innerHTML = '';
+                if(data.length > 0){ 
+                    if(keys.length <= 0){
+                        keys = Object.keys(data[0]);            
+                    }
+                    ilength=data.length;
+                    if(nbRow > ilength-start){
+                        nbRow=ilength-start;                        
+                    }
+                    for(i=0;i < nbRow ; i++ ){ 
+                        var trow         = tbod.insertRow(i);
+                        var ckbox        = trow.insertCell(0);
+                        var newckBox     = document.createElement('input');
+                        newckBox.type    = 'checkbox';
+                        newckBox.name    = 'ckbox_val';
+                        newckBox.id      = 'ckbox_' + i;
+//                        newckBox.value   = data[ilength-start-i-1].supp_cd;
+                        var iIdx = ilength-start-i-1;
+                        newckBox.value   = data[iIdx].organization_id + ':' + data[iIdx].mixmatch_cd;
+                        newckBox.onclick = fresult;
+                        ckbox.appendChild(newckBox);
+                        for(j=0;j < keys.length; j++){
+                            var newcell = trow.insertCell(j+1);
+                            newcell.innerHTML = data[ilength-start-i-1][keys[j]];
+                            if (keys[j].indexOf("unit_") >= 0){
+                                newcell.style.textAlign = 'right';
+                            }
+                        }
+                    }
+                }                
+            }
+            function datashowpage(showpage){
+                tbodydata(working_data,showpage*table_size,table_size);
+            }
+            function firstpage(){
+                pagenb=0;
+                document.getElementById("bt_previous").setAttribute("disabled", true);
+                document.getElementById("bt_next").removeAttribute("disabled");
+                datashowpage(pagenb);
+            }
+            function lastpage(){
+                pagenb=pagemaxnb;
+                document.getElementById("bt_previous").removeAttribute("disabled");
+                document.getElementById("bt_next").setAttribute("disabled", true);
+                datashowpage(pagenb);
+            }
+            function previous(){
+                pagenb--;
+                if(pagenb > 0){  
+                    document.getElementById("bt_previous").removeAttribute("disabled");
+                }
+                else {
+                    pagenb = 0;
+                    document.getElementById("bt_previous").setAttribute("disabled", true);
+                }
+                if(pagenb < pagemaxnb){
+                    document.getElementById("bt_next").removeAttribute("disabled");
+                }
+                else {
+                    pagenb = pagemaxnb;                    
+                    document.getElementById("bt_next").setAttribute("disabled", true);
+                }                
+                datashowpage(pagenb);
+            }
+            function next(){ 
+                pagenb++;
+                if(pagenb < pagemaxnb){
+                    document.getElementById("bt_next").removeAttribute("disabled");
+                }
+                else {
+                    pagenb = pagemaxnb;                    
+                    document.getElementById("bt_next").setAttribute("disabled", true);
+                }
+                if(pagenb > 0){  
+                    document.getElementById("bt_previous").removeAttribute("disabled");
+                }
+                else {
+                    pagenb = 0;
+                    document.getElementById("bt_previous").setAttribute("disabled", true);
+                }                
+                datashowpage(pagenb);
+            }
+            function searchdata(event_id){
+                var orgn_id_val     = document.getElementById("cmb_ORGANIZATION_ID").value;
+                var prod_cd_val     = document.getElementById("txt_PROD_CD").value;
+                var expira_dt_val   = document.getElementById("txt_EXPIRA_DT").value;
+
+                document.getElementById("lbl_PROD_NM").innerHTML = "　";        
+                if(!orgn_id_val && !prod_cd_val && !expira_dt_val){
+                    working_data = ptypmst5201_sd;
+                    pagemaxnb = Math.ceil(working_data.length/table_size)-1 ;
+                    firstpage();
+                    return;
+                }
+                // prod_nm display update
+                if (prod_cd_val !== ""){
+                    prod_cd_val = ("0000000000000"+prod_cd_val).slice(-13);
+                    document.getElementById("txt_PROD_CD").value = prod_cd_val;
+                }
+                if (orgn_id_val !== "" && prod_cd_val !== ""){
+                    for(k=0; k<ptypmst0201_sd.length; k++){
+                        if (orgn_id_val == ptypmst0201_sd[k].organization_id && prod_cd_val == ptypmst0201_sd[k].prod_cd){
+                            document.getElementById("lbl_PROD_NM").innerHTML = ptypmst0201_sd[k].prod_nm;
+                            break;
+                        }
+                    }
+                }
+
+                working_data = [];
+                for(var i = 0 ; i<ptypmst5201_sd.length;i++){
+                    var j=0;
+                    if(orgn_id_val){
+                        if(!ptypmst5201_sd[i].organization_id){continue;}
+                        if(ptypmst5201_sd[i].organization_id == orgn_id_val){
+                            j=1;
+                        }
+                        else{continue;}
+                    }
+                    if(prod_cd_val){
+                        if(!ptypmst5201_sd[i].prod_cd){continue;}
+                        //if(ptypmst5201_sd[i].prod_cd == prod_cd_val){
+                        //    j=1;
+                        //}
+                        //else{continue;}
+                        aryProdCd = ptypmst5201_sd[i].prod_cd.split(",");
+                        if (aryProdCd.indexOf(prod_cd_val) >= 0){
+                            j=1;
+                        }
+                        else{continue;}
+                    }
+                    if(expira_dt_val){
+                        if(!ptypmst5201_sd[i].expira_str && !ptypmst5201_sd[i].expira_end){continue;}
+                        if(ptypmst5201_sd[i].expira_str <= expira_dt_val && ptypmst5201_sd[i].expira_end >= expira_dt_val){
+                            j=1;
+                        }
+                        else{continue;}
+                    }                    
+                    if(j===1){
+                        working_data.push(ptypmst5201_sd[i]);
+                    }
+                }
+                pagemaxnb = Math.ceil(working_data.length/table_size)-1 ;
+                firstpage();
+            }
+            function send_result(){
+                if (result != ""){
+                    if(destination == 'Mst5201'){
+                            parent.closeDialog1(result);           
+                    }
+                    spath = window.location.href;
+                    spath = spath.split('?'); 
+                    spath = spath[0]+'?param=Mst5201/show&search='+result;
+                    window.location.replace(spath);
+                }
+            }
+            function searchProd(){
+                // open Dialog to get Product Informations.
+                spath       = window.location.href;
+                spath       = spath.split('?'); 
+                spath       = spath[0]+'?param=Mst5201/search&type=p';
+                openDialog(spath);
+            }
+            function openDialog(url) {
+                var iframeStyle = 'min-width     : 100%; ' +
+                                  'height        : 100%; ' +
+                                  'padding-top   : 0.2em; ' +
+                                  'padding-right : 0; ' +
+                                  'padding-bottom: 0.8em; ' +
+                                  'padding-left  : 0;';
+                //var iframe = $('<iframe frameborder="0" src="' + url + '" style="' + iframeStyle + '"></iframe>');
+                var iframe = $('<iframe id="searchDialog" frameborder="0" src="' + url + '" style="' + iframeStyle + '"></iframe>');
+                var dialogOptions = {
+                    width : 640,
+                    //height: 480,
+                    height: 660,
+                    title : '商品検索',
+                    modal : true
+                };
+                iframe.dialog(dialogOptions);
+            }
+            function closeDialog(ref){
+                // 閉じる
+                $('#searchDialog').dialog('close');
+                // 破棄
+                $('#searchDialog').dialog('destroy');
+                // 商品コード変更イベント処理
+                searchdata('txt_PROD_CD');
+                return false;
+            }
+        </script>
+    </head>
+    <body>
+    <!-- Site -->
+    <div id="sb-site" style="overflow: auto;">
+        <!--<div>ミックスマッチ検索</div>-->
+        <div>
+            <label class="input_small2" for="cmb_ORGANIZATION_ID"> 組織名 </label>
+            <select id="cmb_ORGANIZATION_ID" onchange="searchdata('cmb_ORGANIZATION_ID')">
+                <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+                <?php foreach($abbreviatedNameList as $abbreviated) { ?>
+                    <option value="<?php hsc($abbreviated['organization_id']); ?>" <?php hsc($selected); ?>><?php hsc($abbreviated['abbreviated_name']); ?></option>
+                <?php } ?>
+            </select><br />
+            <label class="input_small2" for="txt_PROD_CD"> 商品コード </label>
+            <input type="text"  id="txt_PROD_CD" onblur="searchdata('txt_PROD_CD')">
+            <label class="input_small2" id="lbl_PROD_NM" style="width:400px; height:18px; color:#FFF; background-color:#444;">　</label>
+            <button type="button" id="bt_search" onclick="searchProd()">参照</button><br />
+            <label class="input_small2" for="txt_EXPIRA_DT"> 日付 </label>
+            <input type="text"  id="txt_EXPIRA_DT" onchange="searchdata('txt_EXPIRA_DT')" readonly><br />
+            <button type="button" id="bt_fisrt" onclick="firstpage()"  >先頭ページ</button><button type="button" id="bt_previous" onclick="previous()" disabled >前ページ</button><button type="button" id="bt_next" onclick="next()">次ページ</button><button type="button" id="bt_last" onclick="lastpage()"  >最終ページ</button>
+            <button type="button" id="send_result" onclick="send_result()"  >決定</button>
+        </div>
+        <br />
+        <div>
+            <table>
+                <thead id="thead_id">
+                    <tr>
+                        <th>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="tbody_id">
+                    
+                </tbody>
+            </table>
+        </div>
+<!--        <button type="button" id="send_result" onclick="send_result()"  >決定</button>-->
+    </div><!-- /#sb-site -->
+        <script type="text/javascript">
+            thead = document.getElementById("thead_id");
+            thead.innerHTML = '';           
+            for(i=0;i < thead_nm.length ; i++ ){
+                field_nm            = document.createElement('th');
+                field_nm.innerHTML  = "";
+                field_nm.innerHTML  = thead_nm[i];
+                thead.appendChild(field_nm);
+            }
+            tbodydata(ptypmst5201_sd,0,table_size);
+           
+        </script>
+    </body>
+</html>

@@ -1,0 +1,972 @@
+<?php
+    /**
+     * @file      勤怠一覧画面(View)
+     * @author    USE M.Higashihara
+     * @date      2016/07/12
+     * @version   1.00
+     * @note      勤怠一覧画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array( 'default.css', 'common.js', 'jquery-ui.min.js', 'jquery-ui.css' );    // cssまたはｊｓファイルを拡張子付きで配列に記述 
+            include("Common/HtmlHeader.php");
+        ?>
+        <script src="../js/attendance/jquery/jquery.ui.ympicker.js" /></script>
+        <script src="../js/attendance/jquery/jquery-migrate-1.0.0.js" /></script>
+        <script src="../js/attendance/jquery/datepicker-ja.js" /></script>
+        <script type="text/javascript">
+            var searchPath = '';
+            $(document).ready(function()
+            {
+                // 期間の初期表示設定
+                $('#minDatetextYear').css('display' , 'none');
+                $('#maxDatetextYear').css('display' , 'none');
+                $('#minDatetextYm').css('display' , 'none');
+                $('#maxDatetextYm').css('display' , 'none');
+                $('#minDatetext').css('display' , '');
+                $('#maxDatetext').css('display' , '');
+                $('#timeDatetext').css('display' , 'none');
+                $('#minDatetextHour').css('display' , 'none');
+                $('#maxDatetextHour').css('display' , 'none');
+                $('#minDatetextHourFont').css('display' , 'none');
+                $('#maxDatetextHourFont').css('display' , 'none');
+                if( $("[name=dateTimeUnit]:checked").val() === "時間" )
+                {
+                    $('#mobileUnit_org').prop('disabled', true);
+                    $('#mobileUnit_emp').prop('disabled', true);
+                    $('#mobileUnit_pos').prop('disabled', true);
+                }
+                else
+                {
+                    $('#mobileUnit_org').prop('disabled', false);
+                    $('#mobileUnit_emp').prop('disabled', false);
+                    $('#mobileUnit_pos').prop('disabled', false);
+                }
+
+                if($("[name=mobileUnit]:checked").val() === "個人")
+                {
+                    $('#dateTimeUnit_hour').prop('disabled', false);
+                }
+                else
+                {
+                    $('#dateTimeUnit_hour').prop('disabled', true);
+                }
+
+                /**
+                 * 検索ボタンクリック
+                 */
+                $('#searchForm').submit(function(event)
+                {
+                    event.preventDefault();
+
+                    var minData = $('#minDatetext').val();
+                    var maxData = $('#maxDatetext').val();
+                    var userSecurity = "<?php hsc($searchArray['attendanceAccessId']); ?>";
+                    if( $("[name=dateTimeUnit]:checked").val() === "時間" )
+                    {
+                        if( userSecurity < 5 )
+                        {
+                            if( $('#organizationName').val() == '' || $('#organizationName').val() == undefined || $('#organizationName').val() == null )
+                            {
+                                alert("所属組織を選択してください。");
+                                return false;
+                            }
+                        }
+                        if( $('#timeDatetext').val() == '' || $('#timeDatetext').val() == undefined || $('#timeDatetext').val() == null )
+                        {
+                            alert("検索対象日を選択してください。");
+                            return false;
+                        }
+                        if( $('#minDatetextHour').val() == '' || $('#minDatetextHour').val() == undefined || $('#minDatetextHour').val() == null )
+                        {
+                            alert("検索開始時間を選択してください。");
+                            return false;
+                        }
+                        if( $('#minDatetextHour').val() == '' || $('#minDatetextHour').val() == undefined || $('#minDatetextHour').val() == null )
+                        {
+                            alert("検索終了時間を選択してください。");
+                            return false;
+                        }
+                        var hourCheck = Number( $('#maxDatetextHour').val() ) - Number( $('#minDatetextHour').val() );
+                        if( hourCheck < 0 || hourCheck > 24 )
+                        {
+                            alert("時間の範囲は0時間以上24時間以内としてください。");
+                            return false;
+                        }
+                        minData = $('#timeDatetext').val();
+                        maxData = $('#timeDatetext').val();
+                    }
+
+                    if( $("[name=dateTimeUnit]:checked").val() === "月" )
+                    {
+                        minData = $('#minDatetextYm').val();
+                        maxData = $('#maxDatetextYm').val();
+                    }
+                    if( $("[name=dateTimeUnit]:checked").val() === "年" )
+                    {
+                        minData = $('#minDatetextYear').val();
+                        maxData = $('#maxDatetextYear').val();
+                    }
+
+                    // 期間を、年月日＆時間に分割する
+                    var searchMinYear  = minData.slice( 0, 4 );
+                    var searchMinMonth = minData.slice( 5, 7 );
+                    var searchMinDay   = minData.slice( 8, 10 );
+                    var searchMinHour  = $('#minDatetextHour').val();
+
+                    var searchMaxYear  = maxData.slice( 0, 4 );
+                    var searchMaxMonth = maxData.slice( 5, 7 );
+                    var searchMaxDay   = maxData.slice( 8, 10 );
+                    var searchMaxHour  = $('#maxDatetextHour').val();
+
+                    // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                    var data = {
+                                    searchDateTimeUnit : $("[name=dateTimeUnit]:checked").val(),
+                                    searchMobileUnit : $("[name=mobileUnit]:checked").val(),
+                                    searchMinPeriodSpecifiedYear : searchMinYear,
+                                    searchMinPeriodSpecifiedMonth : searchMinMonth,
+                                    searchMinPeriodSpecifiedDay : searchMinDay,
+                                    searchMinPeriodSpecifiedHour : searchMinHour,
+                                    searchMaxPeriodSpecifiedYear : searchMaxYear,
+                                    searchMaxPeriodSpecifiedMonth : searchMaxMonth,
+                                    searchMaxPeriodSpecifiedDay : searchMaxDay,
+                                    searchMaxPeriodSpecifiedHour : searchMaxHour,
+                                    searchMinEstimationShift : $('#minEstimationShift').val(),
+                                    searchMaxEstimationShift : $('#maxEstimationShift').val(),
+                                    searchMinEstimationPerfo : $('#minEstimationPerfo').val(),
+                                    searchMaxEstimationPerfo : $('#maxEstimationPerfo').val(),
+                                    searchEmbossingOrganizationID : $('#embossingOrganizationID').val(),
+                                    searchEmbossingSituation : $('#embossingSituation').val(),
+                                    searchOrganizatioID : $('#organizationName').val(),
+                                    searchPositionName : $('#positionName').val(),
+                                    searchEmploymentName : $('#employmentName').val(),
+                                    searchPersonalName : $('#personalName').val(),
+                                    searchMinTotalWorkTimeHour : $('#minTotalWorkTimeHour').val(),
+                                    searchMinTotalWorkTimeMinute : $('#minTotalWorkTimeMinute').val(),
+                                    searchMaxTotalWorkTimeHour : $('#maxTotalWorkTimeHour').val(),
+                                    searchMaxTotalWorkTimeMinute : $('#maxTotalWorkTimeMinute').val(),
+                                    searchMinOvertimeHour : $('#minOvertimeHour').val(),
+                                    searchMinOvertimeMinute : $('#minOvertimeMinute').val(),
+                                    searchMaxOvertimeHour : $('#maxOvertimeHour').val(),
+                                    searchMaxOvertimeMinute : $('#maxOvertimeMinute').val(),
+                                    searchMinBreakTimeHour : $('#minBreakTimeHour').val(),
+                                    searchMinBreakTimeMinute : $('#minBreakTimeMinute').val(),
+                                    searchMaxBreakTimeHour : $('#maxBreakTimeHour').val(),
+                                    searchMaxBreakTimeMinute : $('#maxBreakTimeMinute').val(),
+                                    searchMinAbsenteeismNo : $('#minAbsenteeismNo').val(),
+                                    searchMaxAbsenteeismNo : $('#maxAbsenteeismNo').val(),
+                                    searchMinLateNo : $('#minLateNo').val(),
+                                    searchMaxLateNo : $('#maxLateNo').val(),
+                                    searchMinLeaveNo : $('#minLeaveNo').val(),
+                                    searchMaxLeaveNo : $('#maxLeaveNo').val(),
+                                    searchMinModifyNo : $('#minModifyNo').val(),
+                                    searchMaxModifyNo : $('#maxModifyNo').val(),
+                                };
+
+                    // データ更新
+                    setDataForAjax( data, searchPath );
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+                /**
+                 * 検索ボタンクリック
+                 */
+                $('#search').click(function()
+                {
+                    searchPath = 'index.php?param=AttendanceRecord/search&home=1';
+                });
+
+                /**
+                 * 印刷ボタンクリック
+                 */
+                $('#print').click(function()
+                {
+                    searchPath = 'index.php?param=AttendanceRecord/print&home=1';
+                });
+
+                /**
+                 * 累計単位(日時)のラジオボタンチェック時のボタン表示条件
+                 */
+                $("input:radio[name=dateTimeUnit]").change(function()
+                {
+                    changeDateTime();
+                });
+
+                /**
+                 * 累計単位(形態)のラジオボタンチェック時のボタン表示条件
+                 */
+                $("input:radio[name=mobileUnit]").change(function()
+                {
+                    if($("[name=mobileUnit]:checked").val() === "個人")
+                    {
+                        $('#personalName').prop('disabled', false);
+                        $('#positionName').prop('disabled', false);
+                        $('#employmentName').prop('disabled', false);
+                        $('#dateTimeUnit_hour').prop('disabled', false);
+                        if($("[name=dateTimeUnit]:checked").val() === "日")
+                        {
+                            $('.userName').prop('disabled', false);
+                            $('#minAbsenteeismNo').prop('disabled', true);
+                            $('#minAbsenteeismNo').val('');
+                            $('#maxAbsenteeismNo').prop('disabled', true);
+                            $('#maxAbsenteeismNo').val('');
+                            $('#minLateNo').prop('disabled', true);
+                            $('#minLateNo').val('');
+                            $('#maxLateNo').prop('disabled', true);
+                            $('#maxLateNo').val('');
+                            $('#minLeaveNo').prop('disabled', true);
+                            $('#minLeaveNo').val('');
+                            $('#maxLeaveNo').prop('disabled', true);
+                            $('#maxLeaveNo').val('');
+                            $('#minModifyNo').prop('disabled', true);
+                            $('#minModifyNo').val('');
+                            $('#maxModifyNo').prop('disabled', true);
+                            $('#maxModifyNo').val('');
+                        }
+                        else if($("[name=dateTimeUnit]:checked").val() === "月")
+                        {
+                            $('.userName').prop('disabled', false);
+                            $('#minAbsenteeismNo').prop('disabled', false);
+                            $('#maxAbsenteeismNo').prop('disabled', false);
+                            $('#minLateNo').prop('disabled', false);
+                            $('#maxLateNo').prop('disabled', false);
+                            $('#minLeaveNo').prop('disabled', false);
+                            $('#maxLeaveNo').prop('disabled', false);
+                            $('#minModifyNo').prop('disabled', false);
+                            $('#maxModifyNo').prop('disabled', false);
+                        }
+                        else if($("[name=dateTimeUnit]:checked").val() === "時間")
+                        {
+                            $('.userName').prop('disabled', true);
+                            $('#minAbsenteeismNo').prop('disabled', true);
+                            $('#minAbsenteeismNo').val('');
+                            $('#maxAbsenteeismNo').prop('disabled', true);
+                            $('#maxAbsenteeismNo').val('');
+                            $('#minLateNo').prop('disabled', true);
+                            $('#minLateNo').val('');
+                            $('#maxLateNo').prop('disabled', true);
+                            $('#maxLateNo').val('');
+                            $('#minLeaveNo').prop('disabled', true);
+                            $('#minLeaveNo').val('');
+                            $('#maxLeaveNo').prop('disabled', true);
+                            $('#maxLeaveNo').val('');
+                            $('#minModifyNo').prop('disabled', true);
+                            $('#minModifyNo').val('');
+                            $('#maxModifyNo').prop('disabled', true);
+                            $('#maxModifyNo').val('');
+                        }
+                        else
+                        {
+                            $('.userName').prop('disabled', true);
+                            $('#minAbsenteeismNo').prop('disabled', false);
+                            $('#maxAbsenteeismNo').prop('disabled', false);
+                            $('#minLateNo').prop('disabled', false);
+                            $('#maxLateNo').prop('disabled', false);
+                            $('#minLeaveNo').prop('disabled', false);
+                            $('#maxLeaveNo').prop('disabled', false);
+                            $('#minModifyNo').prop('disabled', false);
+                            $('#maxModifyNo').prop('disabled', false);
+                        }
+                    }
+                    else
+                    {
+                        $('#personalName').prop('disabled', true);
+                        $('#dateTimeUnit_hour').prop('disabled', true);
+                        $('#personalName').val('');
+                        $('.userName').prop('disabled', true);
+                        $('#minAbsenteeismNo').prop('disabled', false);
+                        $('#maxAbsenteeismNo').prop('disabled', false);
+                        $('#minLateNo').prop('disabled', false);
+                        $('#maxLateNo').prop('disabled', false);
+                        $('#minLeaveNo').prop('disabled', false);
+                        $('#maxLeaveNo').prop('disabled', false);
+                        $('#minModifyNo').prop('disabled', false);
+                        $('#maxModifyNo').prop('disabled', false);
+                        if($("[name=mobileUnit]:checked").val() === "組織")
+                        {
+                            $('#positionName').prop('disabled', true);
+                            $('#positionName').val(0);
+                            $('#employmentName').prop('disabled', true);
+                            $('#employmentName').val(0);
+                        }
+                        else if($("[name=mobileUnit]:checked").val() === "役職")
+                        {
+                            $('#positionName').prop('disabled', false);
+                            $('#employmentName').prop('disabled', true);
+                            $('#employmentName').val(0);
+                        }
+                        else
+                        {
+                            $('#positionName').prop('disabled', true);
+                            $('#positionName').val(0);
+                            $('#employmentName').prop('disabled', false);
+                        }
+                    }
+                });
+            });
+
+            /**
+             * 累積単位(日時)
+             */
+            function changeDateTime()
+            {
+                var nowdate = new Date();
+                var nowmonth = nowdate.getMonth()+1;
+                var yesterday = nowdate.getDate()-1;
+                if( $("[name=dateTimeUnit]:checked").val() === "日" )
+                {
+                    $('#minDatetextYear').css('display' , 'none');
+                    $('#maxDatetextYear').css('display' , 'none');
+                    $('#minDatetextYm').css('display' , 'none');
+                    $('#maxDatetextYm').css('display' , 'none');
+                    $('#minDatetext').css('display' , '');
+                    $('#maxDatetext').css('display' , '');
+                    $('#timeDatetext').css('display' , 'none');
+                    $('#minDatetextHour').css('display' , 'none');
+                    $('#maxDatetextHour').css('display' , 'none');
+                    $('#minDatetextHourFont').css('display' , 'none');
+                    $('#maxDatetextHourFont').css('display' , 'none');
+                    $('#mobileUnit_org').prop('disabled', false);
+                    $('#mobileUnit_emp').prop('disabled', false);
+                    $('#mobileUnit_pos').prop('disabled', false);
+                    $('#minEstimationShift').prop('disabled', false);
+                    $('#maxEstimationShift').prop('disabled', false);
+                    $('#minEstimationPerfo').prop('disabled', false);
+                    $('#maxEstimationPerfo').prop('disabled', false);
+                    $('#minTotalWorkTimeHour').prop('disabled', false);
+                    $('#minTotalWorkTimeMinute').prop('disabled', false);
+                    $('#maxTotalWorkTimeHour').prop('disabled', false);
+                    $('#maxTotalWorkTimeMinute').prop('disabled', false);
+                    $('#minOvertimeHour').prop('disabled', false);
+                    $('#minOvertimeMinute').prop('disabled', false);
+                    $('#maxOvertimeHour').prop('disabled', false);
+                    $('#maxOvertimeMinute').prop('disabled', false);
+                    $('#minBreakTimeHour').prop('disabled', false);
+                    $('#minBreakTimeMinute').prop('disabled', false);
+                    $('#maxBreakTimeHour').prop('disabled', false);
+                    $('#maxBreakTimeMinute').prop('disabled', false);
+                }
+                else if( $("[name=dateTimeUnit]:checked").val() === "月" )
+                {
+                    $('#minDatetextYear').css('display' , 'none');
+                    $('#maxDatetextYear').css('display' , 'none');
+                    $('#minDatetextYm').css('display' , '');
+                    $('#maxDatetextYm').css('display' , '');
+                    $('#minDatetext').css('display' , 'none');
+                    $('#maxDatetext').css('display' , 'none');
+                    $('#timeDatetext').css('display' , 'none');
+                    $('#minDatetextHour').css('display' , 'none');
+                    $('#maxDatetextHour').css('display' , 'none');
+                    $('#minDatetextHourFont').css('display' , 'none');
+                    $('#maxDatetextHourFont').css('display' , 'none');
+                    $('#mobileUnit_org').prop('disabled', false);
+                    $('#mobileUnit_emp').prop('disabled', false);
+                    $('#mobileUnit_pos').prop('disabled', false);
+                    $('#minEstimationShift').prop('disabled', false);
+                    $('#maxEstimationShift').prop('disabled', false);
+                    $('#minEstimationPerfo').prop('disabled', false);
+                    $('#maxEstimationPerfo').prop('disabled', false);
+                    $('#minTotalWorkTimeHour').prop('disabled', false);
+                    $('#minTotalWorkTimeMinute').prop('disabled', false);
+                    $('#maxTotalWorkTimeHour').prop('disabled', false);
+                    $('#maxTotalWorkTimeMinute').prop('disabled', false);
+                    $('#minOvertimeHour').prop('disabled', false);
+                    $('#minOvertimeMinute').prop('disabled', false);
+                    $('#maxOvertimeHour').prop('disabled', false);
+                    $('#maxOvertimeMinute').prop('disabled', false);
+                    $('#minBreakTimeHour').prop('disabled', false);
+                    $('#minBreakTimeMinute').prop('disabled', false);
+                    $('#maxBreakTimeHour').prop('disabled', false);
+                    $('#maxBreakTimeMinute').prop('disabled', false);
+                }
+                else if( $("[name=dateTimeUnit]:checked").val() === "時間" )
+                {
+                    $('#minDatetextYear').css('display' , 'none');
+                    $('#maxDatetextYear').css('display' , 'none');
+                    $('#minDatetextYm').css('display' , 'none');
+                    $('#maxDatetextYm').css('display' , 'none');
+                    $('#minDatetext').css('display' , 'none');
+                    $('#maxDatetext').css('display' , 'none');
+                    $('#timeDatetext').css('display' , '');
+                    $('#minDatetextHour').css('display' , '');
+                    $('#maxDatetextHour').css('display' , '');
+                    $('#minDatetextHourFont').css('display' , '');
+                    $('#maxDatetextHourFont').css('display' , '');
+                    $('#mobileUnit_org').prop('disabled', true);
+                    $('#mobileUnit_emp').prop('disabled', true);
+                    $('#mobileUnit_pos').prop('disabled', true);
+                    $('#minEstimationShift').prop('disabled', true);
+                    $('#minEstimationShift').val('');
+                    $('#maxEstimationShift').prop('disabled', true);
+                    $('#maxEstimationShift').val('');
+                    $('#minEstimationPerfo').prop('disabled', true);
+                    $('#minEstimationPerfo').val('');
+                    $('#maxEstimationPerfo').prop('disabled', true);
+                    $('#maxEstimationPerfo').val('');
+                    $('#minTotalWorkTimeHour').prop('disabled', true);
+                    $('#minTotalWorkTimeHour').val('');
+                    $('#minTotalWorkTimeMinute').prop('disabled', true);
+                    $('#minTotalWorkTimeMinute').val('');
+                    $('#maxTotalWorkTimeHour').prop('disabled', true);
+                    $('#maxTotalWorkTimeHour').val('');
+                    $('#maxTotalWorkTimeMinute').prop('disabled', true);
+                    $('#maxTotalWorkTimeMinute').val('');
+                    $('#minOvertimeHour').prop('disabled', true);
+                    $('#minOvertimeHour').val('');
+                    $('#minOvertimeMinute').prop('disabled', true);
+                    $('#minOvertimeMinute').val('');
+                    $('#maxOvertimeHour').prop('disabled', true);
+                    $('#maxOvertimeHour').val('');
+                    $('#maxOvertimeMinute').prop('disabled', true);
+                    $('#maxOvertimeMinute').val('');
+                    $('#minBreakTimeHour').prop('disabled', true);
+                    $('#minBreakTimeHour').val('');
+                    $('#minBreakTimeMinute').prop('disabled', true);
+                    $('#minBreakTimeMinute').val('');
+                    $('#maxBreakTimeHour').prop('disabled', true);
+                    $('#maxBreakTimeHour').val('');
+                    $('#maxBreakTimeMinute').prop('disabled', true);
+                    $('#maxBreakTimeMinute').val('');
+                }
+                else if( $("[name=dateTimeUnit]:checked").val() === "年" )
+                {
+                    $('#minDatetextYear').css('display' , '');
+                    $('#maxDatetextYear').css('display' , '');
+                    $('#minDatetextYm').css('display' , 'none');
+                    $('#maxDatetextYm').css('display' , 'none');
+                    $('#minDatetext').css('display' , 'none');
+                    $('#maxDatetext').css('display' , 'none');
+                    $('#timeDatetext').css('display' , 'none');
+                    $('#minDatetextHour').css('display' , 'none');
+                    $('#maxDatetextHour').css('display' , 'none');
+                    $('#minDatetextHourFont').css('display' , 'none');
+                    $('#maxDatetextHourFont').css('display' , 'none');
+                    $('#mobileUnit_org').prop('disabled', false);
+                    $('#mobileUnit_emp').prop('disabled', false);
+                    $('#mobileUnit_pos').prop('disabled', false);
+                    $('#minEstimationShift').prop('disabled', false);
+                    $('#maxEstimationShift').prop('disabled', false);
+                    $('#minEstimationPerfo').prop('disabled', false);
+                    $('#maxEstimationPerfo').prop('disabled', false);
+                    $('#minTotalWorkTimeHour').prop('disabled', false);
+                    $('#minTotalWorkTimeMinute').prop('disabled', false);
+                    $('#maxTotalWorkTimeHour').prop('disabled', false);
+                    $('#maxTotalWorkTimeMinute').prop('disabled', false);
+                    $('#minOvertimeHour').prop('disabled', false);
+                    $('#minOvertimeMinute').prop('disabled', false);
+                    $('#maxOvertimeHour').prop('disabled', false);
+                    $('#maxOvertimeMinute').prop('disabled', false);
+                    $('#minBreakTimeHour').prop('disabled', false);
+                    $('#minBreakTimeMinute').prop('disabled', false);
+                    $('#maxBreakTimeHour').prop('disabled', false);
+                    $('#maxBreakTimeMinute').prop('disabled', false);
+                }
+                if($("[name=mobileUnit]:checked").val() === "個人")
+                {
+                    if($("[name=dateTimeUnit]:checked").val() === "日")
+                    {
+                        $('.userName').prop('disabled', false);
+                        $('#minAbsenteeismNo').prop('disabled', true);
+                        $('#minAbsenteeismNo').val('');
+                        $('#maxAbsenteeismNo').prop('disabled', true);
+                        $('#maxAbsenteeismNo').val('');
+                        $('#minLateNo').prop('disabled', true);
+                        $('#minLateNo').val('');
+                        $('#maxLateNo').prop('disabled', true);
+                        $('#maxLateNo').val('');
+                        $('#minLeaveNo').prop('disabled', true);
+                        $('#minLeaveNo').val('');
+                        $('#maxLeaveNo').prop('disabled', true);
+                        $('#maxLeaveNo').val('');
+                        $('#minModifyNo').prop('disabled', true);
+                        $('#minModifyNo').val('');
+                        $('#maxModifyNo').prop('disabled', true);
+                        $('#maxModifyNo').val('');
+                    }
+                    else if($("[name=dateTimeUnit]:checked").val() === "月")
+                    {
+                        $('.userName').prop('disabled', false);
+                        $('#minAbsenteeismNo').prop('disabled', false);
+                        $('#maxAbsenteeismNo').prop('disabled', false);
+                        $('#minLateNo').prop('disabled', false);
+                        $('#maxLateNo').prop('disabled', false);
+                        $('#minLeaveNo').prop('disabled', false);
+                        $('#maxLeaveNo').prop('disabled', false);
+                        $('#minModifyNo').prop('disabled', false);
+                        $('#maxModifyNo').prop('disabled', false);
+                    }
+                    else if($("[name=dateTimeUnit]:checked").val() === "時間")
+                    {
+                        $('.userName').prop('disabled', true);
+                        $('#minAbsenteeismNo').prop('disabled', true);
+                        $('#minAbsenteeismNo').val('');
+                        $('#maxAbsenteeismNo').prop('disabled', true);
+                        $('#maxAbsenteeismNo').val('');
+                        $('#minLateNo').prop('disabled', true);
+                        $('#minLateNo').val('');
+                        $('#maxLateNo').prop('disabled', true);
+                        $('#maxLateNo').val('');
+                        $('#minLeaveNo').prop('disabled', true);
+                        $('#minLeaveNo').val('');
+                        $('#maxLeaveNo').prop('disabled', true);
+                        $('#maxLeaveNo').val('');
+                        $('#minModifyNo').prop('disabled', true);
+                        $('#minModifyNo').val('');
+                        $('#maxModifyNo').prop('disabled', true);
+                        $('#maxModifyNo').val('');
+                    }
+                    else if($("[name=dateTimeUnit]:checked").val() === "年")
+                    {
+                        $('.userName').prop('disabled', true);
+                        $('#minAbsenteeismNo').prop('disabled', false);
+                        $('#maxAbsenteeismNo').prop('disabled', false);
+                        $('#minLateNo').prop('disabled', false);
+                        $('#maxLateNo').prop('disabled', false);
+                        $('#minLeaveNo').prop('disabled', false);
+                        $('#maxLeaveNo').prop('disabled', false);
+                        $('#minModifyNo').prop('disabled', false);
+                        $('#maxModifyNo').prop('disabled', false);
+                    }
+                }
+                else
+                {
+                    $('.userName').prop('disabled', true);
+                    $('#minAbsenteeismNo').prop('disabled', false);
+                    $('#maxAbsenteeismNo').prop('disabled', false);
+                    $('#minLateNo').prop('disabled', false);
+                    $('#maxLateNo').prop('disabled', false);
+                    $('#minLeaveNo').prop('disabled', false);
+                    $('#maxLeaveNo').prop('disabled', false);
+                    $('#minModifyNo').prop('disabled', false);
+                    $('#maxModifyNo').prop('disabled', false);
+                }
+            }
+
+            /**
+             * 姓名押下時の画面遷移
+             */
+            function editPanelTransition( selectUserID, selectDate )
+            {
+                var data = {
+                                   dateTimeUnit : $("[name=dateTimeUnit]:checked").val(),
+                                   selectUserID : selectUserID,
+                                   selectDate : selectDate,
+                           };
+                var path = 'index.php?param=AttendanceCorrection/showAttendanceView&home=1';
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+                // ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 日付のデイトピッカーを設定
+             */
+            $(function()
+            {
+                $( "#minDatetext, #maxDatetext, #timeDatetext" ).datepicker({
+                    numberOfMonths: 2,
+                    showButtonPanel: true,
+                    dateFormat: 'yy/mm/dd'
+                });
+            });
+            
+            /**
+              * 画面生成時自動読み込み
+              */
+            $(function() {
+                /*
+                 * DatePickerInisilizer
+                 * @author 2016/06/30 Y.Sugou
+                 */
+                $("#minDatetextYm").ympicker({
+                    altField: "#minDatetextYm" //リターンセットUI IDorCLASS名
+                    ,altFormat: "yy/mm" //リターン日付形式
+                    ,monthNamesShort: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"]  //カレンダー表示月形式
+                    ,showAnim: "slideDown" //表示アニメーション形式
+                    ,yearRange: "c-2:c+3" //プルダウン年範囲
+                });
+            });
+
+            /**
+              * 画面生成時自動読み込み
+              */
+            $(function() {
+                /*
+                 * DatePickerInisilizer
+                 * @author 2016/06/30 Y.Sugou
+                 */
+                $("#maxDatetextYm").ympicker({
+                    altField: "#maxDatetextYm" //リターンセットUI IDorCLASS名
+                    ,altFormat: "yy/mm" //リターン日付形式
+                    ,monthNamesShort: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"]  //カレンダー表示月形式
+                    ,showAnim: "slideDown" //表示アニメーション形式
+                    ,yearRange: "c-2:c+3" //プルダウン年範囲
+                });
+            });
+
+            /**
+             * テーブル（divBottom）の横スクロールに位置を取得
+             */
+            function mzScroll()
+            {
+                var x = document.getElementById('divBottom').scrollLeft;
+                newXY(x);
+            }
+            
+            /**
+             * テーブル（divHeader）の横スクロールの位置を上記で取得したテーブル（divBottom）と同じ位置にする。
+             */
+            function newXY(x)
+            {
+                document.getElementById('divHeader').scrollLeft = x;
+            }
+
+        </script>
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site" style="overflow: auto;">
+            <!-- パンくずリスト -->
+            <?php include("Common/Breadcrumb.php"); ?>
+
+            <form id="searchForm" name="searchForm">
+                <!-- serchBoardArea -->
+                <div class="serchBoardArea" style="width:99%; margin:5px auto !important; background-color: #ffffff">
+                    <table>
+                        <tbody>
+                            <tr>
+                                <th style="width:110px">累計単位（日時）</th>
+                                <td style="width:220px">
+                                    <?php
+                                        $dayChecked = '';
+                                        $monthChecked = '';
+                                        $yearChecked = '';
+                                        $timeChecked = '';
+                                        if( $searchArray['dateTimeUnit'] === $Log->getMsgLog('MSG_CUMULATIVE_DAY') )
+                                        {
+                                            $dayChecked = 'checked';
+                                        }
+                                        else if( $searchArray['dateTimeUnit'] === $Log->getMsgLog('MSG_CUMULATIVE_MONTH') )
+                                        {
+                                            $monthChecked = 'checked';
+                                        }
+                                        else if( $searchArray['dateTimeUnit'] === $Log->getMsgLog('MSG_CUMULATIVE_YEAR') )
+                                        {
+                                            $yearChecked = 'checked';
+                                        }
+                                        else
+                                        {
+                                            $timeChecked = 'checked';
+                                        }
+                                    ?>
+                                    <input type="radio" id="dateTimeUnit_hour" name="dateTimeUnit" value="<?php hsc($Log->getMsgLog('MSG_CUMULATIVE_TIME')); ?>" <?php hsc($timeChecked); ?>><?php hsc($Log->getMsgLog('MSG_CUMULATIVE_TIME')); ?> <!-- 時間 -->
+                                    <input type="radio" id="dateTimeUnit_day" name="dateTimeUnit" value="<?php hsc($Log->getMsgLog('MSG_CUMULATIVE_DAY')); ?>" <?php hsc($dayChecked); ?>><?php hsc($Log->getMsgLog('MSG_CUMULATIVE_DAY')); ?> <!-- 日 -->
+                                    <input type="radio" id="dateTimeUnit_month" name="dateTimeUnit" value="<?php hsc($Log->getMsgLog('MSG_CUMULATIVE_MONTH')); ?>" <?php hsc($monthChecked); ?>><?php hsc($Log->getMsgLog('MSG_CUMULATIVE_MONTH')); ?> <!-- 月 -->
+                                    <input type="radio" id="dateTimeUnit_year" name="dateTimeUnit" value="<?php hsc($Log->getMsgLog('MSG_CUMULATIVE_YEAR')); ?>" <?php hsc($yearChecked); ?>><?php hsc($Log->getMsgLog('MSG_CUMULATIVE_YEAR')); ?> <!-- 年 -->
+                                </td>
+                                <th style="width:110px">期間指定</th>
+                                <td style="width:220px">
+                                    <?php
+                                        $minYear = $searchArray['minPeriodSpecifiedYear'];
+                                        $minMonth = $searchArray['minPeriodSpecifiedMonth'];
+                                        $minDay = $searchArray['minPeriodSpecifiedDay'];
+                                        $minHour = $searchArray['minPeriodSpecifiedHour'];
+                                        $maxYear = $searchArray['maxPeriodSpecifiedYear'];
+                                        $maxMonth = $searchArray['maxPeriodSpecifiedMonth'];
+                                        $maxDay = $searchArray['maxPeriodSpecifiedDay'];
+                                        $maxHour = $searchArray['maxPeriodSpecifiedHour'];
+                                        if( empty( $minYear) )
+                                        {
+                                            $minYear = date("Y");
+                                        }
+                                        if( empty( $minMonth) )
+                                        {
+                                            $minMonth = date("m");
+                                        }
+                                        if( empty( $minDay) )
+                                        {
+                                            $minDay = date("d",strtotime("-1 day"));
+                                        }
+                                        if( empty( $minHour) )
+                                        {
+                                            $minHour = date('H');
+                                        }
+                                        if( empty( $maxYear) )
+                                        {
+                                            $maxYear = date("Y");
+                                        }
+                                        if( empty( $maxMonth) )
+                                        {
+                                            $maxMonth = date("m");
+                                        }
+                                        if( empty( $maxDay) )
+                                        {
+                                            $maxDay = date("d",strtotime("-1 day"));
+                                        }
+                                        if( empty( $maxHour) )
+                                        {
+                                            $maxHour = date('H');
+                                        }
+                                    ?>
+                                    <input type="text" id="minDatetext" name="minDatetext" value="<?php hsc( $minYear . '/' . $minMonth . '/' . $minDay ); ?>" style="width:90px" />
+                                    <input type="text" id="minDatetextYm" name="minDatetextYm" value="<?php hsc( $minYear . '/' . $minMonth ); ?>" style="width:90px" />
+                                    <input type="text" pattern="^[0-9]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0320')); ?>" id="minDatetextYear" name="minDatetextYear" maxlength="4" class="En" value="<?php hsc( $minYear ); ?>" style="width:90px" />
+                                    <input type="text" id="timeDatetext" name="timeDatetext" value="<?php hsc( $minYear . '/' . $minMonth . '/' . $minDay ); ?>" style="width:90px" />
+                                    <input type="text" pattern="^[0-9]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0320')); ?>" id="minDatetextHour" name="minDatetextHour" maxlength="2" class="En" value="<?php hsc( $minHour ); ?>" style="width:45px" />
+                                    <font id="minDatetextHourFont" size="2">時</font>
+                                     ～ 
+                                    <input type="text" pattern="^[0-9]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0320')); ?>" id="maxDatetextHour" name="maxDatetextHour" maxlength="2" class="En" value="<?php hsc( $maxHour ); ?>" style="width:45px" />
+                                    <font id="maxDatetextHourFont" size="2">時</font>
+                                    <input type="text" id="maxDatetext" name="maxDatetext" value="<?php hsc( $maxYear . '/' .$maxMonth . '/' . $maxDay ); ?>" style="width:90px" />
+                                    <input type="text" id="maxDatetextYm" name="maxDatetextYm" value="<?php hsc( $maxYear . '/' . $maxMonth ); ?>" style="width:90px" />
+                                    <input type="text" pattern="^[0-9]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0320')); ?>" id="maxDatetextYear" name="maxDatetextYear" maxlength="4" class="En" value="<?php hsc( $maxYear ); ?>" style="width:90px" />
+                                </td>
+                                <th style="width:110px">打刻場所</th>
+                                <td style="width:220px">
+                                    <select name="embossingOrganizationID" id="embossingOrganizationID" style="width:200px">
+                                        <?php foreach($abbreviatedNameList as $abbreviated) { ?>
+                                            <?php $selected = ""; ?>
+                                            <?php if($abbreviated['organization_id'] == $searchArray['embossing_organization_id']) { ?>
+                                                <?php $selected = "selected"; ?>
+                                            <?php } ?>
+                                            <option value="<?php hsc($abbreviated['organization_id']); ?>" <?php hsc($selected); ?>><?php hsc($abbreviated['abbreviated_name']); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>累計単位（形態）</th>
+                                <td>
+                                    <?php
+                                        $userChecked = '';
+                                        $orgChecked = '';
+                                        $empChecked = '';
+                                        $posChecked = '';
+                                        if( $searchArray['mobileUnit'] === $Log->getMsgLog('MSG_CUMULATIVE_INDIVIDUAL') )
+                                        {
+                                            $userChecked = 'checked';
+                                        }
+                                        else if( $searchArray['mobileUnit'] === $Log->getMsgLog('MSG_CUMULATIVE_ORGANIZATION') )
+                                        {
+                                            $orgChecked = 'checked';
+                                        }
+                                        else if( $searchArray['mobileUnit'] === $Log->getMsgLog('MSG_CUMULATIVE_EMPLOYMENT') )
+                                        {
+                                            $empChecked = 'checked';
+                                        }
+                                        else
+                                        {
+                                            $posChecked = 'checked';
+                                        }
+                                    ?>
+                                    <input type="radio" id="mobileUnit_ind" name="mobileUnit" value="<?php hsc($Log->getMsgLog('MSG_CUMULATIVE_INDIVIDUAL')); ?>" <?php hsc($userChecked); ?>><?php hsc($Log->getMsgLog('MSG_CUMULATIVE_INDIVIDUAL')); ?> <!-- 個人 -->
+                                    <input type="radio" id="mobileUnit_org" name="mobileUnit" value="<?php hsc($Log->getMsgLog('MSG_CUMULATIVE_ORGANIZATION')); ?>" <?php hsc($orgChecked); ?>><?php hsc($Log->getMsgLog('MSG_CUMULATIVE_ORGANIZATION')); ?> <!-- 組織 -->
+                                    <input type="radio" id="mobileUnit_emp" name="mobileUnit" value="<?php hsc($Log->getMsgLog('MSG_CUMULATIVE_EMPLOYMENT')); ?>" <?php hsc($empChecked); ?>><?php hsc($Log->getMsgLog('MSG_CUMULATIVE_EMPLOYMENT')); ?> <!-- 雇用形態 -->
+                                    <input type="radio" id="mobileUnit_pos" name="mobileUnit" value="<?php hsc($Log->getMsgLog('MSG_CUMULATIVE_POSITION')); ?>" <?php hsc($posChecked); ?>><?php hsc($Log->getMsgLog('MSG_CUMULATIVE_POSITION')); ?> <!-- 役職 -->
+                                </td>
+                                <th>概算（シフト）</th>
+                                <td>
+                                    <input type="text" pattern="^[0-9]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0314')); ?>" name="minEstimationShift" id="minEstimationShift" style="width:70px" maxlength="8" class="En" value="<?php hsc( $searchArray['minEstimationShift'] ); ?>"> 円
+                                     ～ 
+                                    <input type="text" pattern="^[0-9]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0314')); ?>" name="maxEstimationShift" id="maxEstimationShift" style="width:70px" maxlength="8" class="En" value="<?php hsc( $searchArray['maxEstimationShift'] ); ?>"> 円
+                                </td>
+                                <th>所属組織</th>
+                                <td>
+                                    <?php include("../FwCommon/View/SearchOrganizationName.php"); ?>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>欠勤回数</th>
+                                <td>
+                                    <input type="text" pattern="^[0-9]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" name="minAbsenteeismNo" id="minAbsenteeismNo" style="width:70px" maxlength="5" class="En" value="<?php hsc( $searchArray['minAbsenteeismNo'] ); ?>" disabled> 回
+                                     ～ 
+                                    <input type="text" pattern="^[0-9]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" name="maxAbsenteeismNo" id="maxAbsenteeismNo" style="width:70px" maxlength="5" class="En" value="<?php hsc( $searchArray['maxAbsenteeismNo'] ); ?>" disabled> 回
+                                </td>
+                                <th>概算（実績）</th>
+                                <td>
+                                    <input type="text" pattern="^[0-9]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0314')); ?>" name="minEstimationPerfo" id="minEstimationPerfo" style="width:70px" maxlength="8" class="En" value="<?php hsc( $searchArray['minEstimationPerfo'] ); ?>"> 円
+                                     ～ 
+                                    <input type="text" pattern="^[0-9]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0314')); ?>" name="maxEstimationPerfo" id="maxEstimationPerfo" style="width:70px" maxlength="8" class="En" value="<?php hsc( $searchArray['maxEstimationPerfo'] ); ?>"> 円
+                                </td>
+                                <th>状況</th>
+                                <td>
+                                    <?php
+                                        $selfSelected = '';
+                                        $otherSelected = '';
+                                        if( $searchArray['embossingSituation'] === $Log->getMsgLog('MSG_EMBOSSING_AFFILIATION') )
+                                        {
+                                            $selfSelected = 'Selected';
+                                        }
+                                        else if( $searchArray['embossingSituation'] === $Log->getMsgLog('MSG_EMBOSSING_SUPPORT') )
+                                        {
+                                            $otherSelected = 'Selected';
+                                        }
+                                    ?>
+                                    <select id="embossingSituation" name="embossingSituation" style="width:100px">
+                                        <option value=""></option>
+                                        <option value="<?php hsc( $Log->getMsgLog('MSG_EMBOSSING_AFFILIATION') ); ?>" <?php hsc($selfSelected); ?>><?php hsc( $Log->getMsgLog('MSG_EMBOSSING_AFFILIATION') ); ?></option>
+                                        <option value="<?php hsc( $Log->getMsgLog('MSG_EMBOSSING_SUPPORT') ); ?>" <?php hsc($otherSelected); ?>><?php hsc( $Log->getMsgLog('MSG_EMBOSSING_SUPPORT') ); ?></option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>遅刻回数</th>
+                                <td>
+                                    <input type="text" pattern="^[0-9]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" name="minLateNo" id="minLateNo" style="width:70px" maxlength="5" class="En" value="<?php hsc( $searchArray['minLateNo'] ); ?>" disabled> 回
+                                     ～ 
+                                    <input type="text" pattern="^[0-9]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" name="maxLateNo" id="maxLateNo" style="width:70px" maxlength="5" class="En" value="<?php hsc( $searchArray['maxLateNo'] ); ?>" disabled> 回
+                                </td>
+                                <th>労働時間</th>
+                                <td>
+                                    <?php
+                                        if( !empty( $searchArray['minTotalWorkTime'] ) )
+                                        {
+                                            $minWorkingHours = sprintf('%02d', ( $searchArray['minTotalWorkTime'] / 60 ) );
+                                            $minWorkingMinute = sprintf('%02d', ( $searchArray['minTotalWorkTime'] % 60 ) );
+                                        }
+                                        if( !empty( $searchArray['maxTotalWorkTime'] ) )
+                                        {
+                                            $maxWorkingHours = sprintf('%02d', ( $searchArray['maxTotalWorkTime'] / 60 ) );
+                                            $maxWorkingMinute = sprintf('%02d', ( $searchArray['maxTotalWorkTime'] % 60 ) );
+                                        }
+                                    ?>
+                                    <input type="text" pattern="^[0-9]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0327')); ?>" name="minTotalWorkTimeHour" id="minTotalWorkTimeHour" style="width:30px" maxlength="2" class="En" value="<?php hsc( $minWorkingHours ); ?>">
+                                    ：
+                                    <input type="text" pattern="(0[0-9]|[12345][0-9])" title="<?php hsc($Log->getMsgLog('MSG_BASE_0326')); ?>" name="minTotalWorkTimeMinute" id="minTotalWorkTimeMinute" style="width:30px"  maxlength="2" class="En" value="<?php hsc( $minWorkingMinute ); ?>">
+                                     ～ 
+                                    <input type="text" pattern="^[0-9]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0327')); ?>" name="maxTotalWorkTimeHour" id="maxTotalWorkTimeHour" style="width:30px" maxlength="2" class="En" value="<?php hsc( $maxWorkingHours ); ?>">
+                                    ：
+                                    <input type="text" pattern="(0[0-9]|[12345][0-9])" title="<?php hsc($Log->getMsgLog('MSG_BASE_0326')); ?>" name="maxTotalWorkTimeMinute" id="maxTotalWorkTimeMinute" style="width:30px" maxlength="2" class="En" value="<?php hsc( $maxWorkingMinute ); ?>">
+                                </td>
+                                <th>役職名</th>
+                                <td>
+                                    <select id="positionName" name="positionName" style="width:100px">
+                                        <?php foreach($positionNameList as $position){ ?>
+                                            <?php $selected = ""; ?>
+                                            <?php if($position['position_name'] === $searchArray['position_name']) { ?>
+                                                <?php $selected = "selected"; ?>
+                                            <?php } ?>
+                                            <option value="<?php hsc($position['position_name']); ?>" <?php hsc($selected); ?>><?php hsc($position['position_name']); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>早退回数</th>
+                                <td>
+                                    <input type="text" pattern="^[0-9]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" name="minLeaveNo" id="minLeaveNo" style="width:70px" maxlength="5" class="En" value="<?php hsc( $searchArray['minLeaveNo'] ); ?>" disabled> 回
+                                     ～ 
+                                    <input type="text" pattern="^[0-9]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" name="maxLeaveNo" id="maxLeaveNo" style="width:70px" maxlength="5" class="En" value="<?php hsc( $searchArray['maxLeaveNo'] ); ?>" disabled> 回
+                                </td>
+                                <th>残業時間</th>
+                                <td>
+                                    <?php
+                                        if( !empty( $searchArray['minOvertime'] ) )
+                                        {
+                                            $minOverHours = sprintf('%02d', ( $searchArray['minOvertime'] / 60 ) );
+                                            $minOverMinute = sprintf('%02d', ( $searchArray['minOvertime'] % 60 ) );
+                                        }
+                                        if( !empty( $searchArray['maxOvertime'] ) )
+                                        {
+                                            $maxOverHours = sprintf('%02d', ( $searchArray['maxOvertime'] / 60 ) );
+                                            $maxOverMinute = sprintf('%02d', ( $searchArray['maxOvertime'] % 60 ) );
+                                        }
+                                    ?>
+                                    <input type="text" pattern="^[0-9]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0327')); ?>" name="minOvertimeHour" id="minOvertimeHour" style="width:30px" maxlength="2" class="En" value="<?php hsc( $minOverHours ); ?>">
+                                    ：
+                                    <input type="text" pattern="(0[0-9]|[12345][0-9])" title="<?php hsc($Log->getMsgLog('MSG_BASE_0326')); ?>" name="minOvertimeMinute" id="minOvertimeMinute" style="width:30px" maxlength="2" class="En" value="<?php hsc( $minOverMinute ); ?>">
+                                     ～ 
+                                    <input type="text" pattern="^[0-9]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0327')); ?>" name="maxOvertimeHour" id="maxOvertimeHour" style="width:30px" maxlength="2" class="En" value="<?php hsc( $maxOverHours ); ?>">
+                                    ：
+                                    <input type="text" pattern="(0[0-9]|[12345][0-9])" title="<?php hsc($Log->getMsgLog('MSG_BASE_0326')); ?>" name="maxOvertimeMinute" id="maxOvertimeMinute" style="width:30px" maxlength="2" class="En" value="<?php hsc( $maxOverMinute ); ?>">
+                                </td>
+                                <th>雇用形態名</th>
+                                <td>
+                                    <select id="employmentName" name="employmentName" style="width:100px">
+                                        <?php foreach($employmentNameList as $employment){ ?>
+                                            <?php $selected = ""; ?>
+                                            <?php if($employment['employment_name'] === $searchArray['employment_name']) { ?>
+                                                <?php $selected = "selected"; ?>
+                                            <?php } ?>
+                                            <option value="<?php hsc($employment['employment_name']); ?>" <?php hsc($selected); ?>><?php hsc($employment['employment_name']); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>修正回数</th>
+                                <td>
+                                    <input type="text" pattern="^[0-9]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>"  name="minModifyNo" id="minModifyNo" style="width:70px" maxlength="5" class="En" value="<?php hsc( $searchArray['minModifyNo'] ); ?>" disabled> 回
+                                     ～ 
+                                    <input type="text" pattern="^[0-9]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>"  name="maxModifyNo" id="maxModifyNo" style="width:70px" maxlength="5" class="En" value="<?php hsc( $searchArray['maxModifyNo'] ); ?>" disabled> 回
+                                </td>
+                                <th>休憩時間</th>
+                                <td>
+                                    <?php
+                                        if( !empty( $searchArray['minBreakTime'] ) )
+                                        {
+                                            $minBreakHours = sprintf('%02d', ( $searchArray['minBreakTime'] / 60 ) );
+                                            $minBreakMinute = sprintf('%02d', ( $searchArray['minBreakTime'] % 60 ) );
+                                        }
+                                        if( !empty( $searchArray['maxBreakTime'] ) )
+                                        {
+                                            $maxBreakHours = sprintf('%02d', ( $searchArray['maxBreakTime'] / 60 ) );
+                                            $maxBreakMinute = sprintf('%02d', ( $searchArray['maxBreakTime'] % 60 ) );
+                                        }
+                                    ?>
+                                    <input type="text" pattern="^[0-9]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0327')); ?>" name="minBreakTimeHour" id="minBreakTimeHour" style="width:30px" maxlength="2" class="En" value="<?php hsc( $minBreakHours ); ?>">
+                                    ：
+                                    <input type="text" pattern="(0[0-9]|[12345][0-9])" title="<?php hsc($Log->getMsgLog('MSG_BASE_0326')); ?>"  name="minBreakTimeMinute" id="minBreakTimeMinute" style="width:30px" maxlength="2" class="En" value="<?php hsc( $minBreakMinute ); ?>">
+                                     ～ 
+                                    <input type="text" pattern="^[0-9]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0327')); ?>" name="maxBreakTimeHour" id="maxBreakTimeHour" style="width:30px" maxlength="2" class="En" value="<?php hsc( $maxBreakHours ); ?>">
+                                    ：
+                                    <input type="text" pattern="(0[0-9]|[12345][0-9])" title="<?php hsc($Log->getMsgLog('MSG_BASE_0326')); ?>"  name="maxBreakTimeMinute" id="maxBreakTimeMinute" style="width:30px" maxlength="2" class="En" value="<?php hsc( $maxBreakMinute ); ?>">
+                                </td>
+                                <th>従業員名</th>
+                                <td>
+                                    <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0302')); ?>" name="personalName" id="personalName" style="width:100px" maxlength="20" class="Em" value="<?php hsc( $searchArray['personal_name'] ); ?>">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div><!-- /.serchBoardArea -->
+
+                <!-- serchButtonArea -->
+                <div style="text-align: center; white-space: nowrap;" id="styleAlignCenter">
+                    <div style="display: inline-block;" class="serchButtonArea">
+                        <input type="submit" id="search" name="search" value="検索" class="serch">
+                        <input type="submit" id="print" name="print" value="印刷" class="print">
+                    </div><!-- /.serchButtonArea -->
+                </div><!-- /#styleAlignCenter -->
+            </form>
+            <form id="modForm" name="modForm">
+                <?php include("AttendanceRecordTablePanel.html"); ?>
+            </form>
+        </div><!-- /.sb-site -->
+        <?php include("../FwCommon/View/Dialog.php"); ?>
+    </body>
+    <script type="text/javascript">
+        $(document).ready(function()
+        {
+            changeDateTime();
+            changeDateTime();
+        });
+    </script>
+</html>

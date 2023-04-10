@@ -1,0 +1,23 @@
+<?php
+    /**
+     * @file      発注先設定画面(View)
+     * @author    USE K.Kanda(media-craft.co.jp)
+     * @date      2018/01/22
+     * @version   1.00
+     * @note      発注先一覧
+     */
+
+require_once( SystemParameters::$SANITIZE_SETTING_FILE );
+foreach($makerArr2 as $key => $val)
+{
+?>
+<tr>
+	  <td style="width:100px;"><input type="hidden" name="ma_cd[]" value="<?php hsc($val['ma_cd']);?>"><?php hsc($val['ma_cd']);?></td>
+    <td style="width:300px;"><?php hsc($val['ma_name']);?></td>
+    <td style="width:80px;"><input type="text" name="postage[]" value="<?php hsc($val['postage']);?>" size="10" placeholder="送料" /></td>
+    <td style="width:80px;"><input type="text" name="free_kin[]" value="<?php hsc($val['free_kin']);?>" size="10" placeholder="送料無料まで" /></td>
+    <td style="width:40px;"><input type="button" value="解除" onclick="delMakerRow(this,'<?php hsc($val['ma_cd']);?>','<?php hsc($val['ma_name']);?>')"></td>
+</tr>
+<?php
+}
+?>

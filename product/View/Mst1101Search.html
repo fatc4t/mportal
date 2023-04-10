@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>仕入先検索</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!--<link rel="stylesheet" href="../css/product/jquery-ui.css" >	
+        <link rel="stylesheet" href="../css/product/default.css" >	        -->
+        <style>
+            body {
+                /*font-family: MS Gothic;*/
+                background-color: whitesmoke;
+            }
+            label {
+                background-color: #0B0B61;
+                color: white;
+                font-weight: bold;
+                padding: 2px;
+                text-transform: uppercase;
+                /*font-size: 12pt;*/
+                font-size: 11pt;
+                margin: 1px;
+                display: inline-block;              
+            } 
+            .input_small2{
+                width: 8em;
+            } 
+            thead#thead_id th {
+                background-color: #0B0B61;
+                border: 1px solid #AAA;
+                color: white;
+                text-align: -webkit-center;
+                font-size: 11pt;
+            }
+            tbody#tbody_id {
+                background-color: #fff;
+                border: 1px solid #0B0B61;
+                font-size: 11pt;
+            }
+            /* organization */
+            thead#thead_id th:nth-child(2),
+            tbodytbody_id tr td:nth-child(2){
+                width: 12em;
+            }
+            /* supp_cd */
+            thead#thead_id th:nth-child(3),
+            tbodytbody_id tr td:nth-child(3){
+                width: 8em;                
+            }
+            /* supp_nm */
+            thead#thead_id th:nth-child(4),
+            tbodytbody_id tr td:nth-child(4){
+                width: 30em;                
+            }
+            /* supp_kn */
+            thead#thead_id th:nth-child(5),
+            tbodytbody_id tr td:nth-child(5){
+                width: 12em;                
+            }
+        </style>
+        <script type="text/javascript">
+            var table_size = 30;
+            var pagenb = 0;
+            
+            var keys=[];
+            keys=["abbreviated_name","supp_cd", "supp_nm", "supp_kn"]
+            var result = "";
+            thead_nm            = ["","組織名","仕入先コード","仕入先名","仕入先カナ"];
+            pmst1101_sd         = '<?php echo json_encode(json_encode($mst1101_searchdata)); ?>';
+            ptypmst1101_sd      = JSON.parse(pmst1101_sd.slice(1,-1));
+            working_data        = ptypmst1101_sd;
+            var pagemaxnb = Math.ceil(ptypmst1101_sd.length/table_size)-1 ;
+            //
+            abbreviated_list    = '<?php echo json_encode(json_encode($abbreviatedNameList)); ?>';
+            A_abbreviated_list  = JSON.parse(abbreviated_list.slice(1,-1));
+            destination = "<?php echo $destination; ?>";
+            
+            function fresult(e){
+                result=e.target.value;
+                //console.log(result);
+                checkboxlst=document.getElementsByName('ckbox_val');
+                //console.log(checkboxlst);
+                for(i=0;i < checkboxlst.length; i++){
+                    checkboxlst[i].checked= false;
+                }
+                document.getElementById(e.target.id).checked= true;
+            }
+            function tbodydata(data,start,nbRow){ 
+                tbod = document.getElementById("tbody_id");
+                tbod.innerHTML = '';
+                if(data.length > 0){ 
+                    if(keys.length <= 0){
+                        keys = Object.keys(data[0]);            
+                    }
+                    ilength=data.length;
+                    if(nbRow > ilength-start){
+                        nbRow=ilength-start;                        
+                    }
+                    for(i=0;i < nbRow ; i++ ){ 
+                        var trow         = tbod.insertRow(i);
+                        var ckbox        = trow.insertCell(0);
+                        var newckBox     = document.createElement('input');
+                        newckBox.type    = 'checkbox';
+                        newckBox.name    = 'ckbox_val';
+                        newckBox.id      = 'ckbox_' + i;
+                        //                        newckBox.value   = data[ilength-start-i-1].supp_cd;
+                        var iIdx = ilength-start-i-1;
+                        newckBox.value   = data[iIdx].organization_id + ':' + data[iIdx].supp_cd;
+                        newckBox.onclick = fresult;
+                        ckbox.appendChild(newckBox);
+                        for(j=0;j < keys.length; j++){
+                            var newcell = trow.insertCell(j+1);
+                            newcell.innerHTML = data[ilength-start-i-1][keys[j]];
+                        }
+                    }
+                }                
+            }
+            function datashowpage(showpage){
+                tbodydata(working_data,showpage*table_size,table_size);
+            }
+            function firstpage(){
+                pagenb=0;
+                document.getElementById("bt_previous").setAttribute("disabled", true);
+                document.getElementById("bt_next").removeAttribute("disabled");
+                datashowpage(pagenb);
+            }
+            function lastpage(){
+                pagenb=pagemaxnb;
+                document.getElementById("bt_previous").removeAttribute("disabled");
+                document.getElementById("bt_next").setAttribute("disabled", true);
+                datashowpage(pagenb);
+            }
+            function previous(){
+                pagenb--;
+                if(pagenb > 0){  
+                    document.getElementById("bt_previous").removeAttribute("disabled");
+                }
+                else {
+                    pagenb = 0;
+                    document.getElementById("bt_previous").setAttribute("disabled", true);
+                }
+                if(pagenb < pagemaxnb){
+                    document.getElementById("bt_next").removeAttribute("disabled");
+                }
+                else {
+                    pagenb = pagemaxnb;                    
+                    document.getElementById("bt_next").setAttribute("disabled", true);
+                }                
+                datashowpage(pagenb);
+            }
+            function next(){ 
+                pagenb++;
+                if(pagenb < pagemaxnb){
+                    document.getElementById("bt_next").removeAttribute("disabled");
+                }
+                else {
+                    pagenb = pagemaxnb;                    
+                    document.getElementById("bt_next").setAttribute("disabled", true);
+                }
+                if(pagenb > 0){  
+                    document.getElementById("bt_previous").removeAttribute("disabled");
+                }
+                else {
+                    pagenb = 0;
+                    document.getElementById("bt_previous").setAttribute("disabled", true);
+                }                
+                datashowpage(pagenb);
+            }
+            function searchdata(event_id){
+                var orgn_id_val = document.getElementById("cmb_ORGANIZATION_ID").value;
+                var supp_nm_val = document.getElementById("txt_SUPP_NM").value;
+                var supp_kn_val = document.getElementById("txt_SUPP_KN").value;
+//ADDSTR 2020//09/01 kanderu
+                //仕入先コードで検索
+                var supp_cd_val = document.getElementById("txt_SUPP_CD").value;
+                if(!orgn_id_val && !supp_nm_val && !supp_kn_val && !supp_cd_val){
+//ADDEND 2020//09/01 kanderu
+                    working_data = ptypmst1101_sd;
+                    pagemaxnb = Math.ceil(working_data.length/table_size)-1 ;
+                    firstpage();
+                    return;
+                }
+                working_data = [];
+                for(var i = 0 ; i<ptypmst1101_sd.length;i++){
+                    var j=0;
+                    if(orgn_id_val){
+                        if(!ptypmst1101_sd[i].organization_id){continue;}
+                        if(ptypmst1101_sd[i].organization_id == orgn_id_val){
+                            j=1;
+                        }
+                        else{continue;}
+                    }
+                    if(supp_nm_val){
+                        if(!ptypmst1101_sd[i].supp_nm){continue;}
+                        if(ptypmst1101_sd[i].supp_nm.indexOf(supp_nm_val) !== -1  ){
+                            j=1;
+                        }
+                        else{continue;}
+                    }
+                    if(supp_kn_val){
+                        if(!ptypmst1101_sd[i].supp_kn){continue;}
+                        if(ptypmst1101_sd[i].supp_kn.indexOf(supp_kn_val) !== -1  ){
+                            j=1;
+                        }
+                        else{continue;}
+                    }
+ //ADDSTR 2020//09/01 kanderu
+             　　　  //仕入先コードで検索
+                    if(supp_cd_val){
+                        if(!ptypmst1101_sd[i].supp_cd){continue;}
+                        if(ptypmst1101_sd[i].supp_cd.indexOf(supp_cd_val) !== -1  ){
+                            j=1;
+                        }
+                    else{continue;}
+                    } 
+ //ADDEND 2020//09/01 kanderu
+                    if(j===1){
+                        working_data.push(ptypmst1101_sd[i]);
+                    }
+                }
+                pagemaxnb = Math.ceil(working_data.length/table_size)-1 ;
+                firstpage();
+            }
+            function send_result(){
+                if (result != ""){
+                    spath = window.location.href;
+                    spath = spath.split('?'); 
+                    //spath = spath[0]+'?param=Mst1101/show&suppcd='+result;
+                    spath = spath[0]+'?param='+destination+'/show&search='+result;
+                    window.location.replace(spath);
+
+                }
+
+            }
+            //ADDSTR 2020/09/01 kanderu
+            //仕入先検索画面から仕入先マスタ画面に戻る
+            function goBack() {
+                spath = window.location.href;
+                spath = spath.split('?'); 
+                spath = spath[0]+'?param='+destination+'/show';
+                window.location.replace(spath);
+            }
+            //ADDEND 2020/09/01 kanderu
+        </script>
+<!--//ADDSTR2020/08/28/ kandeu        -->
+<!--        //css-->
+        <style>
+            tbody  {
+                background-color: #fff;
+                border: 1px solid #0B0B61;
+            }
+            td {
+                background-color: #fff;
+                border: 1px solid #0B0B61;
+                
+            }   
+/*  //back ボタンｃｓｓ*/
+            #back{
+              width: 80px;
+              margin-right: 2px;
+            }
+            #send_result{
+              width: 80px;
+              margin-left: 315px;
+            }
+            #btn{
+               right:3.4%;
+               margin-top:11px;
+               margin-left: 1px;
+            }
+            #tblsrc{
+          margin-bottom: -37px;
+               }
+            #sb-site{
+                max-width: 1220px;
+                margin-left: auto !important;
+                margin-right: auto !important;
+            }   
+            #cmb_ORGANIZATION_ID{
+              position: absolute;
+               width:183px;
+            }
+            #tblsrc{
+          margin-left:1px;
+            }:
+            #data{
+              margin-top:1000px;
+            }
+        </style>
+<!--//ADDEND 2020/08/28/ kandeu        -->
+    </head>
+    <body>
+<!-- Site -->
+<!--EDITSTR 2020/08/28 kanderu    -->
+<!--戻るボタン-->
+<!-- serchButtonArea -->
+        <div id="sb-site" style="overflow: auto;">
+        <div    class="logicButtonArea">
+        <p align=center>
+        <input type="button"  id="back" name="back" value="戻る" class="return" onclick="goBack()">
+<!--          <button type="button" id="send_result" onclick="send_result()"  >決定</button>-->
+        </p>
+          <div id="tblsrc">
+         <table width="312px">
+        <th id="titlesrc" style="background-color:#0B0B61; color:white; font-size:12pt; ">商品管理 ★仕入先マスタ★仕入先検索</th>
+         </table >
+<!-- EDITEND 2020/02/04 kanderu -->
+                <div id="src">
+                <label class="input_middle" for="cmb_ORGANIZATION_ID"> 組織名　　　　　 </label>
+                <select id="cmb_ORGANIZATION_ID" onchange="searchdata('cmb_ORGANIZATION_ID')">
+                    <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+                    <?php foreach($abbreviatedNameList as $abbreviated) { ?>
+                    <option value="<?php hsc($abbreviated['organization_id']); ?>" <?php hsc($selected); ?>><?php hsc($abbreviated['abbreviated_name']); ?></option>
+                    <?php } ?>
+                </select><br />  
+                <label class="input_middle" for="txt_SUPP_CD"> 仕入先コード　　 </label><input type="text"  id="txt_SUPP_CD" maxlength="4" style="width:175px;" onblur="searchdata('txt_SUPP_CD')"><br />
+                <label class="input_middle" for="txt_SUPP_KN"> 仕入先名（カナ） </label><input type="text"  id="txt_SUPP_KN" style="width:175px;" onblur="searchdata('txt_SUPP_KN')"><br />
+                <label class="input_middle" for="txt_SUPP_NM"> 仕入先名（漢字） </label><input type="text"  id="txt_SUPP_NM" style="width:175px;" onblur="searchdata('txt_SUPP_NM')"><br /><br />
+               <button type="button" id="send_result" onclick="send_result()"  >決定</button>
+                </div>
+                </div>
+                <div id="btn">
+                <button type="button" id="bt_fisrt" onclick="firstpage()"  >先頭ページ</button>
+                <button type="button" id="bt_previous" onclick="previous()" disabled >前ページ</button>
+                <button type="button" id="bt_next" onclick="next()">次ページ</button>
+                <button type="button" id="bt_last" onclick="lastpage()"  >最終ページ</button>
+                </div>
+            </div>
+            <br />
+            <div id="data">
+                <table>
+                    <thead id="thead_id">
+                        <tr>
+                            <th>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody_id">
+                        
+                    </tbody>
+                </table>
+            </div>
+<!--EDITSTR 2020/09/01 kanderu            -->
+<!--            <button type="button" id="send_result" onclick="send_result()"  >決定</button>-->
+<!--EDITEND 2020/09/01 kanderu            -->            
+        </div><!-- /#sb-site -->
+        <script type="text/javascript">
+            thead = document.getElementById("thead_id");
+            thead.innerHTML = '';           
+            for(i=0;i < thead_nm.length ; i++ ){
+                field_nm            = document.createElement('th');
+                field_nm.innerHTML  = "";
+                field_nm.innerHTML  = thead_nm[i];
+                thead.appendChild(field_nm);
+            }
+            tbodydata(ptypmst1101_sd,0,table_size);
+
+
+        </script>
+    </body>
+</html>

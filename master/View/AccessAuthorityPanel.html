@@ -1,0 +1,660 @@
+<?php
+    /**
+     * @file      アクセス権限マスタ(View)
+     * @author    USE Y.Sakata
+     * @date      2016/07/02
+     * @version   1.00
+     * @note      アクセス権限マスタ画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array( 'default.css',
+                                'common.js', 
+                                'jquery-ui.min.js', 
+                                'jquery-ui.css' );    // cssまたはｊｓファイルを拡張子付きで配列に記述 
+
+            include("Common/HtmlHeader.php");
+        ?>
+        <script type="text/javascript">
+            var lineInfo = null;
+            var btnInfo  = null;
+            var displayPageNo = 1;
+            var displayRecordCnt = <?php hsc($_SESSION["DISPLAY_RECORD_CNT"]); ?>;
+            var sectionSort = null;
+            var no_click_count = 0;
+            var state_click_count = 0;
+            var access_authority_click_count = 0;
+            var function_click_count = 0;
+            var screen_name_click_count = 0;
+            var url_click_count = 0;
+            var comment_click_count = 0;
+            var reference_click_count = 0;
+            var registration_click_count = 0;
+            var delete_click_count = 0;
+            var approval_click_count = 0;
+            var printing_click_count = 0;
+            var output_click_count = 0;
+            var disp_order_click_count = 0;
+
+            $(document).ready(function()
+            {
+                /**
+                 * 検索ボタンクリック
+                 */
+                $('#search').click(function()
+                {
+                    displayPageNo = 1;
+                    sectionSort = 0;
+
+                    // 検索実行
+                    searchExe();
+                    
+                    // ページをリロードしないようにする
+                    return false;
+                });
+
+                /**
+                 * 登録ボタンクリック
+                 */
+                $('#addForm').submit(function(event)
+                {
+                    event.preventDefault();
+
+                    document.getElementById("dialog_add").textContent='<?php hsc(SystemParameters::$NEW_DIALOG_MSG); ?>';
+                    
+                    $("#dialog_add").dialog('open');
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+                /**
+                 * 更新/削除ボタンクリック
+                 */
+                $('#modForm').submit(function(event)
+                {
+                    event.preventDefault();
+
+                    if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>' )
+                    {
+                        document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$UPDATE_DIALOG_MSG); ?>';
+                    }
+                    else
+                    {
+                        document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$DELETE_DIALOG_MSG); ?>';
+                    }
+                    
+                    $("#dialog_mod").dialog('open');
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+                
+            });
+
+            /*
+             * editRow: 編集ボタン該当行の内容を入力・編集またモード切り替え
+             */
+            function editRow(obj)
+            {
+                var objTR = obj.parentNode.parentNode;
+                var rowId = objTR.sectionRowIndex + 1;
+                var rowCount = nameTable.rows.length;
+
+                // モードの切り替えはボタンの値で判定	
+                $('#sFunction' + rowId).css('display' , 'none');
+                $('#sFunction-edit' + rowId).val($('#sFunction').text()).css('display' , '');
+                $('#sScreenName' + rowId).css('display' , 'none');
+                $('#sScreenName-edit' + rowId).val($('#sScreenName').text()).css('display' , '');
+                $('#sUrl' + rowId).css('display' , 'none');
+                $('#sUrl-edit' + rowId).val($('#sUrl').text()).css('display' , '');
+                $('#sComment' + rowId).css('display' , 'none');
+                $('#sComment-edit' + rowId).val($('#sComment').text()).css('display' , '');
+                $('#sReference' + rowId).css('display' , 'none');
+                $('#sReference-edit' + rowId).val($('#sReference').text()).css('display' , '');
+                $('#sRegistration' + rowId).css('display' , 'none');
+                $('#sRegistration-edit' + rowId).val($('#sRegistration').text()).css('display' , '');
+                $('#sDelete' + rowId).css('display' , 'none');
+                $('#sDelete-edit' + rowId).val($('#sDelete').text()).css('display' , '');
+                $('#sApproval' + rowId).css('display' , 'none');
+                $('#sApproval-edit' + rowId).val($('#sApproval').text()).css('display' , '');
+                $('#sPrinting' + rowId).css('display' , 'none');
+                $('#sPrinting-edit' + rowId).val($('#sPrinting').text()).css('display' , '');
+                $('#sOutput' + rowId).css('display' , 'none');
+                $('#sOutput-edit' + rowId).val($('#sOutput').text()).css('display' , '');
+                $('#sDisp' + rowId).css('display' , 'none');
+                $('#sDisp-edit' + rowId).val($('#sDisp').text()).css('display' , '');
+                $('#edtBtn' + rowId).css('display' , 'none');
+                $('#edtBtn-mod' + rowId).css('display' , '');
+                $('#edtBtn-del' + rowId).css('display' , '');
+                $('#add').prop('disabled', true);
+                for(var i = 1; i <= rowCount; i++)
+                {
+                    $('#edtBtn' + i).prop('disabled', true);
+                }
+            }
+
+            /**
+             * 行情報を設定
+             */
+            function setLineInfo(thisLineInfo, thisBtnInfo)
+            {
+                lineInfo = thisLineInfo;
+                btnInfo  = thisBtnInfo;
+                
+                if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0803")); ?>' )
+                {
+                    document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$DELETE_DIALOG_MSG); ?>';
+                    $("#dialog_mod").dialog('open');
+                }
+                
+                return false;
+            }
+
+            /**
+             * ソート処理
+             */
+            function setColumnInfo(thisItemInfo)
+            {
+                ItemInfo = thisItemInfo;
+
+                sectionSort = 0;
+
+                if(thisItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?>")
+                {
+                    no_click_count++;
+                    if((no_click_count % 2) != 0)
+                    {
+                        sectionSort = 1;
+                    }
+                    else
+                    {
+                        sectionSort = 2;
+                    }
+                }
+                else if(thisItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0849')); ?>")
+                {
+                    state_click_count++;
+                    if((state_click_count % 2) != 0)
+                    {
+                        sectionSort = 3;
+                    }
+                    else
+                    {
+                        sectionSort = 4;
+                    }
+                }
+                else if(thisItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0920')); ?>")
+                {
+                    access_authority_click_count++;
+                    if((access_authority_click_count % 2) != 0)
+                    {
+                        sectionSort = 5;
+                    }
+                    else
+                    {
+                        sectionSort = 6;
+                    }
+                }
+                else if(thisItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0921')); ?>" )
+                {
+                    function_click_count++;
+                    if((function_click_count % 2) != 0)
+                    {
+                        sectionSort = 7;
+                    }
+                    else
+                    {
+                        sectionSort = 8;
+                    }
+                }
+                else if(thisItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0922')); ?>" )
+                {
+                    screen_name_click_count++;
+                    if((screen_name_click_count % 2) != 0)
+                    {
+                        sectionSort = 9;
+                    }
+                    else
+                    {
+                        sectionSort = 10;
+                    }
+                }
+                else if(thisItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0923')); ?>" )
+                {
+                    url_click_count++;
+                    if((url_click_count % 2) != 0)
+                    {
+                        sectionSort = 11;
+                    }
+                    else
+                    {
+                        sectionSort = 12;
+                    }
+                }
+                else if(thisItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0892')); ?>")
+                {
+                    comment_click_count++;
+                    if((comment_click_count % 2) != 0)
+                    {
+                        sectionSort = 13;
+                    }
+                    else
+                    {
+                        sectionSort = 14;
+                    }
+                }
+                else if(thisItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0886')); ?>")
+                {
+                    reference_click_count++;
+                    if((reference_click_count % 2) != 0)
+                    {
+                        sectionSort = 15;
+                    }
+                    else
+                    {
+                        sectionSort = 16;
+                    }
+                }
+                else if(thisItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0887')); ?>" )
+                {
+                    registration_click_count++;
+                    if((registration_click_count % 2) != 0)
+                    {
+                        sectionSort = 17;
+                    }
+                    else
+                    {
+                        sectionSort = 18;
+                    }
+                }
+                else if(thisItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0888')); ?>" )
+                {
+                    delete_click_count++;
+                    if((delete_click_count % 2) != 0)
+                    {
+                        sectionSort = 19;
+                    }
+                    else
+                    {
+                        sectionSort = 20;
+                    }
+                }
+                else if(thisItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0889')); ?>" )
+                {
+                    approval_click_count++;
+                    if((approval_click_count % 2) != 0)
+                    {
+                        sectionSort = 21;
+                    }
+                    else
+                    {
+                        sectionSort = 22;
+                    }
+                }
+                else if(thisItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0890')); ?>")
+                {
+                    printing_click_count++;
+                    if((printing_click_count % 2) != 0)
+                    {
+                        sectionSort = 23;
+                    }
+                    else
+                    {
+                        sectionSort = 24;
+                    }
+                }
+                else if(thisItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0891')); ?>")
+                {
+                    output_click_count++;
+                    if((output_click_count % 2) != 0)
+                    {
+                        sectionSort = 25;
+                    }
+                    else
+                    {
+                        sectionSort = 26;
+                    }
+                }
+                else if(thisItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0899')); ?>" )
+                {
+                    disp_order_click_count++;
+                    if((disp_order_click_count % 2) != 0)
+                    {
+                        sectionSort = 27;
+                    }
+                    else
+                    {
+                        sectionSort = 28;
+                    }
+                }
+
+                // 検索実行
+                searchExe();
+
+                // ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 表示レコード数選択
+             */
+            function displayRecord(recordCnt)
+            {
+                displayRecordCnt = recordCnt;
+                displayPageNo = 1;
+
+                // 検索実行
+                searchExe();
+
+                // ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 表示ページ数選択
+             */
+            function displayPage(pageCnt)
+            {
+                displayPageNo = pageCnt;
+
+                // 検索実行
+                searchExe();
+
+                // ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 検索の実行メソッド
+             */
+            function searchExe()
+            {
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              displayPageNo           : displayPageNo,
+                              displayRecordCnt        : displayRecordCnt,
+                              searchAccessAuthorityID : $('#accessAuthorityID').val(),
+                              searchFunctionID        : $('#functionID').val(),
+                              searchScreenName        : $('#screenName').val(),
+                              searchUrl               : $('#url').val(),
+                              searchComment           : $('#comment').val(),
+                              searchReferenceF        : document.getElementById("referenceF").checked,
+                              searchRegistrationF     : document.getElementById("registrationF").checked,
+                              searchDeleteF           : document.getElementById("deleteF").checked,
+                              searchApprovalF         : document.getElementById("approvalF").checked,
+                              searchPrintingF         : document.getElementById("printingF").checked,
+                              searchOutputF           : document.getElementById("outputF").checked,
+                              searchDelF              : document.getElementById("delF").checked,
+                              sortConditions          : sectionSort
+                           };
+                var path = 'index.php?param=AccessAuthority/search&home=1';
+
+                // データ更新
+                setDataForAjax( data, path );
+                
+                // 新規エリアクリア
+                setInputArea();
+
+                return;
+            }
+
+            /**
+             * データ更新実行メソッド
+             */
+            function dataUpdateExe( path, rowId )
+            {
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                          displayPageNo           : displayPageNo,
+                          displayRecordCnt        : displayRecordCnt,
+                          searchAccessAuthorityID : $('#accessAuthorityID').val(),
+                          searchFunctionID        : $('#functionID').val(),
+                          searchScreenName        : $('#screenName').val(),
+                          searchUrl               : $('#url').val(),
+                          searchComment           : $('#comment').val(),
+                          searchReferenceF        : document.getElementById("referenceF").checked,
+                          searchRegistrationF     : document.getElementById("registrationF").checked,
+                          searchDeleteF           : document.getElementById("deleteF").checked,
+                          searchApprovalF         : document.getElementById("approvalF").checked,
+                          searchPrintingF         : document.getElementById("printingF").checked,
+                          searchOutputF           : document.getElementById("outputF").checked,
+                          searchDelF              : document.getElementById("delF").checked,
+                          sortConditions          : sectionSort,
+                          accessAuthorityID       : $('#accessAuthorityIDMod' + rowId).val(),
+                          functionID              : $('#functionIDMod' + rowId).val(),
+                          screenName              : $('#screenNameMod' + rowId).val(),
+                          url                     : $('#urlMod' + rowId).val(),
+                          comment                 : $('#commentMod' + rowId).val(),
+                          reference               : document.getElementById("referenceMod" + rowId).checked,
+                          registration            : document.getElementById("registrationMod" + rowId).checked,
+                          delete                  : document.getElementById("deleteMod" + rowId).checked,
+                          approval                : document.getElementById("approvalMod" + rowId).checked,
+                          printing                : document.getElementById("printingMod" + rowId).checked,
+                          output                  : document.getElementById("outputMod" + rowId).checked,
+                          dispOrder               : $('#modDispOrder' + rowId).val(),
+                          updateTime              : $('#updateTime'  + rowId).val(),
+                          token                   : $('#token').val()
+                       };
+
+                // データ更新
+                setDataForAjax( data, path, 'jquery-replace-ajax', false );
+
+                // アクセス権限ID更新
+                setSearchAccessAuthorityID();
+                
+                // 新規エリアクリア
+                setInputArea();
+                
+                return;
+            }
+
+            /**
+             * 新規作成データの設定
+             */
+            function setAddData()
+            {
+
+                displayPageNo = 1;
+                var rowId = 0;
+                var path = 'index.php?param=AccessAuthority/add&home=1';
+
+                dataUpdateExe( path, rowId );
+            }
+
+            /**
+             * 更新用データの設定
+             */
+            function setModData()
+            {
+                var objTR = lineInfo.parentNode.parentNode;
+                var rowId = objTR.sectionRowIndex + 1;
+                var path = '';
+                if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>' )
+                {
+                    path = 'index.php?param=AccessAuthority/mod&home=1';
+                }
+                else
+                {
+                    path = 'index.php?param=AccessAuthority/del&home=1';
+                }
+
+                dataUpdateExe( path, rowId );
+
+            }
+
+            /**
+             * 更新キャンセル
+             */
+            function cancel()
+            {
+                var data = null;
+                var path = '';
+
+                // 検索実行
+                searchExe();
+                
+                // 新規登録エリア設定
+                setInputArea();
+            }
+
+            /**
+             * アクセス権限IDリスト更新
+             */
+            function setSearchAccessAuthorityID()
+            {
+                var data = null;
+                var path = '';
+
+                // 検索用セクションリスト更新用パス
+                path = 'index.php?param=AccessAuthority/searchAccessAuthorityID&home=1';
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                data = {
+                          searchAccessAuthorityID : $('#accessAuthorityID').val(),
+                       };
+
+                // データ更新
+                setDataForAjax( data, path, "jquery-replace-SearchAccessAuthorityID-ajax" );
+            }
+
+            /**
+             * 新規登録エリア設定
+             */
+            function setInputArea()
+            {
+                var data = {
+                              displayPageNo           : displayPageNo,
+                              displayRecordCnt        : displayRecordCnt,
+                              searchAccessAuthorityID : $('#accessAuthorityID').val(),
+                              searchFunctionID        : $('#functionID').val(),
+                              searchScreenName        : $('#screenName').val(),
+                              searchUrl               : $('#url').val(),
+                              searchComment           : $('#comment').val(),
+                              searchReferenceF        : document.getElementById("referenceF").checked,
+                              searchRegistrationF     : document.getElementById("registrationF").checked,
+                              searchDeleteF           : document.getElementById("deleteF").checked,
+                              searchApprovalF         : document.getElementById("approvalF").checked,
+                              searchPrintingF         : document.getElementById("printingF").checked,
+                              searchOutputF           : document.getElementById("outputF").checked,
+                              searchDelF              : document.getElementById("delF").checked,
+                              sortConditions          : sectionSort
+                           };
+
+                // 検索用セクションリスト更新用パス
+                var path = 'index.php?param=AccessAuthority/inputArea&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, "jquery-replace-input-ajax" );
+            }
+
+        </script>
+        
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site" style="overflow: auto;">
+            <!-- パンくずリスト -->
+            <?php include("Common/Breadcrumb.php"); ?>
+            <form id="searchForm" name="searchForm" method="POST" action="index.php?param=Section/search&home=1">
+                <input type="hidden" name="companyID" value="<?php hsc( $_SESSION['COMPANY_ID'] ); ?>">
+                <!-- serchBoardArea -->
+                <div class="serchBoardArea screenSize" style=" clear:both; width:99%; margin:5px auto !important;background-color: #ffffff">
+                    <table>
+                        <tbody>
+                            <tr>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0921')); ?></th>
+                                <td colspan="5">
+                                    <select name="functionID" id="functionID"  style="width: 250px" >
+                                        <?php foreach($functionIdList as $functionId) { ?>
+                                            <?php $selected = ""; ?>
+                                            <?php if($functionId['function_id'] == $searchArray['functionId']) { ?>
+                                                <?php $selected = "selected"; ?>
+                                            <?php } ?>
+                                            <option value="<?php hsc($functionId['function_id']); ?>" <?php hsc($selected); ?>><?php hsc($functionId['function_name']); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </td>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0922')); ?></th>
+                                <td colspan="5">
+                                    <input type="text" name="screenName" id="screenName" style="width: 250px" maxlength="30" class="Em" >
+                                </td>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0923')); ?></th>
+                                <td colspan="7">
+                                    <input type="text" name="url" id="url" style="width: 300px" maxlength="60" class="En" >
+                                </td>
+                            </tr>
+                            <tr>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0892')); ?></th>
+                                <td colspan="5">
+                                    <input type="text" name="comment" id="comment" style="width: 250px" maxlength="30" class="Em" >
+                                </td>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0886')); ?></th>
+                                <td>
+                                    <input type="checkbox" name="referenceF" id="referenceF" />
+                                </td>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0887')); ?></th>
+                                <td>
+                                    <input type="checkbox" name="registrationF" id="registrationF" />
+                                </td>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0888')); ?></th>
+                                <td>
+                                    <input type="checkbox" name="deleteF" id="deleteF" />
+                                </td>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0889')); ?></th>
+                                <td> 
+                                    <input type="checkbox" name="approvalF" id="approvalF" />
+                                </td>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0890')); ?></th>
+                                <td>
+                                    <input type="checkbox" name="printingF" id="printingF" />
+                                </td>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0891')); ?></th>
+                                <td>
+                                    <input type="checkbox" name="outputF" id="outputF" />
+                                </td>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0899')); ?></th>
+                                <td>
+                                    <input type="checkbox" name="delF" id="delF" />
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div><!-- /.serchBoardArea -->
+
+                <!-- serchButtonArea -->
+                <div class="serchButtonArea">
+                    <p align=center>
+                        <input type="submit" id="search" name="search" href="#" value="検索" class="serch" />
+                    </p>
+                </div><!-- /.serchButtonArea -->
+            </form>
+        
+            <form id="modForm" name="modForm" >
+                <?php include("AccessAuthorityTablePanel.html"); ?>
+            </form>
+            
+            <form id="addForm" name="addForm">
+                <?php include("AccessAuthorityInputPanel.html"); ?>
+            </form>
+
+          
+        </div><!-- /.sb-site -->
+
+        <?php include("../FwCommon/View/Dialog.php"); ?>
+    </body>
+</html>

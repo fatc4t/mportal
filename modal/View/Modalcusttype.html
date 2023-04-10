@@ -1,0 +1,56 @@
+<div>
+    <h2>顧客分類検索</h2>
+    <div class="modal_custtype_search">
+        <div class="modal_custtype_left" id="modal_custtype_param">
+            <label class="modal_custtype_label" for="modal_custtype_cust_type_cd"> コード  ：　</label><input type="text"  id="modal_custtype_cust_type_cd" class="modal_custtype_code"><br />
+            <label class="modal_custtype_label" for="modal_custtype_custt_ype_nm" > 顧客分類名 ：　</label><input type="text"  id="modal_custtype_cust_type_nm" class="modal_custtype_name">
+        </div>
+        <button type="button" id="modal_custtype_search_custtype" onclick="modal_search(event)"  class="modal_custtype_left search_btn">表示</button>
+    </div>
+    <br />
+    <div>
+        <table id="modal_custtype_table_id" class="modal_custtype_table">
+            <thead>
+                <tr>
+                    <th>選択</th>
+                    <th>コード</th>
+                    <th>顧客分類名</th>
+                </tr>
+            </thead>
+            <tbody id="modal_custtype_table_body">
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>                        
+            </tbody>
+        </table>
+    </div>
+    <br />
+    <div>
+        <div class="modal_div_btn">
+            <button type="button" id="modal_custtype_unselect" onclick="modal_unselect(event)"  >一括解除</button>
+            <button type="button" id="modal_custtype_select" onclick="modal_select(event)"  >一括選択</button>        
+            <button type="button" id="modal_custtype_befpage" onclick="modal_befpage(event)"  >前ページ</button>        
+            <button type="button" id="modal_custtype_nextpage" onclick="modal_nextpage(event)"  >次ページ</button>        
+            <button type="button" id="modal_custtype_validate" onclick="modal_validate(event)"  >決定</button>        
+            <button type="button" id="modal_custtype_close" onclick="modal_close(event)"  >終了</button>        
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+   
+    if(!pagenb){
+        pagenb=[];
+    }       
+    pagenb["custtype"] = 0;
+    if(!table_keys){
+        table_keys=[];
+    }    
+    table_keys["custtype"]=[];
+    table_keys["custtype"]=["cust_type_cd","cust_type_nm"] 
+    if(document.getElementById("modal_custtype_cust_type_cd")){
+        document.getElementById("modal_custtype_cust_type_cd").addEventListener("input", modal_input_check);
+        document.getElementById("modal_custtype_cust_type_cd").maxLength = A_Sizelist["custtypesize"];
+    }    
+</script>

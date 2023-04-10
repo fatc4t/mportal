@@ -1,0 +1,197 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>クレジットカードでのお支払い</title>
+    <!-- ■■１．JavaScriptの埋め込み■■ -->
+    <script type="text/javascript" src="../js/order/common.js"></script>
+    <script type="text/javascript" src="../js/order/jquery-ui.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/order/order.css">
+    <script type="text/javascript" src="https://ssl.f-regi.com/tokentest/static/base.js" charset="UTF-8"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/css/lightbox.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/js/lightbox.min.js" type="text/javascript"></script>
+  </head>
+  <body>
+<!-- Site -->
+<style type="text/css">
+#fregiWindow {
+	position:fixed;
+	z-index:3;
+	padding:10px;
+	background:#FFF;
+	border-radius: 10px;        /* CSS3草案 */
+    -webkit-border-radius: 10px;    /* Safari,Google Chrome用 */
+    -moz-border-radius: 10px;   /* Firefox用 */
+	display:none;
+	width:550px;
+	height:300px;
+}
+
+input[type=text]:focus {
+	background:#FFC;
+}
+
+.t_right {
+	text-align:right;
+}
+</style>
+    <form id="paymentForm">
+      <table>
+        <tr>
+            <div>
+            <b>使用できるクレジットカードについて</b><br>              ミリオネットとのご契約時に作成されたVISAカードのみ、お使いいただけます。
+            <br><br><img src="../../img/order/visa.jpg" width="80" height="40">
+            <br><br>
+            </div>
+        </tr>
+        <tr>
+          ＜＜　ご入力フォーム　＞＞
+          <th width="150" >カード番号</th>
+          
+          <td>
+            <input type="text" size="4" maxlength="4" name="CardNum1" id="CardNum1">
+            <span> - </span>
+            <input type="text" size="4" maxlength="4" name="CardNum2" id="CardNum2">
+            <span> - </span>
+            <input type="text" size="4" maxlength="4" name="CardNum3" id="CardNum3">
+            <span> - </span>
+            <input type="text" size="4" maxlength="4" name="CardNum4" id="CardNum4">
+          </td>
+        </tr>
+        <tr>
+          <th>カード名義</th>
+          <td>
+            <input type="text" name="CardOwnerName" id="CardOwnerName">
+          </td>
+        </tr>
+        <tr>
+          <th>有効期限</th>
+          <td>
+            <select name="CardExpireMonth" id="CardExpireMonth">
+              <option value="">--</option>
+              <option value="01">01</option>
+              <option value="02">02</option>
+              <option value="03">03</option>
+              <option value="04">04</option>
+              <option value="05">05</option>
+              <option value="06">06</option>
+              <option value="07">07</option>
+              <option value="08">08</option>
+              <option value="09">09</option>
+              <option value="10">10</option>
+              <option value="11">11</option>
+              <option value="12">12</option>
+            </select>
+            / 20
+            <select name="CardExpireYear" id="CardExpireYear">
+              <option value="">--</option>
+              <option value="16">16</option>
+              <option value="17">17</option>
+              <option value="18">18</option>
+              <option value="19">19</option>
+              <option value="20">20</option>
+              <option value="21">21</option>
+              <option value="22">22</option>
+              <option value="23">23</option>
+              <option value="24">24</option>
+              <option value="25">25</option>
+              <option value="26">26</option>
+            </select>
+            <span>（月 / 年） </span>
+          </td>
+        </tr>
+        <tr>
+          <th>セキュリティコード</th>
+          <td>
+            <input type="text" size="4" maxlength="4" name="CardSecureCode" id="CardSecureCode">
+          </td>
+        </tr>
+      </table>
+      <button type="button" onclick="submitPayment()" class="button_save">送信</button>
+      <input type="hidden" name="token" id = "token">
+      <input type="hidden" name="validity" id = "validity">
+      <input type="hidden" name="maskedpan" id = "maskedpan">
+    </form>
+
+    <script>
+        
+    var paymentForm = document.forms["paymentForm"];
+    
+    //<!-- ■■「送信」ボタン実行時処理■■ -->
+    function submitPayment() {
+
+        var pan = document.getElementById("CardNum1").value + document.getElementById("CardNum2").value + document.getElementById("CardNum3").value + document.getElementById("CardNum4").value
+        
+      //<!-- ■■１．カード種別のチェック■■ -->
+      // 桁数チェック(16桁)、先頭文字列「3」
+      if(pan.length < 16 || document.getElementById("CardNum1").value.substr(0,1) != "4"){
+          alert("VISAカード以外ではお支払いできません。");
+          }else{
+              //<!-- ■■２．トークンの発行■■ -->
+              FRToken.getToken(
+                '19601',                   //<!-- ■■ ShopID を設定してください ■■ -->
+                'cbbd4a4a66c8f384',     //<!-- ■■ トークン発行キーを設定してください ■■ -->
+                {
+                  pan:          pan,
+                  expiry_mm:    document.getElementById("CardExpireMonth").value,
+                  expiry_yy:    document.getElementById("CardExpireYear").value,
+                  cardname:     document.getElementById("CardOwnerName").value,
+                  scode:        document.getElementById("CardSecureCode").value,
+                }, receiveCallback
+              );
+
+                $('.modal-overlay').fadeOut('slow',function() {
+                        $("#fregiWindow").css('display','none');
+                        $('.modal-overlay').remove();
+
+  var jsonTxt = createJson();
+  var jsonBefore = JSON.parse(jsonTxt);
+  var json = JSON.stringify(jsonBefore,null,"  ");
+        var path = "./index.php?param=Order/order";
+
+        $.ajax({
+		url: path,
+    type: "POST",
+    data: json,
+		success: function(rtnData) {
+      if(rtnData=="OK") {
+  			location.href='./index.php?param=Order/show&home=1';
+      } else {
+        alert(rtnData);
+      }
+		},
+		error:function(xhr, textStatus, error) {
+			alert("通信エラー");
+		}
+	});
+
+                });
+
+            }
+    }
+      
+    //<!-- ■■３．トークン発行処理結果の受け取り■■ -->
+    function receiveCallback(response) {
+
+      //<!-- ■■トークン処理結果が正常の場合■■ -->
+      if (response.result == '000') {
+        //<!-- ■■カード情報の削除■■ -->
+        document.getElementById("CardNum1").removeAttribute('name');
+        document.getElementById("CardNum2").removeAttribute('name');
+        document.getElementById("CardNum3").removeAttribute('name');
+        document.getElementById("CardNum4").removeAttribute('name');
+        document.getElementById("CardSecureCode").removeAttribute('name');
+        //<!-- ■■トークン情報の送信■■ -->
+        document.getElementById("token").value     = response.cardobject.token;
+        document.getElementById("validity").value  = response.cardobject.validity;
+        document.getElementById("maskedpan").value = response.cardobject.maskedpan;
+
+        alert("決済しました");
+        
+      //<!-- ■■トークン処理結果が異常の場合■■ -->
+      } else {
+        alert('決済処理中にエラーが発生しました');
+      }
+    }
+    </script>
+  </body>
+</html>

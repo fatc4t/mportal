@@ -1,0 +1,545 @@
+<?php
+    /**
+     * @file      セキュリティマスタ画面(View)
+     * @author    USE S.Nakamura
+     * @date      2016/07/14
+     * @version   1.00
+     * @note      セキュリティマスタ画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array('default.css', 'common.js', 'jquery-ui.min.js', 'jquery-ui.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述 
+            include("Common/HtmlHeader.php"); 
+        ?>
+        <script type="text/javascript">
+            var displayPageNo = 1;
+            var displayRecordCnt = 10;
+            var securitySort = null;
+            var noClickCnt = 0;
+            var classificationClickCnt = 0;
+            var organizationClickCnt = 0;
+            var securityClickCnt = 0;
+            var displayItemClickCnt = 0;
+            var commentClickCnt = 0;
+            var referenceClickCnt = 0;
+            var registrationClickCnt = 0;
+            var deleteClickCnt = 0;
+            var approvalClickCnt = 0;
+            var printingClickCnt = 0;
+            var outputClickCnt = 0;
+            var disporderClickCnt = 0;
+            var stateClickCnt = 0;
+            
+            $(document).ready(function()
+            {
+                /**
+                 * セキュリティマスタ検索
+                 */
+                $('#search').click(function()
+                {
+                    displayPageNo = 1;
+                    securitySort = 0;
+                    
+                    // ページ更新
+                    screenUpdatingForAjax();
+                });
+
+            });
+
+            /**
+             * データの新規情報入力画面遷移
+             */
+            function inputPanelTransition()
+            {
+                var lineInfo = "";
+                var path = 'index.php?param=Security/addInput&home=1';
+                screenUpdatingForAjax( path, 'ajaxScreenUpdate' );
+
+                // ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * データの更新情報入力画面遷移
+             */
+            function editPanelTransition( securityID )
+            {
+                var path = 'index.php?param=Security/addInput&home=1';
+                screenUpdatingForAjax( path, 'ajaxScreenUpdate', securityID );
+
+                // ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * ソート処理
+             */
+            function setColumnInfo(thisItemInfo)
+            {
+                securitySort = 0;
+
+                if(thisItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?>" )
+                {
+                    // No
+                    noClickCnt++;
+                    if((noClickCnt % 2) != 0)
+                    {
+                        securitySort = 1;
+                    }
+                    else
+                    {
+                        securitySort = 2;
+                    }
+                }
+
+                else if(thisItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0893')); ?>" )
+                {
+                    // 区分
+                    classificationClickCnt++;
+                    if((classificationClickCnt % 2) != 0)
+                    {
+                        securitySort = 3;
+                    }
+                    else
+                    {
+                        securitySort = 4;
+                    }
+                }
+                else if(thisItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?>" )
+                {
+                    // 組織名
+                    organizationClickCnt++;
+                    if((organizationClickCnt % 2) != 0)
+                    {
+                        securitySort = 5;
+                    }
+                    else
+                    {
+                        securitySort = 6;
+                    }
+                }
+                else if(thisItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0881')); ?>" )
+                {
+                    // セキュリティ名
+                    securityClickCnt++;
+                    if((securityClickCnt % 2) != 0)
+                    {
+                        securitySort = 7;
+                    }
+                    else
+                    {
+                        securitySort = 8;
+                    }
+                }
+                else if(thisItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0894')); ?>" )
+                {
+                    // 表示項目
+                    displayItemClickCnt++;
+                    if((displayItemClickCnt % 2) != 0)
+                    {
+                        securitySort = 9;
+                    }
+                    else
+                    {
+                        securitySort = 10;
+                    }
+                }
+                else if(thisItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0886')); ?>" )
+                {
+                    // 参照
+                    referenceClickCnt++;
+                    if((referenceClickCnt % 2) != 0)
+                    {
+                        securitySort = 11;
+                    }
+                    else
+                    {
+                        securitySort = 12;
+                    }
+                }
+                else if(thisItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0887')); ?>" )
+                {
+                    // 登録
+                    registrationClickCnt++;
+                    if((registrationClickCnt % 2) != 0)
+                    {
+                        securitySort = 13;
+                    }
+                    else
+                    {
+                        securitySort = 14;
+                    }
+                }
+                else if(thisItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0888')); ?>" )
+                {
+                    // 削除
+                    deleteClickCnt++;
+                    if((deleteClickCnt % 2) != 0)
+                    {
+                        securitySort = 15;
+                    }
+                    else
+                    {
+                        securitySort = 16;
+                    }
+                }
+                else if(thisItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0889')); ?>" )
+                {
+                    // 承認
+                    approvalClickCnt++;
+                    if((approvalClickCnt % 2) != 0)
+                    {
+                        securitySort = 17;
+                    }
+                    else
+                    {
+                        securitySort = 18;
+                    }
+                }
+                else if(thisItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0890')); ?>" )
+                {
+                    // 印刷
+                    printingClickCnt++;
+                    if((printingClickCnt % 2) != 0)
+                    {
+                        securitySort = 19;
+                    }
+                    else
+                    {
+                        securitySort = 20;
+                    }
+                }
+                else if(thisItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0891')); ?>" )
+                {
+                    // 出力
+                    outputClickCnt++;
+                    if((outputClickCnt % 2) != 0)
+                    {
+                        securitySort = 21;
+                    }
+                    else
+                    {
+                        securitySort = 22;
+                    }
+                }
+                else if(thisItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0892')); ?>" )
+                {
+                    // コメント
+                    commentClickCnt++;
+                    if((commentClickCnt % 2) != 0)
+                    {
+                        securitySort = 23;
+                    }
+                    else
+                    {
+                        securitySort = 24;
+                    }
+                }
+                else if(thisItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0852')); ?>" )
+                {
+                    // 表示順
+                    disporderClickCnt++;
+                    if((disporderClickCnt % 2) != 0)
+                    {
+                    
+                        securitySort = 25;
+                    }
+                    else
+                    {
+                        securitySort = 26;
+                    }
+                }
+                else if(thisItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0849')); ?>" )
+                {
+                    // 状態
+                    stateClickCnt++;
+                    if((stateClickCnt % 2) != 0)
+                    {
+                    
+                        securitySort = 27;
+                    }
+                    else
+                    {
+                        securitySort = 28;
+                    }
+                }
+                
+                screenUpdatingForAjax();
+
+                // ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 表示ページ数選択
+             */
+            function displayPage(pageCnt)
+            {
+                displayPageNo = pageCnt;
+
+                screenUpdatingForAjax();
+
+                // ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 表示レコード数選択
+             */
+            function displayRecord(recordCnt)
+            {
+                displayRecordCnt = recordCnt;
+                displayPageNo = 1;
+
+                screenUpdatingForAjax();
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 新規作成データの設定
+             */
+            function setAddData()
+            {
+                displayPageNo = 1;
+                var path = 'index.php?param=Security/add&home=1';
+
+                screenUpdatingForAjax(path);
+                
+            }
+            
+            /**
+             * 更新用データの設定
+             */
+            function setModData()
+            {
+                var objTR = lineInfo.parentNode.parentNode.parentNode;
+                var rowId = objTR.sectionRowIndex;
+                var data = null;
+                var path = '';
+                if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>' )
+                {
+                    path = 'index.php?param=Security/mod&home=1';
+                }
+                else
+                {
+                    path = 'index.php?param=Security/del&home=1';
+                }
+
+                screenUpdatingForAjax(path);
+
+            }
+
+            /**
+             * 検索の実行メソッド
+             */
+            function screenUpdatingForAjax( path, setAjax, securityID )
+            {
+                // pashの指定があるか
+                if( path == null )
+                {
+                    // path指定がない場合、検索のパスを指定する
+                    path = 'index.php?param=Security/search&home=1';
+                }
+                
+                // securityIDの指定があるか
+                if( securityID == null )
+                {
+                    // path指定がない場合、検索のパスを指定する
+                    securityID = 0;
+                }
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                                displayPageNo : displayPageNo,
+                                displayRecordCnt : displayRecordCnt,
+                                securityID : securityID,
+                                searchClassID : $('#searchClassID').val(),
+                                searchOrganizationID : $('#organizationName').val(),
+                                searchSecurityName : $('#security').val(),
+                                searchoptionName : $('[name=optionName] option:selected').text(),
+                                searchComment : $('#comment').val(),
+                                searchReference : $('#reference').val(),
+                                searchRegistration : $('#registration').val(),
+                                searchDelete : $('#delete').val(),
+                                searchApproval : $('#approval').val(),
+                                searchPrinting : $('#printing').val(),
+                                searchOutput : $('#output').val(),
+                                sortConditions : securitySort,
+                                searchDelF : document.getElementById("delF").checked,
+                            };
+
+                // データ更新
+                setDataForAjax( data, path, setAjax );
+            }
+
+        </script>
+
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site" style="overflow: auto;">
+            <!-- パンくずリスト -->
+            <?php include("Common/Breadcrumb.php"); ?>
+            <form id="searchForm" name="searchForm">
+                <input type="hidden" name="companyID" value="<?php hsc( $_SESSION['COMPANY_ID'] ); ?>">
+                <!-- serchBoardArea -->
+                <div class="serchBoardArea" style="width:99%; margin:5px auto !important; background-color: #ffffff"" >
+                    <table>
+                        <tbody>
+                            <tr>
+                                <th style="width:110px"><?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?></th><!-- 組織名 -->
+                                <td style="width:220px">
+                                    <?php include("../FwCommon/View/SearchOrganizationName.php"); ?>
+                                </td>
+                                <th style="width:110px"><?php hsc($Log->getMsgLog('MSG_BASE_0893')); ?></th><!-- 区分 -->
+                                <td style="width:110px">
+                                    <select name="searchClassID" id="searchClassID"  style="width:100px" >
+                                        <?php 
+                                            foreach($searchClassList as $key => $value ) 
+                                            {
+                                                $selected = "";
+                                                if( $key == $searchArray['searchClassID'] )
+                                                {
+                                                    $selected = "selected";
+                                                } 
+                                        ?>
+                                        <option value="<?php hsc( $key ); ?>" <?php hsc( $selected ); ?>><?php hsc( $value ); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </td>
+                                <th style="width:110px"><?php hsc($Log->getMsgLog('MSG_BASE_0881')); ?></th><!-- セキュリティ名 -->
+                                <td style="width:110px">
+                                    <?php include("Common/SearchSecurityName.php"); ?>
+                                </td>
+                                <th style="width:110px"><?php hsc($Log->getMsgLog('MSG_BASE_0894')); ?></th><!-- 表示項目 -->
+                                <td style="width:110px">
+                                    <?php include("../FwCommon/View/SearchOptionName.php"); ?>
+                                </td>
+                                
+                            </tr>
+                            <tr>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0892')); ?></th><!-- コメント -->
+                                <td>
+                                    <input type="text" name="comment" id="comment"  style="width:200px" maxlength="30" value="<?php hsc($searchArray['comment']);?>">
+                                </td>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0886')); ?></th><!-- 参照 -->
+                                <td>
+                                    <select name="reference" id="reference" style="width:100px">
+                                        <?php foreach($referenceList as $reference) { ?>
+                                        <?php $selected = ""; ?>
+                                        <?php if($reference['security_class_id'] == $searchArray['reference']) { ?>
+                                        <?php $selected = "selected"; ?>
+                                            <?php } ?>
+                                            <option value="<?php hsc($reference['security_class_id']); ?>"<?php hsc($selected); ?>><?php hsc($reference['security_class_name']); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </td>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0887')); ?></th><!-- 登録 -->
+                                <td>
+                                    <select name="registration" id="registration" style="width:100px">
+                                        <?php foreach($registrationList as $registration) { ?>
+                                        <?php $selected = ""; ?>
+                                        <?php if($registration['security_class_id'] == $searchArray['registration']) { ?>
+                                        <?php $selected = "selected"; ?>
+                                            <?php } ?>
+                                            <option value="<?php hsc($registration['security_class_id']); ?>"<?php hsc($selected); ?>><?php hsc($registration['security_class_name']); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </td>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0888')); ?></th><!-- 削除 -->
+                                <td>
+                                    <select name="delete" id="delete" style="width:100px">
+                                        <?php foreach($deleteList as $delete) { ?>
+                                        <?php $selected = ""; ?>
+                                        <?php if($delete['security_class_id'] == $searchArray['delete']) { ?>
+                                        <?php $selected = "selected"; ?>
+                                            <?php } ?>
+                                            <option value="<?php hsc($delete['security_class_id']); ?>"<?php hsc($selected); ?>><?php hsc($delete['security_class_name']); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <?php $checked = ''; ?>
+                                <?php if( !empty($is_del) && $is_del == "true" ) { ?>
+                                    <?php $checked = 'checked'; ?>
+                                <?php } ?>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0927')); ?></th><!-- 削除を表示 -->
+                                <td><input type="checkbox" name="delF" id="delF"<?php hsc($checked); ?>> <?php hsc($Log->getMsgLog('MSG_BASE_0899')); ?></td>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0889')); ?></th><!-- 承認 -->
+                                <td> 
+                                    <select name="approval" id="approval" style="width:100px">
+                                        <?php foreach($approvalList as $approval) { ?>
+                                        <?php $selected = ""; ?>
+                                        <?php if($approval['security_class_id'] == $searchArray['approval']) { ?>
+                                        <?php $selected = "selected"; ?>
+                                            <?php } ?>
+                                            <option value="<?php hsc($approval['security_class_id']); ?>"<?php hsc($selected); ?>><?php hsc($approval['security_class_name']); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </td>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0890')); ?></th><!-- 印刷 -->
+                                <td>
+                                    <select name="printing" id="printing" style="width:100px">
+                                        <?php foreach($printingList as $printing) { ?>
+                                        <?php $selected = ""; ?>
+                                        <?php if($printing['security_class_id'] == $searchArray['printing']) { ?>
+                                        <?php $selected = "selected"; ?>
+                                            <?php } ?>
+                                            <option value="<?php hsc($printing['security_class_id']); ?>"<?php hsc($selected); ?>><?php hsc($printing['security_class_name']); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </td>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0891')); ?></th><!-- 出力 -->
+                                <td>
+                                    <select name="output" id="output" style="width:100px">
+                                        <?php foreach($outputList as $output) { ?>
+                                        <?php $selected = ""; ?>
+                                        <?php if($output['security_class_id'] == $searchArray['output']) { ?>
+                                        <?php $selected = "selected"; ?>
+                                            <?php } ?>
+                                            <option value="<?php hsc($output['security_class_id']); ?>"<?php hsc($selected); ?>><?php hsc($output['security_class_name']); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div><!-- /.serchBoardArea -->
+                
+                <div style="text-align: center; white-space: nowrap;" id="styleAlignCenter">
+                    <div style="display: inline-block;" class="serchButtonArea">
+                        <input type="button" id="search" name="search" href="#" value="検索" class="serch" />
+                    </div><!-- /.serchButtonArea -->
+                    <div style="display: inline-block;" class="logicButtonArea">
+                        <?php $add_disabled = ""; ?>
+                        <?php if(!empty($regFlag)) { ?>
+                            <?php $add_disabled = "disabled"; ?>
+                        <?php } ?>
+                        <input type="button" id="add" name="add" onClick="inputPanelTransition()" value="　新規作成" class="add" <?php hsc($add_disabled); ?>>
+                    </div><!-- /.logicButtonArea -->
+                </div><!-- /#styleAlignCenter -->
+            </form>
+            <form id="modForm" name="modForm" >
+                <?php include("SecurityTablePanel.html"); ?>
+            </form>
+        </div><!-- /.sb-site -->
+        <?php include("../FwCommon/View/Dialog.php"); ?>
+    </body>
+</html>

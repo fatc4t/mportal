@@ -1,0 +1,48 @@
+/* body要素(全体) */
+body
+{
+    /* 文字色をM-PRTALカラーに */
+    color: 1515ba;
+    /* 背景色を白に */
+    background-color: white;
+}
+
+/* id="clock_frame" のdiv要素 */
+div#clock_frame
+{
+    /* 横幅を親要素であるbodyの100%(同じ幅)にする */
+    width: 100%;
+}
+
+/* span要素のデフォルト */
+span
+{
+    /* 本来はインライン要素であるspanをブロック要素として扱う */
+    display: block;
+    /* ここでは親要素であるdivの内部で右に寄せて配置させる */
+    float: right;
+    /* 横幅を親要素であるdivの85%にする */
+    width: 100%;
+}
+
+/* id="clock_date" のspan要素 */
+span#clock_date
+{
+    /* この要素の中におけるテキストを右詰めにする デフォルト値のtext-align:leftを上書き */
+    text-align: center;
+    /* フォントの大きさを親要素であるdivで設定されたサイズ(px)の0.5倍にする */
+    font-size: 0.5em;
+    /* 右のパディングの幅を親要素であるdivで設定されたフォントサイズ(px)の0.5倍にする */
+    padding-right: 0.5em;
+    color: black;
+}
+
+/* id="clock_time" のspan要素 */
+span#clock_time
+{
+    /* フォントの大きさを親要素であるdivで設定されたサイズ(px)の2倍にする */
+    font-size: 2.0em;
+    border: 4px solid #1515ba;
+    border-radius: 10px;
+    text-align: center;
+}

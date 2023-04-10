@@ -1,0 +1,22 @@
+<?php
+/**
+ * @file      発注先広告一覧
+ * @author    USE K.Kanda(media-craft.co.jp)
+ * @date      2018/01/30
+ * @version   1.00
+ * @note      発注先広告一覧
+ */
+require_once( SystemParameters::$SANITIZE_SETTING_FILE );
+if(!empty($cmArr))
+{
+    foreach($cmArr as $key => $value)
+    {
+?>
+<ul class="cm">
+    <li class="name"><?php hsc($value['ma_name']);?></li>
+    <li class="comment"><?php hsc($value['details_txt']);?></li>
+</ul>
+<?php
+    }
+}
+?>

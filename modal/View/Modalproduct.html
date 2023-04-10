@@ -1,0 +1,204 @@
+
+<div>
+    <h2>商品検索</h2>
+    <div class="modal_prod_search">
+        <div class="modal_prod_left" id="modal_prod_param">
+            <label class="modal_prod_label" for="modal_prod_prod_cd"> コード  ：</label><input type="text"  id="modal_prod_prod_cd" class="modal_prod_code"><br />
+            <label class="modal_prod_label" for="modal_prod_prod_nm" > 商品名 ：</label><input type="text"  maxlength="16" id="modal_prod_prod_nm" class="modal_prod_name">
+            <label class="modal_prod_label" for="modal_prod_prod_kn" > 商品カナ ：</label><input type="text" maxlength="16"  id="modal_prod_prod_kn" class="modal_prod_name"><br />
+            <label class="modal_prod_label_long" for="modal_prod_supp_cd" > 仕入先コード ：</label><input  id="modal_prod_supp_cd"   class="modal_prod_code_small" >
+            <label class="modal_prod_label_long" for="modal_prod_supp_nm_show" > 仕入先名 ：</label><input  list='supp_nm_list' id="modal_prod_supp_nm_show"  maxlength="16" class="modal_prod_name">
+            <datalist id='supp_nm_list'>
+            </datalist><br /> 
+            <label class="modal_prod_label_long" for="modal_prod_sect_cd" > 部門コード 　：</label><input  id="modal_prod_sect_cd"   class="modal_prod_code_small" >
+            <label class="modal_prod_label_long" for="modal_prod_sect_nm_show" > 部門名 　：</label><input  list='sect_nm_list' id="modal_prod_sect_nm_show"  maxlength="16" class="modal_prod_name" >
+            <datalist id='sect_nm_list'>
+            </datalist>
+        </div>
+       
+        <button type="button" id="modal_prod_search_prod" onclick="modal_prod_search(event)"  class="modal_prod_left">表示</button>
+    </div>
+    <br />
+    <div>
+        <table id="modal_prod_table_id" class="modal_prod_table">
+            <thead>
+                <tr>
+                    <th>選択</th>
+                    <th>コード</th>
+                    <th>商品名</th>
+                    <th>商品カナ</th>
+                </tr>
+            </thead>
+            <tbody id="modal_prod_table_body">
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>                        
+            </tbody>
+        </table>
+    </div>
+    <br />
+    <div>
+        <div class="modal_div_btn">
+            <button type="button" id="modal_prod_unselect" onclick="modal_unselect(event)"  >一括解除</button>
+            <button type="button" id="modal_prod_select" onclick="modal_select(event)"  >一括選択</button>        
+            <button type="button" id="modal_prod_befpage" onclick="modal_befpage(event)"  >前ページ</button>        
+            <button type="button" id="modal_prod_nextpage" onclick="modal_nextpage(event)"  >次ページ</button>        
+            <button type="button" id="modal_prod_validate" onclick="modal_validate(event)"  >決定</button>        
+            <button type="button" id="modal_prod_close" onclick="modal_close(event)"  >終了</button>        
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    document.getElementById('modal_prod_supp_cd').addEventListener('change',modal_prod_search);
+    document.getElementById('modal_prod_supp_nm_show').addEventListener('change',modal_prod_search); 
+    document.getElementById('modal_prod_sect_cd').addEventListener('change',modal_prod_search);
+    document.getElementById('modal_prod_sect_nm_show').addEventListener('change',modal_prod_search);     
+  
+    if(!pagenb){
+        pagenb=[];
+    }       
+    pagenb["prod"] = 0;
+    if(!table_keys){
+        table_keys=[];
+    }    
+    table_keys["prod"]=[];
+    table_keys["prod"]=["prod_cd","prod_nm","prod_kn"];
+    
+    function modal_prod_search(e){
+        //case seach button
+        if(e.target.id ===  "modal_prod_search_prod"){
+            elem_supp_list  = document.getElementById("supp_nm_list");
+            elem_supp_cd    = document.getElementById("modal_prod_supp_cd");
+            elem_supp_nm    = document.getElementById("modal_prod_supp_nm_show");
+            elem_sect_cd    = document.getElementById("modal_prod_sect_cd");
+            elem_sect_list  = document.getElementById("sect_nm_list");
+            elem_sect_nm    = document.getElementById("modal_prod_sect_nm_show");
+            if(elem_supp_list.options.length > 0 && !elem_supp_cd.value){
+                // case supp : search  found result but no result was selected
+                alert("※仕入先名を選択してください。" );
+                elem_supp_nm.focus();
+                return;
+                
+            }else if(!elem_supp_cd.value && elem_supp_nm.value){
+                // case supp : search found no result (normaly never come here)
+                alert("※『"+elem_supp_nm.value+"』は存在しません。");
+                elem_supp_nm.focus();
+                return;
+            }
+            if(elem_sect_list.options.length > 0 && !elem_sect_cd.value){
+                // case sect : search  found result but no result was selected
+                alert("※部音名を選択してください。" );
+                elem_sect_nm.focus();                
+                return;
+            }else if(!elem_sect_cd.value && elem_sect_nm.value){
+                // case sect : search found no result (normaly never come here)
+                alert("※『"+elem_sect_nm.value+"』は存在しません。");
+                elem_sect_nm.focus();
+                return;
+            }
+            // search list of product(modal.js)
+            modal_search(e);
+            
+        }
+        
+        // case search supp or sect
+        
+        // initalise data
+        field_work = e.target.id.replace("modal_prod_","").replace("_show","");
+        A_data_search = window["data_" + field_work.split("_")[0]];
+        data_to_search = "";
+        size=A_Sizelist[field_work.split("_")[0]+"size"];
+        if(field_work.split("_")[1] === "nm"){
+            //case search name
+            elem_change_id = e.target.id.replace("nm_show","cd");
+            data_to_search = e.target.value;
+        }else{
+            //case search code
+            elem_change_id = e.target.id.replace("cd","nm_show");
+            data_to_search = ("0".repeat(size) + e.target.value).slice(-size);;
+        }
+        // get element list
+        elem_lst_id = field_work.split("_")[0] + "_nm_list";
+        elem_lst    = document.getElementById(elem_lst_id);
+        // get element searching data
+        elem_search = document.getElementById(e.target.id);
+        // get element that will be changed after search
+        elem_change = document.getElementById(elem_change_id);
+        
+        // if elem_search emtpy => empty elem_change
+        if(elem_search.value === ""){
+            elem_change.value = "";
+            return;
+        }
+        
+        if(field_work.split("_")[1] === "cd"){
+            // code
+            for(i=0;i<A_data_search.length;i++){
+                //console.log(data_to_search +"//" + A_data_search[i][field_work]);
+                if(A_data_search[i][field_work] > data_to_search ){
+                    // row code bigger than search code => search finished
+                    break;
+                }else if(A_data_search[i][field_work] == data_to_search){
+                    // case data found
+                    elem_lst.innerHTML = "";
+                    elem_search.value = data_to_search;
+                    elem_change.value = A_data_search[i][field_work.replace("cd","nm")];
+                    return;
+                }
+            }
+            // not found
+            alert("※『"+data_to_search+"』は存在しません。。");
+            elem_search.value = "";
+            elem_change.value = "";
+            elem_search.focus();
+        }else{
+            // name
+            elem_lst.innerHTML = "";
+            elem_change.value = "";
+            //console.log("here2");
+            for(i=0;i<A_data_search.length;i++){
+                if(A_data_search[i][field_work] === data_to_search){
+                    // case name exactly the one searched => no more search
+                    elem_lst.innerHTML = "";
+                    elem_search.value = data_to_search;
+                    elem_change.value = A_data_search[i][field_work.replace("nm","cd")];
+                    return;
+                }else if(A_data_search[i][field_work].indexOf(data_to_search) !== -1 ){
+                    // case contain part of the search name. will be add in the list
+                    option = document.createElement('option');
+                    option.value = A_data_search[i][field_work];
+                    option.text = A_data_search[i][field_work];
+                    elem_lst.appendChild(option);                    
+                    elem_search.value = data_to_search;
+                }
+            }
+            //console.log("here");
+            if(elem_lst.options.length === 0){
+                // case data not found
+                alert("※『"+data_to_search+"』は存在しません。");
+                elem_search.value = "";
+                elem_change.value = "";
+                elem_search.focus();  
+            }else{
+                // case data found but need to be selected
+                elem_search.focus();
+            }
+        }
+       
+    }
+    if(document.getElementById("modal_prod_prod_cd")){
+        document.getElementById("modal_prod_prod_cd").addEventListener("input", modal_input_check);
+        document.getElementById("modal_prod_prod_cd").maxLength = A_Sizelist["prodsize"];
+    } 
+    if(document.getElementById("modal_prod_sect_cd")){
+        document.getElementById("modal_prod_sect_cd").addEventListener("input", modal_input_check);
+        document.getElementById("modal_prod_sect_cd").maxLength = A_Sizelist["sectsize"];
+    }
+    if(document.getElementById("modal_prod_supp_cd")){
+        document.getElementById("modal_prod_supp_cd").addEventListener("input", modal_input_check);
+        document.getElementById("modal_prod_supp_cd").maxLength = A_Sizelist["suppsize"];
+    }       
+</script>

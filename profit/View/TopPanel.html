@@ -1,0 +1,198 @@
+<?php
+    /**
+     * @file      売上TOP画面(View)
+     * @author    millionet oota 
+     * @date      2016/07/01
+     * @version   1.00
+     * @note      売上TOP画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述 
+            include("../profit/View/Common/HtmlHeader.php"); 
+        ?>
+<script type="text/javascript" src="../js/profit/jquery/Chart__back.js"></script>
+
+    </head>
+    <body>
+        <?php include("Common/PageHeader.php");
+        ?>
+<div id="sb-site">
+            <table align=center class="list_table_bk" width=100%>
+            <!-- menuNameArea -->
+            <div class="menuNameArea">
+                <h2>
+                    <a href="#"><span class="menu"/></span></a>
+                    <a href="/profit/index.php?param=Top/show">売上トップ</a>
+                </h2>
+            </div><!-- /.menuNameArea -->
+            </table>
+<table align=center width="1200">
+<tr>
+<td align=center valign=top width=30%>
+<table border=1 rules=rows align=center valign=top width=400 height=200 frame=box>
+<tr>
+<td id="PortletTitle" align=center height=25>更新履歴</td>
+</tr>
+<tr>
+<td align=center valign=top><table id="Portlet" valign=top width=90%>
+<tr><td align=left id="Portlet" width=150><a href="./bbs/contact_read.php?cd=2&key_id=0000000000000013&page=1" target="_self">2016-06-09 16:04:05</a></td>
+<td align=left id="Portlet">札幌店 仕入れ</td>
+<td align=left id="Portlet" width=50><font color=red>未確認</font></td>
+</tr>
+<tr><td align=left id="Portlet" width=150><a href="./bbs/contact_read.php?cd=2&key_id=0000000000000012&page=1" target="_self">2016-06-09 16:02:42</a></td>
+<td align=left id="Portlet">仙台店 仕入れ</td>
+<td align=left id="Portlet" width=50><font color=blue>確認済</font></td>
+</tr>
+<tr><td align=left id="Portlet" width=150><a href="./bbs/contact_read.php?cd=2&key_id=0000000000000001&page=1" target="_self">2016-04-14 22:26:09</a></td>
+<td align=left id="Portlet">東京本店 仕入れ</td>
+<td align=left id="Portlet" width=50><font color=blue>確認済</font></td>
+</tr>
+<tr><td align=left id="Portlet" width=150><a href="./bbs/contact_read.php?cd=2&key_id=0000000000000002&page=1" target="_self">2016-04-14 22:26:06</a></td>
+<td align=left id="Portlet">新潟店 仕入れ</td>
+<td align=left id="Portlet" width=50><font color=blue>確認済</font></td>
+</tr>
+<tr><td align=left id="Portlet" width=150><a href="./bbs/contact_read.php?cd=2&key_id=0000000000000003&page=1" target="_self">2016-04-14 22:26:02</a></td>
+<td align=left id="Portlet">長野店 仕入れ</td>
+<td align=left id="Portlet" width=50><font color=blue>確認済</font></td>
+</tr>
+<tr><td align=left id="Portlet" width=150><a href="./bbs/contact_read.php?cd=2&key_id=0000000000000006&page=1" target="_self">2016-04-14 22:25:43</a></td>
+<td align=left id="Portlet">金沢店 仕入れ</td>
+<td align=left id="Portlet" width=50><font color=blue>確認済</font></td>
+</tr>
+<tr><td align=left id="Portlet" width=150><a href="./bbs/contact_read.php?cd=2&key_id=0000000000000007&page=1" target="_self">2016-04-14 22:25:39</a></td>
+<td align=left id="Portlet">名古屋店 仕入れ</td>
+<td align=left id="Portlet" width=50><font color=blue>確認済</font></td>
+</tr>
+<tr><td align=left id="Portlet" width=150><a href="./bbs/contact_read.php?cd=2&key_id=0000000000000008&page=1" target="_self">2016-04-14 22:25:32</a></td>
+<td align=left id="Portlet">大阪店 仕入れ</td>
+<td align=left id="Portlet" width=50><font color=blue>確認済</font></td>
+</tr>
+<tr><td align=left id="Portlet" width=150><a href="./bbs/contact_read.php?cd=2&key_id=0000000000000009&page=1" target="_self">2016-04-14 22:25:28</a></td>
+<td align=left id="Portlet">京都店 仕入れ</td>
+<td align=left id="Portlet" width=50><font color=blue>確認済</font></td>
+</tr>
+<tr><td align=left id="Portlet" width=150><a href="./bbs/contact_read.php?cd=2&key_id=0000000000000010&page=1" target="_self">2016-04-14 22:25:25</a></td>
+<td align=left id="Portlet">岡山店 仕入れ</td>
+<td align=left id="Portlet" width=50><font color=blue>確認済</font></td>
+</tr>
+<tr><td align=left id="Portlet" width=150><a href="./bbs/contact_read.php?cd=2&key_id=0000000000000011&page=1" target="_self">2016-04-14 22:25:22</a></td>
+<td align=left id="Portlet">広島店 仕入れ</td>
+<td align=left id="Portlet" width=50><font color=blue>確認済</font></td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+<br />
+<table border=1 rules=rows align=center valign=top width=400 height=300 frame=box>
+<tr>
+<td id="PortletTitle" align=center height=25>売上順位</td>
+</tr>
+<tr>
+<td align=center id="Portlet">第1位　東京本店</td>
+</tr>
+<tr>
+<td align=center id="Portlet">第2位 大阪店</td>
+</tr>
+<tr>
+<td align=center id="Portlet">第3位 札幌店</td>
+</tr>
+</table>
+<br />
+</td>
+<td align=center valign=top width=30%>
+<table border=1 rules=rows align=center valign=top width=400 height=350 frame=box>
+<tr>
+<td id="PortletTitle" align=center height=25>売上 「札幌店」</td>
+</tr>
+<tr>
+<td align=center valign=top><table id="Portlet" valign=top width=100%>
+<tr>
+<td align=center>
+<canvas id="canvas" height="350" width="400"></canvas>
+</td>
+</tr>
+</table>
+<script>
+var lineChartData = {
+labels : ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"],
+datasets : [
+{
+fillColor : "rgba(241,196,15,0.5)",
+strokeColor : "rgba(220,220,220,1)",
+pointColor : "rgba(220,220,220,1)",
+pointStrokeColor : "#fff",
+data : [100,400,450,600,500,1200,1050,1200,1350,1000,1650,2400]
+}
+]
+}
+var myLine = new Chart(document.getElementById("canvas").getContext("2d")).Line(lineChartData);
+</script>
+</td>
+</tr>
+</table>
+<br />
+</td>
+<td align=center valign=top width=30%>
+<table border=1 rules=rows align=center valign=top width=400 height=350 frame=box>
+<tr>
+<td id="PortletTitle" align=center height=25>コスト比率</td>
+</tr>
+<tr>
+<td align=center valign=top><table id="Portlet" valign=top width=100%>
+<tr>
+<td align=center>
+<canvas id="chart-area" height="350" width="400"></canvas>
+</td>
+</tr>
+</table>
+<script>
+var pieData = [
+				{
+					value: 300,
+					color:"#F7464A",
+					highlight: "#FF5A5E",
+					label: "Red"
+				},
+				{
+					value: 50,
+					color: "#46BFBD",
+					highlight: "#5AD3D1",
+					label: "Green"
+				},
+				{
+					value: 100,
+					color: "#FDB45C",
+					highlight: "#FFC870",
+					label: "Yellow"
+				},
+				{
+					value: 40,
+					color: "#949FB1",
+					highlight: "#A8B3C5",
+					label: "Grey"
+				},
+				{
+					value: 120,
+					color: "#4D5360",
+					highlight: "#616774",
+					label: "Dark Grey"
+				}
+			];
+var myLine = new Chart(document.getElementById("chart-area").getContext("2d")).Pie(pieData);
+</script>
+</td>
+</tr>
+</table>
+<br />
+</td>
+</tr>
+</table>
+</div>
+<script type="text/javascript" src="../js/profit/jquery/js/scrolltopcontrol.js"></script> <!--スクロールしながらページのトップに戻る-->
+</body>
+</html>

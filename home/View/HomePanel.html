@@ -1,0 +1,509 @@
+<?php
+    /**
+     * @file      TOP画面(View)
+     * @author    oota
+     * @date      2016/06/24
+     * @version   1.00
+     * @note      TOP画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述 
+            include("Common/HtmlHeader.php"); 
+        ?>
+<style type="text/css">
+.tdb {
+background: -webkit-gradient(linear, left top, left bottom, color-stop(0.00, #c3d9ff), color-stop(1.00, #97b0d9));
+background: -webkit-linear-gradient(#c3d9ff, #97b0d9);
+background: -moz-linear-gradient(#c3d9ff, #97b0d9);
+background: -o-linear-gradient(#c3d9ff, #97b0d9);
+background: -ms-linear-gradient(#c3d9ff, #97b0d9);
+background: linear-gradient(#c3d9ff, #97b0d9);
+}
+.tdo {
+background: -webkit-gradient(linear, left top, left bottom, color-stop(0.00, #fee4c8), color-stop(0.98, #ff7400));
+background: -webkit-linear-gradient(top, #fee4c8 0%, #ff7400 98%);
+background: -moz-linear-gradient(top, #fee4c8 0%, #ff7400 98%);
+background: -o-linear-gradient(top, #fee4c8 0%, #ff7400 98%);
+background: -ms-linear-gradient(top, #fee4c8 0%, #ff7400 98%);
+background: linear-gradient(to bottom, #fee4c8 0%, #ff7400 98%);
+}
+.tdm {
+background: -webkit-gradient(linear, left top, left bottom, color-stop(0.00, #bcffbe), color-stop(0.50, #69ff6d), color-stop(0.50, #34f438), color-stop(1.00, #34f438));
+background: -webkit-linear-gradient(top, #bcffbe 0%, #69ff6d 50%, #34f438 50%, #34f438 100%);
+background: -moz-linear-gradient(top, #bcffbe 0%, #69ff6d 50%, #34f438 50%, #34f438 100%);
+background: -o-linear-gradient(top, #bcffbe 0%, #69ff6d 50%, #34f438 50%, #34f438 100%);
+background: -ms-linear-gradient(top, #bcffbe 0%, #69ff6d 50%, #34f438 50%, #34f438 100%);
+background: linear-gradient(to bottom, #bcffbe 0%, #69ff6d 50%, #34f438 50%, #34f438 100%);
+}
+.tdy {
+background: -webkit-gradient(linear, left top, left bottom, color-stop(0.00, #eaf2b1), color-stop(0.50, #d1e637), color-stop(0.50, #c3d825), color-stop(1.00, #def246));
+background: -webkit-linear-gradient(top, #eaf2b1 0%, #d1e637 50%, #c3d825 50%, #def246 100%);
+background: -moz-linear-gradient(top, #eaf2b1 0%, #d1e637 50%, #c3d825 50%, #def246 100%);
+background: -o-linear-gradient(top, #eaf2b1 0%, #d1e637 50%, #c3d825 50%, #def246 100%);
+background: -ms-linear-gradient(top, #eaf2b1 0%, #d1e637 50%, #c3d825 50%, #def246 100%);
+background: linear-gradient(to bottom, #eaf2b1 0%, #d1e637 50%, #c3d825 50%, #def246 100%);
+}
+
+#dir_tree ul {
+	list-style-type: none;
+	padding-left: 15px;
+	font-size:12px;
+}
+#dir_tree a, #dir_tree li {
+	text-decoration: none;
+	margin-bottom: 3px;
+	font-size:12px;
+}
+#dir_tree a {
+	font-size:12px;
+	background-color:#f7f7f7;
+	border-bottom:1px solid #f1f1f1;
+	margin-left: 15px;
+}
+
+</style>
+
+<script type="text/javascript" src="../js/profit/jquery/Chart.js"></script>
+<script type="text/javascript">
+
+$(function() {
+	$("span.dir").css("cursor", "pointer").prepend("+ ").click(function() {
+		$(this).next().toggle("fast");
+		
+		var v = $(this).html().substring( 0, 1 );
+		if ( v == "+" )
+			$(this).html( "-" + $(this).html().substring( 1 ) );
+		else if ( v == "-" )
+			$(this).html( "+" + $(this).html().substring( 1 ) );
+	}).next().hide();
+	
+    $("#dir_tree a, #dir_tree span.dir").hover(function() {
+        $(this).css("font-weight", "bold");
+    }, function() {
+        $(this).css("font-weight", "normal");
+    });
+});
+</script>
+</head>
+    <body id="top">
+        <?php include("Common/PageHeader.php"); ?>
+
+    <div id="sb-site">
+    <!-- menuNameArea -->
+        <table class="list_table_bk" width=100%>
+            <tr>
+                <td align=center>
+                    <table class="list_table_bk" width=100%>
+                        <tr>
+                            <td align=center>
+                                <table class="top-menu-list_table">
+                                    <tr>
+                                        <td width=100% colspan=3>
+                                            <table width=100%>
+                                                <tr>
+                                                    <td class="caption" width=130><img src="../img/group/db.png" width=20 height=20 align=top>　テロップ</td>
+                                                    <td class="telop"><marquee><font size=2>★<?php $today = date("n月 "); echo $today;?>は販売強化月間です★</font></marquee></td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    <tr style='vertical-align: top;'>
+                                        <td style='vertical-align: top;'>
+                                            <table class="top-menu-list_table" width=100%>
+                                                <tr>
+                                                    <td>
+                                                        <table width=100%>
+                                                            <tr>
+                                                                <td class="caption"><img src="../img/group/report.png" width=20 height=20>　トップメッセージ</td>
+                                                            </tr>
+                                                            <tr height=200 >
+                                                                <td class="telop">
+                                                                    <table class="top-menu-list_table" width="100%">
+                                                                        <?php if( !empty($topMessageList) ) { ?>
+                                                                            <?php foreach ($topMessageList as $rows ) { ?>
+                                                                        <tr style='border-bottom:1px solid #ccc;'>
+                                                                            <td align=left><font color=black>タイトル ： <?php hsc($rows['title']); ?></font></td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td><font color=black> </font>
+                                                                            <textarea  id="contents" name="contents" rows="10" cols="50" readonly><?php hsc($rows['contents']); ?></textarea>
+                                                                            <a href="../topMessage/server/php/files/tabako.jpg">
+                                                                                <img src="../topMessage/server/php/files/<?php hsc($rows['file']); ?>" border="1" width="150" height="150" />
+                                                                            </a>
+                                                                            </td>
+                                                                        </tr>
+                                                                            <?php } ?>
+                                                                        <?php } ?>
+                                                                    </table>
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                    </td>
+                                                    <td>
+                                                        <table width=100% >
+                                                            <tr>
+                                                                <td class="caption"><img src="../img/group/todo.png" width=20 height=20 align=top>　ワークフロー</td>
+                                                            </tr>
+                                                            <tr height=40>
+                                                                <td class="telop" style='vertical-align: top;'>
+                                                                    <table class="top-menu-list_table" width="100%">
+                                                                        <tr style='border-bottom:1px solid #ccc;'>
+                                                                            <td align=left><font color=black>承認待ち</font></td>
+                                                                            <td align=left><font color=black>参照待ち</font></td>
+                                                                            <td align=left><font color=black>申請中</font></td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                        <?php if( !empty($approvalList) ) { ?>
+                                                                            <?php foreach ($approvalList as $rows ) { ?>
+                                                                            <td align='center' width=80><?php hsc($rows['count']); ?>件</td>
+                                                                            <?php } ?>
+                                                                        <?php } ?>
+                                                                        <?php if( !empty($referenceList) ) { ?>
+                                                                            <?php foreach ($referenceList as $rows ) { ?>
+                                                                            <td align='center' width=80><?php hsc($rows['count']); ?>件</td>
+                                                                            <?php } ?>
+                                                                        <?php } ?>
+                                                                        <?php if( !empty($applyingList) ) { ?>
+                                                                            <?php foreach ($applyingList as $rows ) { ?>
+                                                                            <td align='center' width=80><?php hsc($rows['count']); ?>件</td>
+                                                                            <?php } ?>
+                                                                        <?php } ?>
+                                                                        </tr>
+                                                                    </table>
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                        <table width=100%>
+                                                            <tr>
+                                                                <td class="caption"><img src="../img/group/bbs.png" width=20 height=20 align=top>　日報</td>
+                                                            </tr>
+                                                            <tr height=200>
+                                                                <td class="telop" style='vertical-align: top;'>
+                                                                    <table class="top-menu-list_table" width="100%">
+                                                                        <tr style='border-bottom:1px solid #ccc;'>
+                                                                            <td align=left><font color=black>対象日</font></td>
+                                                                            <td align=left><font color=black>スタッフ</font></td>
+                                                                            <td align=left><font color=black>確認状況</font></td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td align='center' width=60>2017-02-09</td>
+                                                                            <td align='center' width=60>白水菜摘</td>
+                                                                            <td align='center' width=60>　済 </td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td align='center' width=60>2017-02-09</td>
+                                                                            <td align='center' width=60>高橋信二</td>
+                                                                            <td align='center' width=60>　未 </td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td align='center' width=60>2017-02-09</td>
+                                                                            <td align='center' width=60>藤原執</td>
+                                                                            <td align='center' width=60>　未 </td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td align='center' width=60>2017-02-09</td>
+                                                                            <td align='center' width=60>中島卓也</td>
+                                                                            <td align='center' width=60>　未 </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <table width=100%>
+                                                            <tr>
+                                                                <td class="caption"><img src="../img/home/user_cook.png" width=20 height=20 align=top>　売上履歴</td>
+                                                            </tr>
+                                                            <tr height=225>
+                                                                <td class="telop" style='vertical-align: top;'>
+                                                                    <table class="top-menu-list_table" width="100%">
+                                                                        <tr style='border-bottom:1px solid #ccc;'>
+                                                                            <td align=left><font color=black>年月日</font></td>
+                                                                            <td align=left><font color=black>店舗名</font></td>
+                                                                            <td align=left><font color=black>総売上</font></td>
+                                                                        </tr>
+                                                                        <?php if( !empty($profitHistoryList) ) { ?>
+                                                                            <?php foreach ($profitHistoryList as $rows ) { ?>
+                                                                        <tr>
+                                                                            <td align='left' width=60><?php hsc($rows['target_date']); ?></td>
+                                                                            <td align='left' width=60><?php hsc($rows['organization_name']); ?></td>
+                                                                            <td align='left' width=60><?php hsc(number_format($rows['data'])); ?>円</td>
+                                                                        </tr>
+                                                                            <?php } ?>
+                                                                        <?php } ?>
+                                                                    </table>
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                    </td>
+                                                    <td>
+                                                        <table width=100%>
+                                                            <tr>
+                                                                <td class="caption"><img src="../img/home/user_red.png" width=20 height=20 align=top>　本日の出勤中</td>
+                                                            </tr>
+                                                            <tr height=225>
+                                                                <td class="telop" style='vertical-align: top;'>
+                                                                    <table class="top-menu-list_table" width="100%">
+                                                                        <tr style='border-bottom:1px solid #ccc;'>
+                                                                            <td align=left><font color=black>打刻時間</font></td>
+                                                                            <td align=left><font color=black>名前</font></td>
+                                                                        </tr>
+                                                                        <?php if( !empty($embossingNowList) ) { ?>
+                                                                            <?php foreach ($embossingNowList as $rows ) { ?>
+                                                                        <tr>
+                                                                            <td align='center' width=60><?php hsc($rows['date']); ?></td>
+                                                                            <td align='center' width=60><?php hsc($rows['user_name']); ?></td>
+                                                                        </tr>
+                                                                            <?php } ?>
+                                                                        <?php } ?>
+                                                                    </table>
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="2">
+                                                       <table width=100%>
+                                                            <tr>
+                                                                <td class="caption"><img src="../img/home/raw_access_logs.png" width=20 height=20 align=top>　全店の売上サマリ</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="telop" style='vertical-align: top;'>
+                                                                    <table class="top-menu-list_table" width="100%">
+                                                                        <tr style='border-bottom:1px solid #ccc;'>
+                                                                            <td align=left><font color=black>年月日</font></td>
+                                                                            <td align=left><font color=black>店舗名</font></td>
+                                                                            <td align=left><font color=black>現金</font></td>
+                                                                            <td align=left><font color=black>ｸﾚｼﾞｯﾄ</font></td>
+                                                                            <td align=left><font color=black>組数</font></td>
+                                                                            <td align=left><font color=black>客数</font></td>
+                                                                            <td align=left><font color=black>ｸｰﾎﾟﾝ</font></td>
+                                                                            <td align=left><font color=black>現金過不足</font></td>
+                                                                        </tr>
+                                                                        <?php if( !empty($profitSummaryList) ) { ?>
+                                                                            <?php foreach ($profitSummaryList as $rows ) { ?>
+                                                                        <tr>
+                                                                            <td align='left' width=60><?php hsc($rows['target_date']); ?></td>
+                                                                            <td align='left' width=60><?php hsc($rows['organization_name']); ?></td>
+                                                                            <td align='left' width=60><?php hsc(number_format($rows['data1'])); ?>円</td>
+                                                                            <td align='left' width=60><?php hsc(number_format($rows['data2'])); ?>円</td>
+                                                                            <td align='left' width=60><?php hsc(number_format($rows['data3'])); ?>組</td>
+                                                                            <td align='left' width=60><?php hsc(number_format($rows['data4'])); ?>人</td>
+                                                                            <td align='left' width=60><?php hsc(number_format($rows['data5'])); ?>円</td>
+                                                                            <td align='left' width=60><?php hsc(number_format($rows['data6'])); ?>円</td>
+                                                                        </tr>
+                                                                            <?php } ?>
+                                                                        <?php } ?>
+                                                                    </table>
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="2">
+                                                        <table width=100%>
+                                                            <tr>
+                                                                <td class="caption"><img src="../img/home/raw_access_logs.png" width=20 align=top>　全店の売上推移</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="telop">
+                                                                    <table width="100%">
+                                                                        <tr>
+                                                                            <td align=center>
+                                                                                <canvas id="canvas" height="125" width="750"></canvas>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                    <script>
+                                                                        var date= [];
+                                                                        var label = "";
+                                                                        <?php foreach ($profitList as $rows ) { ?>
+                                                                            date.push(<?php hsc($rows["data"]); ?>);
+                                                                            label = "<?php hsc($rows["organization_name"]); ?>";
+                                                                        <?php } ?>
+                                                                        var config = {
+                                                                            type: 'line',
+                                                                            data: {
+                                                                                labels : ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31"],
+                                                                                datasets: [{label: label,
+                                                                                            fill: false,
+                                                                                            backgroundColor: "#3A7AC9",
+                                                                                            borderWidth: 2,
+                                                                                            borderColor: "rgba(2,63,138,0.8)",
+                                                                                            pointBorderColor: "#fff",
+                                                                                            pointBackgroundColor: "rgba(2,63,138,0.8)",
+                                                                                            pointBorderWidth: 2,
+                                                                                            pointHoverRadius: 5,
+                                                                                            pointHoverBackgroundColor: "#1D5191",
+                                                                                            pointHoverBorderColor: "#fff",
+                                                                                            pointHoverBorderWidth: 2,
+                                                                                            tension: 0,
+                                                                                            data : date
+                                                                                          }]
+                                                                                    },
+                                                                            options: { responsive: true, scales: { xAxes: [{ display: true, stacked: false, gridLines: {display: true} }],
+                                                                                        yAxes: [{ display: true,
+                                                                                                 // scaleLabel: { display: true, labelString: '順位', fontFamily: 'monospace', fontSize: 14 },
+                                                                                               ticks: { reverse: false, callback: function(value){ return value; } }
+                                                                                               }]
+                                                                                                                   }
+                                                                                      }
+                                                                            };
+                                                                            window.onload = function() {
+                                                                                var ctx = document.getElementById("canvas").getContext("2d");
+                                                                                window.myLine = new Chart(ctx, config);
+                                                                            };
+                                                                    </script>
+                                                                </td>
+                                                             </tr>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                        <!-- 右ブロック -->
+                                        <td>
+                                            <table width=100%>
+                                                <tr>
+                                                    <td class="caption"><img src="../img/group/message.png" width=20 height=20 align=top>　通達・連絡</td>
+                                                </tr>
+                                                <tr height=300>
+                                                    <td class="telop" style='vertical-align: top;'>
+                                                        <table class="top-menu-list_table" width="100%">
+                                                            <tr style='border-bottom:1px solid #ccc;'>
+                                                                <td align=left><font color=black>未読・既読</font></td>
+                                                                <td align=left><font color=black>タイトル</font></td>
+                                                                <td align=left><font color=black>内容</font></td>
+                                                            </tr>
+                                                            <?php if( !empty($noticeContactList) ) { ?>
+                                                                <?php foreach ($noticeContactList as $rows ) { ?>
+                                                            <tr height=20>
+                                                                <td align='left' width=30>
+                                                                <?php if( $rows['state'] == 0 ) { ?>
+                                                                    <font color=Red>未読</font>
+                                                                <?php }else{ ?>
+                                                                    既読
+                                                                <?php } ?>
+                                                                <?php if( $rows['state'] == 0 ) { ?>
+                                                                    <font color=Red>NEW</font>
+                                                                <?php } ?>
+                                                                </td>
+                                                                <td align='left' width=60>
+                                                                    <a href="../noticeContact/index.php?param=NoticeContactBrowsing/show&home=1&noticeContactID=<?php hsc($rows['notice_contact_id']); ?>">
+                                                                        <?php hsc($rows['title']); ?>
+                                                                    </a>
+                                                                </td>
+                                                                <td align='left' width=90><?php hsc($rows['contents']); ?></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td align='center' width=30></td>
+                                                                <td align='center' width=60></td>
+                                                                <td align='center' width=90></td>
+                                                            </tr>
+                                                                <?php } ?>
+                                                            <?php } ?>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                            <table class="top-menu-list_table" width=100%>
+                                                <tr>
+                                                    <td width=380 valign=top>
+                                                        <table class="top-menu-list_table" width=100%>
+                                                            <tr>
+                                                                <td>
+                                                                    <table width=100%>
+                                                                        <tr>
+                                                                            <td class="caption"><img src="../img/home/cross.png" width=20 height=20 align=top>　打刻忘れの可能性アリ(当日以外で打刻が奇数回)</td>
+                                                                        </tr>
+                                                                        <tr height=224>
+                                                                            <td class="telop" style='vertical-align: top;'>
+                                                                                <table class="top-menu-list_table" width="100%">
+                                                                                    <tr style='border-bottom:1px solid #ccc;' height=20>
+                                                                                        <td align=left><font color=black>打刻日</font></td>
+                                                                                        <td align=left><font color=black>打刻場所</font></td>
+                                                                                        <td align=left><font color=black>名前</font></td>
+                                                                                    </tr>
+                                                                                    <?php if( !empty($embossingMissList) ) { ?>
+                                                                                        <?php foreach ($embossingMissList as $rows ) { ?>
+                                                                                    <tr height=20>
+                                                                                        <td align='left' width=60><?php hsc($rows['date']); ?></td>
+                                                                                        <td align='left' width=60><?php hsc($rows['organization_name']); ?></td>
+                                                                                        <td align='left' width=60><?php hsc($rows['user_name']); ?></td>
+                                                                                    </tr>
+                                                                                        <?php } ?>
+                                                                                    <?php } ?>
+                                                                                </table>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>
+                                                                    <table width=100%>
+                                                                        <tr height=25>
+                                                                            <td class="caption"><img src="../img/home/clock_red.png" width=20 height=20 align=top>　打刻履歴</td>
+                                                                        </tr>
+                                                                        <tr height=278>
+                                                                            <td class="telop" style='vertical-align: top;'>
+                                                                                <table class="top-menu-list_table" width="100%">
+                                                                                    <tr style='border-bottom:1px solid #ccc;'>
+                                                                                        <td align=left><font color=black>打刻日</font></td>
+                                                                                        <td align=left><font color=black>打刻時間</font></td>
+                                                                                        <td align=left><font color=black>種別</font></td>
+                                                                                        <td align=left><font color=black>名前</font></td>
+                                                                                    </tr>
+                                                                                    <?php if( !empty($embossingList) ) { ?>
+                                                                                        <?php foreach ($embossingList as $rows ) { ?>
+                                                                                    <tr>
+                                                                                        <td align='left' width=60><?php hsc($rows['date']); ?></td>
+                                                                                        <td align='left' width=60><?php hsc($rows['time']); ?></td>
+                                                                                        <!-- 打刻種別 -->
+                                                                                        <?php if($rows['embossing_type'] == '2'){ ?>
+                                                                                        <td align='left' width=60>出勤</td>
+                                                                                        <?php }else if($rows['embossing_type'] == 3){ ?>
+                                                                                        <td align='left' width=60>休憩IN</td>
+                                                                                        <?php }else if($rows['embossing_type'] == 4){ ?>
+                                                                                        <td align='left' width=60>休憩OUT</td>
+                                                                                        <?php }else if($rows['embossing_type'] == 5){ ?>
+                                                                                        <td align='left' width=60>退勤</td>
+                                                                                        <?php }?>
+                                                                                        <td align='left' width=60><?php hsc($rows['user_name']); ?></td>
+                                                                                    </tr>
+                                                                                        <?php } ?>
+                                                                                    <?php } ?>
+                                                                                </table>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+    </table>
+    </div><!-- /#sb-site -->
+    <script type="text/javascript" src="jquery/js/scrolltopcontrol.js"></script> <!--スクロールしながらページのトップに戻る-->
+    <script src="../js/home/slidebars/slidebars.min.js"></script>
+    <script src="../js/home/slidebars/mp_silde.js"></script>
+    </body>
+</html>

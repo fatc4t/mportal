@@ -1,0 +1,145 @@
+<?php
+    /**
+     * @file      簡易勤怠画面(View)
+     * @author    USE Y.Sakata
+     * @date      2016/09/30
+     * @version   1.00
+     * @note      簡易勤怠画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array( 'default.css',
+                                'common.js', 
+                                'jquery-ui.min.js', 
+                                'jquery-ui.css' );    // cssまたはｊｓファイルを拡張子付きで配列に記述 
+
+            include("Common/HtmlHeader.php");
+        ?>
+        <script type="text/javascript">
+            var nextPath = "";
+            
+            $(document).ready(function()
+            {
+                /**
+                 * ログアウトボタンクリック
+                 */
+                $('#logout').click(function()
+                {
+                    nextPath = "../login/index.php?param=SimpleLogin/logout&home=1&CompanyID=<?php hsc($_SESSION["COMPANY_ID"]); ?>&code=<?php hsc($_SESSION['SIMPLE_LOGIN_CODE']); ?>";
+                    location.href = nextPath;
+                });
+
+                /**
+                 * 印刷ボタンクリック
+                 */
+                $('#print').click(function()
+                {
+                    nextPath = 'index.php?param=SimpleAttendance/print&home=1';
+                });
+                
+                /**
+                 * 検索ボタンクリック
+                 */
+                $('#searchForm').submit(function(event)
+                {
+                    if( nextPath != 'index.php?param=SimpleAttendance/print&home=1' )
+                    {
+                        event.preventDefault();
+
+                        var isScreen = 2; // 個人の一ヶ月分の勤怠承認
+                        var date = $('#target_date').val();
+                        var targetDayBulk = 0;
+
+                        // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                        var data = {
+                                    date   : date,
+                                    userId : <?php hsc($_SESSION["USER_ID"]); ?>,
+                                    isScreen : isScreen,
+                               };
+                        var path = nextPath;
+
+                        // データ更新
+                        setDataForAjax( data, path );
+
+                        //サブミット後、ページをリロードしないようにする
+                        return false;
+                    }
+                });
+                
+            });
+            
+            /**
+             * 前日/翌日　前月/翌月データの設定
+             */
+            function dateMoved(userID, dateCheck)
+            {
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var dateTarget = $('#target_date_next').val();
+                if(dateCheck == 0)
+                {
+                    dateTarget = $('#target_date_prev').val();
+                }
+                var data = {
+                                date   : dateTarget,
+                                userId : userID,
+                                isScreen : $('#isScreen').val(),
+                           };
+                var path = 'index.php?param=SimpleAttendance/search&home=1';
+                // データ更新
+                setDataForAjax( data, path );
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 戻るボタン押下時処理
+             */
+            function returnScreen()
+            {
+                location.href='index.php?param=AttendanceRecord/show&home=1';
+            }
+
+        </script>
+    </head>
+    <body>
+        <!-- Site -->
+        <div id="sb-site" style="padding:0px 0px 10px 0px; !important;">
+            <!-- パンくずリスト -->
+            <!-- menuNameArea -->
+            <div class="menuNameArea">
+                <h2>
+                    <a href="#"><span class="menu"></span></a>
+                    <a href="#">勤怠確認画面</a></h2>
+            </div><!-- /.menuNameArea -->
+            <?php 
+                $titleDate   = $sendingDate;
+                $titleDateYm = substr($sendingDate,0,7);
+                // -を/に置換
+                $titleDate   = str_replace( "-", "/", $titleDate );
+                $titleDateYm = str_replace( "-", "/", $titleDateYm );
+            ?>
+            <!-- ajaxScreenUpdate -->
+            <form id="searchForm" name="searchForm" action="index.php?param=SimpleAttendance/print&home=1" method="post" >
+                <div class="screenSize" style="text-align: center; white-space: nowrap;">
+                    <div style="display: inline-block;" class="logicButtonArea">
+                        <input type="button" id="logout" name="logout" href="../login/index.php?param=SimpleLogin/logout&home=1&CompanyID=<?php hsc($_SESSION['COMPANY_ID']); ?>&code=<?php hsc($_SESSION['SIMPLE_LOGIN_CODE']); ?>" value="ログアウト" class="return" style="WIDTH: 140px" />
+                    </div><!-- /.serchButtonArea -->
+                
+                    <div style="display: inline-block;" class="serchButtonArea">
+                        <input type="submit" id="print" name="print" value="印　刷" class="print"  style="WIDTH: 140px">
+                    </div><!-- /.serchButtonArea -->
+                </div><!-- /.screenSize -->
+                <div style="width:1260px; margin: 5px auto; !important; overflow-y:auto;"  >
+                    <form id="modForm" name="modForm" >
+                        <?php include("SimpleAttendanceTablePanel.html"); ?>
+                    </form>
+                </div>
+            </form>
+        </div><!-- /.sb-site -->
+        <?php include("../FwCommon/View/Dialog.php"); ?>
+    </body>
+</html>

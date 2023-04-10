@@ -1,0 +1,78 @@
+<div>
+    <h2>指定商品区分検索</h2>
+    <div class="modal_appoprod_search">
+        <b>「集計したい指定商品区分をチェックしてください」</b>
+        <div class="modal_appoprod_left" id="modal_appoprod_param">
+
+        </div>
+    </div>
+    <br />
+    <div hidden>
+        <table id="modal_appoprod_table_id" class="modal_appoprod_table">
+            <thead>
+                <tr>
+                    <th>選択</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="modal_appoprod_table_body">
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>                        
+            </tbody>
+        </table>
+    </div>
+    <br />
+    <div>
+        <div class="modal_div_btn">
+            <button type="button" id="modal_appoprod_unselect" onclick="appo_unselect()"  >一括解除</button>
+            <button type="button" id="modal_appoprod_select" onclick="appo_select()"  >一括選択</button>        
+            <button type="button" id="modal_appoprod_befpage" onclick="modal_befpage(event)"  hidden>前ページ</button>        
+            <button type="button" id="modal_appoprod_nextpage" onclick="modal_nextpage(event)"  hidden>次ページ</button>        
+            <button type="button" id="modal_appoprod_validate" onclick="appo_modal_validate(event)"  >決定</button>        
+            <button type="button" id="modal_appoprod_close" onclick="modal_close(event)"  >終了</button>        
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+   
+    if(!pagenb){
+        pagenb=[];
+    }       
+    pagenb["appoprod"] = 0;
+    if(!table_keys){
+        table_keys=[];
+    }    
+    table_keys["appoprod"]=[];
+    for(i=0;i<data_appoprod.length;i++){
+        modal_appoprod_param.innerHTML += '<div class="appoprod_left_float"><label class="modal_appoprod_label" for="modal_appoprod_appoprod_cd_'+i+'">指定商品区分 '+data_appoprod[i]['appoprod_cd']+': </label><input type="checkbox" value="'+data_appoprod[i]['appoprod_cd']+'" id="modal_appoprod_appoprod_cd_"'+i+' class="modal_appoprod_code"></div>';
+    }
+    function appo_unselect(){
+        chx_list = modal_appoprod_param.getElementsByTagName('input');
+        for(i=0;i<chx_list.length;i++){
+            chx_list[i].checked = false;
+        }
+    }
+    function appo_select(){
+        chx_list = modal_appoprod_param.getElementsByTagName('input');
+        for(i=0;i<chx_list.length;i++){
+            chx_list[i].checked = true;
+        }
+    }
+    function appo_modal_validate(e){
+        chx_list = modal_appoprod_param.getElementsByTagName('input');
+        //temp_appo_data = [];
+        data_select['appoprod'] = '';
+        for(i=0;i<chx_list.length;i++){
+            if(chx_list[i].checked){
+                //temp_appo_data[temp_appo_data.length]={appoprod_cd:chx_list[i].value,appoprod_nm:chx_list[i].value};
+                data_select['appoprod'] +=  ','+chx_list[i].value;
+            }
+        }
+        //data_appoprod = temp_appo_data;
+        modal_validate(e);
+    }
+</script>

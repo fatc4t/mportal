@@ -1,0 +1,478 @@
+<?php
+    /**
+     * @file      商品別帳票画面(View)
+     * @author    millionet oota
+     * @date      2016/06/30
+     * @version   1.00
+     * @note      商品別帳票画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述 
+            include("../profit/View/Common/HtmlHeader.php"); 
+        ?>
+
+    <script src="../js/profit/jquery/jquery.ui.ympicker.js" /></script>
+    <script src="../js/profit/jquery/jquery-migrate-1.0.0.js" /></script>
+    <script src="../js/profit/jquery/datepicker-ja.js" /></script>
+        
+    <script type="text/javascript">
+        function chf(frm){
+            if( 1 < window.location.search.length )
+                {
+                    // 最初の1文字 (?記号) を除いた文字列を取得する
+                    var query = window.location.search.substring( 1 );
+                    var action = frm.action.split( '?' );
+                    
+                    // 検索以外の機能実行後だった場合、パラメータを補正する
+                    if(1 < action.length){
+                        frm.action = action[0];
+                    }
+                    
+                    // クエリの区切り記号 (&) で文字列を配列に分割する
+                    var parameters = query.split( '&' );
+                    if (frm.onbtn.value == 'serch') {
+                        if(1 < parameters.length){
+                             frm.action += '?param=' +frm.elements["codeName"].value + '&home=1';
+                         }else{
+                             frm.action += '?param=' +frm.elements["codeName"].value;
+                        }
+                    }else if (frm.onbtn.value == 'csvoutput'){
+                        if(1 < parameters.length){
+                             frm.action += '?param=LedgerSheetItem/csvoutput&home=1'
+                         }else{
+                             frm.action += '?param=LedgerSheetItem/csvoutput'
+                        }
+                    }else if (frm.onbtn.value == 'exoutput'){
+                        if(1 < parameters.length){
+                             frm.action += '?param=LedgerSheetItem/exoutput&home=1'
+                         }else{
+                             frm.action += '?param=LedgerSheetItem/exoutput'
+                        }
+                    }else if (frm.onbtn.value == 'pdfoutput'){
+                        if(1 < parameters.length){
+                             frm.action += '?param=LedgerSheetItem/pdfoutput&home=1'
+                         }else{
+                             frm.action += '?param=LedgerSheetItem/pdfoutput'
+                        }
+                    }
+                }
+            }
+            
+    $(document).ready(function()
+    {
+        /**
+         * 帳票種別によって日付フォームを切り替え
+         */
+        $('#codeName').change(function()
+        {
+            if($('#codeName').val() === "LedgerSheetMonth/show")
+            {
+                $('#start_dateM').css('display' , '');
+                $('#end_dateM').css('display' , '');
+                $('#start_date').css('display' , 'none');
+                $('#end_date').css('display' , 'none');
+                
+            }
+            else
+            {
+                $('#start_dateM').css('display' , 'none');
+                $('#end_dateM').css('display' , 'none');
+                $('#start_date').css('display' , '');
+                $('#end_date').css('display' , '');
+            }
+        });
+
+        // 日付検索条件の初期設定
+        if($('#codeName').val() === "LedgerSheetItem/show")
+        {
+            $('#start_dateM').css('display' , 'none');
+            $('#end_dateM').css('display' , 'none');
+            $('#start_date').css('display' , '');
+            $('#end_date').css('display' , '');
+        }
+        else
+        {
+            $('#start_dateM').css('display' , '');
+            $('#end_dateM').css('display' , '');
+            $('#start_date').css('display' , 'none');
+            $('#end_date').css('display' , 'none');
+        }
+        
+    });
+
+    /**
+     *  イベント制御用
+     * 
+     */    
+    function set_value(s_val){
+        document.serchForm.onbtn.value = s_val;
+    }
+
+    /**
+     * DatePickerを設定
+     */
+    $(function()
+    {
+        $( "#start_date, #end_date" ).datepicker({
+            numberOfMonths: 2,
+            showCurrentAtPos: 1,
+            showButtonPanel: true,
+            dateFormat: 'yy/mm/dd'
+        });
+    });
+
+    /**
+     * 
+      * 画面生成時自動読み込み
+     *
+     */
+    $(function() {
+        $("#start_dateM").ympicker({
+            altField: "#start_dateM" //リターンセットUI IDorCLASS名
+            ,altFormat: "yy/mm" //リターン日付形式
+            ,monthNamesShort: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"]  //カレンダー表示月形式
+            ,showAnim: "slideDown" //表示アニメーション形式
+            ,yearRange: "c-2:c+3" //プルダウン年範囲
+        });
+    });
+    $(function() {
+        $("#end_dateM").ympicker({
+            altField: "#end_dateM" //リターンセットUI IDorCLASS名
+            ,altFormat: "yy/mm" //リターン日付形式
+            ,monthNamesShort: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"]  //カレンダー表示月形式
+            ,showAnim: "slideDown" //表示アニメーション形式
+            ,yearRange: "c-2:c+3" //プルダウン年範囲
+        });
+    });
+
+    /**
+     * 
+     * スクロール制御
+     * 
+     */
+        function SyncScroll(/* elem1, elem2, ... */) {
+            this._elements = [];
+            this._elementOnscroll = this._elementOnscroll.bind(this);
+            this.addElement.apply(this, arguments);
+        }
+        SyncScroll.prototype = {
+            enableHorizontal: true,
+            enableVertical: true,
+            addElement: function (/* elem1, elem2, ... */) {
+                var elem, i;
+                for (i = 0; i < arguments.length; i += 1) {
+                    elem = arguments[i];
+                    elem.addEventListener('scroll', this._elementOnscroll, false);
+                    this._elements.push(elem);
+                }
+            },
+            removeElement: function (/* elem1, elem2, ... */) {
+                var elem, i, j;
+                for (i = 0; i < arguments.length; i += 1) {
+                    elem = arguments[i];
+                    elem.removeEventListener('scroll', this._elementOnscroll, false);
+                    j = this._elements.indexOf(elem);
+                    if (j >= 0) {
+                        this._elements.splice(j, 1);
+                    }
+                }
+            },
+            _elementOnscroll: function (event) {
+                var i,
+                    elems = this._elements,
+                    elem = event.target,
+                    x = elem.scrollLeft,
+                    y = elem.scrollTop;
+                if (this.enableHorizontal) {
+                    for (i = 0; i < elems.length; i += 1) {
+                        elem = elems[i];
+                        if (elem === event.target || elem.scrollLeft === x) {
+                            continue;
+                        }
+                        elem.scrollLeft = x;
+                        if (elem.scrollLeft !== x) {
+                            elem.scrollLeft = x + x - elem.scrollLeft;
+                        }
+                    }
+                }
+                if (this.enableVertical) {
+                    for (i = 0; i < elems.length; i += 1) {
+                        elem = elems[i];
+                        if (elem === event.target || elem.scrollTop === y) {
+                            continue;
+                        }
+                        elem.scrollTop = y;
+                        if (elem.scrollTop !== y) {
+                            elem.scrollTop = y + y - elem.scrollTop;
+                        }
+                    }
+                }
+            },
+            destroy: function () {
+                this.removeElement.apply(this, this._elements);
+            }
+        };
+
+        window.onload = function () {
+            // 縦方向のみ
+            var sample2_1 = document.getElementById('header_v');
+            var sample2_2 = document.getElementById('data');
+            var syncScroll2 = new SyncScroll(sample2_1, sample2_2);
+            syncScroll2.enableHorizontal = false;
+
+            // 横方向のみ
+            var sample3_1 = document.getElementById('header_h');
+            var sample3_2 = document.getElementById('data');
+            var syncScroll3 = new SyncScroll(sample3_1, sample3_2);
+            syncScroll3.enableVertical = false;
+        };
+
+    </script>
+    
+    <STYLE type="text/css">
+#header_h {
+   width:98%;
+   overflow-x:hidden;overflow-y:hidden;
+   }
+#header_v {
+   width:90px;height:650px;
+   overflow-x:scroll;overflow-y:hidden;
+   text-align: left;
+   }
+#data {
+   width:99%;height:650px;
+   overflow-x:scroll;overflow-y:scroll;
+   table-layout: fixed;
+   }
+   
+    </STYLE>
+
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+<!-- Site -->
+<div id="sb-site">
+    <!-- menuNameArea -->
+    <div class="menuNameArea">
+    <!-- パンくずリスト -->
+       <?php include("Common/Breadcrumb.php"); ?>
+    </div>
+    <!-- /.menuNameArea -->
+<form name="serchForm" id="serchForm" action="/profit/index.php" method="post" onsubmit="return chf(this)">
+<div class="serchListArea">
+<table align="center">
+    <tr>
+        <td>
+            <table id="serchTable">
+                <tr>
+                    <th align="center" width="65">帳票種別</th>
+                    <td>
+                        <select name="codeName" id="codeName">
+                            <option value="LedgerSheetDay/show">売上分析</option>
+                            <option value="LedgerSheetMonth/show">月次帳票</option>
+                            <option value="LedgerSheetItem/show" selected>商品別帳票</option>
+                            <option value="LedgerSheetTime/show">時間別帳票</option>
+                            <option value="LedgerSheetTimeZone/show">時間帯別帳票</option>
+                            <option value="LedgerSheetCost/show">コスト帳票</option>
+                        </select>
+                    </td>
+                    <th align="center" width="65">集計期間</th>
+                    <td>
+                        <input type="text" pattern="\d{4}/\d{2}/\d{2}" title="西暦/月/日の形式で入力してください。" id="start_date" name="start_date" size="10" value=<?php hsc($startDate); ?>>
+                        <input type="text" pattern="\d{4}/\d{2}" title="西暦/月の形式で入力してください。" id="start_dateM" name="start_dateM" size="10" value=<?php hsc($startDateM); ?>>
+                        ～
+                        <input type="text" pattern="\d{4}/\d{2}/\d{2}" title="西暦/月/日の形式で入力してください。" id="end_date" name="end_date" size="10" value=<?php hsc($endDate); ?>>
+                        <input type="text" pattern="\d{4}/\d{2}" title="西暦/月の形式で入力してください。" id="end_dateM" name="end_dateM" size="10" value=<?php hsc($endDateM); ?>>
+                    </td>
+                    <th align="center" width="65">店舗</th>
+                    <td>
+                        <?php include("../FwCommon/View/SearchOrganizationName.php"); ?>
+                    </td>
+                    <td>
+                      <input class="submit" type="submit" name="search" id="search" value="検索" onClick="set_value('serch')">
+                      <input class="submit" type="submit" name="csvoutput"  id="csvoutput" value="CSV出力" onClick="set_value('csvoutput')">
+                      <input class="submit" type="submit" name="exoutput"  id="exoutput" value="Excel出力" onClick="set_value('exoutput')">
+                      <input class="submit" type="submit" name="pdfoutput"  id="exoutput" value="PDF出力" onClick="set_value('pdfoutput')">
+                      <input type="hidden" name="onbtn">
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+<br/>
+<!-- 固定ヘッダ -->
+<table>
+<div align='right'>    ※ランク 3%以上 A 1%以上 B 1%未満 C</div>
+    <tr>
+        <th width="90" align="center">No</th>
+        <td>
+            <!-- 水平ヘッダ 現在は固定 -->
+            <div id="header_h">                                      
+            <table>
+                <tr>
+                    <th id='viewList' align='center' width=40 colspan='1' rowspan='2'>メニュー<br>コード</th>
+                    <th id='viewList' align='center' width=80 colspan='1' rowspan='2'>メニュー名</th>
+                    <th id='viewList' align='center' width=40 colspan='1' rowspan='2'>数量</th>
+                    <th id='viewList' align='center' width=40 colspan='1' rowspan='2'>単価</th>
+                    <th id='viewList' align='center' width=40 colspan='1' rowspan='2'>売上</th>
+                    <th id='viewList' align='center' width=40 colspan='1' rowspan='2'>原価</th>
+                    <th id='viewList' align='center' width=40 colspan='1' rowspan='2'>原価額</th>
+                    <th id='viewList' align='center' width=40 colspan='1' rowspan='2'>原価率</th>
+                    <th id='viewList' align='center' width=40 colspan='1' rowspan='2'>粗利</th>
+                    <th id='viewList' align='center' width=40 colspan='1' rowspan='2'>粗利額</th>
+                    <th id='viewList' align='center' width=40 colspan='1' rowspan='2'>粗利率</th>
+                    <th id='viewList' align='center' width=120 colspan='3' rowspan='1'>構成比</th>
+                    <th id='viewList' align='center' width=20 colspan='1' rowspan='2'>ランク</th>
+                </tr>
+                <tr>
+                    <th id='viewList' align='center' width=40 colspan='1' rowspan='1'>数量</th>
+                    <th id='viewList' align='center' width=40 colspan='1' rowspan='1'>金額</th>
+                    <th id='viewList' align='center' width=40 colspan='1' rowspan='1'>粗利</th>
+                </tr>
+            </table>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <!-- 垂直ヘッダ -->
+            <div id="header_v">
+                <table style="width: 90px;">
+                <!-- タイトル部  -->
+                <?php if( !empty($timeDataList) ) {
+                        $row_cnt = 1;
+                        foreach ($timeDataList as $rows ) {
+                ?>
+                        <tr>
+                            <th align='left' width=20><?php hsc($row_cnt); ?></th>
+                        </tr>
+                        <?php $row_cnt ++; ?>
+                    <?php } ?>
+                <?php } ?>
+                <tr>
+                    <th align='left' width=20>合計</th>
+                </tr>
+                </table>
+            </div>
+        </td>
+        <td>
+            <!-- データ部分  -->
+            <div id="data">
+            <table>
+                <?php if( !empty($timeDataList) ) { ?>
+                    <?php foreach ($timeDataList as $trows ) { ?>
+                <tr>
+                    <td id='viewList' align='left' width=40><?php hsc($trows['plu_code']); ?></td> <!-- メニューコード -->
+                    <td id='viewList' align='left' width=80><?php hsc($trows['plu_name']); ?></td> <!-- メニュー名 -->
+                    <td id='viewList' align='right' width=40><?php hsc(number_format($trows['count'])); ?></td> <!-- 数量 -->
+                    <td id='viewList' align='right' width=40><?php hsc(number_format($trows['price'])); ?></td> <!-- 単価 -->
+                    <td id='viewList' align='right' width=40><?php hsc(number_format($trows['sales'])); ?></td> <!-- 売上 -->
+                    <td id='viewList' align='right' width=40><?php hsc(number_format($trows['cost'])); ?></td> <!-- 原価 -->
+                    <td id='viewList' align='right' width=40><?php hsc(number_format($trows['cost'] * $trows['count'])); ?></td> <!-- 原価額 -->
+                    <?php if( $trows['sales'] > 0 ) { ?>
+                    <td id='viewList' align='right' width=40><?php hsc(round(($trows['cost'] * 100 )/ $trows['price']),2); ?>%</td> <!-- 原価率 -->
+                    <?php } else{?>
+                        <td id='viewList' align='right' width=40>0%</td> <!-- 原価率 -->
+                    <?php } ?>
+                    <td id='viewList' align='right' width=40><?php hsc(number_format($trows['price'] - $trows['cost'])); ?></td> <!-- 粗利 -->
+                    <td id='viewList' align='right' width=40><?php hsc(number_format(($trows['price'] - $trows['cost']) * $trows['count'])); ?></td> <!-- 粗利額 -->
+                    <?php if( $trows['sales'] > 0 ) { ?>
+                        <td id='viewList' align='right' width=40><?php hsc(round(($trows['price'] - $trows['cost']) * $trows['count'] * 100 / $trows['sales']),2); ?>%</td> <!-- 粗利率 -->
+                    <?php } else{?>
+                        <td id='viewList' align='right' width=40>0%</td> <!-- 粗利率 -->
+                    <?php } ?>
+                    <?php if( $sumCount > 0 ) { ?>
+                        <td id='viewList' align='right' width=40><?php hsc(round($trows['count'] * 100 / $sumCount,2)); ?>%</td> <!-- 数量 -->
+                    <?php } else{?>
+                        <td id='viewList' align='right' width=40>0%</td> <!-- 数量 -->
+                    <?php } ?>
+                    <?php if( $sumSales > 0 ) { ?>
+                        <td id='viewList' align='right' width=40><?php hsc(round($trows['sales'] * 100 / $sumSales,2)); ?>%</td> <!-- 金額 -->
+                    <?php } else{?>
+                        <td id='viewList' align='right' width=40>0%</td> <!-- 金額 -->
+                    <?php } ?>
+                    <?php if( $sumGrossProfitt > 0 ) { ?>
+                        <td id='viewList' align='right' width=40><?php hsc(round(($trows['price'] - $trows['cost']) * $trows['count'] * 100 / $sumGrossProfitt,2)); ?>%</td> <!-- 粗利 -->
+                        <?php if( round(($trows['price'] - $trows['cost']) * $trows['count'] * 100 / $sumGrossProfitt,2) > 3 ) { ?>
+                        <td id='viewList' align='center' width=20>A</td> <!-- ランク -->
+                        <?php }else if( round(($trows['price'] - $trows['cost']) * $trows['count'] * 100 / $sumGrossProfitt,2) > 1 ){ ?>
+                        <td id='viewList' align='center' width=20>B</td> <!-- ランク -->
+                        <?php }else{ ?>
+                        <td id='viewList' align='center' width=20>C</td> <!-- ランク -->
+                        <?php } ?>
+                    <?php } else{?>
+                        <td id='viewList' align='right' width=40>0%</td> <!-- 粗利 -->
+                        <td id='viewList' align='center' width=20>C</td> <!-- ランク -->
+                    <?php } ?>
+                </tr>
+                    <?php } ?>
+                <?php } ?>
+            <!-- 合計部 -->
+                <?php if( !empty($sumDataList) ) { ?>
+                    <?php foreach ($sumDataList as $strows ) { ?>
+                <tr>
+                    <td id='viewList' align='left' width=40><?php hsc($strows['plu_code']); ?></td> <!-- メニューコード -->
+                    <td id='viewList' align='left' width=80><?php hsc($strows['plu_name']); ?></td> <!-- メニュー名 -->
+                    <td id='viewList' align='right' width=40><?php hsc(number_format($strows['count'])); ?></td> <!-- 数量 -->
+                    <td id='viewList' align='right' width=40><?php hsc(number_format($strows['price'])); ?></td> <!-- 単価 -->
+                    <td id='viewList' align='right' width=40><?php hsc(number_format($strows['sales'])); ?></td> <!-- 売上 -->
+                    <td id='viewList' align='right' width=40><?php hsc(number_format($strows['cost'])); ?></td> <!-- 原価 -->
+                    <td id='viewList' align='right' width=40><?php hsc(number_format($sumCostPrice)); ?></td> <!-- 原価額 -->
+                    <?php if( $strows['sales'] > 0 ) { ?>
+                    <td id='viewList' align='right' width=40><?php hsc(round($trows['$sumCostPriceRate']),2); ?>%</td> <!-- 原価率 -->
+                    <?php } else{?>
+                        <td id='viewList' align='right' width=40>0%</td> <!-- 原価率 -->
+                    <?php } ?>
+                    <td id='viewList' align='right' width=40><?php hsc(number_format($strows['price'] - $strows['cost'])); ?></td> <!-- 粗利 -->
+                    <td id='viewList' align='right' width=40><?php hsc(number_format($sumGrossMargin)); ?></td> <!-- 粗利額 -->
+                    <?php if( $strows['sales'] > 0 ) { ?>
+                        <td id='viewList' align='right' width=40><?php hsc(round($sumGrossMargin * 100 / $strows['sales']),2); ?>%</td> <!-- 粗利率 -->
+                    <?php } else{?>
+                        <td id='viewList' align='right' width=40>0%</td> <!-- 粗利率 -->
+                    <?php } ?>
+                    <?php if( $sumCount > 0 ) { ?>
+                        <td id='viewList' align='right' width=40><?php hsc(round($strows['count'] * 100 / $sumCount,2)); ?>%</td> <!-- 数量 -->
+                    <?php } else{?>
+                        <td id='viewList' align='right' width=40>0%</td> <!-- 数量 -->
+                    <?php } ?>
+                    <?php if( $sumSales > 0 ) { ?>
+                        <td id='viewList' align='right' width=40><?php hsc(round($strows['sales'] * 100 / $sumSales,2)); ?>%</td> <!-- 金額 -->
+                    <?php } else{?>
+                        <td id='viewList' align='right' width=40>0%</td> <!-- 金額 -->
+                    <?php } ?>
+                    <?php if( $sumGrossProfitt > 0 ) { ?>
+                        <td id='viewList' align='right' width=40><?php hsc(round($sumGrossMargin * 100 / $sumGrossProfitt,2)); ?>%</td> <!-- 粗利 -->
+                        <td id='viewList' align='center' width=20> </td> <!-- ランク -->
+                    <?php } else{?>
+                        <td id='viewList' align='right' width=40>0%</td> <!-- 粗利 -->
+                        <td id='viewList' align='center' width=20> </td> <!-- ランク -->
+                    <?php } ?>
+                </tr>
+                    <?php } ?>
+                <?php } ?>
+            </table>
+            </div>
+        </td>
+    </tr>
+</table>
+</div>
+</form>
+<script type="text/javascript" src="../jquery/js/scrolltopcontrol2.js"></script> <!--スクロールしながらページのトップに戻る-->
+        </div><!-- /#sb-site -->
+</body>
+</html>

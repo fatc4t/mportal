@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>m-portal</title>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8">
+        <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+        <?php include("../home/View/Common/HtmlHeader.php"); ?>        
+        <script type="text/javascript" src="../../FwCommon/js/common.js" ></script>
+        <script type="text/javascript" src="../js/template1/common.js" ></script> 
+        <script type="text/javascript" src="../js/template1/jquery-ui.min.js" ></script>
+        <link rel="stylesheet" href="../css/product/jquery-ui.css" >	
+        <link rel="stylesheet" href="../css/product/default.css" >	         
+        <script type="text/javascript">
+            controller      = "<?php echo $controller ; ?>";
+            jss_rc   = "../js/"+controller.toLowerCase()+"/template1.js";
+            var script  = document.createElement('script');
+            script.src  = jss_rc;
+            script.type ="text/javascript";            
+            document.head.appendChild(script);
+            var link    = document.createElement('link');
+            link.rel    = "stylesheet";
+            link.href   = "../css/"+controller.toLowerCase()+"/template1.css";
+            document.head.appendChild(link);
+            
+            pagetitle       = "<?php echo $pagetitle ; ?>";
+            addrow          = "<?php echo $addrow ; ?>";
+            save            = "<?php echo $save ; ?>";
+            pr_key_list     = "<?php echo $pr_key_list; ?>";
+            pr_key_id       = '<?php echo json_encode(json_encode($pr_key_id)); ?>';
+            A_pr_key_id     = JSON.parse(pr_key_id.slice(1,-1));
+            key             = '<?php echo json_encode(json_encode($key)); ?>';
+            A_key           = JSON.parse(key.slice(1,-1));
+            title           = '<?php echo json_encode(json_encode($title)); ?>';
+            A_title         = JSON.parse(title.slice(1,-1));
+            data            = '<?php echo json_encode(json_encode($data)); ?>';
+            working_data    = JSON.parse(data.slice(1,-1));
+            //
+            abbreviated_list    = '<?php echo json_encode(json_encode($abbreviatedNameList)); ?>';
+            A_abbreviated_list  = JSON.parse(abbreviated_list.slice(1,-1));
+            destination     = "<?php hsc($destination); ?>";
+            //orgn_id         = "<?php hsc($orgn_id); ?>";
+            orgn_id         = "<?php hsc($aryKeys['organization_id']); ?>";
+            setprod_cd      = "<?php hsc($aryKeys['setprod_cd']); ?>";
+            //
+            mst0201_data    = '<?php echo json_encode(json_encode($mst0201_data)); ?>';
+            A_mst0201_data  = JSON.parse(mst0201_data.slice(1,-1));
+            setprod_nm      = "<?php echo $setprod_nm; ?>";
+            //
+            //pmst0201_sd         = '<?php echo json_encode(json_encode($mst0201_searchdata)); ?>';
+            pmst0201_sd         = <?php $prefix = '';echo '[';foreach($mst0201_searchdata as $row){echo $prefix,json_encode(json_encode($row));$prefix = ',';};echo ']'; ?>;
+            //A_pmst0201_sd       = for ()JSON.parse(pmst0201_sd.slice(1,-1));
+
+            A_pmst0201_sd      = getJson();
+            smst0201List        = "<?php hsc($mst0201List['list']); ?>"; 
+            //
+
+            var new_data    = [];
+            var upd_data    = [];
+            var del_data    = [];
+            
+            function getJson(){
+                var str = [];
+                for(i = 1; i < pmst0201_sd.length; i++){
+                    str.push(JSON.parse(pmst0201_sd.slice(i,i+1 )));
+                };
+                return str;
+            }
+            
+            function thead_crea(thead_nm){
+                thead = document.getElementById("thead_template");
+                thead.innerHTML = '';
+                // button_del
+                field_nm            = document.createElement('th');                
+                field_nm.innerHTML  = "&nbsp;&nbsp;&nbsp;";
+                thead.appendChild(field_nm);
+                // button_srh
+                field_nm            = document.createElement('th');                
+                field_nm.innerHTML  = "&nbsp;&nbsp;&nbsp;";
+                thead.appendChild(field_nm);
+
+                for(i=0;i < thead_nm.length ; i++ ){
+                    field_nm            = document.createElement('th');
+                    field_nm.innerHTML  = "";
+                    field_nm.innerHTML  = thead_nm[i];
+                    thead.appendChild(field_nm);
+                }                
+            }
+            
+            function tbody_crea(work_data){
+                tbod = document.getElementById("tbody_template");
+                tbod.innerHTML = '';
+                var plus = 0;
+                for(i=0;i < work_data.length ; i++ ){
+                        
+                    var trow         = tbod.insertRow();
+                    var ckbox        = trow.insertCell(0);
+                    var newbutton       = document.createElement('button');
+                    newbutton.name      = 'button_del';
+                    newbutton.id        = 'del_' + i;
+                    newbutton.value     = i;
+                    newbutton.innerHTML = "削除";
+                    newbutton.onclick = del_row;
+                    ckbox.appendChild(newbutton);
+
+                    var ckbox        = trow.insertCell(1);
+                    var newbutton       = document.createElement('button');
+                    newbutton.name      = 'button_srh';
+                    newbutton.id        = 'srh_' + i;
+                    newbutton.value     = i;
+                    newbutton.innerHTML = "検索";
+                    newbutton.onclick = prod_search_row;
+                    ckbox.appendChild(newbutton);
+            
+                    for(j=0;j < A_key.length; j++){
+                        //var newcell     = trow.insertCell(j+1);
+                        var newcell     = trow.insertCell(j+2);
+                        var newinput   = document.createElement('input');
+                        //newinput.type       = 'text';
+                        if (A_key[j] === "order_object"){
+                            newinput.type       = 'checkbox';
+                        }
+                        else{
+                            newinput.type       = 'text';
+                        }
+                        newinput.name       = A_key[j];
+                        newinput.id         = A_key[j]+"_"+i;
+                        newinput.onchange  = f_change;
+                        newinput.onblur    = f_blur;
+                        newinput.onkeydown = f_keydown;
+                        newinput.onkeypress = f_keypress;
+                        newinput.oninput    = f_input;
+                        //newinput.value      = work_data[i][A_key[j]];
+                        if (A_key[j] === "order_object"){
+                            newinput.value  = "1";
+                            if (work_data[i][A_key[j]] === "1"){
+                                newinput.checked = true;
+                            }
+                            else{
+                                newinput.checked = false;
+                            }
+                        }
+                        else{
+                            newinput.value  = work_data[i][A_key[j]];
+                        }
+                        if (A_key[j] !== "order_object" && A_key[j] !== "prod_cd" && A_key[j] !== "setprod_amount"){
+                            newinput.setAttribute("disabled", true);
+                        }
+                        if (A_key[j] === "saleprice" || A_key[j] === "costprice" || A_key[j] === "setprod_amount"){
+                            newinput.style.textAlign = 'right';
+                        }
+                        newcell.appendChild(newinput);                            
+                    }
+                }
+                  
+                var trow         = tbod.insertRow();
+                var ckbox        = trow.insertCell(0);
+                var newbutton       = document.createElement('button');
+                newbutton.name      = 'button_add';
+                newbutton.id        = 'add';
+                newbutton.value     = work_data.length;
+                newbutton.innerHTML = "追加";
+                newbutton.onclick = add_row;
+                newbutton.setAttribute("disabled", true);
+                ckbox.appendChild(newbutton);
+
+                var ckbox        = trow.insertCell(1);
+                var newbutton       = document.createElement('button');
+                newbutton.name      = 'button_srh';
+                newbutton.id        = 'srh_' + work_data.length;
+                newbutton.value     = work_data.length;
+                newbutton.innerHTML = "検索";
+                newbutton.onclick = prod_search_row;
+                ckbox.appendChild(newbutton);
+            
+                for(j=0;j < A_key.length; j++){
+                    //var newcell = trow.insertCell(j+1);
+                    var newcell = trow.insertCell(j+2);
+                    var newinput = document.createElement('input');
+                    //newinput.type       = 'text';
+                    if (A_key[j] === "order_object"){
+                        newinput.type       = 'checkbox';
+                    }
+                    else{
+                        newinput.type       = 'text';
+                    }
+                    newinput.name       = A_key[j];
+                    newinput.id         = A_key[j]+"_"+i;
+                    newinput.onchange   = f_change;
+                    newinput.onblur     = f_blur;
+                    newinput.onkeydown  = f_keydown;
+                    newinput.onkeypress = f_keypress;
+                    newinput.oninput    = f_input;
+                    //newinput.value      = "";
+                    if (newinput.type === 'checkbox'){
+                        newinput.value      = "1";
+                        newinput.checked    = false;
+                    }
+                    else{
+                        newinput.value      = "";
+                    }
+                    if (A_key[j] !== "order_object" && A_key[j] !== "prod_cd" && A_key[j] !== "setprod_amount"){
+                        newinput.setAttribute("disabled", true);
+                    }
+                    if (A_key[j] === "saleprice" || A_key[j] === "costprice" || A_key[j] === "setprod_amount"){
+                        newinput.style.textAlign = 'right';
+                    }
+                    newcell.appendChild(newinput);
+                }
+             if(addrow == 0){
+                 list = document.getElementsByName('button_del');
+                 for(i=0;i<list.length;i++){
+                    list[i].setAttribute("disabled", true);
+                 }
+                 document.getElementById("add").setAttribute("disabled", true);
+             }
+             if(save == 0){
+                  document.getElementById('send_result').setAttribute("disabled", true);
+             }
+                
+            }
+            function f_change(e){
+                T_f_change(e);
+            }
+            function f_blur(e){
+                T_f_blur(e);
+            }
+            function f_keydown(e){
+                result = T_f_keydown(e);
+                return result;
+            }
+            function f_keypress(e){
+                T_f_keypress(e);
+            }
+            function f_input(e){
+                T_f_input(e);
+            }
+            function add_row(e){
+                res = T_addrow(e);
+                
+                if (res === "ok"){
+                    newval           = +e.target.value +1;
+                    elemt            = document.getElementById("add");
+                    elemt.id         = 'del_'+e.target.value;
+                    elemt.name       = 'button_del';
+                    elemt.innerHTML  = "削除";
+                    elemt.onclick   = del_row;
+                    
+                    tbod = document.getElementById("tbody_template");
+                    var trow         = tbod.insertRow();
+                    var ckbox        = trow.insertCell(0);
+                    var newbutton       = document.createElement('button');
+                    newbutton.name      = 'button_add';
+                    newbutton.id        = 'add';
+                    newbutton.value     = newval;
+                    newbutton.innerHTML = "追加";
+                    newbutton.disabled  = true;
+                    newbutton.onclick  = add_row;
+                    ckbox.appendChild(newbutton);
+
+                    var ckbox        = trow.insertCell(1);
+                    var newbutton       = document.createElement('button');
+                    newbutton.name      = 'button_srh';
+                    newbutton.id        = 'srh_' + newval;
+                    newbutton.value     = newval;
+                    newbutton.innerHTML = "検索";
+                    newbutton.onclick = prod_search_row;
+                    ckbox.appendChild(newbutton);
+            
+                    for(j=0;j < A_key.length; j++){
+                        //var newcell = trow.insertCell(j+1);
+                        var newcell = trow.insertCell(j+2);
+                        var newinput = document.createElement('input');
+                        //newinput.type       = 'text';
+                        if (A_key[j] === "order_object"){
+                            newinput.type       = 'checkbox';
+                        }
+                        else{
+                            newinput.type       = 'text';
+                        }
+                        newinput.name       = A_key[j];
+                        newinput.id         = A_key[j]+"_"+newval;
+                        newinput.onchange   = f_change;
+                        newinput.onblur     = f_blur;
+                        newinput.onkeydown  = f_keydown;
+                        newinput.oninput     = f_input;
+                        //newinput.value      = "";
+                        if (newinput.type === 'checkbox'){
+                            newinput.value      = "1";
+                            newinput.checked    = false;
+                        }
+                        else{
+                            newinput.value      = "";
+                        }
+                        if (A_key[j] !== "order_object" && A_key[j] !== "prod_cd" && A_key[j] !== "setprod_amount"){
+                            newinput.setAttribute("disabled", true);
+                        }
+                        if (A_key[j] === "saleprice" || A_key[j] === "costprice" || A_key[j] === "setprod_amount"){
+                            newinput.style.textAlign = 'right';
+                        }
+                        newcell.appendChild(newinput);
+                    }                    
+                elemt           = document.getElementById("add");
+                elemnt_f_id     = A_pr_key_id[0] +"_"+elemt.value;
+                elemnt_f        = document.getElementById(elemnt_f_id);
+                elemnt_f.focus();                  
+                }
+            }
+            function del_row(e){
+                rowIndex=0;
+                elements=document.getElementsByName('button_del');
+                for(i=0;i<elements.length;i++){
+                    if (elements[i].value === e.target.value){
+                        rowIndex=i;
+                        break;
+                    }
+                }
+                res = T_delrow(e);
+                if (res === "ok"){
+                    // e.target.value not equal rowIndex of HTMLTableElement
+                    //tbod = document.getElementById("tbody_template").deleteRow(e.target.value);
+                    tbod = document.getElementById("tbody_template").deleteRow(rowIndex);
+                }
+            }
+            function send_result(){
+                if(confirm("※データ保存します。よろしいですか？")){
+                // 商品入数構成マスタ
+                
+                for(i=0;i<working_data.length;i++){
+                    if(working_data[i] == null){
+                        continue;
+                    }
+                    var amount = working_data[i]["setprod_amount"];
+                    if (amount === "" || (amount !== "" && isNaN(amount)) || Number(amount) < 1){
+                        alert("※入数を入力してください。行："+ String(i+1));
+                        return false;
+                    } 
+                }
+                
+                if (new_data.length === 0 && upd_data.length === 0 && del_data.length === 0){
+                    alert("※更新データはありません。");
+                    return false;
+                }
+                
+        
+                //data_send   = T_send_result();
+                data_send   = T_send_result(orgn_id);
+                }
+ //               var xhr     = new XMLHttpRequest();
+ //               xhr.open("post", spath, true);
+ //               xhr.setRequestHeader('Content-Type', 'application/json');
+ //               xhr.send(data_send); 
+                //setDataForAjax( data_send, spath,'ajaxScreenUpdate' );
+            }
+            
+            function reset_data(){
+                T_reset_data();
+            }
+            function all_reset(){
+                spath       = window.location.href;
+                spath       = spath.split('?'); 
+                spath       = spath[0]+'?param='+destination+'/show&home=1';
+                window.location.replace(spath);
+            }
+            function prod_search_row(e){
+                // open Dialog to get Product Informations.
+                spath       = window.location.href;
+                spath       = spath.split('?'); 
+                spath       = spath[0]+'?param=Mst5102/search&orgnid='+orgn_id+'&line='+e.target.value;
+                openDialog(spath);
+            }
+            function openDialog(url) {
+                var iframeStyle = 'min-width     : 100%; ' +
+                                  'height        : 100%; ' +
+                                  'padding-top   : 0.2em; ' +
+                                  'padding-right : 0; ' +
+                                  'padding-bottom: 0.8em; ' +
+                                  'padding-left  : 0;';
+                //var iframe = $('<iframe frameborder="0" src="' + url + '" style="' + iframeStyle + '"></iframe>');
+                var iframe = $('<iframe id="searchDialog" frameborder="0" src="' + url + '" style="' + iframeStyle + '"></iframe>');
+                var dialogOptions = {
+                    //width : 640,
+                    //height: 480,
+                    width : 880,
+                    height: 800,
+                    title : '商品検索',
+                    modal : true
+                };
+                iframe.dialog(dialogOptions);
+            }
+            function closeDialog(ref){
+                // 閉じる
+                $('#searchDialog').dialog('close');
+                // 破棄
+                $('#searchDialog').dialog('destroy');
+                // 商品コード変更イベント発火           
+                var elem =document.getElementById("prod_cd_"+ref);
+                var evt = document.createEvent("HTMLEvents");
+                evt.initEvent("change", true, false);
+                elem.dispatchEvent(evt);
+                return false;
+            }
+             function closeDialog1(result){
+                // 閉じる
+                $('#searchDialog').dialog('close');
+                // 破棄
+                $('#searchDialog').dialog('destroy');         
+                // 画面遷移
+                spath = window.location.href;
+                spath = spath.split('?'); 
+               
+                spath = spath[0]+'?param='+destination+'/show&search='+result;
+                window.location.replace(spath);
+                return false;
+            }
+            function searchdata(){
+                spath       = window.location.href;
+                spath       = spath.split('?'); 
+                spath       = spath[0]+'?param=Mst5102/search';            
+                openDialog(spath);
+            }
+            function all_delete()
+            {
+                if(confirm("※データ削除します。よろしいですか？")){
+                    spath       = window.location.href;
+                    spath       = spath.split('?'); 
+                    spath       = spath[0]+'?param='+destination+'/alldelete&orgnid='+orgn_id+'&setprod='+setprod_cd;
+                    window.location.replace(spath);
+                }
+            }
+        </script>
+            
+        <style type="text/css">
+            .group_no_float{
+              clear: both;
+
+            }
+            .blocline_left {
+              float : left;
+              padding-left: 1em;
+              vertical-align: middle;
+            }
+            .blocline_right{
+               float : right;
+               padding-right: 5em;
+               vertical-align: middle;
+               max-width: 50%;
+            }
+            /* add/replace value setting at template1.css */
+            /* button_srh */
+            thead#thead_template th:nth-child(1),
+            tbody#tbody_template tr td:nth-child(1){
+                width: 4em;
+            }
+            thead#thead_template th:nth-child(2),
+            tbody#tbody_template tr td:nth-child(2){
+                width: 4em;
+            }
+            /* order_object */
+            thead#thead_template th:nth-child(3),
+            tbody#tbody_template tr td:nth-child(3){
+                width: 2em;
+            }
+            /* prod_cd */
+            thead#thead_template th:nth-child(4),
+            tbody#tbody_template tr td:nth-child(4){
+                width: 12em;
+            }
+            thead#thead_template th:nth-child(5),
+            tbody#tbody_template tr td:nth-child(5){
+                width: 25em;
+            } 
+            thead#thead_template th:nth-child(6),
+            tbody#tbody_template tr td:nth-child(6){
+                width: 14em;
+            }
+            /* saleprice, costprice, setprod_amount */
+            thead#thead_template th:nth-child(7),
+            tbody#tbody_template tr td:nth-child(7),
+            thead#thead_template th:nth-child(8),
+            tbody#tbody_template tr td:nth-child(8){
+                width: 10em;
+            }
+            thead#thead_template th:nth-child(9),
+            tbody#tbody_template tr td:nth-child(9){
+                width: 8em;
+            }
+            input{
+                width: -webkit-fill-available;
+                width: -moz-available;
+            }
+            #lbl_SETPROD_NM{
+                width: 25em;
+            }
+        </style>
+    </head>
+    <body>
+        <?php
+              include("../home/View/Common/PageHeader.php");
+        ?>
+    <!-- Site -->
+    <div id="sb-site" style="overflow: auto;">
+        <h4 id="pagetitle"></h4>
+        <div style="color:#FF0000; font-weight:bold;"><?php if (Count($aryErrMsg) > 0) hsc('　'.join('<br />',$aryErrMsg)); ?></div>
+        <div class="group_no_float">
+            <div class="blocline_left">
+                <label for = "cmb_ORGANIZATION_ID">　組織名</label>
+                <select id="cmb_ORGANIZATION_ID" name="cmb_ORGANIZATION_ID">
+                <?php foreach($abbreviatedNameList as $abbreviated) { ?>
+                    <option value="<?php hsc($abbreviated['organization_id']); ?>" <?php hsc($selected); ?>><?php hsc($abbreviated['abbreviated_name']); ?></option>
+                <?php } ?>
+                </select>
+                &nbsp;&nbsp;&nbsp;
+                <label for="txt_SETPROD_CD">構成商品コード</label>
+                <input type="text" id="txt_SETPROD_CD" name="txt_SETPROD_CD" maxlength="13" style="width:200px;">
+            </div>
+            <div class="blocline_left">
+                <label id="lbl_SETPROD_NM"></label>&nbsp;<label id="lbl_MODE" style="display:none; height:24px; padding:2px 5px;"></label>
+            </div>
+            <div class="blocline_right"><button type="button" id="bt_search" onclick="searchdata()">検索</button></div>
+        </div>
+        <script type="text/javascript">
+            document.getElementById('cmb_ORGANIZATION_ID').value    = orgn_id;
+            document.getElementById('txt_SETPROD_CD').value         = setprod_cd;
+            document.getElementById('lbl_SETPROD_NM').innerHTML     = setprod_nm;
+            document.getElementById('cmb_ORGANIZATION_ID').addEventListener("change",function(){
+//                iorgn_id = document.getElementById("cmb_ORGANIZATION_ID").value;
+//                spath = window.location.href;
+//                spath = spath.split('?'); 
+//                spath = spath[0]+'?param='+destination+'/show&orgnid='+iorgn_id;
+//                window.location.replace(spath);
+                document.getElementById("txt_SETPROD_CD").value = "";
+                document.getElementById("txt_SETPROD_CD").focus();
+            });
+            document.getElementById("txt_SETPROD_CD").addEventListener("blur",function(){
+                
+                iorgn_id = document.getElementById("cmb_ORGANIZATION_ID").value;
+                iprod_cd = document.getElementById("txt_SETPROD_CD").value;
+                
+                if (iorgn_id !== "" && iprod_cd !== ""){
+                    if(!isNaN(iprod_cd)){
+                        iprod_cd = parseInt(iprod_cd);
+                        iprod_cd = ("0000000000000" + iprod_cd).slice(-13);
+                        String(iprod_cd);
+                        document.getElementById("txt_SETPROD_CD").value = iprod_cd ;
+                        var strkey = iorgn_id + ':' + iprod_cd;
+                        
+                        if(smst0201List.indexOf(strkey) !== -1 ){
+                            spath = window.location.href;
+                            spath = spath.split('?');
+                            spath = spath[0]+'?param='+destination+'/show&orgnid='+iorgn_id+'&setprod='+iprod_cd;
+                            window.location.replace(spath);
+                        }
+                        else{
+                            alert("※商品コードがマスタにありません。");
+                            document.getElementById("txt_SETPROD_CD").value = "";
+                            document.getElementById("txt_SETPROD_CD").focus();
+                        }
+                    }
+                    else{
+                        alert("※商品コードは数字で入力してください。");
+                        document.getElementById("txt_SETPROD_CD").value = "";
+                        document.getElementById("txt_SETPROD_CD").focus();
+                    }
+                }
+            });
+            
+            if (A_mst0201_data.length > 0){
+                document.getElementById("cmb_ORGANIZATION_ID").setAttribute("disabled", true);
+                document.getElementById("txt_SETPROD_CD").setAttribute("disabled", true);
+                // モード
+                document.getElementById('lbl_MODE').style.display = '';
+                document.getElementById('lbl_MODE').style.color = '#FFFFFF';
+                if (working_data.length ===0){
+                    document.getElementById('lbl_MODE').style.background = '#FF0000';
+                    document.getElementById('lbl_MODE').innerHTML = '新規';
+                }
+                else{
+                    document.getElementById('lbl_MODE').style.background = '#0000FF';
+                    document.getElementById('lbl_MODE').innerHTML = '更新';
+                }
+            }
+        </script>
+        <div class="group_no_float">
+            <div class="blocline_left">
+        <div class="table_container">
+            <table id="table_template">
+                 <thead id="thead_template">
+                     <tr>
+                        <th>
+                        </th>                         
+                     </tr>
+                 </thead>
+                 <tbody id="tbody_template">
+                     
+                 </tbody>
+            </table>        
+        </div>
+        <?php if (isset($aryKeys['organization_id']) && isset($aryKeys['setprod_cd'])){ ?>
+        <div>
+            <br />
+            &nbsp;<button type="button" id="send_result" onclick="send_result()"  >決定</button>&nbsp;&nbsp;&nbsp;<button type="button" id="reset_data" onclick="reset_data()"  >取消</button>&nbsp;&nbsp;&nbsp;<button type="button" id="all_reset" onclick="all_reset()"  >再検索</button>&nbsp;&nbsp;&nbsp;<button type="button" id="all_delete" onclick="all_delete()"  >全削除</button>
+        </div>  
+        <?php } ?>
+         </div>      
+        </div>
+    </div><!-- /#sb-site -->
+        <script type="text/javascript">
+                thead_crea(A_title);
+                //tbody_crea(working_data);
+                if (A_mst0201_data.length > 0){
+                    tbody_crea(working_data);
+                }
+                document.getElementById('pagetitle').innerHTML = "&nbsp;" + pagetitle;
+                //
+                if (orgn_id && setprod_cd){
+                    document.getElementById('all_delete').setAttribute("disabled", true);
+                    if (working_data.length > 0){
+                        document.getElementById('all_delete').removeAttribute("disabled");
+                    }
+                }
+        </script>
+    </body>
+</html>

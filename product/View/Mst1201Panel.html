@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html>
+  <head>
+        <?php
+            // cssまたはｊｓファイルを拡張子付きで配列に記述 
+           /* $fileNames = array( 'default.css',
+                                'common.js',
+                                'jquery-ui.min.js',
+                                'jquery-ui.css');*/
+
+            include("../home/View/Common/HtmlHeader.php"); 
+        ?>
+	
+    <script type="text/javascript" src="../../FwCommon/js/common.js" ></script>
+    <script type="text/javascript" src="../js/profit/jquery-ui.min.js" ></script>
+    <script type="text/javascript" src="../js/common.js" ></script>
+<!--ADDSTR 20201118 kanderu    -->
+<!--        Enterキーを押すと、次のフィールドに移動します-->
+    <script type="text/javascript" src="../../FwCommon/js/EnterFocus.js" ></script>
+<!--ADDEND 20201118 kanderu    -->
+    <link rel="stylesheet" href="../css/product/jquery-ui.css" >	
+    <script type="text/javascript">
+        
+        //
+        pmst1201            = '<?php echo json_encode(json_encode($mst1201_getdata)); ?>';
+        pmst1205            = '<?php echo json_encode(json_encode($mst1205_alldata)); ?>';
+        pmst0201            = '<?php echo json_encode(json_encode($mst0201_alldata)); ?>';
+        pmst0010            = '<?php echo json_encode(json_encode($mst0010_getdata)); ?>';
+        //
+        pmst1201_sd         = '<?php echo json_encode(json_encode($mst1201_searchdata)); ?>';
+        smst1201List        = "<?php hsc($mst1201List['list']); ?>"; 
+        //
+        ptypmst1201         = JSON.parse(pmst1201.slice(1,-1));
+        ptypmst1201_sd      = JSON.parse(pmst1201_sd.slice(1,-1));
+        ptypmst1205         = JSON.parse(pmst1205.slice(1,-1));
+        ptypmst0201         = JSON.parse(pmst0201.slice(1,-1));
+        ptypmst0010         = JSON.parse(pmst0010.slice(1,-1));
+
+        function numberWithCommas(x) {
+            var parts = x.toString().split(".");
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            return parts.join(".");
+        }
+//ADDSTR 20201023 kanderu 
+        window.onload = function () { 
+            if (document.getElementById("cmb_ORGANIZATION_ID").value ==='' ){
+                document.getElementById("txt_SECT_CD").disabled = true;
+                document.getElementById("cmb_TYPE_CD").disabled = true;
+                document.getElementById("cmb_TAX_TYPE").disabled = true;
+                document.getElementById("cmb_POINT_KBN").disabled = true;
+                document.getElementById("cmb_DISC_NOT_KBN").disabled = true;
+                document.getElementById("cmb_TODAY_SALE_PRT").disabled = true;
+                document.getElementById("txt_PROD_CD").disabled = true;
+                document.getElementById("txt_SECT_NM").disabled = true;
+                document.getElementById("txt_SECT_KN").disabled = true;
+                document.getElementById("txt_SECT_PROFIT").disabled = true;
+                document.getElementById("txt_SECT_DISC_RATE").disabled = true;
+                document.getElementById("txt_CUST_DISC_RATE").disabled = true;
+                document.getElementById("txt_SECT_TAX").disabled = true;
+                document.getElementById("txt_SECT_PRATE").disabled = true;  
+            }
+        };
+//ADDEND 2020/10/21 kanderu
+    </script>
+    <style>
+        body {
+          /*font-family: MS Gothic;*/
+            background-color: whitesmoke;
+        }
+        label {
+          background-color: #0B0B61;
+          color: white;
+        /*font-weight: bold;*/
+          padding: 2px;
+          text-transform: uppercase;
+          font-size: 12pt;
+          margin: 1px;
+        }
+        div{
+          margin: 0px;  
+        }
+
+        label.new {
+          background-color: #FF0000;
+          color: #FFFFFF;
+        }
+
+        /* Style the tab */
+        .tab {
+          overflow: hidden;
+          border: 1px solid #ccc;
+          background-color: #f1f1f1;
+        }
+
+        /* Style the buttons inside the tab */
+        .tab button {
+          background-color: inherit;
+          float: left;
+          border: none;
+          outline: none;
+          cursor: pointer;
+          padding: 14px 16px;
+          transition: 0.3s;
+          font-size: 17px;
+        }
+
+        /* Change background color of buttons on hover */
+        .tab button:hover {
+          background-color: #ddd;
+        }
+
+        /* Create an active/current tablink class */
+        .tab button.active {
+          background-color: #ccc;
+        }
+
+        /* Style the tab content */
+        .tabcontent {
+          display: none;
+          padding: 6px 12px;
+          border: 1px solid #ccc;
+          border-top: none; 
+        }
+
+        .blocline_left {
+          float : left;
+          padding-left: 1em;
+          vertical-align: middle;
+        }
+        .group_no_float{
+          clear: both;
+
+        }
+        .parent{
+            overflow: hidden;
+        }
+        .blocline_right{
+           float : right;
+           margin-right: 200px;
+           padding-left :1em;
+           vertical-align: middle;
+           max-width: 50%;
+        }
+        .test_class{
+            width: 15em;
+            height: 20pt;
+            padding: 0;
+            vertical-align: bottom;
+            border: 1px solid #ccc;
+        }
+        .label_pro{
+            width: 9em;
+        }
+        .label_base{
+            width: 15em;   
+        }
+        .input_long{
+            width: 30em
+        }
+        .input_middle{
+            width: 20em;
+        }
+        .input_middle1{
+            width: 30%;
+        }
+        .input_middle2{
+            width: 20%;
+        }    
+        .input_small{
+            width: 2em;
+        }
+        .input_small2{
+            width: 7em;
+        }     
+        .input_small3{
+            width: 8em;
+        }    
+        thead th {
+            background-color: #0B0B61;
+            border: 1px solid #AAA;
+            color: white;
+            text-align: -webkit-center; 
+        }
+        tbody {
+            background-color: #fff;
+        }
+        #no_pad1{
+            padding-left: unset;
+        }
+        #no_pad2{
+            padding-left: unset;
+        }
+        .input_num {
+            text-align: right;
+        }
+        h2{
+            margin-left: 10px;
+        }
+        #bt_function{
+            margin-left: 10px;
+        }
+        h4{
+            background-color: #0D0D70;
+            border: 1px solid #AAA;
+            color: whitesmoke;
+            padding: 5px;            
+        } 
+        
+/*ADDSTR kanderu 20201021         */
+        #cmb_TAX_TYPE ,#cmb_EMPL_KBN,#cmb_POINT_KBN,#txt_SECT_PRATE,#cmb_DISC_NOT_KBN,#cmb_TODAY_SALE_PRT,#cmb_TYPE_CD{
+          width:97px;
+        }
+        #required {
+          float : right;
+          padding-left: 0.5em;
+          padding-top: 0.5em;     
+        }
+/*ADDEND kanderu 2021021*/
+    </style>
+ 
+    <title>部門マスタ</title>
+  </head>
+  <body id="test">
+        <?php
+        /*
+            if( isset($_GET['home']) ) {
+                if( "1" ==  $_GET['home'] ){
+                include("../home/View/Common/PageHeader.php");
+                }else{
+                    include("Common/PageHeader.php");
+                }
+            }else{
+                include("Common/PageHeader.php");
+            }
+        */
+            include("../home/View/Common/PageHeader.php");
+        ?>
+      <div>
+    <!-- Site -->
+
+    <div id="sb-site" style="overflow: auto;" >
+        
+        <div class="group_no_float">
+            <h4>商品管理★部門マスタ</h4>
+          <div class="blocline_left">
+              <label for="cmb_ORGANIZATION_ID">店舗名</label>
+              <select id="cmb_ORGANIZATION_ID" name="cmb_ORGANIZATION_ID">
+                <?php foreach($abbreviatedNameList as $abbreviated) { ?>
+                    <option value="<?php hsc($abbreviated['organization_id']); ?>" <?php hsc($selected); ?>><?php hsc($abbreviated['abbreviated_name']); ?></option>
+                <?php } ?>
+              </select>
+          </div>
+            <div class="blocline_left">
+                <label for="txt_SECT_CD">部門コード</label>
+                <input type="text" id="txt_SECT_CD" maxlength="5">
+            </div>
+          <div class="blocline_left"><label id="lbl_MODE" style="display:none;"></label></div>
+          <div class="blocline_left"> <button type="button" id="bt_search" onclick="searchdata()">検索</button> </div>
+        </div>
+        <div class="group_no_float"> 
+          <div class="blocline_left">
+            <label class="label_base" for="txt_SECT_NM">部門名</label>
+            <input type="text" class="input_long" id="txt_SECT_NM" maxlength="22"><br />
+            <label class="label_base" for="txt_SECT_KN">部門カナ</label>
+            <input type="text" class="input_long" id="txt_SECT_KN" maxlength="10"> <p id="required" style="color:rgb(255,0,0);  text-align:right;">※ 必須</p><br />
+            <label class="label_base" for="cmb_TYPE_CD">分類</label>
+            <select id="cmb_TYPE_CD">
+				<option value = ''></option>
+            </select>
+          </div>
+          <div class="blocline_right"><label id="lbl_INSDATETIME">作成日時:</label><br /><label id="lbl_UPDDATETIME">更新日時:</label>    </div>
+        </div>
+
+        <div class="group_no_float">
+          <br />
+          <div class="blocline_left">
+            <label class="label_base" for="txt_SECT_PROFIT">部門粗利率(%)</label>
+            <input type="text" class="input_small2 input_num" id="txt_SECT_PROFIT" maxlength="6"><br />
+            <label class="label_base" for="txt_SECT_DISC_RATE">部門値引率</label>
+            <input type="text" class="input_small2 input_num" id="txt_SECT_DISC_RATE" maxlength="6"><br />
+            <label class="label_base" for="txt_CUST_DISC_RATE">会員値引率</label>
+            <input type="text" class="input_small2 input_num" id="txt_CUST_DISC_RATE" maxlength="6"><br />
+            <label class="label_base" for="txt_SECT_TAX">税率</label>
+<!--            <input type="text" class="input_small2 input_num" id="txt_SECT_TAX" maxlength="6"><br />
+            <label class="label_base" for="cmb_TAX_TYPE">税種別</label>-->
+            <select id="cmb_TAX_TYPE" name="cmb_TAX_TYPE">
+                <option value="1">外税</option>
+                <option value="2">内税</option>
+                <option value="9">非課税</option>
+            </select><br />
+            <label class="label_base" for="txt_SECT_TAX">税率</label>
+            <input type="text" class="input_small2 input_num" id="txt_SECT_TAX" maxlength="6"><br />
+            <label class="label_base" for="cmb_EMPL_KBN">社販区分</label>
+            <select id="cmb_EMPL_KBN">
+                <option value="0">対象</option>
+                <option value="1">対象外</option>
+            </select>
+            <br />
+            <label class="label_base" for="cmb_POINT_KBN">得点区分</label>
+            <select id="cmb_POINT_KBN">
+                <option value="0">対象</option>
+                <option value="1">対象外</option>
+            </select>
+            <br />
+            <label class="label_base" for="txt_SECT_PRATE">部門得点倍率</label>
+            <input type="text" class="input_small2 input_num" id="txt_SECT_PRATE" maxlength="4"><br />
+            <label class="label_base" for="txt_PROD_CD">部門打用商品コード</label>
+            <input type="text" id="txt_PROD_CD" class="input_long"  autocomplete="on" list="lst_PROD_CD"><br />
+            <datalist id="lst_PROD_CD">
+            </datalist>
+            <label class="label_base" for="cmb_DISC_NOT_KBN">値引不可区分</label>
+            <select id="cmb_DISC_NOT_KBN">
+                <option value="0">可能</option>
+                <option value="1">不可能</option>
+            </select>
+            <br />
+            <label class="label_base" for="cmb_TODAY_SALE_PRT"> 当日売上品一覧出力要否区分 </label>
+            <select id="cmb_TODAY_SALE_PRT">
+                <option value="0">対象</option>
+                <option value="1">対象外</option>
+            </select>
+            <br />
+          </div>
+        </div>
+        <div class="group_no_float" id="bt_function">
+            <br />
+          <input type="text" id="txt_updins" hidden >
+          <button type="button" id="bt_updins" onclick="savedata()">登録</button>
+          <button type="button" id="bt_delete" onclick="deldata()">削除</button>
+          <button type="button" id="bt_reset"  onclick="reset()">取消</button>
+        </div>        
+      </div>
+
+    </div><!-- /#sb-site -->
+    <script type="text/javascript">  
+
+        document.getElementById('cmb_ORGANIZATION_ID').addEventListener("change",function(){
+            iorgn_id = document.getElementById("cmb_ORGANIZATION_ID").value;
+            spath = window.location.href;
+            spath = spath.split('?'); 
+            spath = spath[0]+'?param=Mst1201/show&orgnid='+iorgn_id;
+            window.location.replace(spath);
+        });    
+    
+        document.getElementById("txt_SECT_CD").addEventListener("keydown",function(e){
+            if(e.which == 13 || e.keycode == 13) {  
+                document.getElementById("txt_SECT_CD").blur();
+            }
+            else if(document.getElementById("txt_SECT_CD").value.length > 2){
+                document.getElementById("txt_SECT_CD").value = document.getElementById("txt_SECT_CD").value.substring(0,2);
+            }
+        });
+
+        document.getElementById("txt_SECT_CD").addEventListener("change",function(){
+            iorgn_id = document.getElementById("cmb_ORGANIZATION_ID").value;
+            isect_cd = document.getElementById("txt_SECT_CD").value;
+            if (iorgn_id !== "" && isect_cd !== ""){
+                document.getElementById("bt_function").removeAttribute("hidden");
+                if(!isNaN(isect_cd)){
+                    isect_cd = parseInt(isect_cd);
+                    isect_cd = ("00" + isect_cd).slice(-2);
+                    String(isect_cd);
+                    //console.log(smst1201list);
+                    document.getElementById("txt_SECT_CD").value = isect_cd ;
+                    //console.log("isect_cd: "+isect_cd);
+                    //if(smst1201List.indexOf(isect_cd) !== -1 ){
+                    var strkey = iorgn_id + ':' + isect_cd;
+                    if(smst1201List.indexOf(strkey) !== -1 ){
+                        spath = window.location.href;
+                        spath = spath.split('?'); 
+                        //spath = spath[0]+'?param=Mst1201/show&sectcd='+isect_cd;
+                        spath = spath[0]+'?param=Mst1201/show&orgnid='+iorgn_id+'&sectcd='+isect_cd;
+                        window.location.replace(spath);
+                    }
+                else { 
+                         //document.getElementById("bt_updins").removeAttribute("hidden");
+                         var allinput = document.getElementsByTagName ("INPUT");
+                         for(var i=0;i < allinput.length;i++){
+                             allinput[i].value="";
+                         }
+                         var allselect = document.getElementsByTagName ("SELECT");
+                         for(var i=0;i < allselect.length;i++){
+                            //allselect[i].value=0;
+                            // 組織プルダウンは保持する
+                            if (allselect[i].name !== "cmb_ORGANIZATION_ID") {
+                                // 税種別は"1"がデフォルト
+                                if (allselect[i].name === "cmb_TAX_TYPE") {
+                                    allselect[i].value=1;
+                                }
+                                else {
+                                    allselect[i].value=0;
+                                }
+                            }
+                         }
+                         var alllbl = document.getElementsByTagName ("LABEL");
+                         for(var i=0;i < alllbl.length;i++){
+                             if(alllbl[i].id){
+                                  alllbl[i].innerHTML="&nbsp;&nbsp;";
+                              }
+                          }
+                         var alltbody = document.getElementsByTagName ("TBODY");
+                         for(var i=0;i < alltbody.length;i++){
+                             if(alltbody[i].id){
+                                  alltbody[i].innerHTML="";
+                              }
+                         }
+                        document.getElementById("txt_updins").value = "ins"; 
+//ADDSTR kanderu 2020/10/21
+                        //登録タンの追
+                        document.getElementById("bt_updins").innerText =   "一括配信";
+//ADDSTR kanderu 2020/10/21                      
+                        document.getElementById("txt_SECT_CD").value     =   isect_cd; 
+                        today = new Date();
+                        //document.getElementById("txt_INSDATE").value     =   today.getFullYear()+'/'+today.getUTCMonth()+1+'/'+('00'+today.getUTCDate()).slice(-2);
+                        //document.getElementById("lbl_INSDATETIME").innerHTML             =	"作成日時:"+ document.getElementById("txt_INSDATE").value;
+                        //document.getElementById("lbl_UPDDATETIME").innerHTML             =	"更新日時:"+ document.getElementById("txt_INSDATE").value;
+                        var insdate = today.getFullYear()+'/'+('00'+(today.getUTCMonth()+1)).slice(-2)+'/'+('00'+today.getUTCDate()).slice(-2);
+                        document.getElementById("lbl_INSDATETIME").innerHTML             =	"作成日時:"+ insdate;
+                        document.getElementById("lbl_UPDDATETIME").innerHTML             =	"更新日時:"+ insdate;
+
+                        document.getElementById('lbl_MODE').style.display = '';
+                        document.getElementById('lbl_MODE').style.background = '#FF0000';
+                        document.getElementById('lbl_MODE').style.color = '#FFFFFF';
+                        document.getElementById('lbl_MODE').innerHTML = '新規';
+                    }
+                }
+            }
+            else{
+                document.getElementById("txt_SECT_CD").value = "";
+                //document.getElementById("bt_updins").removeAttribute("hidden");                        
+                var allinput = document.getElementsByTagName ("INPUT");
+                for(var i=0;i < allinput.length;i++){
+                    allinput[i].value="";
+                }
+                var allselect = document.getElementsByTagName ("SELECT");
+                for(var i=0;i < allselect.length;i++){
+                    allselect[i].value=0;
+                }
+                var alllbl = document.getElementsByTagName ("LABEL");
+                for(var i=0;i < alllbl.length;i++){
+                    if(alllbl[i].id){
+                         alllbl[i].innerHTML="&nbsp;&nbsp;";
+                     }
+                 }
+                var alltbody = document.getElementsByTagName ("TBODY");
+                for(var i=0;i < alltbody.length;i++){
+                    if(alltbody[i].id){
+                         alltbody[i].innerHTML="";
+                     }
+                }
+                document.getElementById("bt_function").removeAttribute("hidden");        
+                document.getElementById("txt_SECT_CD").value     =   isect_cd; 
+                today = new Date();
+                //document.getElementById("txt_INSDATE").value     =   today.getFullYear()+'/'+today.getUTCMonth()+1+'/'+('00'+today.getUTCDate()).slice(-2);
+                //document.getElementById("lbl_INSDATETIME").innerHTML             = "作成日時:"+ document.getElementById("txt_INSDATE").value;
+                //document.getElementById("lbl_UPDDATETIME").innerHTML             = "更新日時:"+ document.getElementById("txt_INSDATE").value;
+                var insdate = today.getFullYear()+'/'+('00'+(today.getUTCMonth()+1)).slice(-2)+'/'+('00'+today.getUTCDate()).slice(-2);
+                document.getElementById("lbl_INSDATETIME").innerHTML             =	"作成日時:"+ insdate;
+                document.getElementById("lbl_UPDDATETIME").innerHTML             =	"更新日時:"+ insdate;
+                
+                document.getElementById('lbl_MODE').style.display = 'none';
+ 
+                document.getElementById("bt_function").setAttribute("hidden", true); 
+            }
+        });
+
+        /**
+         * 数値チェックと整形
+         * 入力値をチェックして返却
+         * 整数部2桁＋小数部1桁(0.0～99.9)
+         */
+        function numCheck_01(numVal) {
+            // 空の場合そのまま返却
+            if (numVal == ''){
+                return '';
+            }
+            if (/^([1-9][0-9]{0,1}|0)(\.[0-9]{1})?$/.test(numVal)){
+                var num = parseFloat(numVal);
+                return num.toFixed(1);
+            }
+            else{
+                alert("※数値チェックエラー(0.0～99.9で設定してください)");
+                return "";
+            }
+        }
+
+        /**
+         * 数値チェックと整形
+         * 入力値をチェックして返却
+         * 整数部3桁＋小数部2桁(ただし0.00～100.00)
+         */
+        function numCheck_02(numVal) {
+            // 空の場合そのまま返却
+            if (numVal == ''){
+                return '';
+            }
+            if (/^([1-9][0-9]{0,2}|0)(\.[0-9]{1,2})?$/.test(numVal)){
+                var num = parseFloat(numVal);
+                if (num > 100){
+                    alert("※入力範囲エラー(0.00～100.00で設定してください)");
+                    return "";
+                }
+                return num.toFixed(2);
+            }
+            else{
+                alert("※数値チェックエラー(0.00～100.00で設定してください)");
+                return "";
+            }
+        }
+         
+        function numCheck_03(numVal) {
+            // 空の場合そのまま返却
+            if (numVal == ''){
+                return '';
+            }
+            if (/^([1-9][0-9]{0,2}|0)(\.[0-9]{1,2})?$/.test(numVal)){
+                var num = parseFloat(numVal);
+                if (num > 999.99){
+                    alert("※入力範囲エラー(0.00～999.99で設定してください)");
+                    return "";
+                }
+                return num.toFixed(2);
+            }
+            else{
+                alert("※数値チェックエラー(0.00～999.99で設定してください)");
+                return "";
+            }
+        }		
+
+        // 部門粗利率
+        document.getElementById("txt_SECT_PROFIT").addEventListener('blur', function(){ this.value = numCheck_02(this.value) }, false);
+        // 部門値引率
+        document.getElementById("txt_SECT_DISC_RATE").addEventListener('blur', function(){ this.value = numCheck_02(this.value) }, false);
+        // 会員値引率
+        document.getElementById("txt_CUST_DISC_RATE").addEventListener('blur', function(){ this.value = numCheck_02(this.value) }, false);
+        // 税率
+        document.getElementById("txt_SECT_TAX").addEventListener('blur', function(){ this.value = numCheck_03(this.value) }, false);
+        // 部門得点倍率
+        document.getElementById("txt_SECT_PRATE").addEventListener('blur', function(){ this.value = numCheck_01(this.value) }, false);
+		
+        // 部門粗利率
+        document.getElementById("txt_SECT_PROFIT").addEventListener('change', function(){ this.value = numCheck_02(this.value) }, false);
+        // 部門値引率
+        document.getElementById("txt_SECT_DISC_RATE").addEventListener('change', function(){ this.value = numCheck_02(this.value) }, false);
+        // 会員値引率
+        document.getElementById("txt_CUST_DISC_RATE").addEventListener('change', function(){ this.value = numCheck_02(this.value) }, false);
+        // 税率
+        document.getElementById("txt_SECT_TAX").addEventListener('change', function(){ this.value = numCheck_03(this.value) }, false);
+        // 部門得点倍率
+        document.getElementById("txt_SECT_PRATE").addEventListener('change', function(){ this.value = numCheck_01(this.value) }, false);		
+
+        function savedata(){
+//ADDSTR 2020/10/21 kanderu            
+            //データを削除するときにメッセージデータを表示する
+            if(document.getElementById("txt_updins").value ==="upd"){
+               if(!confirm("※データ更新します。よろしいですか？")){
+            　  return;
+        　     }
+                     } else{
+                if(!confirm("※データ保存します。よろしいですか？")){
+            　      return;
+        　      }
+            }
+//ADDEND 2020/10/21 kanderu
+
+
+
+
+//            if(document.getElementById("txt_PROD_CD").value !==lst_PROD_CD ){
+//                alert('※test。');
+//                txt_PROD_CD.focus();
+//                return false;
+//            }
+            
+            if(!txt_SECT_KN.value){
+                alert('※部門カナを入力してください。');
+                txt_SECT_KN.focus();
+                return false;
+            }
+            
+            var data = new Object;
+            allinput = document.getElementsByTagName ("INPUT");
+            for(var i=0;i < allinput.length;i++){
+                if(allinput[i].id !== ""){
+                    //data[allinput[i].id.substring(4)] = allinput[i].value;
+                    var id = allinput[i].id.substring(4);
+                    data[id] = allinput[i].value;
+                    // 数値項目(符号なし小数)
+                    if (id == "SECT_PROFIT" ||
+                        id == "SECT_DISC_RATE" ||
+                        id == "CUST_DISC_RATE" ||
+                        id == "SECT_TAX" ||
+                        id == "SECT_PRATE") {
+                        // 未入力時デフォルト値設定
+                        if (data[id] == "") {
+                            if (id == "SECT_PRATE") {
+                                data[id] = "1.00";
+                            }else if (id == "SECT_TAX") {
+                                data[id] = "8.00";
+                            }
+                            else {
+                                data[id] = "0.00";
+                            }
+                        }
+                        // 数値チェック
+                        var pattern = /^([1-9]\d*|0)(\.\d+)?$/;
+                        if (pattern.test(data[id]) === false) {
+                            alert("※数値チェックエラー");
+                            return;
+                        }
+                    }
+                }
+            }
+            var allselect = document.getElementsByTagName ("SELECT");
+            for(var i=0;i < allselect.length;i++){
+                if(allselect[i].id !== ""){
+                    data[allselect[i].id.substring(4)] = allselect[i].value; 
+                }
+            }
+            //console.log(data);
+            var path = 'index.php?param=Mst1201/addInput&home=1';
+
+            setDataForAjax( data, path,'ajaxScreenUpdate' );
+        }
+        function deldata(){
+//ADDSTR kanderu 20201021            
+        //データを削除するときにメッセージデータを表示する
+        if(!confirm("※データ削除します。よろしいですか？")){
+           return;
+       } 
+//ADDSTR kanderu 20201021         
+//            if(ptypjsk4120.length > 0){
+//                if (!confirm("既に売上が存在します。削除してもよろしですか。")) {
+//                    //console.log("not deleted");
+//                    return;
+//                }
+//            }
+            //console.log("deleted");
+            iorgn_id    = document.getElementById("cmb_ORGANIZATION_ID").value;
+            isect_cd    = document.getElementById("txt_SECT_CD").value;
+            spath       = window.location.href;
+            spath       = spath.split('?'); 
+            //spath       = spath[0]+'?param=Mst1201/del&sectcd='+isect_cd;
+            spath       = spath[0]+'?param=Mst1201/del&orgnid='+iorgn_id+'&sectcd='+isect_cd;
+           window.location.replace(spath);             
+
+        }
+        function reset(){
+            spath = window.location.href;
+            spath = spath.split('?'); 
+            spath = spath[0]+'?param=Mst1201/show&home=1';
+            window.location.replace(spath);
+        }
+        function searchdata(){
+            spath       = window.location.href;
+            spath       = spath.split('?'); 
+            spath       = spath[0]+'?param=Mst1201/search';          
+            window.location.replace(spath);
+        }
+
+        if(ptypmst1201){
+            // エディット項目
+            //if(ptypmst1201["sect_cd"]) { document.getElementById("txt_SECT_CD").value                   = ptypmst1201["sect_cd"]; }
+            if(ptypmst1201["sect_cd"]) {
+                document.getElementById("txt_SECT_CD").value    = ptypmst1201["sect_cd"];
+                document.getElementById("txt_SECT_CD").disabled = true;
+
+                document.getElementById('lbl_MODE').style.display = '';
+                document.getElementById('lbl_MODE').style.background = '#0000FF';
+                document.getElementById('lbl_MODE').style.color = '#FFFFFF';
+                document.getElementById('lbl_MODE').innerHTML = '更新';
+            }
+            if(ptypmst1201["sect_nm"]) { document.getElementById("txt_SECT_NM").value                   = ptypmst1201["sect_nm"]; }
+            if(ptypmst1201["sect_kn"]) { document.getElementById("txt_SECT_KN").value                   = ptypmst1201["sect_kn"]; }
+            if(ptypmst1201["prod_cd"]) { document.getElementById("txt_PROD_CD").value                   = ptypmst1201["prod_cd"]; }
+            if(ptypmst1201["sect_profit"]) { document.getElementById("txt_SECT_PROFIT").value           = ptypmst1201["sect_profit"]; }
+            if(ptypmst1201["sect_tax"]) { document.getElementById("txt_SECT_TAX").value                 = ptypmst1201["sect_tax"]; }
+            if(ptypmst1201["sect_prate"]) { document.getElementById("txt_SECT_PRATE").value             = ptypmst1201["sect_prate"]; }
+            if(ptypmst1201["sect_disc_rate"]) { document.getElementById("txt_SECT_DISC_RATE").value     = ptypmst1201["sect_disc_rate"]; }
+            if(ptypmst1201["cust_disc_rate"]) { document.getElementById("txt_CUST_DISC_RATE").value     = ptypmst1201["cust_disc_rate"]; }
+
+            // プルダウン項目
+            //if(ptypmst1201["organization_id"]) { document.getElementById("cmb_ORGANIZATION_ID").value   = ptypmst1201["organization_id"]; }
+            if(ptypmst1201["organization_id"]) {
+                document.getElementById("cmb_ORGANIZATION_ID").value = ptypmst1201["organization_id"];
+                if(ptypmst1201["sect_cd"]) {
+                    document.getElementById("cmb_ORGANIZATION_ID").disabled = true;
+                }
+            }
+			if(ptypmst1205){
+				var orgselect_val=document.getElementById('cmb_ORGANIZATION_ID').value;
+				if (orgselect_val !=="") {
+					var typselect=document.getElementById('cmb_TYPE_CD');
+					opt=document.createElement("option");
+					for( var j=0; j < ptypmst1205.length; j++){
+						if (ptypmst1205[j].organization_id == orgselect_val) {
+							opt=document.createElement("option");
+							opt.value   = ptypmst1205[j].type_cd;
+							opt.text    = ptypmst1205[j].type_nm;
+							typselect.options.add(opt,null);
+						}
+					}
+				}
+			}			
+            if(ptypmst1201["type_cd"]) { document.getElementById("cmb_TYPE_CD").value                   = ptypmst1201["type_cd"]; }
+            if(ptypmst1201["tax_type"]) { document.getElementById("cmb_TAX_TYPE").value                 = ptypmst1201["tax_type"]; }
+            if(ptypmst1201["point_kbn"]) { document.getElementById("cmb_POINT_KBN").value               = ptypmst1201["point_kbn"]; }
+            if(ptypmst1201["empl_kbn"]) { document.getElementById("cmb_EMPL_KBN").value                 = ptypmst1201["empl_kbn"]; }
+            if(ptypmst1201["disc_not_kbn"]) { document.getElementById("cmb_DISC_NOT_KBN").value         = ptypmst1201["disc_not_kbn"]; }
+            if(ptypmst1201["today_sale_prt"]) { document.getElementById("cmb_TODAY_SALE_PRT").value     = ptypmst1201["today_sale_prt"]; }
+
+            // ラベル項目
+            if(ptypmst1201["insdatetime"]) { document.getElementById("lbl_INSDATETIME").innerHTML   = "作成日時:" + ptypmst1201["insdatetime"].split('.')[0].replace(/-/g,'/'); }
+			else{
+				today = new Date();
+				insdate = today.getFullYear()+'/'+('00'+(today.getUTCMonth()+1)).slice(-2)+'/'+('00'+today.getUTCDate()).slice(-2); //+ ' ' + ('00'+today.getHours()).slice(-2)+':'+('00'+today.getMinutes()).slice(-2)+':'+('00'+today.getSeconds()).slice(-2);
+				document.getElementById("lbl_INSDATETIME").innerHTML   = "作成日時:" + insdate;
+			}
+            if(ptypmst1201["upddatetime"]) { document.getElementById("lbl_UPDDATETIME").innerHTML   = "更新日時:" + ptypmst1201["upddatetime"].split('.')[0].replace(/-/g,'/'); }
+			else{
+				today = new Date();
+				insdate = today.getFullYear()+'/'+('00'+(today.getUTCMonth()+1)).slice(-2)+'/'+('00'+today.getUTCDate()).slice(-2); //+ ' ' + ('00'+today.getHours()).slice(-2)+':'+('00'+today.getMinutes()).slice(-2)+':'+('00'+today.getSeconds()).slice(-2);
+				document.getElementById("lbl_UPDDATETIME").innerHTML   = "更新日時:" + insdate;
+			}
+
+            document.getElementById("txt_updins").value                                                     =   "upd";
+ //ADDSTR kanderu 2020/10/21 
+            //更新ボタンの追
+            document.getElementById("bt_updins").innerText =   "一括配信";
+//ADDSTR kanderu 2020/10/21   
+            document.getElementById("bt_function").removeAttribute("hidden");
+        }
+        if(ptypmst0201){
+            var orgselect_val=document.getElementById('cmb_ORGANIZATION_ID').value;
+            if (orgselect_val !=="") {
+                var element = document.getElementById('lst_PROD_CD');
+                while (element.firstChild) element.removeChild(element.firstChild);
+                for (var i = 0; i < ptypmst0201.length; i ++) {
+                    if (ptypmst0201[i]['organization_id'] == orgselect_val) {
+                        var option = document.createElement("option");
+                        var optValue = ptypmst0201[i]['prod_cd'];
+                        if (ptypmst0201[i]['prod_nm'] !== '') {
+                            optValue = optValue + '　' + ptypmst0201[i]['prod_nm'];
+                        }
+                        else if (ptypmst0201[i]['prod_kn'] !== '') {
+                            optValue = optValue + '　' + ptypmst0201[i]['prod_kn'];
+                        }
+                        option.setAttribute("value", optValue);
+                        element.appendChild(option);
+                    }
+                }
+            }
+        }
+
+        if(document.getElementById("txt_SECT_CD").value == ""){
+            document.getElementById("bt_function").setAttribute("hidden", true);
+        }
+        if(Number(ptypmst0010.empl_cale_kbn) !== 1 && Number(ptypmst0010.empl_cale_kbn) !== 2){
+            cmb_EMPL_KBN.disabled = true;
+        }else{
+            cmb_EMPL_KBN.disabled = false;
+        }
+//ADDSTR Kanderu 20201022
+        //税種別非課税のとき税率disabled
+        document.getElementById ("cmb_TAX_TYPE").addEventListener ("change", 
+	function(obj){
+  	var input = document.getElementById("txt_SECT_TAX");
+        input.disabled = (this.value === "9");
+        }, false);
+//ADDSTR Kanderu 20201022    
+    </script>
+  </body>
+</html>

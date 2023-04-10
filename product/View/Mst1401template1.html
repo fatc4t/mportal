@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>m-portal</title>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8">
+        <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+        <?php include("../home/View/Common/HtmlHeader.php"); ?>        
+        <script type="text/javascript" src="../../FwCommon/js/common.js" ></script>
+        <script type="text/javascript" src="../js/template1/common.js" ></script> 
+        <script type="text/javascript" src="../js/template1/jquery-ui.min.js" ></script>
+        <link rel="stylesheet" href="../css/product/jquery-ui.css" >	
+        <link rel="stylesheet" href="../css/product/default.css" >	         
+        <script type="text/javascript" src="../js/product/jquery/datepicker-ja.js" /></script>
+        <script type="text/javascript">
+
+            controller      = "<?php echo $controller ; ?>";
+            jss_rc   = "../js/"+controller.toLowerCase()+"/template1.js";
+            var script  = document.createElement('script');
+            script.src  = jss_rc;
+            script.type ="text/javascript";            
+            document.head.appendChild(script);
+            var link    = document.createElement('link');
+            link.rel    = "stylesheet";
+            link.href   = "../css/"+controller.toLowerCase()+"/template1.css";
+            document.head.appendChild(link);
+            
+            pagetitle       = "<?php echo $pagetitle ; ?>";
+            addrow          = "<?php echo $addrow ; ?>";
+            save            = "<?php echo $save ; ?>";
+            pr_key_list     = "<?php echo $pr_key_list; ?>";
+            pr_key_id       = '<?php echo json_encode(json_encode($pr_key_id)); ?>';
+            A_pr_key_id     = JSON.parse(pr_key_id.slice(1,-1));
+            key             = '<?php echo json_encode(json_encode($key)); ?>';
+            A_key           = JSON.parse(key.slice(1,-1));
+            title           = '<?php echo json_encode(json_encode($title)); ?>';
+            A_title         = JSON.parse(title.slice(1,-1));
+            data            = '<?php echo json_encode(json_encode($data)); ?>';
+            working_data    = JSON.parse(data.slice(1,-1));
+            //
+            abbreviated_list    = '<?php echo json_encode(json_encode($abbreviatedNameList)); ?>';
+            A_abbreviated_list  = JSON.parse(abbreviated_list.slice(1,-1));
+            //console.log(A_abbreviated_list);
+            destination     = "<?php hsc($destination); ?>";
+            //orgn_id         = "<?php hsc($orgn_id); ?>";
+            orgn_id         = "<?php hsc($aryKeys['organization_id']); ?>";
+            //
+            supp_cd             = "<?php hsc($aryKeys['supp_cd']); ?>";
+            supp_nm             = "<?php hsc($mst1101_getdata['supp_nm']); ?>";
+            //
+            //pmst0201_sd         = '<?php echo json_encode(json_encode($mst0201_searchdata)); ?>';
+            pmst0201_sd         = <?php $prefix = '';echo '[';foreach($mst0201_searchdata as $row){echo $prefix,json_encode(json_encode($row));$prefix = ',';};echo ']'; ?>;
+           // A_pmst0201_sd       = JSON.parse(pmst0201_sd.slice(1,-1));
+            A_pmst0201_sd       = getJson();
+            //smst0201List        = "<?php hsc($mst0201List['list']); ?>"; 
+            //
+            pmst1401_sd     = '<?php echo json_encode(json_encode($mst1401_searchdata)); ?>';
+            A_pmst1401_sd       = JSON.parse(pmst1401_sd.slice(1,-1));
+            //console.log(A_pmst1401_sd);
+            smst1101List        = "<?php hsc($mst1101List['list']); ?>"; 
+            //
+            peri_cost_cd_draft = "9999";    // because max value of peri_cost_cd is 9999.
+
+            var new_data    = [];
+            var upd_data    = [];
+            var del_data    = [];
+            
+            function getJson(){
+                var str = [];
+                for(i = 1; i < pmst0201_sd.length; i++){
+                    str.push(JSON.parse(pmst0201_sd.slice(i,i+1 )));
+                };
+                return str;
+            }
+            
+            function thead_crea(thead_nm){
+                thead = document.getElementById("thead_template");
+                thead.innerHTML = '';
+                // button_del
+                field_nm            = document.createElement('th');                
+                field_nm.innerHTML  = "&nbsp;&nbsp;&nbsp;";
+                thead.appendChild(field_nm);
+                // button_srh
+                field_nm            = document.createElement('th');                
+                field_nm.innerHTML  = "&nbsp;&nbsp;&nbsp;";
+                thead.appendChild(field_nm);
+
+                for(i=0;i < thead_nm.length ; i++ ){
+                    field_nm            = document.createElement('th');
+                    field_nm.innerHTML  = "";
+                    field_nm.innerHTML  = thead_nm[i];
+                    thead.appendChild(field_nm);
+                }                
+            }
+            
+            function tbody_crea(work_data){
+                tbod = document.getElementById("tbody_template");
+                tbod.innerHTML = '';
+                var plus = 0;
+                for(i=0;i < work_data.length ; i++ ){
+                        
+                    var trow         = tbod.insertRow();
+                    var ckbox        = trow.insertCell(0);
+                    var newbutton       = document.createElement('button');
+                    newbutton.name      = 'button_del';
+                    newbutton.id        = 'del_' + i;
+                    newbutton.value     = i;
+                    newbutton.innerHTML = "削除";
+                    newbutton.onclick = del_row;
+                    ckbox.appendChild(newbutton);
+
+                    var ckbox        = trow.insertCell(1);
+                    var newbutton       = document.createElement('button');
+                    newbutton.name      = 'button_srh';
+                    newbutton.id        = 'srh_' + i;
+                    newbutton.value     = i;
+                    newbutton.innerHTML = "検索";
+                    newbutton.onclick = prod_search_row;
+                    ckbox.appendChild(newbutton);
+            
+                    for(j=0;j < A_key.length; j++){
+                        //var newcell     = trow.insertCell(j+1);
+                        var newcell     = trow.insertCell(j+2);
+                        var newinput   = document.createElement('input');
+                        newinput.type       = 'text';
+                        newinput.name       = A_key[j];
+                        newinput.id         = A_key[j]+"_"+i;
+                        newinput.onchange  = f_change;
+                        newinput.onblur    = f_blur;
+                        newinput.onkeydown = f_keydown;
+                        newinput.onkeypress = f_keypress;
+                        newinput.oninput    = f_input;
+                        newinput.onfocus    = f_focus;
+                        newinput.value      = work_data[i][A_key[j]];
+                        if (A_key[j] === "prod_nm"){
+                            newinput.setAttribute("disabled", true);
+                        }
+                        if (A_key[j] === "order_date_str" || A_key[j] === "order_date_end"){
+                            newinput.className  = "input_date";
+                            newinput.setAttribute("readonly", "readonly");
+                        }
+                        if (A_key[j] === "peri_costprice" || A_key[j] === "order_lot"){
+                            newinput.style.textAlign = 'right';
+                        }
+                        newcell.appendChild(newinput);
+                    }
+                }
+                  
+                var trow         = tbod.insertRow();
+                var ckbox        = trow.insertCell(0);
+                var newbutton       = document.createElement('button');
+                newbutton.name      = 'button_add';
+                newbutton.id        = 'add';
+                newbutton.value     = work_data.length;
+                newbutton.innerHTML = "追加";
+                newbutton.onclick = add_row;
+                newbutton.setAttribute("disabled", true);
+                ckbox.appendChild(newbutton);
+
+                var ckbox        = trow.insertCell(1);
+                var newbutton       = document.createElement('button');
+                newbutton.name      = 'button_srh';
+                newbutton.id        = 'srh_' + work_data.length;
+                newbutton.value     = work_data.length;
+                newbutton.innerHTML = "検索";
+                newbutton.onclick = prod_search_row;
+                ckbox.appendChild(newbutton);
+            
+                for(j=0;j < A_key.length; j++){
+                    //var newcell = trow.insertCell(j+1);
+                    var newcell = trow.insertCell(j+2);
+                    var newinput = document.createElement('input');
+                    newinput.type       = 'text';
+                    newinput.name       = A_key[j];
+                    newinput.id         = A_key[j]+"_"+work_data.length;
+                    newinput.onchange   = f_change;
+                    newinput.onblur     = f_blur;
+                    newinput.onkeydown  = f_keydown;
+                    newinput.onkeypress = f_keypress;
+                    newinput.oninput    = f_input;
+                    newinput.onfocus    = f_focus;
+                    //newinput.value      = "";
+                    if (A_key[j] === "peri_cost_cd"){
+                        peri_cost_cd_draft = String(Number(peri_cost_cd_draft) + 1);
+                        newinput.value      = peri_cost_cd_draft;
+                    }
+                    else{
+                        newinput.value      = "";
+                    }
+                    if (A_key[j] === "prod_nm"){
+                        newinput.setAttribute("disabled", true);
+                    }
+                    if (A_key[j] === "order_date_str" || A_key[j] === "order_date_end"){
+                        newinput.className  = "input_date";
+                        newinput.setAttribute("readonly", "readonly");
+                    }
+                    if (A_key[j] === "peri_costprice" || A_key[j] === "order_lot"){
+                        newinput.style.textAlign = 'right';
+                    }
+                    newcell.appendChild(newinput);
+                }
+             if(addrow == 0){
+                 list = document.getElementsByName('button_del');
+                 for(i=0;i<list.length;i++){
+                    list[i].setAttribute("disabled", true);
+                 }
+                 document.getElementById("add").setAttribute("disabled", true);
+             }
+             if(save == 0){
+                  document.getElementById('send_result').setAttribute("disabled", true);
+             }
+             
+                // 本関数外に記述するとリセット(本関数が実行される)時にセルのカレンダー入力が出来なくなるのでここに記述する
+                $.datepicker.setDefaults( $.datepicker.regional[ "ja" ] );
+                $(function()
+                {
+                    $('.input_date').datepicker({
+                        showButtonPanel: true,
+                        beforeShow: function( input ) {
+                            setTimeout(function() {
+                                var buttonPane = $( input )
+                                    .datepicker( "widget" )
+                                    .find( ".ui-datepicker-buttonpane" );
+
+                                $( "<button>", {
+                                    text: "クリア",
+                                    click: function() {
+                                        //Code to clear your date field (text box, read only field etc.) I had to remove the line below and add custom code here
+                                        $.datepicker._clearDate( input );
+                                    }
+                                }).appendTo( buttonPane ).addClass("ui-datepicker-clear ui-state-default ui-priority-primary ui-corner-all");
+                            }, 1 );
+                        },
+                        onChangeMonthYear: function( year, month, instance ) {
+                            setTimeout(function() {
+                                var buttonPane = $( instance )
+                                    .datepicker( "widget" )
+                                    .find( ".ui-datepicker-buttonpane" );
+
+                                $( "<button>", {
+                                    text: "クリア",
+                                    click: function() {
+                                        //Code to clear your date field (text box, read only field etc.) I had to remove the line below and add custom code here
+                                        $.datepicker._clearDate( instance.input );
+                                    }
+                                }).appendTo( buttonPane ).addClass("ui-datepicker-clear ui-state-default ui-priority-primary ui-corner-all");
+                            }, 1 );
+                        }
+                    });
+                });
+            }
+            function f_change(e){
+                if (e.target.name === "peri_costprice"){
+                    // 小数部あり
+                    e.target.value = addFigure(e.target.value, 1);
+                    if (e.target.value === ""){
+                        e.target.value = "0.00";
+                    }
+                }
+                else if (e.target.name === "order_lot"){
+                    // 小数部なし
+                    e.target.value = addFigure(e.target.value);
+                    if (e.target.value === ""){
+                        e.target.value = "0";
+                    }
+                }
+                T_f_change(e);
+            }
+            function f_blur(e){
+                T_f_blur(e);
+                if (e.target.name === 'peri_costprice'){
+                    // 小数部あり
+                    document.getElementById(e.target.id).value = addFigure(document.getElementById(e.target.id).value, 1);
+                }
+                if (e.target.name === 'order_lot'){
+                    // 小数部なし
+                    document.getElementById(e.target.id).value = addFigure(document.getElementById(e.target.id).value);
+                }
+            }
+            function f_keydown(e){
+                result = T_f_keydown(e);
+                return result;
+            }
+            function f_keypress(e){
+                T_f_keypress(e);
+            }
+            function f_input(e){
+                T_f_input(e);
+            }
+            function f_focus(e){
+                //
+                if (e.target.name === 'peri_costprice' || e.target.name === 'order_lot'){
+                    document.getElementById(e.target.id).value = delFigure(document.getElementById(e.target.id).value);
+                }
+            }
+            function add_row(e){
+                //console.log(e.target.value);
+                if (document.getElementById("peri_costprice_"+e.target.value).value === ""){
+                    document.getElementById("peri_costprice_"+e.target.value).value = "0.0";
+                }
+                if (document.getElementById("order_lot_"+e.target.value).value === ""){
+                    document.getElementById("order_lot_"+e.target.value).value = "0";
+                }
+                
+                res = T_addrow(e);
+                
+                if (res === "ok"){
+                    newval           = +e.target.value +1;
+                    elemt            = document.getElementById("add");
+                    elemt.id         = 'del_'+e.target.value;
+                    elemt.name       = 'button_del';
+                    elemt.innerHTML  = "削除";
+                    elemt.onclick   = del_row;
+                    
+                    tbod = document.getElementById("tbody_template");
+                    var trow         = tbod.insertRow();
+                    var ckbox        = trow.insertCell(0);
+                    var newbutton       = document.createElement('button');
+                    newbutton.name      = 'button_add';
+                    newbutton.id        = 'add';
+                    newbutton.value     = newval;
+                    newbutton.innerHTML = "追加";
+                    newbutton.disabled  = true;
+                    newbutton.onclick  = add_row;
+                    ckbox.appendChild(newbutton);
+
+                    var ckbox        = trow.insertCell(1);
+                    var newbutton       = document.createElement('button');
+                    newbutton.name      = 'button_srh';
+                    newbutton.id        = 'srh_' + newval;
+                    newbutton.value     = newval;
+                    newbutton.innerHTML = "検索";
+                    newbutton.onclick = prod_search_row;
+                    ckbox.appendChild(newbutton);
+            
+                    for(j=0;j < A_key.length; j++){
+                        //var newcell = trow.insertCell(j+1);
+                        var newcell = trow.insertCell(j+2);
+                        var newinput = document.createElement('input');
+                        newinput.type       = 'text';
+                        newinput.name       = A_key[j];
+                        newinput.id         = A_key[j]+"_"+newval;
+                        newinput.onchange   = f_change;
+                        newinput.onblur     = f_blur;
+                        newinput.onkeydown  = f_keydown;
+                        newinput.oninput     = f_input;
+                        newinput.onfocus    = f_focus;
+                        if (A_key[j] === "prod_nm"){
+                            newinput.setAttribute("disabled", true);
+                        }
+                        if (A_key[j] === "order_date_str" || A_key[j] === "order_date_end"){
+                            newinput.className  = "input_date";
+                            newinput.setAttribute("readonly", "readonly");
+                        }
+                        //newinput.value      = "";
+                        if (A_key[j] === "peri_cost_cd"){
+                            peri_cost_cd_draft = String(Number(peri_cost_cd_draft) + 1);
+                            newinput.value      = peri_cost_cd_draft;
+                        }
+                        else{
+                            newinput.value      = "";
+                        }
+                        if (A_key[j] === "peri_costprice" || A_key[j] === "order_lot"){
+                            newinput.style.textAlign = 'right';
+                        }
+                        newcell.appendChild(newinput);
+                    }
+                elemt           = document.getElementById("add");
+                elemnt_f_id     = A_pr_key_id[0] +"_"+elemt.value;
+                elemnt_f        = document.getElementById(elemnt_f_id);
+                elemnt_f.focus();                  
+
+                    $(function()
+                    {
+                        $('.input_date').datepicker({
+                            showButtonPanel: true,
+                            beforeShow: function( input ) {
+                                setTimeout(function() {
+                                    var buttonPane = $( input )
+                                        .datepicker( "widget" )
+                                        .find( ".ui-datepicker-buttonpane" );
+
+                                    $( "<button>", {
+                                        text: "クリア",
+                                        click: function() {
+                                            //Code to clear your date field (text box, read only field etc.) I had to remove the line below and add custom code here
+                                            $.datepicker._clearDate( input );
+                                        }
+                                    }).appendTo( buttonPane ).addClass("ui-datepicker-clear ui-state-default ui-priority-primary ui-corner-all");
+                                }, 1 );
+                            },
+                            onChangeMonthYear: function( year, month, instance ) {
+                                setTimeout(function() {
+                                    var buttonPane = $( instance )
+                                        .datepicker( "widget" )
+                                        .find( ".ui-datepicker-buttonpane" );
+
+                                    $( "<button>", {
+                                        text: "クリア",
+                                        click: function() {
+                                            //Code to clear your date field (text box, read only field etc.) I had to remove the line below and add custom code here
+                                            $.datepicker._clearDate( instance.input );
+                                        }
+                                    }).appendTo( buttonPane ).addClass("ui-datepicker-clear ui-state-default ui-priority-primary ui-corner-all");
+                                }, 1 );
+                            }
+                        });
+                    });
+                }
+            }
+            function del_row(e){
+                rowIndex=0;
+                elements=document.getElementsByName('button_del');
+                for(i=0;i<elements.length;i++){
+                    if (elements[i].value === e.target.value){
+                        rowIndex=i;
+                        break;
+                    }
+                }
+                res = T_delrow(e);
+                if (res === "ok"){
+                    // e.target.value is not equal rowIndex of HTMLTableElement
+                    //tbod = document.getElementById("tbody_template").deleteRow(e.target.value);
+                    tbod = document.getElementById("tbody_template").deleteRow(rowIndex);
+                }
+            }
+            function send_result(){
+
+                if (new_data.length === 0 && upd_data.length === 0 && del_data.length === 0){
+                    alert("※更新データはありません。");
+                    return false;
+                }
+
+                var bChk = false;
+                for(i=0;i<working_data.length;i++){
+                    if (typeof working_data[i] === "undefined"){
+                        continue;
+                    }
+                    
+                    // 期間原価未入力チェック
+                    if (working_data[i]["peri_costprice"] === ""){
+                        alert("※期間原価を入力してください。");
+                        return false;
+                    }
+                    // 発注ロット未入力チェック
+                    if (working_data[i]["order_lot"] === ""){
+                         alert("※発注ロットを入力してください。");
+                        return false;
+                    }
+                    // 発注期間(開始)未入力チェック
+                    if (working_data[i]["order_date_str"] === ""){
+                        alert("※発注期間開始を入力してください。");
+                        return false;
+                    }
+                    
+                    // 発注期間(終了)未入力チェック
+                    if (working_data[i]["order_date_end"] === ""){
+                        alert("※発注期間終了を入力してください。");
+                        return false;
+                    }
+                    // 発注期間大小関係チェック
+                    if (DateDiff(working_data[i]["order_date_str"], working_data[i]["order_date_end"]) < 0){
+                        alert("※発注期間(開始)が終了日を超えています。");
+                        return false;
+                    }
+
+                    // 商品コードが同一
+                    // 期間原価が同一
+                    // (修正の場合のみ：peri_cost_cd < 10000)期間原価コードが同一でない
+                    // 発注期間が重なっている
+                    // 以上の条件で他の仕入先も含めた既存レコードを検索
+                    for (var j = 0; j < A_pmst1401_sd.length; j ++){
+                        if (A_pmst1401_sd[j]["prod_cd"] !== working_data[i]["prod_cd"])                 { continue; }
+                        if (A_pmst1401_sd[j]["peri_costprice"] !== working_data[i]["peri_costprice"])   { continue; }
+                        // 新規の期間原価コード(仮)は10000以降で付番するので下記条件に合致することはない
+                        if (A_pmst1401_sd[j]["peri_cost_cd"] === working_data[i]["peri_cost_cd"])       { continue; }
+                        // 発注期間
+                        var wd_date_str = working_data[i]["order_date_str"].replace(/\//g, "");
+                        var wd_date_end = working_data[i]["order_date_end"].replace(/\//g, "");
+                        if (!((A_pmst1401_sd[j]["order_date_str"] <= wd_date_str && A_pmst1401_sd[j]["order_date_end"] >= wd_date_end) ||
+                              (A_pmst1401_sd[j]["order_date_str"] >= wd_date_str && A_pmst1401_sd[j]["order_date_str"] <= wd_date_end) ||
+                              (A_pmst1401_sd[j]["order_date_end"] >= wd_date_str && A_pmst1401_sd[j]["order_date_end"] <= wd_date_end))){
+                            continue;
+                        }
+                        bChk = true;
+                        break;
+                    }
+                    if (bChk === true){
+                        var bNxt = false;
+                        for (var j = 0; j < working_data.length; j ++){
+                            if (typeof working_data[j] === "undefined"){
+                                continue;
+                            }
+                            // peri_cost_cd < 10000 すなわち既存データ
+                            if (working_data[j]["peri_cost_cd"] < 10000 && working_data[j]["prod_cd"] !== working_data[j]["prod_cd_bak"]){
+                                if (working_data[i]["prod_cd"] === working_data[j]["prod_cd_bak"]){
+                                    bNxt = true;
+                                    break;
+                                }
+                            }
+                        }
+                        // 該当レコードが行削除用リストにある場合はチェック終了（次レコードへ）
+                        // 行から削除されたレコードはworking_dataには残らないのでチェックしない
+
+                        if (bNxt === false){
+                            alert("※該当商品はこの原価ですでに登録されています（１）");
+                            return false;
+                        }
+                    }
+        
+                }
+                
+                for(i=0;i<working_data.length;i++){
+                    if (typeof working_data[i] === "undefined"){
+                        continue;
+                    }
+                    numCnt = 0;
+                    for(j=0;j<working_data.length;j++){
+                        if (typeof working_data[j] === "undefined"){
+                            continue;
+                        }
+                        if (working_data[j]["prod_cd"] !== working_data[i]["prod_cd"])                  { continue; }
+                        if (working_data[j]["peri_costprice"] !== working_data[i]["peri_costprice"])    { continue; }
+                        // 発注期間
+                        var wd_date_str_i = working_data[i]["order_date_str"].replace(/\//g, "");
+                        var wd_date_end_i = working_data[i]["order_date_end"].replace(/\//g, "");
+                        var wd_date_str_j = working_data[j]["order_date_str"].replace(/\//g, "");
+                        var wd_date_end_j = working_data[j]["order_date_end"].replace(/\//g, "");
+                        if (!((wd_date_str_j <= wd_date_str_i && wd_date_end_j >= wd_date_end_i) ||
+                              (wd_date_str_j >= wd_date_str_i && wd_date_str_j <= wd_date_end_i) ||
+                              (wd_date_end_j >= wd_date_str_i && wd_date_end_j <= wd_date_end_i))){
+                            continue;
+                        }
+                        numCnt ++;
+                    }
+                    if (numCnt >= 2){
+                        alert("※該当商品はこの原価ですでに登録されています（２）。");
+                        return false;
+                    }
+                }
+
+                if(confirm("※データ保存します。よろしいですか？")){
+                //data_send   = T_send_result();
+                    data_send   = T_send_result(orgn_id);
+ //               var xhr     = new XMLHttpRequest();
+ //               xhr.open("post", spath, true);
+ //               xhr.setRequestHeader('Content-Type', 'application/json');
+ //               xhr.send(data_send); 
+                //setDataForAjax( data_send, spath,'ajaxScreenUpdate' );
+                }
+            }
+            
+            function reset_data(){
+                T_reset_data();
+                peri_cost_cd_draft = "9999";
+            }
+            function all_reset(){
+                spath       = window.location.href;
+                spath       = spath.split('?'); 
+                spath       = spath[0]+'?param='+destination+'/show&home=1';
+                window.location.replace(spath);
+            }
+            function prod_search_row(e){
+                // open Dialog to get Product Informations.
+                spath       = window.location.href;
+                spath       = spath.split('?'); 
+                spath       = spath[0]+'?param=Mst1401/search&type=p&orgnid='+orgn_id+'&line='+e.target.value;
+                openDialog(spath);
+            }
+            // 商品検索ダイアログ
+            function openDialog(url) {
+                var iframeStyle = 'min-width     : 100%; ' +
+                                  'height        : 100%; ' +
+                                  'padding-top   : 0.2em; ' +
+                                  'padding-right : 0; ' +
+                                  'padding-bottom: 0.8em; ' +
+                                  'padding-left  : 0;';
+                //var iframe = $('<iframe frameborder="0" src="' + url + '" style="' + iframeStyle + '"></iframe>');
+                var iframe = $('<iframe id="searchDialog" frameborder="0" src="' + url + '" style="' + iframeStyle + '"></iframe>');
+                var dialogOptions = {
+                    //width : 640,
+                    //height: 480,
+                    width : 900,
+                    height: 800,
+                    title : '商品検索',
+                    modal : true
+                };
+                iframe.dialog(dialogOptions);
+            }
+            
+            // 仕入先検索ダイアログ
+            function openDialogSupp(url) {
+                var iframeStyle = 'min-width     : 100%; ' +
+                                  'height        : 100%; ' +
+                                  'padding-top   : 0.2em; ' +
+                                  'padding-right : 0; ' +
+                                  'padding-bottom: 0; ' +
+                                  'padding-left  : 0;';
+                //var iframe = $('<iframe frameborder="0" src="' + url + '" style="' + iframeStyle + '"></iframe>');
+                var iframe = $('<iframe id="searchDialog" frameborder="0" src="' + url + '" style="' + iframeStyle + '"></iframe>');
+                var dialogOptions = {
+                    //width : 640,
+                    //height: 480,
+                    width : 880,
+                    height: 800,
+                    title : '仕入先検索',
+                    modal : true
+                };
+                iframe.dialog(dialogOptions);
+            }
+            
+            function closeDialog1(result){
+                // 閉じる
+                $('#searchDialog').dialog('close');
+                // 破棄
+                $('#searchDialog').dialog('destroy');         
+                // 画面遷移
+                spath = window.location.href;
+                spath = spath.split('?'); 
+               
+                spath = spath[0]+'?param='+destination+'/show&search='+result;
+                window.location.replace(spath);
+                return false;
+            }
+            
+            function closeDialog(ref){
+                // 閉じる
+                $('#searchDialog').dialog('close');
+                // 破棄
+                $('#searchDialog').dialog('destroy');
+                // 商品コード変更イベント発火
+                var elem =document.getElementById("prod_cd_"+ref);
+                var evt = document.createEvent("HTMLEvents");
+                evt.initEvent("change", true, false);
+                elem.dispatchEvent(evt);
+                return false;
+            }
+            function searchdata(){
+                spath       = window.location.href;
+                spath       = spath.split('?'); 
+                spath       = spath[0]+'?param=Mst1401/search&type=s';
+                //window.location.replace(spath);
+                openDialogSupp(spath);
+            }
+            function all_delete()
+            {
+                if(confirm("※データ削除します。よろしいですか？")){
+                    var sdt = document.getElementById('txt_ORD_DATE_STR').value;
+                    var edt = document.getElementById('txt_ORD_DATE_END').value;
+                    spath       = window.location.href;
+                    spath       = spath.split('?'); 
+                    spath       = spath[0]+'?param='+destination+'/alldelete&orgnid='+orgn_id+'&cd='+supp_cd;
+                    if (sdt !== ''){
+                        spath = spath+'&sdt='+sdt;
+                    }
+                    if (edt !== ''){
+                        spath = spath+'&edt='+edt;
+                    }
+                    window.location.replace(spath);
+                }
+            }
+
+            /**
+            * 数値の3桁カンマ区切り
+            * 入力値をカンマ区切りにして返却
+            * [引数]   numVal: 入力数値
+            * [引数]   decFlag: 小数入力フラグ(0:整数/1:小数)
+            * [返却値] String(): カンマ区切りされた文字列
+            */
+            function addFigure(numVal, decFlag = 0) {
+
+                // 空の場合そのまま返却
+                if (numVal == ''){
+                    return '';
+                }
+                // 既にカンマが入力されていたら事前に削除
+                numVal = numVal.toString().replace(/,/g, "").trim();
+
+                // 数値でなければそのまま返却→空を返却
+                if ( !/^[+|-]?(\d*)(\.\d+)?$/.test(numVal) ){
+                    //return numVal;
+                    return '';
+                }
+                // 整数部分と小数部分に分割
+                var numData = numVal.toString().split('.');
+                // 小数点が2つ以上入力されている場合は不正な入力として空を返却
+                if (numData.length > 2){
+                    return '';
+                }
+
+                // 整数部分桁数チェック
+                if (numData[0].length > 7){
+                    alert('※入力桁数オーバーです。');
+                    // 空を返却
+                    return '';
+                }
+                // 整数入力
+                if (decFlag === 0){
+                    if (numData.length === 2){
+                        // 配列末尾を削除
+                        numData.pop();
+                    }
+                }
+                // 小数入力
+                else{
+                    if (numData.length === 1){
+                        numData[1] = '';
+                    }
+                    numData[1] = (numData[1] + '00').substr(0,2);
+                }
+
+                // 整数部分を3桁カンマ区切りへ
+                numData[0] = Number(numData[0]).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                // 小数部分と結合して返却
+                return numData.join('.');
+
+                // 整数値でなければアラートを出して空を返却
+                if ( !/^[0-9]+$/.test(numVal) ){
+                    alert('※数値チェックエラー');
+                    return '';
+                }
+                return Number(numVal).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            }
+
+            /**
+             * カンマ外し
+             * 入力値のカンマを取り除いて返却
+             * [引数]   strVal: 半角でカンマ区切りされた数値
+             * [返却値] String(): カンマを削除した数値
+             */
+            function delFigure(strVal){
+                return strVal.replace( /,/g , "" );
+            }
+            
+            /**
+             * ２つの日付の差を日数で求める
+             */
+            function DateDiff(strDay1, strDay2)
+            {
+                //比較する日付オブジェクトを２つ定義する
+                var day1 = new Date(strDay1);
+                var day2 = new Date(strDay2);
+
+                //差日を求める（86,400,000ミリ秒＝１日）
+                return Math.ceil((day2 - day1) / 86400000);
+            }
+        </script>
+            
+        <style type="text/css">
+            .group_no_float{
+              clear: both;
+
+            }
+            .blocline_left {
+              float : left;
+              padding-left: 1em;
+              vertical-align: middle;
+            }
+            .blocline_right{
+               float : right;
+               padding-right: 1em;
+               vertical-align: middle;
+               max-width: 50%;
+            }
+            /* add/replace value setting at template1.css */
+            /* button_srh */
+            thead#thead_template th:nth-child(2),
+            tbody#tbody_template tr td:nth-child(2){
+                width: 4em;
+            }
+            /* peri_cost_cd */
+            thead#thead_template th:nth-child(3),
+            tbody#tbody_template tr td:nth-child(3){
+                display: none;
+            }
+            /* prod_cd */
+            thead#thead_template th:nth-child(4),
+            tbody#tbody_template tr td:nth-child(4){
+                width: 10em;
+            }
+            thead#thead_template th:nth-child(5),
+            tbody#tbody_template tr td:nth-child(5){
+                width: 37em;
+            }
+            /* order_date_str, order_date_end, order_lot */
+            thead#thead_template th:nth-child(6),
+            tbody#tbody_template tr td:nth-child(6),
+            thead#thead_template th:nth-child(7),
+            tbody#tbody_template tr td:nth-child(7){
+                width: 8em;
+            }
+            /* peri_costprice */
+            thead#thead_template th:nth-child(8),
+            tbody#tbody_template tr td:nth-child(8){
+                width: 10em;
+            }
+            thead#thead_template th:nth-child(9),
+            tbody#tbody_template tr td:nth-child(9){
+                width: 8em;
+            }
+            thead#thead_template th:nth-child(10),
+            tbody#tbody_template tr td:nth-child(10){
+                display: none;
+            }
+            input{
+                width:inherit;
+            } 
+            input[name='peri_costprice']{
+                ime-mode: disabled;
+            }
+            input[name='order_lot']{
+                ime-mode: disabled;
+            }
+            input[name='prod_cd']{
+                ime-mode: disabled;
+            }
+        </style>
+    </head>
+    <body>
+        <?php
+              include("../home/View/Common/PageHeader.php");
+
+        ?>
+    <!-- Site -->
+    <div id="sb-site" style="overflow: auto;">
+        <h4 id="pagetitle"></h4>
+        <div style="color:#FF0000; font-weight:bold;"><?php if (Count($aryErrMsg) > 0) hsc('　'.join('<br />',$aryErrMsg)); ?></div>
+        <div class="group_no_float">
+            <div class="blocline_left">
+                <label for = "cmb_ORGANIZATION_ID">　組織名</label>
+                <select id="cmb_ORGANIZATION_ID" name="cmb_ORGANIZATION_ID">
+                <?php foreach($abbreviatedNameList as $abbreviated) { ?>
+                    <option value="<?php hsc($abbreviated['organization_id']); ?>" <?php hsc($selected); ?>><?php hsc($abbreviated['abbreviated_name']); ?></option>
+                <?php } ?>
+                </select>
+                &nbsp;&nbsp;&nbsp;
+                <label for="txt_SUPP_CD">仕入先</label>
+                <input type="text" id="txt_SUPP_CD" name="txt_SUPP_CD" maxlength="4" style="width:60px;">
+            </div>
+            <div class="blocline_left">
+                <label id="lbl_SUPP_NM" style="width:400px; height:24px; padding:2px 5px; color:#FFF; background-color:#0B0B61;"></label>
+            </div>
+            <div class="blocline_right"><button type="button" id="bt_search" onclick="searchdata()">検索</button></div>
+        </div>
+        <div class="group_no_float">
+            <div class="blocline_left">
+                <label for="txt_ORD_DATE_STR">　発注期間</label>
+                <input type="text" class="input_date" id="txt_ORD_DATE_STR" name="txt_ORD_DATE_STR" style="width:150px;" readonly>
+                &nbsp;～&nbsp;
+                <input type="text" class="input_date" id="txt_ORD_DATE_END" name="txt_ORD_DATE_END" style="width:150px;" readonly>
+            </div>
+        </div>
+        <script type="text/javascript">
+            document.getElementById('cmb_ORGANIZATION_ID').value    = orgn_id;
+            document.getElementById('txt_SUPP_CD').value            = supp_cd;
+            document.getElementById('lbl_SUPP_NM').innerHTML        = supp_nm;
+            //
+            document.getElementById('txt_ORD_DATE_STR').setAttribute("disabled", true);
+            document.getElementById('txt_ORD_DATE_END').setAttribute("disabled", true);
+            //
+            document.getElementById('cmb_ORGANIZATION_ID').addEventListener("change",function(){
+//                iorgn_id = document.getElementById("cmb_ORGANIZATION_ID").value;
+//                spath = window.location.href;
+//                spath = spath.split('?'); 
+//                spath = spath[0]+'?param='+destination+'/show&orgnid='+iorgn_id;
+//                window.location.replace(spath);
+                document.getElementById("txt_SUPP_CD").value = "";
+                document.getElementById("txt_SUPP_CD").focus();
+            });
+            document.getElementById("txt_SUPP_CD").addEventListener("blur",function(){
+                iorgn_id = document.getElementById("cmb_ORGANIZATION_ID").value;
+                isupp_cd = document.getElementById("txt_SUPP_CD").value;
+                if (iorgn_id !== "" && isupp_cd !== ""){
+                    if(!isNaN(isupp_cd)){
+                        isupp_cd = parseInt(isupp_cd);
+                        isupp_cd = ("0000" + isupp_cd).slice(-4);
+                        String(isupp_cd);
+                        document.getElementById("txt_SUPP_CD").value = isupp_cd ;
+                        var strkey = iorgn_id + ':' + isupp_cd;
+                        if(smst1101List.indexOf(strkey) !== -1 ){
+                            spath = window.location.href;
+                            spath = spath.split('?');
+                            spath = spath[0]+'?param='+destination+'/show&orgnid='+iorgn_id+'&cd='+isupp_cd;
+                            window.location.replace(spath);
+                        }
+                        else{
+                            alert("※仕入先コードがマスタにありません。");
+                            document.getElementById("txt_SUPP_CD").value = "";
+                            document.getElementById("txt_SUPP_CD").focus();
+                        }
+                    }
+                    else{
+                        alert("※仕入先コードは数字で入力してください。");
+                        document.getElementById("txt_SUPP_CD").value = "";
+                        document.getElementById("txt_SUPP_CD").focus();
+                    }
+                }
+            });
+
+            if (orgn_id && supp_cd){
+                document.getElementById("cmb_ORGANIZATION_ID").setAttribute("disabled", true);
+                document.getElementById("txt_SUPP_CD").setAttribute("disabled", true);
+                //
+                document.getElementById('txt_ORD_DATE_STR').removeAttribute("disabled");
+                document.getElementById('txt_ORD_DATE_END').removeAttribute("disabled");
+            }
+        </script>
+        <div class="group_no_float">
+            <div class="blocline_left">
+        <div class="table_container">
+            <table id="table_template">
+                 <thead id="thead_template">
+                     <tr>
+                        <th>
+                        </th>                         
+                     </tr>
+                 </thead>
+                 <tbody id="tbody_template">
+                     
+                 </tbody>
+            </table>        
+        </div>
+        <?php if (isset($aryKeys['organization_id']) && isset($aryKeys['supp_cd'])){ ?>
+        <div>
+            <br />
+            &nbsp;<button type="button" id="send_result" onclick="send_result()"  >一括配信</button>&nbsp;&nbsp;&nbsp;<button type="button" id="reset_data" onclick="reset_data()"  >取消</button>&nbsp;&nbsp;&nbsp;<button type="button" id="all_reset" onclick="all_reset()"  >再検索</button>&nbsp;&nbsp;&nbsp;<button type="button" id="all_delete" onclick="all_delete()"  >全削除</button>
+        </div>
+            </div>
+        </div>
+        <?php } ?>
+    </div><!-- /#sb-site -->
+        <script type="text/javascript">
+                thead_crea(A_title);
+                //tbody_crea(working_data);
+                if (orgn_id && supp_cd){
+                    tbody_crea(working_data);
+                }
+                document.getElementById('pagetitle').innerHTML = "&nbsp;" + pagetitle;
+                //
+                if (orgn_id && supp_cd){
+                    document.getElementById('all_delete').setAttribute("disabled", true);
+                    if (working_data.length > 0){
+                        document.getElementById('all_delete').removeAttribute("disabled");
+                    }
+                }
+        </script>
+    </body>
+</html>

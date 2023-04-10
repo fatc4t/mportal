@@ -1,0 +1,1071 @@
+<?php
+    /**
+     * @file      部門別実績画面(View)
+     * @author    millionet montagne
+     * @date      2019/05/22
+     * @version   1.00
+     * @note      
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述
+            include("../profit/View/Common/HtmlHeader.php");
+        ?>
+
+        <script src="../js/profit/jquery/jquery.ui.ympicker.js" ></script>
+        <script src="../js/profit/jquery/jquery-migrate-1.0.0.js" ></script>
+        <script src="../js/profit/jquery/datepicker-ja.js" ></script>
+        <script src="../js/autofil_v<?php echo $_SESSION['AUTOFIL_VER'] ?>.js" ></script>
+        <!-- modal script-->
+        <script src="../js/modal/modal.js" ></script>
+        <link rel="stylesheet" href="../css/modal/modal.css" >
+        
+        <script type="text/javascript">
+            Sizelist       = '<?php echo json_encode(json_encode($Sizelist)); ?>';
+            A_Sizelist     = JSON.parse(Sizelist.slice(1,-1));
+            porg_id_list        = '<?php echo json_encode(json_encode($org_id_list)); ?>';
+            data_org            = JSON.parse(porg_id_list.slice(1,-1)); 
+            ptypdata            = '<?php echo json_encode($data); ?>';
+            A_Data              = JSON.parse(ptypdata); 
+            asc = [];
+            // create data set for day case, month case and year case
+            A_Data_day = []; // day
+            A_Data_month = []; // month
+            A_Data_year = [];  // year
+            // fill month data and year data
+            cumul=[];
+            cumul["month"]=[];
+            cumul["year"]=[];
+            for(i=0;i<A_Data.length;i++){
+                date_day = A_Data[i]["proc_date"];
+                org_id=A_Data[i]["org_id"];
+                // day
+                if(!A_Data_day[org_id]){
+                    A_Data_day[org_id]=[];
+                    A_Data_day[org_id][date_day] = [];
+                }else if(!A_Data_day[org_id][date_day]){
+                    A_Data_day[org_id][date_day] = [];
+                }
+                A_Data_day[org_id][date_day] = JSON.parse(JSON.stringify(A_Data[i]));
+            }
+            working_data = [];
+            // list sorted of date, use for printing table
+            date_sorted = [];
+        </script>
+        <script type="text/javascript">
+            var date_mode = "month";
+            var org_list = "";
+            
+            function numberWithCommas(x,precision = 0) {
+                // x : value
+                // precision : precision to return default 0 (no decimal: 99) | 1 => 99.9 | 2 => 99.99 ...
+                x = Math.round(Number(x)*Math.pow(10,precision))/Math.pow(10,precision);
+                var parts = x.toString().split(".");
+                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                if(precision){
+                    if(!parts[1]){
+                        parts[1] = 0;
+                    }                    
+                    parts[1]=(parts[1]+"0".repeat(precision)).substr(0,precision);
+                }                 
+                return parts.join(".");
+            }
+            
+            /**
+             * DatePickerを設定
+             */
+            $(function()
+            {
+                $( "#start_date, #end_date" ).datepicker({
+                    numberOfMonths: 2,
+                    showCurrentAtPos: 1,
+                    showButtonPanel: true,
+                    dateFormat: 'yy/mm/dd'
+                });
+            });
+
+            $(function() {
+                $("#start_dateM").ympicker({
+                    altField: "#start_dateM" //リターンセットUI IDorCLASS名
+                    ,altFormat: "yy/mm" //リターン日付形式
+                    ,monthNamesShort: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"]  //カレンダー表示月形式
+                    ,showAnim: "slideDown" //表示アニメーション形式
+                    ,yearRange: "c-2:c+3" //プルダウン年範囲
+                });
+            });
+            $(function() {
+                $("#end_dateM").ympicker({
+                    altField: "#end_dateM" //リターンセットUI IDorCLASS名
+                    ,altFormat: "yy/mm" //リターン日付形式
+                    ,monthNamesShort: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"]  //カレンダー表示月形式
+                    ,showAnim: "slideDown" //表示アニメーション形式
+                    ,yearRange: "c-2:c+3" //プルダウン年範囲
+                });
+            });
+            $(function() {
+                $("#end_year, #start_year").datepicker({
+                    dateFormat: "yy",
+                    changeYear: true
+                    ,changeMonth: false
+                    ,showButtonPanel: false
+                    ,onClose: function(dateText, inst) { 
+                        var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
+                        $(this).datepicker('setDate', new Date(year, 1));
+                    }
+                }).focus(function(){
+                    document.getElementsByClassName("ui-datepicker-calendar")[0].style.display="none";
+                    document.getElementsByClassName("ui-datepicker-month")[0].style.display="none";
+                    document.getElementsByClassName("ui-datepicker-prev")[0].style.display="none";
+                    document.getElementsByClassName("ui-datepicker-next")[0].style.display="none";
+                } )                ;
+            });
+            function radio_change_management(){
+                var prev = [];
+                document.getElementById("search_param").addEventListener('change', function(e) {
+                    ////console.log('Previous:', prev[e.target.name] ? prev[e.target.name].value : null);
+                    ////console.log(e);
+                    if(e.target.name === "org_r"){
+                        if(!prev[e.target.name]){
+                            prev[e.target.name]={value:""};
+                        }
+                        document.getElementById("org_select").disabled=true;
+                        if(e.target.value === "" ){
+                            document.getElementById("org_select").disabled=false;
+                        }  
+                    }
+                    prev[e.target.name] = e.target;
+                });
+            }
+            function csv_print(e){
+                elem_tr_list = table_body.getElementsByTagName("tr");
+                data_send = [];
+                var csv_data_o = {};
+                var row_nb = 0;
+//ADDSTR 2020/09/25 kanderu
+                var list_nm = '';  //店舗リスト用の変数
+//ADDEND 2020/09/25 kanderu 
+                csv_data_o['"'+row_nb+'"'] =table_head.getElementsByTagName('tr')[0].innerText.replace(' ▲',"").replace(' ▼',"").replace(/[\n,\r]/g,'').replace(/\t/g,",");
+                for(i=0;i<elem_tr_list.length;i++){
+                    looprow = elem_tr_list[i];
+                    if( looprow.childElementCount ===1 ){
+                        continue;
+                    }
+                    if(looprow.style.backgroundColor){
+                        //console.log(elem_tr_list[i]);
+                        continue;
+                    } 
+                    row_nb += 1; 
+//EDITSTR 2020/09/25 kanderu
+                    //csv_data_o['"'+row_nb+'"'] = '"'+looprow.innerText.replace(/\t/g,'","')+'"'; 
+                    if(looprow.getElementsByTagName('td')[0].innerText !== ''){
+                        list_nm = looprow.getElementsByTagName('td')[0].innerText;　//CSV出力の時店舗名の行を空ないの場合、普通の店舗名を表示
+                        csv_data_o['"'+row_nb+'"'] = '"'+looprow.innerText.replace(/\t/g,'","')+'"';
+                    }else{
+                        looprow.getElementsByTagName('td')[0].innerText = list_nm;　//店舗名を表示して保持
+                        csv_data_o['"'+row_nb+'"'] = '"'+looprow.innerText.replace(/\t/g,'","')+'"';
+                        looprow.getElementsByTagName('td')[0].innerText = '';　//CSV出力の時行が空の場合、保持した店舗名を空の行を埋めます
+                    }
+//EDITEND 2020/09/25 kanderu
+                }
+                data_send["csv_data"] = JSON.stringify(csv_data_o);
+                ////console.log(data_send);
+                //data_sendを送ります。
+                spath       = 'index.php?param=LedgerSheetDailySalesResults/csvoutput';
+                //////console.log(spath);
+                setDataForAjax( data_send, spath ,'ajaxScreenUpdate' );                
+            }
+            function search_data(){
+                
+                //clear sort
+                asc=[];
+                elem_table_id = document.getElementById("table_id");
+                elem_thead = elem_table_id.getElementsByTagName('THEAD')[0];
+                elem_th = elem_thead.getElementsByTagName('TH');
+                for(i=0;i<elem_th.length;i++){
+                    elem_th[i].innerHTML = elem_th[i].innerHTML.replace(' ▲',"").replace(' ▼',"");
+                }
+                
+                // check checkbox at list 1 is checked
+
+                date_str_id = "start_dateM";
+                loop_date="";
+                loop_org_id="";
+                elem_str_date = document.getElementById(date_str_id).value.replace(/\//g,"")+"00";
+                elem_end_date = document.getElementById(date_str_id).value.replace(/\//g,"")+"99";
+                org_select_val = document.getElementById("org_select").value;
+                if(elem_str_date === ""){
+                    alert("営業期間を入力してください。");
+                    document.getElementById(date_str_id).focus();
+                    return;                    
+                }
+
+                temp_data =A_Data_day;
+                
+                ////console.log(temp_data);
+                elem_org = document.querySelector('input[name="org_r"]:checked');
+                if(elem_org.value === ""){
+                    if(org_list===""){
+                        alert("店舗を入力してください。");
+                        return;
+                    }
+                }
+                working_data = [];
+                prev_res5 = 0;
+                prev_res6 = 0;
+               // org_id
+                org_id_key = Object.keys(temp_data);
+                for(k=0;k<org_id_key.length;k++){
+                    loop_org_id = org_id_key[k];
+                    if(elem_org.value === ""){
+                        ////console.log(isNaN(org_select_val));
+                        if(isNaN(org_select_val)){
+                            if(org_list.indexOf(loop_org_id) === -1){
+                                ////console.log("exit1");
+                                continue;
+                            }
+                        }else if(loop_org_id !== org_select_val){
+                            continue;
+                        }
+                    }  
+                    // date
+                    temp_data_key = Object.keys(temp_data[loop_org_id]);                  
+                    for( i=0;i<temp_data_key.length;i++ ){
+                        loop_date = temp_data_key[i];
+                        ////console.log("loop_date: "+loop_date+" / elem_str_date: "+elem_str_date );
+                        if( loop_date < elem_str_date ){
+                            continue;
+                        }
+                        if( loop_date > elem_end_date ){
+                            break;
+                        }
+                        if(!working_data[loop_org_id]){
+                            working_data[loop_org_id]=[];
+                            working_data[loop_org_id][loop_date]=[];
+                        }else if(!working_data[loop_org_id][loop_date]){
+                            working_data[loop_org_id][loop_date]=[];                       
+                        }
+                        working_data[loop_org_id][loop_date] = JSON.parse(JSON.stringify(temp_data[loop_org_id][loop_date]));
+                        working_data[loop_org_id][loop_date]["res5"] = prev_res5 + Number(temp_data[loop_org_id][loop_date]["res1"]);
+                        working_data[loop_org_id][loop_date]["res6"] = prev_res6 + Number(temp_data[loop_org_id][loop_date]["total_profit_i"]);
+                        prev_res5 = working_data[loop_org_id][loop_date]["res5"];
+                        prev_res6 = working_data[loop_org_id][loop_date]["res6"];                        
+                    }
+                }
+                ////console.log(working_data);
+                if(working_data.length === 0 ){
+                    alert("データがありません。");
+                    document.getElementById("btn_csv").hidden = true;
+                }else{
+                    document.getElementById("btn_csv").hidden = false;
+                }
+                show_data(working_data);
+            };
+            
+            function show_data(t_data){
+                ////console.log(t_data);
+                elem_tbody=document.getElementById("table_body");
+                elem_tbody.innerHTML="";
+                org_r_val = document.querySelector('input[name="org_r"]:checked').value;
+                
+                function insert_row(row){
+                    ////console.log("row to print");
+                    ////console.log(row);
+                    // a finir round a faire, format des donnees (proc_date,sale_total,sale_profit,sale_amount,cust_amount)
+                    trow     = elem_tbody.insertRow();
+                    if(row["background"]){
+                        ////console.log(row);
+                        trow.style.backgroundColor = row["background"];
+                    }
+                    org_val             = trow.insertCell(0);
+                    date_val            = trow.insertCell(1);
+                    res1_val            = trow.insertCell(2);
+                    pure_total_i_val    = trow.insertCell(3);
+                    tax8_val            = trow.insertCell(4);
+                    tax10_val           = trow.insertCell(5);
+                    total_profit_i_val  = trow.insertCell(6);
+                    res3_val            = trow.insertCell(7);
+                    total_amount_val    = trow.insertCell(8);
+                    res4_val            = trow.insertCell(9);
+                    return_total_val    = trow.insertCell(10);
+                    return_amount_val   = trow.insertCell(11);
+                    res5_val            = trow.insertCell(12);
+                    res6_val            = trow.insertCell(13);  
+                    
+                    
+                    date_val.innerHTML = row["proc_date"].replace(/(\d{4})(\d{2})(\d{2})/g, '$1/$2/$3');
+                    org_val.innerHTML  = row["org_id"];
+                    res1_val.innerHTML = numberWithCommas(row["res1"]).split('.')[0];
+                    pure_total_i_val.innerHTML = numberWithCommas(row["pure_total_i"]).split('.')[0];
+                    tax8_val.innerHTML         = numberWithCommas(row["tax_total_08"]).split('.')[0];
+                    tax10_val.innerHTML        = numberWithCommas(row["tax_total_10"]).split('.')[0];
+                    total_profit_i_val.innerHTML = numberWithCommas(row["total_profit_i"]).split('.')[0];
+                    res3_val.innerHTML = numberWithCommas(row["res3"],2);
+                    total_amount_val.innerHTML = numberWithCommas(row["total_amount"]).split('.')[0];
+                    res4_val.innerHTML = numberWithCommas(row["res4"],2);
+                    return_total_val.innerHTML = numberWithCommas(row["return_total"]).split('.')[0];
+                    return_amount_val.innerHTML = numberWithCommas(row["return_amount"]).split('.')[0];
+                    res5_val.innerHTML = numberWithCommas(row["res5"]).split('.')[0];
+                    res6_val.innerHTML = numberWithCommas(row["res6"]).split('.')[0];  
+                }
+                function insert_footer(){
+                    elem_tfoot=document.getElementById("table_foot");
+                    elem_tfoot.innerHTML="";
+                    elem_tfoot.innerHTML="<tr><th></th></tr>";
+                    foot_date_key = Object.keys(t_data);
+                    ////console.log(foot_date_key);
+                    trow     = elem_tfoot.insertRow();
+                    org_val             = trow.insertCell(0);
+                    date_val            = trow.insertCell(1);
+                    res1_val            = trow.insertCell(2);
+                    pure_total_i_val    = trow.insertCell(3);
+                    tax8_val            = trow.insertCell(4);
+                    tax10_val           = trow.insertCell(5);
+                    total_profit_i_val  = trow.insertCell(6);
+                    res3_val            = trow.insertCell(7);
+                    total_amount_val    = trow.insertCell(8);
+                    res4_val            = trow.insertCell(9);
+                    return_total_val    = trow.insertCell(10);
+                    return_amount_val   = trow.insertCell(11);
+                    res5_val            = trow.insertCell(12);
+                    res6_val            = trow.insertCell(13);   
+                    date_val.innerHTML = "";
+                    org_val.innerHTML  = "総合計";
+                    row = t_cumul_data["total"];
+                    if(row["total_profit_i"] == 0){
+                        row["res3"] = 0;
+                    }else{
+                        row["res3"] = Number(row["total_profit_i"])/Number(row["pure_total_i"])*100;
+                    }
+                    if(row["total_amount"] == 0){
+                        row["res4"] = 0;
+                    }else{
+//EDITStr 2020/09/25 kanderu                            
+                            //row["res4"] = Number(row["pure_total_i"])/Number(row["total_amount"])*100;
+                            //一点単価＝売上高÷販売点数
+                            row["res4"] = Number(row["pure_total_i"])/Number(row["total_amount"]);
+//EDITEND 2020/09/25 kanderu 
+                    }                    
+                    res1_val.innerHTML = numberWithCommas(row["res1"]).split('.')[0];
+                    pure_total_i_val.innerHTML = numberWithCommas(row["pure_total_i"]).split('.')[0];
+                    tax8_val.innerHTML         = numberWithCommas(row["tax_total_08"]).split('.')[0];
+                    tax10_val.innerHTML        = numberWithCommas(row["tax_total_10"]).split('.')[0];
+                    total_profit_i_val.innerHTML = numberWithCommas(row["total_profit_i"]).split('.')[0];
+                    res3_val.innerHTML = numberWithCommas(row["res3"],2);
+                    total_amount_val.innerHTML = numberWithCommas(row["total_amount"]).split('.')[0];
+                    res4_val.innerHTML = numberWithCommas(row["res4"],2);
+                    return_total_val.innerHTML = numberWithCommas(row["return_total"]).split('.')[0];
+                    return_amount_val.innerHTML = numberWithCommas(row["return_amount"]).split('.')[0];
+                    res5_val.innerHTML = numberWithCommas(row["res5"]).split('.')[0];
+                    res6_val.innerHTML = numberWithCommas(row["res6"]).split('.')[0]; 
+                }
+                
+                t_cumul_data = [];
+                t_cumul_data["total"]=[];
+                t_cumul_data["total"]["res1"]=0;
+                t_cumul_data["total"]["pure_total_i"]=0;
+                t_cumul_data["total"]["tax_total_08"] = 0;
+                t_cumul_data["total"]["tax_total_10"] = 0;
+                t_cumul_data["total"]["total_profit_i"]=0;
+                t_cumul_data["total"]["res3"]=0;
+                t_cumul_data["total"]["total_amount"]=0;
+                t_cumul_data["total"]["res4"]=0;
+                t_cumul_data["total"]["return_total"]=0;
+                t_cumul_data["total"]["return_amount"]=0;
+                t_cumul_data["total"]["res5"]=0;
+                t_cumul_data["total"]["res6"]=0;
+                
+                t_cumul_data["compile"]=[];
+                t_cumul_data["calc"]=[];
+                function reinit_t_cumul_data(type,r_date){
+                    if(type === "calc"){
+                        t_cumul_data["calc"][r_date]=[];
+                        t_cumul_data["calc"][r_date]["res1"]=0;
+                        t_cumul_data["calc"][r_date]["pure_total_i"]=0;
+                        t_cumul_data["calc"][r_date]["tax_total_08"] = 0;
+                        t_cumul_data["calc"][r_date]["tax_total_10"] = 0;
+                        t_cumul_data["calc"][r_date]["total_profit_i"]=0;
+                        t_cumul_data["calc"][r_date]["res3"]=0;
+                        t_cumul_data["calc"][r_date]["total_amount"]=0;
+                        t_cumul_data["calc"][r_date]["res4"]=0;
+                        t_cumul_data["calc"][r_date]["return_total"]=0;
+                        t_cumul_data["calc"][r_date]["return_amount"]=0;
+                        t_cumul_data["calc"][r_date]["res5"]=0;
+                        t_cumul_data["calc"][r_date]["res6"]=0; 
+                    }else if(type === "compile"){
+                        t_cumul_data["compile"]["res1"]=0;
+                        t_cumul_data["compile"]["pure_total_i"]=0;
+                        t_cumul_data["compile"]["tax_total_08"] = 0;
+                        t_cumul_data["compile"]["tax_total_10"] = 0;
+                        t_cumul_data["compile"]["total_profit_i"]=0;
+                        t_cumul_data["compile"]["res3"]=0;
+                        t_cumul_data["compile"]["total_amount"]=0;
+                        t_cumul_data["compile"]["res4"]=0;
+                        t_cumul_data["compile"]["return_total"]=0;
+                        t_cumul_data["compile"]["return_amount"]=0;
+                        t_cumul_data["compile"]["res5"]=0;
+                        t_cumul_data["compile"]["res6"]=0; 
+                    }
+                }
+                
+                
+                if(org_r_val === "compile"){      
+                // compile 
+                    ////console.log("compile year");
+                    loop_date="";
+                    org_id = "";
+                    // ################ loop org_id
+                    org_id_key = Object.keys(t_data);
+                    if(asc["org_id"]){
+                        if(asc["org_id"] === -1){
+                            // Desc
+                            org_id_key.reverse();
+                        }
+                    }                     
+                    for(j=0;j<org_id_key.length;j++){
+                        org_id=org_id_key[j];
+                        reinit_t_cumul_data("compile","");
+                        
+                    // ################ loop date
+                        if(date_sorted.length > 0){
+                            // case data sorted
+                            t_data_key=date_sorted[org_id];
+                        }else{
+                            //normal case
+                            t_data_key=Object.keys(t_data[org_id]);
+                        }
+                        if(asc["proc_date"]){
+                            if(asc["proc_date"] === -1){
+                                // Desc
+                                t_data_key.reverse();
+                            }
+                        }                        
+                        for(i=0;i<t_data_key.length;i++){
+                            loop_date = t_data_key[i];
+                            if(!t_cumul_data["calc"][loop_date]){
+                                reinit_t_cumul_data("calc",loop_date);
+                            }
+                            loop_row = t_data[org_id][loop_date];
+                    ////console.log("here");
+
+                            ////console.log(Object.keys(t_cumul_data["calc"]));
+                            t_cumul_data["calc"][loop_date]["res1"] += Number( loop_row["res1"]);
+                            t_cumul_data["calc"][loop_date]["pure_total_i"] += Number( loop_row["pure_total_i"]);
+                            t_cumul_data["calc"][loop_date]["tax_total_10"] += Number( loop_row["tax_total_10"]);
+                            t_cumul_data["calc"][loop_date]["tax_total_08"] += Number( loop_row["tax_total_08"]);
+                            t_cumul_data["calc"][loop_date]["total_profit_i"] += Number( loop_row["total_profit_i"]);
+                            t_cumul_data["calc"][loop_date]["res3"] += Number( loop_row["res3"]);
+                            t_cumul_data["calc"][loop_date]["total_amount"] += Number( loop_row["total_amount"]);
+                            t_cumul_data["calc"][loop_date]["res4"] += Number( loop_row["res4"]);
+                            t_cumul_data["calc"][loop_date]["return_total"] += Number( loop_row["return_total"]);
+                            t_cumul_data["calc"][loop_date]["return_amount"] += Number( loop_row["return_amount"]);
+                            t_cumul_data["calc"][loop_date]["res5"] += Number( loop_row["res5"]);
+                            t_cumul_data["calc"][loop_date]["res6"] += Number( loop_row["res6"]);
+                        } // end loop date
+                    } // end loop org_id
+                    // print data
+                    
+                    
+                    org_id = "企業計"; 
+                    // loop date
+                    t_data_key=Object.keys(t_cumul_data["calc"]);
+                    if(asc["proc_date"]){
+                        if(asc["proc_date"] === -1){
+                            // Desc
+                            t_data_key.reverse();
+                        }
+                    }                    
+                    for(i=0;i<t_data_key.length;i++){
+                        loop_date = t_data_key[i];                        
+                                                  
+                        loop_row = t_cumul_data["calc"][loop_date];
+                        i_row=[];
+                        i_row["proc_date"] = loop_date;
+                        i_row["org_id"]  = org_id;                                    
+                        i_row["res1"]=loop_row["res1"];
+                        i_row["pure_total_i"]=loop_row["pure_total_i"];
+                        i_row["tax_total_08"]=loop_row["tax_total_08"];
+                        i_row["tax_total_10"]=loop_row["tax_total_10"];
+                        i_row["total_profit_i"]=loop_row["total_profit_i"];
+                        i_row["total_amount"]=loop_row["total_amount"];
+                        i_row["return_total"]=loop_row["return_total"];
+                        i_row["return_amount"]=loop_row["return_amount"];
+                        i_row["res5"]=loop_row["res5"];
+                        i_row["res6"]=loop_row["res6"];
+                        if(loop_row["total_profit_i"] == 0){
+                            i_row["res3"] = 0;
+                        }else{
+                            i_row["res3"] = Number(loop_row["total_profit_i"])/Number(loop_row["pure_total_i"])*100;
+                        }
+                        if(loop_row["total_amount"] == 0){
+                            i_row["res4"] = 0;
+                        }else{
+ //EDITStr 2020/09/25 kanderu                            
+                            //i_row["res4"] = Number(loop_row["pure_total_i"])/Number(loop_row["total_amount"])*100;
+                            //一点単価＝売上高÷販売点数
+                            i_row["res4"] = Number(loop_row["pure_total_i"])/Number(loop_row["total_amount"]);
+//EDITEND 2020/09/25 kanderu 
+                        }                        
+
+                        t_cumul_data["total"]["res1"] += Number( loop_row["res1"]);
+                        t_cumul_data["total"]["pure_total_i"] += Number( loop_row["pure_total_i"]);
+                        t_cumul_data["total"]["tax_total_10"] += Number( loop_row["tax_total_10"]);
+                        t_cumul_data["total"]["tax_total_08"] += Number( loop_row["tax_total_08"]);
+                        t_cumul_data["total"]["total_profit_i"] += Number( loop_row["total_profit_i"]);
+                        t_cumul_data["total"]["res3"] += Number( loop_row["res3"]);
+                        t_cumul_data["total"]["total_amount"] += Number( loop_row["total_amount"]);
+                        t_cumul_data["total"]["res4"] += Number( loop_row["res4"]);
+                        t_cumul_data["total"]["return_total"] += Number( loop_row["return_total"]);
+                        t_cumul_data["total"]["return_amount"] += Number( loop_row["return_amount"]);
+                        t_cumul_data["total"]["res5"] += Number( loop_row["res5"]);
+                        t_cumul_data["total"]["res6"] += Number( loop_row["res6"]);
+                        if(true){ // checked
+                            //console.log(loop_date);
+                            insert_row(i_row);
+                            org_id = "";
+                        }   
+                    }
+                    // call footer function;
+                    insert_footer();
+                }else{
+                // normal
+
+                    loop_date="";
+                    org_id = "";     
+                    
+                    // ################ loop org_id
+                    org_id_key = Object.keys(t_data);
+                    if(asc["org_id"]){
+                        if(asc["org_id"] === -1){
+                            // Desc
+                            org_id_key.reverse();
+                        }
+                    }                     
+                    for(j=0;j<org_id_key.length;j++){
+                        org_id=org_id_key[j];
+                        reinit_t_cumul_data("compile","");
+                        t_cumul_data["calc"]=[];
+                    // ################ loop date
+                        if(date_sorted.length > 0){
+                            // case data sorted
+                            t_data_key=date_sorted[org_id];
+                        }else{
+                            //normal case
+                            t_data_key=Object.keys(t_data[org_id]);
+                        }
+                        if(asc["proc_date"]){
+                            if(asc["proc_date"] === -1){
+                                // Desc
+                                t_data_key.reverse();
+                            }
+                        }                        
+                        for(i=0;i<t_data_key.length;i++){
+                            loop_date = t_data_key[i];
+                            loop_row = t_data[org_id][loop_date];
+                    ////console.log("here");
+                            if(i===0){
+                                org_id_t = loop_row["org_nm"];
+                            }else{
+                                org_id_t = "";
+                            }
+                            ////console.log(Object.keys(t_cumul_data["calc"]));
+                            i_row=[];
+                            i_row["proc_date"] = loop_date;
+                            i_row["org_id"]  = org_id_t;
+                            i_row["res1"] = loop_row["res1"];
+                            i_row["pure_total_i"] = loop_row["pure_total_i"];
+                            i_row["tax_total_08"] = loop_row["tax_total_08"];
+                            i_row["tax_total_10"] = loop_row["tax_total_10"];
+                            i_row["total_profit_i"] = loop_row["total_profit_i"];
+                            i_row["res3"] = loop_row["res3"];
+                            i_row["total_amount"] = loop_row["total_amount"];
+                            i_row["res4"] = loop_row["res4"];
+                            i_row["return_total"] = loop_row["return_total"];
+                            i_row["return_amount"] = loop_row["return_amount"];
+                            i_row["res5"] = loop_row["res5"];
+                            i_row["res6"] = loop_row["res6"];
+                            if(true){ // checked
+                                //console.log(loop_date);
+                                insert_row(i_row);
+                                org_id_t = "";
+                            }
+                            t_cumul_data["compile"]["res1"] += Number( loop_row["res1"]);
+                            t_cumul_data["compile"]["pure_total_i"] += Number( loop_row["pure_total_i"]);
+                            t_cumul_data["compile"]["tax_total_10"] += Number( loop_row["tax_total_10"]);
+                            t_cumul_data["compile"]["tax_total_08"] += Number( loop_row["tax_total_08"]);
+                            t_cumul_data["compile"]["total_profit_i"] += Number( loop_row["total_profit_i"]);
+                            t_cumul_data["compile"]["res3"] += Number( loop_row["res3"]);
+                            t_cumul_data["compile"]["total_amount"] += Number( loop_row["total_amount"]);
+                            t_cumul_data["compile"]["res4"] += Number( loop_row["res4"]);
+                            t_cumul_data["compile"]["return_total"] += Number( loop_row["return_total"]);
+                            t_cumul_data["compile"]["return_amount"] += Number( loop_row["return_amount"]);
+                            t_cumul_data["compile"]["res5"] += Number( loop_row["res5"]);
+                            t_cumul_data["compile"]["res6"] += Number( loop_row["res6"]);                            
+                        } // end loop date
+                        org_id = "合計";                      
+
+                        loop_row = t_cumul_data["compile"];
+                        i_row=[];
+                        i_row["background"] = "lightgrey";
+                        i_row["proc_date"] = "";
+                        i_row["org_id"]  = org_id;                                    
+                        i_row["res1"] = loop_row["res1"];
+                        i_row["pure_total_i"] = loop_row["pure_total_i"];
+                        i_row["tax_total_08"] = loop_row["tax_total_08"];
+                        i_row["tax_total_10"] = loop_row["tax_total_10"];
+                        i_row["total_profit_i"] = loop_row["total_profit_i"];
+                        i_row["total_amount"] = loop_row["total_amount"];
+                        if(loop_row["total_profit_i"] == 0){
+                            i_row["res3"] = 0;
+                        }else{
+                            i_row["res3"] = Number(loop_row["total_profit_i"])/Number(loop_row["pure_total_i"])*100;
+                        }
+                        if(loop_row["total_amount"] == 0){
+                            i_row["res4"] = 0;
+                        }else{
+//EDITStr 2020/09/25 kanderu                            
+                            //i_row["res4"] = Number(loop_row["pure_total_i"])/Number(loop_row["total_amount"])*100;
+                            //一点単価＝売上高÷販売点数
+                            i_row["res4"] = Number(loop_row["pure_total_i"])/Number(loop_row["total_amount"]);
+//EDITEND 2020/09/25 kanderu                             
+                        }                        
+                        i_row["return_total"] = loop_row["return_total"];
+                        i_row["return_amount"] = loop_row["return_amount"];
+                        i_row["res5"] = loop_row["res5"];
+                        i_row["res6"] = loop_row["res6"];
+
+                        t_cumul_data["total"]["res1"] += Number( loop_row["res1"]);
+                        t_cumul_data["total"]["pure_total_i"] += Number( loop_row["pure_total_i"]);
+                        t_cumul_data["total"]["tax_total_08"] += Number( loop_row["tax_total_08"]);
+                        t_cumul_data["total"]["tax_total_10"] += Number( loop_row["tax_total_10"]);
+                        t_cumul_data["total"]["total_profit_i"] += Number( loop_row["total_profit_i"]);
+                        t_cumul_data["total"]["res3"] += Number( loop_row["res3"]);
+                        t_cumul_data["total"]["total_amount"] += Number( loop_row["total_amount"]);
+                        t_cumul_data["total"]["res4"] += Number( loop_row["res4"]);
+                        t_cumul_data["total"]["return_total"] += Number( loop_row["return_total"]);
+                        t_cumul_data["total"]["return_amount"] += Number( loop_row["return_amount"]);
+                        t_cumul_data["total"]["res5"] += Number( loop_row["res5"]);
+                        t_cumul_data["total"]["res6"] += Number( loop_row["res6"]);
+                        if(true){ // checked
+                            //console.log(loop_date);
+                            insert_row(i_row);
+                            org_id = "";
+                        }                         
+                    } // end loop org_id
+                    // print data
+                    // call footer function;
+                    insert_footer();
+                }
+            }
+            function sort_data(data_to_sort,sort_type, sort_data){
+                // sort_type:  1 : asc
+                //            -1 : desc
+                console.log(sort_data);
+                A_sort_data = [];
+                date_sorted = [];
+                if( sort_data === "org_id" || sort_data === "proc_date"){
+                   // A_sort_data = data_to_sort ;
+                }else{
+                    temp_data = [];
+                    org_key =  Object.keys(data_to_sort);
+                    for(i=0;i<org_key.length;i++){
+                        loop_org_id = org_key[i];
+                        date_key = Object.keys(data_to_sort[loop_org_id]);
+                        //A_sort_data[loop_org_id] = [];
+                        date_sorted[loop_org_id] = [];
+                        for(j=0;j<date_key.length;j++){
+                            loop_row = data_to_sort[loop_org_id][date_key[j]];
+                            
+                            if(!temp_data[loop_org_id]){
+                                temp_data[loop_org_id] = [];
+                            }
+                            ////console.log(loop_row);
+                            temp_data[loop_org_id][temp_data[loop_org_id].length] = loop_row;
+                        }
+                        
+                        // NEED to finish text not sort
+                        function compare( a, b ) {
+                            bcheck = "";
+                            acheck = "";
+                            if(b[sort_data] && !isNaN(b[sort_data])){
+                                varsplit = b[sort_data].toString().split('.');
+                                bcheck = varsplit[0];
+                                if(varsplit[1]){
+                                    bcheck = bcheck + '.' + (varsplit[1]+"00").substr(0,2);
+                                }else{
+                                    bcheck = bcheck + '.' + "00";
+                                }
+                                bcheck = ("0".repeat(51) + bcheck).slice(-51);
+                            }else if( b[sort_data] ) {
+                                bcheck = b[sort_data].toString().toLocaleLowerCase();
+                            }
+                            if(a[sort_data] && !isNaN(a[sort_data])){
+                                varsplit = a[sort_data].toString().split('.');
+                                acheck = varsplit[0];
+                                if(varsplit[1]){
+                                    acheck = acheck + '.'+ (varsplit[1]+"00").substr(0,2);
+                                }else{
+                                    acheck = acheck + '.' + "00";
+                                }
+                                acheck = ("0".repeat(51) + acheck).slice(-51);
+                            }else if( a[sort_data] ){
+                                acheck = a[sort_data].toString().toLocaleLowerCase();
+                            }                            
+                        
+                            
+                            //console.log("a.org_id: "+ a["org_id"] + " a.prod_cd: " +a["prod_cd"]+ " " + a[sort_data] + " a/b " +  b[sort_data]+" b.org_id: "+ b["org_id"] + " b.prod_cd: " +b["prod_cd"]);
+                            if ( acheck < bcheck ){
+                              return -1;
+                            }
+                            if ( acheck > bcheck ){
+                              return 1;
+                            }
+                            return 0;
+                          }
+
+                          temp_data[loop_org_id].sort( compare );
+                        //temp_data[loop_org_id].sort((a, b) => (a[sort_data] > b[sort_data]) ? 1 : (a[sort_data] === b[sort_data]) ? ((a[sort_data] > b[sort_data]) ? 1 : -1) : -1 );
+                        if( sort_type === -1 ){
+                            temp_data[loop_org_id].reverse();
+                        }
+                        
+                        // prepare data to return
+                        for(j=0;j<temp_data[loop_org_id].length;j++){
+                             loop_row = temp_data[loop_org_id][j];
+                             date_sorted[loop_org_id][j] = loop_row["proc_date"];
+                             //console.log(loop_row["proc_date"]);
+                         }                        
+                    }
+                }
+                A_sort_data = data_to_sort;
+                return A_sort_data; 
+            }
+            function sort_tbody(col_to_sort){
+                col_sort_type = "";
+                if( !asc[col_to_sort] || asc[col_to_sort] === 0 ){
+                    col_sort_type = 1;
+                }else{
+                    col_sort_type = asc[col_to_sort] * -1;
+                }
+                //console.log(col_to_sort + ": "+asc[col_to_sort]);
+                elem_table_id = document.getElementById("table_id");
+                elem_thead = elem_table_id.getElementsByTagName('THEAD')[0];
+                elem_th = elem_thead.getElementsByTagName('TH');
+                for(i=0;i<elem_th.length;i++){
+                    ////console.log("i: "+i);
+                    ////console.log(elem_th[i]);
+                    elem_th[i].innerHTML = elem_th[i].innerHTML.replace(' ▲',"").replace(' ▼',"");
+                    if( elem_th[i].outerHTML.indexOf("'"+col_to_sort+"'") !== -1 ){
+                        if( col_sort_type === 1 ){
+                            elem_th[i].innerHTML = elem_th[i].innerHTML + ' ▲';
+                        }else{
+                            elem_th[i].innerHTML = elem_th[i].innerHTML + ' ▼';
+                        }
+                    }
+                }
+                asc = [];
+                asc[col_to_sort] = col_sort_type;                
+                working_data = sort_data(working_data,col_sort_type, col_to_sort);
+                show_data(working_data);
+            }             
+            window.onload = function () {
+                creat_listener();
+                radio_change_management();
+                today = new Date();
+                document.getElementById("start_dateM").value = today.toISOString().slice(0,7).replace(/-/g,"\/"); 
+                var empty_array = [];
+                modal_create_select("org_select",empty_array);
+            };
+
+        </script>
+
+        <STYLE type="text/css">
+            select{
+                min-width: 10em;
+            }
+            #sb-site{
+                padding-left: 5px;
+            }
+            table th {
+              color: #fff;
+              background: #0D0D70;
+              border-left:1px solid #000000;
+              border-right:1px solid #000000;
+              border-top:1px solid #000000;
+              border-bottom:1px solid #000000;
+              line-height: 120%;
+              text-align: center;
+              text-shadow:0 -1px 0 rgba(34,85,136,0.9);
+              box-shadow: 0px 1px 1px rgba(255,255,255,0.3) inset;
+              height:25px;
+            }
+            #search_param{
+                overflow: hidden;
+            }
+            .no_overflow{
+                float: left; 
+            }            
+            .field_title {
+                float: left;
+                display:flex;
+                align-items:center;
+                background: #0D0D70;
+                height: 7em;
+                color: white;
+                text-align: center;
+                padding: 5px;
+                border: 1px solid black;
+            }
+            .field_data {
+                padding: 5px 20px 5px 20px;
+                float : left;
+                height: 7em;
+                border: 1px solid black;
+            }
+
+            #screen_name_d{
+                display:flex;
+                align-items:center;
+ 
+            }
+            #action_d{
+                padding-top: 12px;
+            }
+            #org_d{
+               padding-top: 15px; 
+            }
+            #period_d{
+                padding-top: 13px;
+            }
+/* table css */            
+            .table_container {
+                overflow: hidden;                
+                padding: 0;
+            }
+            #table_id  {
+                max-height: 45em;
+                display: flex;
+                flex-flow: column;
+                height: 100%;
+                width: 100%;
+                padding: 0;
+                border-spacing: 0;  
+            }
+            #table_id  thead,
+            #table_id  tfoot{
+                /* head takes the height it requires, 
+                and it's not scaled when table is resized */
+                flex: 0 0 auto;
+                width: calc(100% - 19px);
+            }
+            #table_id  tbody {
+                /* body takes all the remaining available space */
+                /*flex: 1 1 auto;*/
+                display: block;
+                overflow-y: scroll;
+                padding: 0;
+            }
+            #table_id  tbody tr,
+            #table_id  tfoot tr {
+                width: 100%;
+            }
+            #table_id thead,
+            #table_id tbody tr,
+            #table_id  tfoot tr{
+                display: table;
+                table-layout: fixed;
+                padding: 0;
+                background-color: #fff;
+            }
+
+            #table_id thead th {
+                background: #0D0D70;                
+                border: 1px solid #AAA;
+                color: white;
+                text-align: center;
+                padding: 0;
+                border-collapse: collapse;
+            }
+            #table_id tbody td,
+            #table_id tfoot td{
+                
+                border: 1px solid #444;
+                padding: 0;
+                text-align: center; 
+                border-collapse: collapse;
+            } 
+            #table_id thead th:first-child,
+            #table_id tbody tr td:first-child,
+            #table_id tfoot tr td:first-child {
+              width: 8em;
+            }
+            #table_id thead th:nth-child(2),
+            #table_id tbody tr td:nth-child(2),
+            #table_id tfoot tr td:nth-child(2){
+                width: 6em;
+            }
+            #table_id thead th:nth-child(3),
+            #table_id tbody tr td:nth-child(3),
+            #table_id tfoot tr td:nth-child(3){
+                width: 7em;
+            }
+            #table_id thead th:nth-child(4),
+            #table_id tbody tr td:nth-child(4),
+            #table_id tfoot tr td:nth-child(4){
+                width: 7em;
+            }
+            #table_id thead th:nth-child(5),
+            #table_id tbody tr td:nth-child(5),
+            #table_id tfoot tr td:nth-child(5){
+                width: 6em;
+            } 
+            #table_id thead th:nth-child(6),
+            #table_id tbody tr td:nth-child(6),
+            #table_id tfoot tr td:nth-child(6){
+                width: 6em;
+            }
+            #table_id thead th:nth-child(7),
+            #table_id tbody tr td:nth-child(7),
+            #table_id tfoot tr td:nth-child(7){
+                width: 6em;
+            }
+            #table_id thead th:nth-child(8),
+            #table_id tbody tr td:nth-child(8),
+            #table_id tfoot tr td:nth-child(8){
+                width: 6em;
+            }
+            #table_id thead th:nth-child(9),
+            #table_id tbody tr td:nth-child(9),
+            #table_id tfoot tr td:nth-child(9){
+                width: 6em;
+            }            
+            #table_id thead th:nth-child(11),
+            #table_id tbody tr td:nth-child(11),
+            #table_id tfoot tr td:nth-child(11){
+                width: 6em;
+            }
+            #table_id thead th:nth-child(12),
+            #table_id tbody tr td:nth-child(12),
+            #table_id tfoot tr td:nth-child(12){
+                width: 6em;
+            }            
+            #table_id tbody tr td,
+            #table_id tfoot tr td{
+                text-align: right;
+            }
+            #table_id tbody tr td:first-child,
+            #table_id tfoot tr td:first-child ,
+            #table_id tbody tr td:nth-child(2),
+            #table_id tfoot tr td:nth-child(2){
+                text-align: left;
+            }
+            .hasDatepicker, .hasYmpicker{
+                margin-top: 3px;
+            }            
+        </STYLE>
+
+    </head>
+    <body>
+        <?php
+        if( isset($_GET['home']) ) {
+            if( "1" ==  $_GET['home'] ){
+                include("../home/View/Common/PageHeader.php");
+            }else{
+                include("Common/PageHeader.php");
+            }
+        }else{
+                include("Common/PageHeader.php");
+        }
+        ?>
+
+        <!-- Site -->
+        <div id="sb-site">
+            <div id="search_param">
+                <div id="screen_name_t" class="field_title">
+                    帳票			
+                </div>
+                <div id="screen_name_d" class="field_data">
+                    売上日別実績
+                </div>                   
+                <div id="period_t" class="field_title">
+                    期間指定<!--文字修正　2019/12/01　柴田-->			
+                </div>  
+                <div id="period_d" class="field_data">
+                    <!-- month -->
+                    <br />
+                   <input type="text" title="開始" id="start_dateM" name="start_dateM" size="10" ><!--文字修正　2019/12/01　柴田-->
+                </div>
+                <div class="no_overflow">
+                    <div id="org_t" class="field_title">
+                        グループ<br />選択			
+                    </div>
+                    <div id="org_d" class="field_data">
+                        <input type="radio" name="org_r" value="compile"> 企業計<br>
+                        <input type="radio" name="org_r" value="all" checked> 全店<br>
+                        <input type="radio" name="org_r" value=""> 店舗指定&nbsp;&nbsp;
+                        <select id="org_select" name="org_select" disabled onchange="modal_select_mgt(event)"><option value="no">&nbsp;</option></select>
+                    </div>
+                </div>
+                <div id="action_d" class="field_data">
+                    <button type="button" onclick="search_data(event)" >検索</button><br /><br />
+                    <button type="button" id="btn_csv" onclick="csv_print(event)" hidden>CSV出力</button>
+                </div> 
+            </div>
+            <!-- The Modal -->
+            
+            <div id="modal_org" class="modal">
+                <!-- Modal content -->
+                <div class="modal-content">
+                    <?php include("../modal/View/Modalorganization.html"); ?>
+                </div>
+            </div>            
+            
+            <br />
+            <div id="data_show"  class="table_container">
+                <table id="table_id">
+                    <thead id="table_head">
+                        <tr>
+                            <th onclick="sort_tbody('org_id')"><u>店舗名</u></th>
+                            <th onclick="sort_tbody('proc_date')"><u>売上日</u></th>
+                            <th onclick="sort_tbody('res1')"><u>税込売上金額</u></th>
+                            <th onclick="sort_tbody('pure_total_i')"><u>税抜売上金額</u></th>
+                            <th onclick="sort_tbody('tax_total_08')"><u>消費税8%</u></th>
+                            <th onclick="sort_tbody('tax_total_10')"><u>消費税10%</u></th>
+                            <th onclick="sort_tbody('total_profit_i')"><u>粗利金額</u></th>
+                            <th onclick="sort_tbody('res3')"><u>粗利率</u></th>
+                            <th onclick="sort_tbody('total_amount')"><u>買上点数</u></th>
+                            <th onclick="sort_tbody('res4')"><u>一点単価</u></th>
+                            <th onclick="sort_tbody('return_total')"><u>返品金額</u></th>
+                            <th onclick="sort_tbody('return_amount')"><u>返品点数</u></th>
+                            <th onclick="sort_tbody('res5')"><u>累計売上金額</u></th>
+                            <th onclick="sort_tbody('res6')"><u>累計粗利金額</u></th>                            
+                        </tr>
+                    </thead>
+                    <tbody id="table_body">
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>                        
+                    </tbody>
+                    <tfoot id="table_foot">
+                    </tfoot>
+                </table>
+            </div>
+            
+        </div>
+</body>
+</html>

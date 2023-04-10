@@ -1,0 +1,1245 @@
+<?php
+    /**
+     * @file      発注画面(View)
+     * @author    USE K.Kanda(media-craft.co.jp)
+     * @date      2018/01/22
+     * @version   1.00
+     * @note      発注画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+<head>
+<?php
+    $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述
+    $add = ''; //
+    include("Common/HtmlHeader.php");
+?>
+<script type="text/javascript" src="../js/order/common.js"></script>
+<script type="text/javascript" src="../js/order/jquery-ui.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../css/order/jquery-ui.css">
+<script src="../js/order/jquery/datepicker-ja.js" ></script>
+<!--<link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/css/lightbox.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/js/lightbox.min.js" type="text/javascript"></script>-->
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js"></script>
+<script type="text/javascript">
+jQuery(window).load(function(){
+	// #loading は、ローディングの画像（を囲む）要素名に置き換えてください。
+	jQuery("#loading").hide();       
+});
+
+
+$(function() {
+	var elements = "input[type=text]";
+	//キー入力による処理
+	$(document).on('keypress',elements,function(e) {
+		var c = e.which ? e.which : e.keyCode;
+		if (c == 13) {
+		  var index = $(elements).index(this);
+		  var class_name = $(this).attr('class');
+      row = $(this).parents("td").eq(0).prev().html();
+		  if($(this).val()=="")
+		  {
+			  if(class_name=="code")
+			  {
+                  rowClear($(this).attr("id"),row);
+			  }
+			  else
+			  {
+          $(elements).each(function(i)
+				  {
+				    if(index < i)
+					  {
+					    $(elements).eq(i).focus();
+					    return false;
+				    }
+			    });
+			  }
+		  }
+		  else
+		  {
+			  if(class_name=="code")
+			  {
+				  var code = $(this).val();
+          //行番号の取得
+
+				  getProductData(code,$(this).attr("id"),row);
+			  }
+			  else if(class_name=="case")
+			  {
+				 //金額計算
+				 //calcKin1($(this).attr("id"),row);
+         /*
+         $(elements).each(function(i)
+         {
+           if(index < i)
+           {
+             $(elements).eq(i).focus();
+             return false;
+           }
+         });
+         */
+         $(this).trigger('focusout');
+			  }
+			  else if(class_name=="suu")
+			  {
+				 //金額計算
+				 //calcKin2($(this).attr("id"),row);
+         /*
+         $(elements).each(function(i)
+         {
+           if(index < i)
+           {
+             $(elements).eq(i).focus();
+             return false;
+           }
+         });
+         */
+         $(this).trigger('focusout');
+			  }
+		  }
+		  e.preventDefault();
+		}
+	});
+  $(document).on('focusout','.case',function()
+  {
+    row = $(this).parents("td").eq(0).prev().prev().prev().prev().prev().prev().html();
+    //金額計算
+    calcKin1($(this).attr("id"),row);
+  });
+  $(document).on('focusout','.suu',function()
+  {
+    row = $(this).parents("td").eq(0).prev().prev().prev().prev().prev().prev().prev().html();
+    calcKin2($(this).attr("id"),row);
+  });
+	//発注先選択ボタン押下時
+	$(document).on('click','#add',function()
+    {
+        //発注先選択
+        $('body').append('<div class="modal-overlay"></div>');
+		$('.modal-overlay').fadeIn('slow');
+
+		//選択ポップアップ表示
+		var modal = '#makerWindow1';
+		modalResize();
+		$(modal).fadeIn('slow');
+		$('.modal-overlay').off().click(function() {
+			$(modal).css('display','none');
+			$('.modal-overlay').fadeOut('slow',function() {
+				$('.modal-overlay').remove();
+
+			});
+		});
+		function modalResize() {
+			var w = $(window).width();
+			var x = (w - $(modal).outerWidth(true)) / 2;
+			//y = 200;
+      y = 55;
+			$(modal).css({'left': x + 'px','top': y + 'px'});
+		}
+		getCmList();
+    });
+	//発注先選択ボタン押下時
+	$(document).on('click','.button_books',function()
+    {
+
+		if($("#tag_no").val()=="")
+		{
+      alert('比較元となる発注先を選択してください');
+			return;
+		}
+
+    //発注先選択
+    $('body').append('<div class="modal-overlay"></div>');
+		$('.modal-overlay').fadeIn('slow');
+
+		//選択ポップアップ表示
+		var modal = '#makerWindow2';
+		modalResize();
+		$(modal).fadeIn('slow');
+		$('.modal-overlay').off().click(function() {
+			$(modal).css('display','none');
+			$('.modal-overlay').fadeOut('slow',function() {
+				$('.modal-overlay').remove();
+
+			});
+		});
+		function modalResize() {
+			var w = $(window).width();
+			var x = (w - $(modal).outerWidth(true)) / 2;
+			//y = 200;
+      y = 55;
+			$(modal).css({'left': x + 'px','top': y + 'px'});
+		}
+		//getCmList();
+    });
+	$(document).on('click','#search',function()
+    {
+		var tag_no = $("#tag_no").val();
+    console.log("現在のタグNo.="+tag_no);
+		if(tag_no=="")
+		{
+			alert("発注先を選択してください");
+			return;
+		}
+        //発注先選択
+    $('body').append('<div class="modal-overlay"></div>');
+		$('.modal-overlay').fadeIn('slow');
+
+		var modal = '#productWindow';
+		modalResize();
+		$(modal).fadeIn('slow');
+		$('.modal-overlay').off().click(function() {
+			$(modal).css('display','none');
+			$('.modal-overlay').fadeOut('slow',function() {
+				$('.modal-overlay').remove();
+
+			});
+		});
+		//商品データの表示
+		getProductsList();
+		function modalResize() {
+			var w = $(window).width();
+			var x = (w - $(modal).outerWidth(true)) / 2;
+			y = 55;
+			$(modal).css({'left': x + 'px','top': y + 'px'});
+		}
+    });
+	$(document).on('click','#pro_search',function()
+    {
+      //商品検索
+      //getProductsList();
+		  getProductsSearch();
+	});
+	$(document).on('click','#proadd',function()
+    {
+		var arr = Array();
+        $(".jan_check").each(function()
+		{
+			if($(this).prop('checked')) {
+				arr.push($(this).val());
+			}
+		});
+		if(arr.length==0) {
+			alert("商品を選択してください。");
+			return ;
+		}
+		var modal = '#productWindow';
+		$(modal).css('display','none');
+		$('.modal-overlay').fadeOut('slow',function() {
+			$('.modal-overlay').remove();
+
+		});
+		var id = "";
+		var row = 0;
+
+		var tag_no = $("#tag_no").val();
+
+		for(i=1;i<=50;i++) {
+			id = "jan_cd_"+tag_no+"_"+i;
+			row = i;
+			if($("#"+id).val()=="") {
+				break;
+			}
+		}
+		for(n=0;n<arr.length;n++) {
+			id = "jan_cd_"+tag_no+"_"+(row+n);
+			$("#"+id).val(arr[n]);
+			getProductData(arr[n],id,(row+n));
+		}
+	});
+	//注文
+	$(document).on('click','#order',function()
+	{
+		tyumon();
+	});
+	//一時保存
+	$(document).on('click','#save',function()
+	{
+		hozon();
+	});
+	//タグ1クリック
+	$(document).on('click','.tag',function()
+	{
+    id = $(this).attr('id');
+    tag_no = id.replace(/tag/g,"");
+
+    $("#tag_no").val(tag_no);
+
+    /*
+    ma_cd = $(this);
+    $("#ma_cd_"+tag_no).val();
+    */
+    changeTag(tag_no);
+    changeBox(tag_no);
+	});
+        
+	//キャンセル
+	$(document).on('click','#cancel',function()
+	{
+		cancel();
+	});
+        
+  //タグを閉じる
+  $(document).on('click','.close',function() {
+    tag_no = $(this).attr('data-no');
+    $("#tag"+tag_no).remove();
+    $("#ma_cd_"+tag_no).remove();
+    $("#box"+tag_no).remove();
+  });
+});
+
+//現在追加されている発注先コードの取得
+function getMakerCds(maker_cd)
+{
+  var flg = true;
+  $(".tags").each(function()
+  {
+    if($(this).val()==maker_cd)
+    {
+      flg = false;
+    }
+  });
+  return flg;
+}
+
+//タグの切替
+function changeTag(tag_no) {
+  //一端すべてのタグを非選択へ
+  $(".tag").each(function()
+  {
+    $(this).removeClass('selected');
+  });
+  $("#tag"+tag_no).addClass('selected');
+}
+
+//タグ番号の生成
+function createTagNo()
+{
+  var tag_no = $("#tag_no").val();
+  if(tag_no=="")
+  {
+    tag_no = 0;
+  }
+  tag_no = parseInt(tag_no) + 1;
+  return tag_no;
+}
+//タグの生成
+function createTag(tag_no)
+{
+  var html = '';
+	html += '<div class="tag" id="tag'+tag_no+'">';
+  html += '<input type="hidden" id="kbn_'+tag_no+'">';
+  html += '<input type="hidden" class="tags" name="ma_cd_'+tag_no+'" id="ma_cd_'+tag_no+'">';
+  html += '<span class="close" data-no="'+tag_no+'">×</span>';
+  html += '</div>';
+  $("#tagArea").append(html);
+}
+//注文BOXの生成
+function createBox(tag_no,postage,kin)
+{
+  //ajax
+	var path = "./index.php?param=Order/box";
+	$.ajax({
+		url: path,
+		type: "POST",
+		data: {tag_no:tag_no,postage:postage,kin:kin,ord_no:$("#ord_no"+tag_no).val()},
+		success: function(rtnData) {
+			$("#listArea").append(rtnData);
+
+      //他のBOXを隠す
+      changeBox(tag_no);
+      totalKin();
+		},
+		error:function(xhr, textStatus, error) {
+			alert("通信エラー");
+		}
+	});
+}
+//注文BOXの変更
+function changeBox(tag_no)
+{
+  //他のBOXと隠す
+  $(".box").each(function() {
+    $(this).css('display','none');
+  });
+  $("#box"+tag_no).css('display','');
+}
+
+function makerSelected(cd,name,postage,kin)
+{
+  //重複チェック
+  if(!getMakerCds(cd)){
+    //重複
+    alert('発注先:'+name+'は既に選択されています');
+    return;
+  }
+
+  //タグ番号の生成
+  tag_no = createTagNo();
+	$("#tag_no").val(tag_no);
+  //タグの生成
+  createTag(tag_no);
+	//$("#tag1").css('display','block');
+
+
+
+  //boxの生成
+  createBox(tag_no,postage,kin);
+  changeTag(tag_no);
+  $("#ma_cd_"+tag_no).val(cd);
+	$("#tag"+tag_no).append(name);
+  /*
+  $("#postage"+tag_no).html(postage);
+	$("#made"+tag_no).html(kin);
+	$("#free_kin"+tag_no).val(removeKanma(kin));
+  */
+  $('.modal-overlay').remove();
+	$("#makerWindow1").css('display','none');
+	$("input[type=text]").prop('disabled',false);
+
+}
+
+function makerSelected2(cd,name,postage,kin)
+{
+  //重複チェック
+  if(!getMakerCds(cd)){
+    //重複
+    alert('発注先:'+name+'は既に選択されています');
+    return;
+  }
+
+  //比較
+  //現在選択されているタグNoを取得
+
+  tag_no = $(".tag.selected").attr('id').replace(/tag/g,"");
+
+  //JSONファイルの生成
+  var jsonTxt = '[{"data":[';
+  var flg = false;
+  for(i=1;i<=50;i++) {
+    prod_cd = $("#pro_cd_"+tag_no+"_"+i).val();
+    if(prod_cd=="") {
+      continue;
+    }
+    if(flg) {
+      jsonTxt += ',';
+    }
+    jsonTxt += '{"prod_cd":"'+prod_cd+'"}';
+    flg = true;
+  }
+  jsonTxt += ']}';
+
+
+  //タグ番号の生成
+  tag_no = createTagNo();
+	$("#tag_no").val(tag_no);
+  //タグの生成
+  createTag(tag_no);
+	//$("#tag1").css('display','block');
+
+	$("#ma_cd_"+tag_no).val(cd);
+	$("#tag"+tag_no).append(name);
+
+  //boxの生成
+  //createBox(tag_no,postage,kin);
+
+  jsonTxt += ',{';
+  jsonTxt += '"tag_no":"'+tag_no+'"';
+  jsonTxt += ',"postage":"'+postage+'"';
+  jsonTxt += ',"free_kin":"'+kin+'"';
+  jsonTxt += ',"pha_id":"'+$("#pha_id").val()+'"';
+  jsonTxt += ',"ma_cd":"'+$("#ma_cd_"+tag_no).val()+'"';
+  jsonTxt += '}]';
+
+  //alert($("#pha_id").val()+":"+$("#ma_cd").val());
+
+  //alert(jsonTxt);
+
+  var jsonBefore = JSON.parse(jsonTxt);
+  var json = JSON.stringify(jsonBefore,null,"  ");
+  //alert(json);
+
+  $('.modal-overlay').remove();
+	$("#makerWindow2").css('display','none');
+	$("input[type=text]").prop('disabled',false);
+
+  //ajax
+	var path = "./index.php?param=Order/comparison";
+	$.ajax({
+		url: path,
+		type: "POST",
+		data: json,
+    //contentType:'application/json',
+    //dataType:'json',
+		success: function(rtnData) {
+			$("#listArea").append(rtnData);
+      changeTag(tag_no);
+      changeBox(tag_no);
+      //alert(rtnData);
+		},
+		error:function(xhr, textStatus, error) {
+			alert("通信エラー");
+		}
+	});
+
+}
+
+function getProductsList()
+{
+	var tag_no = $("#tag_no").val();
+	var ma_cd  = $("#ma_cd_"+tag_no).val();
+	var pha_id = $("#pha_id").val();
+	//ajax
+	var path = "./index.php?param=Order/prolist";
+	$.ajax({
+		url: path,
+		type: "POST",
+		data: {pha_id:pha_id,ma_cd:ma_cd},
+		success: function(rtnData) {
+   
+                    pprod_k_cd1_list    = '<?php echo json_encode($prod_k_cd1_list); ?>';
+                    data_prodkcd1         = JSON.parse(rtnData);
+
+                    for(var i=0;i<data_prodkcd1.length;i++){
+                        var x = document.getElementById("prodkcd1_select");
+                        var op = document.createElement("option");
+                        op.text = data_prodkcd1[i]['prod_k_nm'];
+                        op.value = data_prodkcd1[i]['prod_k_cd'];
+                        x.add(op,1); 
+                    };
+                    //$("#productsList").html(rtnData);
+		},
+		error:function(xhr, textStatus, error) {
+			alert("通信エラー");
+		}
+	});
+}
+function getProductsSearch()
+{
+	var tag_no   = $("#tag_no").val();
+	var ma_cd    = $("#ma_cd_"+tag_no).val();
+	var pha_id   = $("#pha_id").val();
+	var search_keyword = $("#search_keyword").val();
+	var jan_cd   = $("#jan_cd").val();
+	var youryo1  = $("#youryo1").val();
+	var youryo2  = $("#youryo2").val();
+        var prod_kbn_1  = $("#prodkcd1_select").val();
+        var prod_kbn_2  = $("#prodkcd2_select").val();
+        var prod_kbn_3  = $("#prodkcd3_select").val();
+        var prod_kbn_4  = $("#prodkcd4_select").val();
+        var prod_kbn_5  = $("#prodkcd5_select").val();
+	//ajax
+	var path = "./index.php?param=Order/prosearch";
+        
+        $("#loading").fadeIn();
+        
+	$.ajax({
+		url: path,
+		type: "POST",
+		data: {pha_id:pha_id,ma_cd:ma_cd,search_keyword:search_keyword,jan_cd:jan_cd,youryo1:youryo1,youryo2:youryo2,
+                        prod_kbn_1:prod_kbn_1,prod_kbn_2:prod_kbn_2,prod_kbn_3:prod_kbn_3,prod_kbn_4:prod_kbn_4,prod_kbn_5:prod_kbn_5},
+		success: function(rtnData) {
+			$("#productsList").html(rtnData);
+                        $("#loading").fadeOut();
+		},
+		error:function(xhr, textStatus, error) {
+			alert("通信エラー");
+		}
+	});
+}
+function getProductData(code,id,row)
+{
+	var tag_no = $("#tag_no").val();
+
+	var pha_id = $("#pha_id").val();
+	var ma_cd  = $("#ma_cd_"+tag_no).val();
+	//ajax
+	var path = "./index.php?param=Order/get";
+	$.ajax({
+		url: path,
+		type: "POST",
+		data: {pha_id:pha_id,ma_cd:ma_cd,code:code},
+		success: function(rtnData) {
+			if(rtnData!="") {
+				arr = rtnData.split(":||:");
+				if(arr.length > 1)
+				{
+					$("#pro_cd_"+tag_no+"_"+row).val(arr[0]);
+					$("#pro_name_"+tag_no+"_"+row).html(arr[1]);		//商品名
+					$("#yoryo_"+tag_no+"_"+row).html(arr[2]);		//容量
+					$("#irisuu_"+tag_no+"_"+row).html(arr[3]);		//入数
+					$("#tanka_"+tag_no+"_"+row).html(arr[4]);		//単価
+          $("#lot_"+tag_no+"_"+row).html(arr[5]);		//単価
+					//$("#kin_1_"+row).html("0");		//金額
+					$("#case_"+tag_no+"_"+row).focus();
+				}
+				else
+				{
+				    alert("入力されたJANコードに誤りがあります");
+					  $("#"+id).val('');
+            rowClear('',row);
+				}
+			} else {
+				alert("入力されたJANコードに誤りがあります");
+			}
+		},
+		error:function(xhr, textStatus, error) {
+			alert("通信エラー");
+		}
+	});
+}
+function rowClear(id,row) {
+
+	var tag_no = $("#tag_no").val();
+
+	$("#pro_name_"+tag_no+"_"+row).html('');		//商品名
+	$("#yoryo_"+tag_no+"_"+row).html('');		//容量
+	$("#irisuu_"+tag_no+"_"+row).html('');		//入数
+	$("#tanka_"+tag_no+"_"+row).html('');		//単価
+	$("#kin_"+tag_no+"_"+row).html('');		//金額
+	$("#case_"+tag_no+"_"+row).val('');		//ケース
+	$("#suu_"+tag_no+"_"+row).val('');		//数
+	$("#pro_cd_"+tag_no+"_"+row).html('');		//金額
+  $("#lot_"+tag_no+"_"+row).html(''); //最低ロット
+
+	totalKin();
+}
+
+function calcKin1(id,row) {
+	var tag_no = $("#tag_no").val();
+	var irisuu  = parseInt($("#irisuu_"+tag_no+"_"+row).html().replace(/\r?\n/g,""));
+	//var hakosuu = $("#case_"+tag_no+"_"+row).val();
+  var hakosuu = parseInt($("#"+id).val());
+	var tanka   = parseInt($("#tanka_"+tag_no+"_"+row).html().replace(/\r?\n/g,""));
+  var lot     = parseInt($("#lot_"+tag_no+"_"+row).html().replace(/\r?\n/g,""));
+  if(hakosuu > 0)
+  {
+    $("#suu_"+tag_no+"_"+row).val('');
+    var suu = irisuu * hakosuu;
+    if(suu < lot) {
+      $("#case_"+tag_no+"_"+row).val('');
+      alert("最低ロット数は"+lot+"です。1");
+    } else {
+    	$("#suu_"+tag_no+"_"+row).focus();
+    }
+    calcKin(tag_no,row);
+  } else {
+    calcKin(tag_no,row);
+  }
+}
+function calcKin2(id,row) {
+	var tag_no = $("#tag_no").val();
+	var suu     = parseInt($("#"+id).val());
+	var tanka   = parseInt($("#tanka_"+tag_no+"_"+row).html().replace(/\r?\n/g,""));
+  var lot     = parseInt($("#lot_"+tag_no+"_"+row).html().replace(/\r?\n/g,""));
+  //数量が設定されたケースをクリアする
+
+  if(suu > 0)
+  {
+    $("#case_"+tag_no+"_"+row).val('');
+    if(suu < lot) {
+      $("#"+id).val('');
+      alert("最低ロット数は"+lot+"です。");
+    } else {
+      row1 = parseInt(row) + 1;
+      $("#jan_cd_"+tag_no+"_"+row1).focus();
+
+    }
+    calcKin(tag_no,row);
+  } else {
+    calcKin(tag_no,row);
+  }
+
+}
+
+function calcKin(tag_no,row) {
+
+  var hakosuu = $("#case_"+tag_no+"_"+row).val();
+  var suu     = $("#suu_"+tag_no+"_"+row).val();
+  var irisuu  = $("#irisuu_"+tag_no+"_"+row).html().replace(/\r?\n/g,"");
+	var tanka   = $("#tanka_"+tag_no+"_"+row).html().replace(/\r?\n/g,"");
+  var lot     = $("#lot_"+tag_no+"_"+row).html().replace(/\r?\n/g,"");
+
+  var kin = 0;
+  if(hakosuu > 0) {
+    kin = hakosuu * irisuu * tanka;
+  } else if(suu > 0) {
+    kin = suu * tanka;
+  }
+  $("#kin_"+tag_no+"_"+row).html(addKanma(parseInt(kin)));
+
+  totalKin();
+
+}
+function totalKin()
+{
+	var gokei = 0;
+
+  var tag_no = $("#tag_no").val();
+
+  var soryo = removeKanma($("#postage"+tag_no).html().replace(/\r?\n/g,""));
+  if(soryo=="" || soryo==0) {
+    soryo = $("#soryo"+tag_no).val();
+  }
+  console.log("syoryo1:"+soryo);
+
+	for(i=1;i<=50;i++)
+	{
+		kin = removeKanma($("#kin_"+tag_no+"_"+i).html().replace(/\r?\n/g,""));
+
+		if(kin > 0) {
+			gokei += parseInt(kin);
+		}
+	}
+	$("#syokeiKin"+tag_no).html(addKanma(gokei));
+
+
+  //alert($("#free_kin"+tag_no).val());
+
+	//送料無料までの計算
+	var made = removeKanma($("#free_kin"+tag_no).val()) - parseInt(gokei);
+	if(made <= 0) {
+		made = 0;
+		soryo = 0;
+	}
+  console.log("syoryo2:"+soryo);
+
+	$("#made"+tag_no).html(addKanma(parseInt(made)));
+	var totalKin = gokei + parseInt(soryo);
+	$("#totalKin"+tag_no).html(addKanma(totalKin));
+	$("#postage"+tag_no).html(addKanma(parseInt(soryo)));
+
+}
+function tyumon() {
+
+  var jsonTxt = createJson();
+  var jsonBefore = JSON.parse(jsonTxt);
+  var json = JSON.stringify(jsonBefore,null,"  ");
+
+  if($("#kbn_"+tag_no).val()==1) {
+    //注文済み
+    alert("既に注文済のため、データの変更・注文はできません");
+    return;
+  }
+
+  var flg = confirm("注文してもいいですか?");
+  if(!flg) {
+    return;
+  }
+
+  //値のチェックが必要
+  for(i=1;i<=50;i++)
+  {
+    jan_cd = $("#pro_cd_"+tag_no+"_"+i).val();
+    suu    = $("#suu_"+tag_no+"_"+i).val();
+    suu2   = $("#case_"+tag_no+"_"+i).val();
+
+    if(jan_cd!="" && (suu==0 || suu=='') && (suu2==0 || suu2==''))
+    {
+      alert("数量が入力されていないため、注文出来ません");
+      //対象行へフォーカス
+      $("#suu_"+tag_no+"_"+i).focus();
+      return;
+    }
+  }
+
+        $('body').append('<div class="modal-overlay"></div>');
+		$('.modal-overlay').fadeIn('slow');
+
+		//選択ポップアップ表示
+		var modal = '#fregiWindow';
+		modalResize();
+		$(modal).fadeIn('slow');
+		$('.modal-overlay').off().click(function() {
+			$(modal).css('display','none');
+			$('.modal-overlay').fadeOut('slow',function() {
+				$('.modal-overlay').remove();
+
+			});
+		});
+		function modalResize() {
+			var w = $(window).width();
+			var x = (w - $(modal).outerWidth(true)) / 2;
+			//y = 200;
+      y = 200;
+			$(modal).css({'left': x + 'px','top': y + 'px'});
+		}
+        
+//        var path = "./index.php?param=Order/order";
+//
+//        $.ajax({
+//		url: path,
+//    type: "POST",
+//    data: json,
+//		success: function(rtnData) {
+//      if(rtnData=="OK") {
+//        alert("注文しました");
+//  			location.href='./index.php?param=Order/show&home=1';
+//      } else {
+//        alert(rtnData);
+//      }
+//		},
+//		error:function(xhr, textStatus, error) {
+//			alert("通信エラー");
+//		}
+//	});
+}
+
+function cancel() {
+  var jsonTxt = createJson();
+  var jsonBefore = JSON.parse(jsonTxt);
+  var json = JSON.stringify(jsonBefore,null,"  ");
+
+	var path = "./index.php?param=Order/cancel";
+	$.ajax({
+		url: path,
+    type: "POST",
+		data: json,
+		success: function(rtnData) {
+      if(rtnData=="OK") {
+        alert("キャンセルしました");
+      } else {
+        alert("キャンセルしました");
+      }
+		},
+		error:function(xhr, textStatus, error) {
+			alert("通信エラー");
+		}
+	});
+        location.href='./index.php?param=Order/show&home=1';
+}
+
+function createJson() {
+  var tag_no   = $(".tag.selected").attr('id').replace(/tag/g,"");
+  var postage  = removeKanma($("#postage"+tag_no).html());
+  var free_kin = removeKanma($("#free_kin"+tag_no).val());;
+
+  //JSONファイルの生成
+  var jsonTxt = '[{"data":[';
+  var flg = false;
+  for(i=1;i<=50;i++) {
+    prod_cd = $("#pro_cd_"+tag_no+"_"+i).val();
+    if(prod_cd=="") {
+      continue;
+    }
+    jan_cd  = $("#jan_cd_"+tag_no+"_"+i).val();
+    suu     = $("#suu_"+tag_no+"_"+i).val();
+    hakosuu = $("#case_"+tag_no+"_"+i).val();
+    if(flg) {
+      jsonTxt += ',';
+    }
+    jsonTxt += '{';
+    jsonTxt += '"prod_cd":"'+prod_cd+'"';
+    jsonTxt += ',"jan_cd":"'+jan_cd+'"';
+    jsonTxt += ',"suu":"'+suu+'"';
+    jsonTxt += ',"hakosuu":"'+hakosuu+'"';
+    jsonTxt += '}';
+    flg = true;
+  }
+  jsonTxt += ']}';
+  jsonTxt += ',{';
+  jsonTxt += '"tag_no":"'+tag_no+'"';
+  jsonTxt += ',"postage":"'+postage+'"';
+  jsonTxt += ',"free_kin":"'+free_kin+'"';
+  jsonTxt += ',"pha_id":"'+$("#pha_id").val()+'"';
+  jsonTxt += ',"ma_cd":"'+$("#ma_cd_"+tag_no).val()+'"';
+  jsonTxt += ',"ord_no":"'+$("#ord_no"+tag_no).val()+'"';
+  jsonTxt += '}]';
+
+  return jsonTxt;
+}
+
+function hozon()
+{
+
+  if($("#kbn_"+tag_no).val()==1) {
+    //注文済み
+    alert("既に注文済みのため、データの変更・保存はできません");
+    return;
+  }
+
+  var jsonTxt = createJson();
+  var jsonBefore = JSON.parse(jsonTxt);
+  var json = JSON.stringify(jsonBefore,null,"  ");
+
+	var path = "./index.php?param=Order/save";
+	$.ajax({
+		url: path,
+    type: "POST",
+		data: json,
+		success: function(rtnData) {
+      if(rtnData=="OK") {
+        alert("保存しました");
+      } else {
+        alert(rtnData);
+      }
+		},
+		error:function(xhr, textStatus, error) {
+			alert("通信エラー");
+		}
+	});
+}
+
+function removeKanma(str)
+{
+	var rtnStr = "";
+	if(str!="") {
+		rtnStr = str.replace(/,/g,"");
+	}
+	return rtnStr;
+}
+function addKanma(str)
+{
+	var rtnStr = "";
+	if(str!="" && !isNaN(str))
+	{
+		rtnStr = str.toLocaleString();
+	} else if(str==0) {
+		rtnStr = 0;
+	}
+	return rtnStr;
+}
+function copyOrder(ord_no)
+{
+	pha_id = $("#pha_id").val();
+
+  //タグ番号の生成
+  tag_no = createTagNo();
+	$("#tag_no").val(tag_no);
+  //タグの生成
+  createTag(tag_no);
+
+  //boxの生成
+  createBox(tag_no,0,0);
+  changeTag(tag_no);
+
+	//発注ヘッダ情報を取得
+	var path = "./index.php?param=Order/header";
+	$.ajax({
+		url: path,
+		type: "POST",
+		data: {pha_id:pha_id,ord_no:ord_no},
+		success: function(rtnData) {
+			if(rtnData!="") {
+        console.log(rtnData);
+				arr = rtnData.split(":||:");
+				if(arr.length > 1)
+				{
+          $("#tag1").append(arr[1]);
+					$("#ma_cd_1").val(arr[0]);
+					//$("#postage1").html(addKanma(parseInt(arr[2])));
+					//$("#free_kin1").val(parseInt(arr[3]));
+					<?php
+					if(!$copyFlg)
+					{
+					?>
+					$("#ord_no1").val(ord_no);
+          $("#kbn_1").val(arr[4]);
+					<?php
+					}
+					?>
+				}
+				//明細データの取得
+        $("#soryo1").val(parseInt(arr[2]));
+				getOrdDetails($("#pha_id").val(),ord_no,parseInt(arr[2]),parseInt(arr[3]));
+        console.log($("#soryo").val());
+			}
+		},
+		error:function(xhr, textStatus, error) {
+			alert("通信エラー");
+		}
+	});
+}
+//発注明細の取得
+function getOrdDetails(pha_id,ord_no,postage,kin)
+{
+  var tag_no = $("#tag_no").val();
+	//発注ヘッダ情報を取得
+	var path = "./index.php?param=Order/details";
+	$.ajax({
+		url: path,
+		type: "POST",
+		data: {pha_id:pha_id,ord_no:ord_no,tag_no:tag_no},
+		success: function(rtnData) {
+      //alert(rtnData);
+			$("#listTable").html(rtnData);
+
+      $("#postage1").html(addKanma(postage));
+      $("#free_kin1").val(addKanma(parseInt(kin)));
+
+			totalKin();
+		},
+		error:function(xhr, textStatus, error) {
+			alert("通信エラー");
+		}
+	});
+}
+//CM一覧の取得
+function getCmList()
+{
+	var pha_id = $("#pha_id").val();
+	//発注ヘッダ情報を取得
+	var path = "./index.php?param=Order/cm";
+	$.ajax({
+		url: path,
+		type: "POST",
+		data: {pha_id:pha_id},
+		success: function(rtnData) {
+			$("#cmArea").html(rtnData);
+		},
+		error:function(xhr, textStatus, error) {
+			alert("通信エラー");
+		}
+	});
+}
+
+
+
+
+</script>
+<link rel="stylesheet" type="text/css" href="../css/order/order.css">
+</head>
+<body>
+<?php
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+<!-- Site -->
+<style type="text/css">
+#listTable {
+	display:block;
+	position:relative;
+	overflow:auto;
+}
+
+#listTable thead.meisai {
+	display:block;
+	position: -webkit-sticky;
+	position: sticky;
+	top: 0;
+	z-index: 2;
+}
+
+#listTable tbody.meisai {
+	display:block;
+}
+
+#listTable thead.meisai th {
+	height:24px;
+	color:#fff;
+	box-sizing:border-box;
+	padding:3px;
+	display: inline-block;
+
+	vertical-align:top;
+
+  margin:0px;
+
+  border-top:1px solid #FFF;
+}
+
+
+
+#listTable tbody.meisai td {
+	height:38px;
+	padding:3px;
+	box-sizing:border-box;
+	display: inline-block;
+	vertical-align:top;
+	line-height:2.0;
+}
+#listTable tbody.meisai td.products {
+	height:40px;
+	padding:3px;
+	box-sizing:border-box;
+	display: inline-block;
+	vertical-align:top;
+  font-size:14px;
+  line-height:2.4;
+}
+
+.footArea {
+	width:1115px;
+	border-top:3px solid #ff6928;
+	box-sizing:border-box;
+}
+
+.footArea table {
+	magin-left:auto;
+	width:180px;
+}
+
+.footArea table th {
+	border:1px solid #EFEFEF;
+	height:24px;
+	color:#FFF;
+	text-align:right;
+	background:#ff6928;
+	padding:3px;
+	box-sizing:border-box;
+}
+
+.footArea table td.goukei {
+	border:1px solid #EFEFEF;
+	height:24px;
+	padding:3px;
+	box-sizing:border-box;
+	text-align:right;
+	background-color:#FFF;
+}
+.modal-overlay {
+    z-index:1;
+    display:none;
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:120%;
+    background-color:rgba(0,0,0,0.75);
+}
+#makerWindow1 {
+	position:fixed;
+	z-index:3;
+	padding:10px;
+	background:#FFF;
+	border-radius: 10px;        /* CSS3草案 */
+    -webkit-border-radius: 10px;    /* Safari,Google Chrome用 */
+    -moz-border-radius: 10px;   /* Firefox用 */
+	display:none;
+	width:1000px;
+	height:600px;
+}
+#makerWindow2 {
+	position:fixed;
+	z-index:3;
+	padding:10px;
+	background:#FFF;
+	border-radius: 10px;        /* CSS3草案 */
+    -webkit-border-radius: 10px;    /* Safari,Google Chrome用 */
+    -moz-border-radius: 10px;   /* Firefox用 */
+	display:none;
+	width:1000px;
+	height:600px;
+}
+#productWindow {
+	position:fixed;
+	z-index:3;
+	padding:10px;
+	background:#FFF;
+	border-radius: 10px;        /* CSS3草案 */
+    -webkit-border-radius: 10px;    /* Safari,Google Chrome用 */
+    -moz-border-radius: 10px;   /* Firefox用 */
+	display:none;
+	width:1100px;
+	height:620px;
+}
+
+#productSyosaiWindow {
+	position:fixed;
+	z-index:3;
+	padding:10px;
+	background:#FFF;
+	border-radius: 10px;        /* CSS3草案 */
+    -webkit-border-radius: 10px;    /* Safari,Google Chrome用 */
+    -moz-border-radius: 10px;   /* Firefox用 */
+	display:none;
+	width:1200px;
+}
+
+#fregiWindow {
+	position:fixed;
+	z-index:3;
+	padding:10px;
+	background:#FFF;
+	border-radius: 10px;        /* CSS3草案 */
+    -webkit-border-radius: 10px;    /* Safari,Google Chrome用 */
+    -moz-border-radius: 10px;   /* Firefox用 */
+	display:none;
+	width:550px;
+	height:300px;
+}
+
+input[type=text]:focus {
+	background:#FFC;
+}
+
+.t_right {
+	text-align:right;
+}
+
+#loading {
+	width: 96px; /* gif画像の幅 */
+	height: 96px; /* gif画像の高さ */
+	margin: -68px 0 0 -68px; /* gif画像を画面中央に */
+	padding: 20px; /* gif画像を大きく */
+	background: #BABABA; /* gif画像の背景色 */
+	opacity: 0.5; /* 透過させる */
+	border-radius: 15px; /* 丸角 */
+	position: fixed; /* gif画像をスクロールさせない */
+	left: 50%; /* gif画像を画面横中央へ */
+	top: 50%; /* gif画像を画面縦中央へ */
+}
+</style>
+<form id="form1" method="post" enctype="multipart/form-data">
+<input type="hidden" name="pha_id" id="pha_id" value="<?php hsc($pha_id);?>">
+<input type="hidden" name="tag_no" id="tag_no" value="">
+<input type="hidden" name="ma_cd" id="ma_cd">
+<input type="hidden" name="soryo" id="soryo" value="<?php hsc($postage);?>">
+<input type="hidden" name="ord_no1" id="ord_no1">
+<input type="hidden" name="ord_no2" id="ord_no2">
+<div id="sb-site" style="overflow: auto;">
+    <!-- パンくずリスト -->
+    <?php include("Common/Breadcrumb.php"); ?>
+
+    <div id="formArea" style="width:1120px;">
+    	<table style="width:380px;margin:0px 5px 0px auto;">
+        	  <tr>
+                <td style="padding-right:10px;"><div class="button_search" id="search">商品一覧</div></td>
+                <td style="padding-right:10px;border-left:2px solid #CCC;"><div class="button_books">比　較</div></td>
+                <td style="border-left:2px solid #CCC;"><div class="button_save" id="save">保　存</div></td>
+            </tr>
+        </table>
+    </div>
+    <div id="listArea" style="height:620px;width:1120px;">
+    	<div id="tagArea">
+            <div class="button_plus" id="add">発注先選択</div>
+      </div>
+    </div>
+</div>
+<div id="makerWindow1">
+    <?php include("OrderMakerWindow.html");?>
+</div>
+<div id="makerWindow2">
+    <?php include("OrderMakerWindow2.html");?>
+</div>
+<div id="productWindow">
+	<?php include("OrderProductsWindow.html");?>
+</div>
+<div id="productSyosaiWindow">
+	<?php include("OrderProduct.html");?>
+</div>
+<!--<div id="imageWindow">
+  <div id="imageArea">
+    <img id="pro_image">
+  </div>
+</div>-->
+<div id="fregiWindow">
+    <?php include("F-REGI_token_sample.html");?>
+</div>
+</form>
+<?php include("../FwCommon/View/Dialog.php"); ?>
+<?php if(!empty($ord_no)) {?>
+<script type="text/javascript">
+copyOrder(<?php hsc($ord_no);?>);
+</script>
+<?php }?>
+</body>
+</html>

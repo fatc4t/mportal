@@ -1,0 +1,30 @@
+<?php
+if(!empty($pharmacyList))
+{
+?>
+<thead>
+    <tr>
+        <th></th>
+        <th>薬局ID</th>
+        <th>薬局名</th>
+        <th></th>
+    </tr>     
+</thead>
+<?php
+}
+?>
+<tbody>
+<?php
+foreach($pharmacyList as $key => $val)
+{
+?>
+    <tr>
+        <td><input type="button" value="選択" class="selected" param="<?php echo $val['pha_id'];?>"></td>
+        <td style="text-align:right;widht:100px;"><?php echo $val['pha_id'] ;?></td>
+        <td style="width:300px;"><?php echo $val['pha_name'];?></td>
+        <td><input type="button" value="削除" class="deleted" param="<?php echo $val['pha_id'];?>"></td>
+    </tr>
+<?php
+}
+?>
+</tbody>

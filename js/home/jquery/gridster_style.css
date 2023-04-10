@@ -1,0 +1,129 @@
+/* =============================================================================
+   NORMALIZATION
+========================================================================== */
+
+*  {
+  margin: 0;
+  padding: 0;
+}
+
+article, aside, details, figcaption, figure, footer, header, hgroup, nav, section { display: block; }
+[hidden] { display: none; }
+
+ul, ol {
+    list-style: none;
+}
+
+
+/* =============================================================================
+   COMMONS
+========================================================================== */
+
+* { -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; }
+
+body {
+    background-color: #EEEEEE;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: x-small;
+    color: #666666;
+}
+
+a {
+    color: #004756;
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+.wrapper {
+    margin: 0 auto;
+    width: 960px;
+}
+
+/* Gridster styles */
+.Sales Wars {
+    background: #FFFFFF;
+}
+
+.Sales Wars:hover .gridster {
+    opacity: 1;
+    background: #FFFFFF;
+}
+
+.gridster {
+    width: 100%;
+    margin: auto auto;
+
+    opacity: .8;
+
+    -webkit-transition: opacity .6s;
+    -moz-transition: opacity .6s;
+    -o-transition: opacity .6s;
+    -ms-transition: opacity .6s;
+    transition: opacity .6s;
+}
+
+.gridster .gs_w {
+    background: #FFF;
+    cursor: pointer;
+border: 1px solid black;
+}
+
+.gridster .player {
+    box-shadow: 0 0 0 rgba(0,0,0,1);
+}
+
+
+.gridster .preview-holder {
+    border: none!important;
+    border-radius: 0!important;
+    background: rgba(0,0,0,.2)!important;
+}
+
+article,
+.m_doc_method {
+    background: #FFF;
+}
+
+article:not(:last-child),
+.m_doc_method:not(:last-child) {
+    margin-bottom: 50px;
+}
+
+
+.m_doc_method > h3 {
+    background-color: #E5E5E5;
+    padding: 1.4em 2em;
+    color: #333333;
+    font-size: 1.8em;
+}
+
+
+.m_doc_method .heading-m {
+    color: #333333;
+}
+
+
+
+
+#intro  {
+    overflow: hidden;
+}
+
+#intro  .i_download {
+    margin-top: 100px;
+}
+
+#intro > div{
+    width: 65%;
+    float: left;
+}
+
+#intro {
+    padding-right: 0;
+}
+
+#intro > div:last-child{
+    width: 32%;
+    float: right;
+}

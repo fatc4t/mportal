@@ -1,0 +1,399 @@
+<?php
+    /**
+     * @file      日報検索(View)
+     * @author    millionet oota
+     * @date      2017/01/26
+     * @version   1.00
+     * @note      日報検索
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array('default.css', 'common.js', 'jquery-ui.min.js', 'jquery-ui.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述 
+            include("Common/HtmlHeader.php"); 
+        ?>
+        <script src="../js/dailyReport/jquery/datepicker-ja.js" /></script>
+        <script type="text/javascript">
+            var displayPageNo = 1;
+            var displayRecordCnt = <?php hsc($_SESSION["DISPLAY_RECORD_CNT"]); ?>;
+            var dailyReportItemInfo = null;
+            var dailyReportSort = null;
+            var no_click_cnt = 0;
+            var target_date_click_cnt = 0;
+            var organization_id_click_cnt = 0;
+            var user_id_click_cnt = 0;
+            var data_click_cnt = 0;
+            var replyCount_click_cnt = 0;
+            var approval_click_cnt = 0;
+
+            $(document).ready(function()
+            {
+                /**
+                 * 日報検索
+                 */
+                $('#search').click(function()
+                {
+                    displayPageNo = 1;
+                    
+                    // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                    var data = {
+                                  displayPageNo : displayPageNo,
+                                  displayRecordCnt : displayRecordCnt,
+                                  searchSAppStartDate : $('#minApplicationStartDate').val(),
+                                  searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                                  searchOrgID : $('#organizationName').val(),
+                                  searchUser : $('#searchUser').val(),
+                                  searchKeyword : $('#keyword').val(),
+                                  searchReply : $('#reply').val(),
+                                  searchApproval : $('#approval').val()
+                               };
+                    var path = 'index.php?param=DailyReport/search&home=1';
+
+                    // データ更新
+                    setDataForAjax( data, path );
+
+                    // サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+            });
+
+            /**
+             * データの新規情報入力画面遷移
+             */
+            function inputPanelTransition()
+            {
+                var lineInfo = "";
+                var disaInfo = "";
+                
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              dailyReportID : lineInfo,
+                              disabledID : disaInfo,
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              searchOrgID : $('#organizationName').val(),
+                              searchUser : $('#searchUser').val(),
+                              searchKeyword : $('#keyword').val(),
+                              searchReply : $('#reply').val(),
+                              searchApproval : $('#approval').val(),
+                              sortConditions : dailyReportSort
+                           };
+                var path = 'index.php?param=DailyReport/addInput&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+                // サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * データの更新情報入力画面遷移
+             */
+            function editPanelTransition(thisLineInfo, thisDisaInfo)
+            {
+                
+                var lineInfo = thisLineInfo;
+                var disaInfo = thisDisaInfo;
+                
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              daily_report_id : lineInfo,
+                              disabledID : disaInfo,
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              searchOrgID : $('#organizationName').val(),
+                              searchUser : $('#searchUser').val(),
+                              searchKeyword : $('#keyword').val(),
+                              searchReply : $('#reply').val(),
+                              searchApproval : $('#approval').val(),
+                              sortConditions : dailyReportSort
+                           };
+                var path = 'index.php?param=DailyReport/addInput&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+                // サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * ソート処理
+             */
+            function setColumnInfo(thisItemInfo)
+            {
+                dailyReportItemInfo = thisItemInfo;
+
+                dailyReportSort = 0;
+
+                if(dailyReportItemInfo == "<?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?>")
+                {
+                    no_click_cnt++;
+                    if((no_click_cnt % 2) != 0)
+                    {
+                        dailyReportSort = 1;
+                    }
+                    else
+                    {
+                        dailyReportSort = 2;
+                    }
+                }
+                else if(dailyReportItemInfo == "対象日")
+                {
+                    target_date_click_cnt++;
+                    if((target_date_click_cnt % 2) != 0)
+                    {
+                        dailyReportSort = 3;
+                    }
+                    else
+                    {
+                        dailyReportSort = 4;
+                    }
+                }
+                else if(dailyReportItemInfo == "組織")
+                {
+                    organization_id_click_cnt++;
+                    if((organization_id_click_cnt % 2) != 0)
+                    {
+                        dailyReportSort = 5;
+                    }
+                    else
+                    {
+                        dailyReportSort = 6;
+                    }
+                }
+                else if(dailyReportItemInfo == "スタッフ")
+                {
+                    user_id_click_cnt++;
+                    if((user_id_click_cnt % 2) != 0)
+                    {
+                        dailyReportSort = 7;
+                    }
+                    else
+                    {
+                        dailyReportSort = 8;
+                    }
+                }
+                else if(dailyReportItemInfo == "内容")
+                {
+                    data_click_cnt++;
+                    if((data_click_cnt % 2) != 0)
+                    {
+                        dailyReportSort = 9;
+                    }
+                    else
+                    {
+                        dailyReportSort = 10;
+                    }
+                }
+                
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              searchOrgID : $('#organizationName').val(),
+                              searchUser : $('#searchUser').val(),
+                              searchKeyword : $('#keyword').val(),
+                              searchReply : $('#reply').val(),
+                              searchApproval : $('#approval').val(),
+                              sortConditions : dailyReportSort
+                           };
+                var path = 'index.php?param=DailyReport/search&home=1';
+
+                // データ更新
+                setDataForAjax( data, path );
+
+                // サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 表示ページ数選択
+             */
+            function displayPage(pageCnt)
+            {
+                displayPageNo = pageCnt;
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              searchOrgID : $('#organizationName').val(),
+                              searchUser : $('#searchUser').val(),
+                              searchKeyword : $('#keyword').val(),
+                              searchReply : $('#reply').val(),
+                              searchApproval : $('#approval').val(),
+                              sortConditions : dailyReportSort
+                           };
+                var path = 'index.php?param=DailyReport/search&home=1';
+                // データ更新
+                setDataForAjax( data, path );
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 表示レコード数選択
+             */
+            function displayRecord(recordCnt)
+            {
+                displayRecordCnt = recordCnt;
+                displayPageNo = 1;
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              searchOrgID : $('#organizationName').val(),
+                              searchUser : $('#searchUser').val(),
+                              searchKeyword : $('#keyword').val(),
+                              searchReply : $('#reply').val(),
+                              searchApproval : $('#approval').val(),
+                              sortConditions : dailyReportSort
+                           };
+                var path = 'index.php?param=DailyReport/search&home=1';
+                // データ更新
+                setDataForAjax( data, path );
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             *  DatePickerを設定
+             */
+            $(function()
+            {
+                $( "#minApplicationStartDate, #maxApplicationStartDate" ).datepicker({
+                    showButtonPanel: true,
+                    dateFormat: 'yy/mm/dd',
+                });
+            });
+            
+            /**
+             * 検索用従業員リスト更新
+             */
+            function setSearchUserList()
+            {
+                // 検索用従業員リスト更新用パス
+                var path = 'index.php?param=DailyReport/searchUserList&home=1';
+                
+                var $searchUser = '';
+                var $searchUserLabel ='';
+                
+                var searchUser = document.getElementById('searchUser')
+                
+                for(var i = 0; i < searchUser.options.length; i++){
+                    $searchUser += searchUser[i].value + ',';
+                    $searchUserLabel += searchUser.options[i].text + ',';
+                };
+                
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              searchOrgID : $('#organizationName').val(),
+                              searchUser : $searchUser,
+                              searchUserLabel : $searchUserLabel,
+                           };
+
+                // データ更新
+                setDataForAjax( data, path, "jquery-replace-SearchUserName-ajax" );
+            }
+             
+        </script>
+
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site" style="overflow: auto;">
+            <!-- パンくずリスト -->
+            <?php include("Common/Breadcrumb.php"); ?>
+            <form id="searchForm" name="searchForm" method="POST" action="index.php?param=DailyReport/search&home=1">
+                <input type="hidden" name="companyID" value="<?php hsc( $_SESSION['COMPANY_ID'] ); ?>">
+                <!-- serchBoardArea -->
+                <div class="serchBoardArea" style=" clear:both; width:99%; margin:5px auto !important;" >
+                    <table>
+                        <tbody>
+                            <tr>
+                                <th style="width:100px">対象日</th>
+                                <td style="width:220px; background-color: #ffffff">
+                                    <input type="text" name="minApplicationStartDate" id="minApplicationStartDate" style="width:80px" pattern="\d{4}/\d{2}/\d{2}" title="<?php hsc($Log->getMsgLog('MSG_BASE_0305')); ?>" value="<?php hsc($searchArray['sAppStartDate']); ?>">
+                                    　～　
+                                    <input type="text" name="maxApplicationStartDate" id="maxApplicationStartDate" style="width:80px" pattern="\d{4}/\d{2}/\d{2}" title="<?php hsc($Log->getMsgLog('MSG_BASE_0305')); ?>" value="<?php hsc($searchArray['eAppStartDate']); ?>">
+                                </td>
+                                <th style="width:100px">組織</th>
+                                <td style="width:220px; background-color: #ffffff">
+                                    <select name="organizationName" id="organizationName" style="width:200px" onChange="setSearchUserList()" >
+                                        <?php foreach($abbreviatedNameList as $abbreviated) { ?>
+                                            <?php $selected = ""; ?>
+                                            <?php if($abbreviated['organization_id'] == $searchArray['organizationID']) { ?>
+                                                <?php $selected = "selected"; ?>
+                                            <?php } ?>
+                                            <option value="<?php hsc($abbreviated['organization_id']); ?>" <?php hsc($selected); ?>><?php hsc($abbreviated['abbreviated_name']); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </td>
+                                <th style="width:100px">スタッフ</th>
+                                <td style="width:220px; background-color: #ffffff">
+                                    <?php include("../FwCommon/View/SearchUserName.php"); ?>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th style="width:100px">キーワード</th>
+                                <td style="width:220px; background-color: #ffffff">
+                                    <input type="text" name="keyword" id="keyword" value="<?php hsc($searchArray['keyword']); ?>" style="width:200px" >
+                                </td>
+<!--                                <th style="width:220px">返信内容</th>
+                                <td>
+                                    <input type="text" name="reply" id="reply" style="width:200px" value="<?php hsc($searchArray['reply']); ?>">
+                                </td>
+                                <th style="width:220px">承認済み</th>
+                                <td>
+                                    <input type="text" name="approval" id="approval" style="width:200px" value="<?php hsc($searchArray['approval']); ?>">
+                                </td>
+-->
+                            </tr>
+                        </tbody>
+                    </table>
+                </div><!-- /.serchBoardArea -->
+
+                <!-- serchButtonArea -->
+                <div style="text-align: center; white-space: nowrap;" id="styleAlignCenter">
+                    <div style="display: inline-block;" class="serchButtonArea">
+                        <input type="submit" id="search" name="search" href="#" value="検索" class="serch" />
+                    </div><!-- /.serchButtonArea -->
+                    <div style="display: inline-block;" class="logicButtonArea">
+                        <input type="button" id="add" name="add" onClick="inputPanelTransition()" value="　 新規作成" class="add">
+                    </div><!-- /.logicButtonArea -->
+                </div><!-- /#styleAlignCenter -->
+            </form>
+            <form id="modForm" name="modForm" >
+                <?php include("DailyReportTablePanel.html"); ?>
+            </form>
+
+        </div><!-- /#sb-site -->
+
+        <?php include("../FwCommon/View/Dialog.php"); ?>
+    </body>
+</html>

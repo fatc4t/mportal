@@ -1,0 +1,1818 @@
+﻿<!DOCTYPE HTML >
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+    <?php include("../home/View/Common/HtmlHeader.php"); ?>
+    <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/3.18.1/build/cssreset-context/cssreset-context-min.css">
+    <script type="text/javascript" src="../js/customer/common.js" ></script>    
+    <script type="text/javascript" src="../js/customer/jquery-ui.min.js" ></script>
+    <script type="text/javascript" src="../js/customer/jquery/datepicker-ja.js" ></script>
+    <link rel="stylesheet" href="../css/customer/jquery-ui.css" >	
+    <link rel="stylesheet" href="../css/customer/default.css" >	
+    <script type="text/javascript" src="../../FwCommon/js/common.js" ></script>
+    <script type="text/javascript">
+$(document).ready(function() {   
+      // attach auto-kana plugin with default options
+     // $("#txt_CUST_KN,#txt_CUST_NM").autokana();
+   });    
+    
+        /**
+         * 
+         *  DatePickerを設定
+         *
+         */
+        //$.datepicker.setDefaults( $.datepicker.regional[ "ja" ] );
+        $(function()
+        {
+            $( ".datepicker", ).datepicker({
+                //showButtonPanel: true,
+                dateFormat: 'yy/mm/dd',
+                //locale: 'ja',
+                yearRange: 'c-100:c',
+                changeMonth: true,
+                changeYear: true
+            });
+
+        });
+        
+        result1='';
+        company_id = "<?php hsc( $_SESSION['COMPANY_ID'] ); ?>";
+        pmst0101            = '<?php echo json_encode(json_encode($mst0101)); ?>';
+        pmst0401            = '<?php echo json_encode(json_encode($mst0401)); ?>';
+        pmst0501            = '<?php echo json_encode(json_encode($mst0501)); ?>';
+        pmst0601            = '<?php echo json_encode(json_encode($mst0601)); ?>';
+        pmst0701            = '<?php echo json_encode(json_encode($mst0701)); ?>';
+        pmst6101            = '<?php echo json_encode(json_encode($mst6101)); ?>';
+        pmst8401            = '<?php echo json_encode(json_encode($mst8401)); ?>';        
+        pjsk4110            = '<?php echo json_encode(json_encode($jsk4110)); ?>';
+        pjsk4120            = '<?php echo json_encode(json_encode($jsk4120)); ?>';
+        pjsk4130            = '<?php echo json_encode(json_encode($jsk4130)); ?>';
+        pjsk4140            = '<?php echo json_encode(json_encode($jsk4140)); ?>';
+        pmst0103            = '<?php echo json_encode(json_encode($mst0103)); ?>';
+        pmst0101_sd         = '<?php echo json_encode(json_encode($mst0101_searchdata)); ?>';
+        smst0101list        = "<?php hsc($mst0101list['list']); ?>"; 
+        ptypmst0101         =	JSON.parse(pmst0101.slice(1,-1));
+        ptypmst0401         =	JSON.parse(pmst0401.slice(1,-1));
+        ptypmst0501         =	JSON.parse(pmst0501.slice(1,-1));
+        ptypmst0601         =	JSON.parse(pmst0601.slice(1,-1));
+        ptypmst0701         =	JSON.parse(pmst0701.slice(1,-1));        
+        ptypjsk4110         =	JSON.parse(pjsk4110.slice(1,-1));
+        ptypjsk4120         =	JSON.parse(pjsk4120.slice(1,-1));
+        ptypjsk4130         =	JSON.parse(pjsk4130.slice(1,-1));
+        ptypjsk4140         =	JSON.parse(pjsk4140.slice(1,-1));
+        ptypmst0103         =	JSON.parse(pmst0103.slice(1,-1));
+        ptypmst0101_sd      =	JSON.parse(pmst0101_sd.slice(1,-1));
+        ptypmst6101         =   JSON.parse(pmst6101.slice(1,-1));
+        ptypmst8401         =   JSON.parse(pmst8401.slice(1,-1));
+        c_size              = Number("<?php hsc($custsize['custsize'] ); ?>");
+        if( c_size === "" ){
+            if(ptypmst0101[0]){
+                c_size = ptypmst0101[0]["cust_cd"].length;
+            }else{
+                c_size = 13;
+            }
+        }
+        field_num_lst = "";
+        field_num_lst += "'txt_TEL4'";
+        field_num_lst += "'txt_SHOP_CD'";
+        field_num_lst += "'txt_CUST_CD'";
+        field_num_lst += "'txt_BIRTH_MON'";
+        field_num_lst += "'txt_BIRTH_MON1'";
+        field_num_lst += "'txt_BIRTH_MON2'";
+        field_num_lst += "'txt_BIRTH_MON3'";
+        field_num_lst += "'txt_BIRTH_MON4'";
+        field_num_lst += "'txt_BIRTH_MON5'";
+        field_num_lst += "'txt_BIRTH_MON6'";
+        field_num_lst += "'txt_BIRTH_MON7'";
+        field_num_lst += "'txt_BIRTH_MON8'";
+        field_num_lst += "'txt_CUST_SUMDAY'";
+        field_num_lst += "'txt_AREA_CD01'";
+        field_num_lst += "'txt_AREA_CD02'";
+        field_num_lst += "'txt_CUST_TYPECD'";
+        field_num_lst += "'txt_CUST_B_CD01'";
+        field_num_lst += "'txt_CUST_B_CD02'";
+        field_num_lst += "'txt_CUST_B_CD03'";
+        field_num_lst += "'txt_CUST_B_CD04'";
+        field_num_lst += "'txt_CUST_B_CD05'";
+        field_num_lst += "'txt_CUST_B_CD06'";
+        field_num_lst += "'txt_CUST_B_CD07'";
+        field_num_lst += "'txt_CUST_B_CD08'";
+        field_num_lst += "'txt_CUST_B_CD09'";
+        field_num_lst += "'txt_CUST_B_CD10'";        
+        function numberWithCommas(x) {
+            var parts = x.toString().split(".");
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            return parts.join(".");
+        }
+        
+        function sort_jsk4110(e){
+            //console.log(e);
+            var id_event = e.target.id;
+            var e_val_start=document.getElementById(id_event).value;
+            setTimeout(function(){
+                if(e_val_start == document.getElementById(id_event).value && id_event != "txt_jsk4110_org_id" && e_val_start ){ 
+                    //console.log('same entry');
+                    return;
+                }
+                var date_str = document.getElementById("txt_JSK4110_STR").value.replace(/\//g,"") ;
+                var date_end = document.getElementById("txt_JSK4110_END").value.replace(/\//g,"") ;
+                var org_id = document.getElementById("txt_jsk4110_org_id").value ;
+                if(!date_str && !date_end && !org_id){
+                    crea_tbl_jsk4110(ptypjsk4110);
+                    return;
+                }
+                var T_return = [];
+                for(var i = 0 ; i<ptypjsk4110.length;i++){
+                    var j=0;
+                    if(date_str){
+                        if(date_str <= ptypjsk4110[i].proc_date ){
+                            j=1;
+                        }
+                        else{continue;}
+                    }
+                     if(date_end){
+                        if(date_end >= ptypjsk4110[i].proc_date ){
+                            j=1;
+                        }
+                        else{continue;}
+                    }
+                    if(org_id){
+                        if(org_id == ptypjsk4110[i].sender ){
+                            j=1;
+                        }
+                        else{continue;}
+                    } 
+                    if(j==1){
+                        T_return.push(ptypjsk4110[i]);
+                    }
+                }
+               crea_tbl_jsk4110(T_return); 
+           }, 100);
+        }
+        
+        function sort_jsk4120(e){
+            //console.log(e);
+            var id_event = e.target.id;
+            var e_val_start=document.getElementById(id_event).value;
+            setTimeout(function(){
+                if(e_val_start == document.getElementById(id_event).value && id_event != "txt_org_id" && e_val_start ){ 
+                    //console.log('same entry');
+                    return;
+                }
+                var date_str = document.getElementById("txt_JSK4120_STR").value.replace(/\//g,"") ;
+                var date_end = document.getElementById("txt_JSK4120_END").value.replace(/\//g,"") ;
+                var org_id = document.getElementById("txt_org_id").value ;
+                if(!date_str && !date_end && !org_id){
+                    //console.log("empty data");
+                    crea_tbl_jsk4120(ptypjsk4120);
+                    return;
+                }
+                var T_return = [];
+                for(var i = 0 ; i<ptypjsk4120.length;i++){
+                    var j=0;
+                    if(date_str){
+                        if(date_str <= ptypjsk4120[i].proc_date ){
+                            j=1;
+                        }
+                        else{continue;}
+                    }
+                     if(date_end){
+                        if(date_end >= ptypjsk4120[i].proc_date ){
+                            j=1;
+                        }
+                        else{continue;}
+                    }
+                    if(org_id){
+                        if(org_id == ptypjsk4120[i].organization_id ){
+                            j=1;
+                        }
+                        else{continue;}
+                    } 
+                    if(j==1){
+                        T_return.push(ptypjsk4120[i]);
+                    }
+                }
+               crea_tbl_jsk4120(T_return); 
+           }, 100);
+        }
+ 
+    </script>
+    <style>
+        input {
+            width: 10.5em;
+            font-size: 12pt;
+        }
+        input[type=radio] {
+            width: 1em;
+        }
+        body {
+            padding-left: 5px;
+            background-color: whitesmoke;
+        }
+        label {
+          background-color: #0D0D70;
+          color: whitesmoke;
+          /*font-weight: bold;*/
+          padding: 2px;
+          text-transform: uppercase;
+          font-size: 12pt;
+          margin: 1px;
+        }
+        div{
+          margin: 0px;
+        }
+        h4{
+            background-color: #0D0D70;
+            border: 1px solid #AAA;
+            color: whitesmoke;
+            padding: 5px;            
+        }
+        /* Style the tab */
+        .tab {
+          overflow: hidden;
+          border: 1px solid #ccc;
+          background-color: #f1f1f1;
+          margin: 0;
+          margin-right: 5px;
+        }
+
+        /* Style the buttons inside the tab */
+        .tab button {
+          background-color: inherit;
+          float: left;
+          border: inherit;
+          outline: none;
+          cursor: pointer;
+          padding: 2px 10px;
+          transition: 0.3s;
+          margin : 0;
+
+        }
+
+        /* Change background color of buttons on hover */
+        .tab button:hover {
+          background-color: #ddd;
+        }
+
+        /* Create an active/current tablink class */
+        .tab button.active {
+          background-color: #ccc;
+        }
+
+        /* Style the tab content */
+        .tabcontent {
+          display: none;
+          padding: 6px 12px;
+          border: 1px solid #ccc;
+          border-top: none;
+          margin-right: 5px;
+        }
+
+        .blocline_left {
+          float : left;
+          vertical-align: middle;
+        }
+        .group_no_float{
+          clear: both;
+
+        }
+        .parent{
+            overflow: hidden;
+        }
+        .blocline_right{
+           float : right;
+           padding-right: 1em;
+           vertical-align: middle;
+           max-width: 50%;
+        }
+        .test_class{
+            width: 15em;
+            height: 20pt;
+            padding: 0;
+            vertical-align: bottom;
+            border: 1px solid #ccc;
+        }
+        .label_pro{
+            width: 9em;
+        }
+        .lbl_BIRTH1{
+            width: 4em;
+            height: 19pt;
+            padding: 0;
+            vertical-align: bottom;        
+            text-align: -webkit-center;
+        }
+        .lbl_head1{
+            width: 10.5em;
+        }
+        .lbl_head2{
+            width: 40.5em;
+        }
+        .label_base{
+            width: 10em;   
+        }
+        .input_long{
+            width: 30em
+        }
+        .input_middle{
+            width: 20em;
+        }
+        .input_middle1{
+            width: 30%;
+        }
+        .input_middle2{
+            width: 20%;
+        }    
+        .input_small{
+            width: 2em;
+        }
+        .input_small2{
+            width: 8em;
+        }     
+        .input_small3{
+            width: 8em;
+        }  
+        .ui-datepicker select.ui-datepicker-year {
+            width: 40%;
+        }
+        .ui-datepicker select.ui-datepicker-month{
+            width: 30%;
+        }
+        .tbl_staff{
+            border: 1px solid #AAA;        
+        }
+        #staff_data td{
+            border: 1px solid #0B0B61;
+        }
+        #tbl_fam th{
+            text-align: center;
+        }
+        #tbl_fam td:nth-child(1){
+            width: 2em;
+        }  
+        #body_jsk4120 th, #body_jsk4120 td {
+            text-align: left;
+        }
+        .ui-widget-header{
+            color: black;
+        }
+        thead th {
+            background-color: #0D0D70;
+            border: 1px solid #AAA;
+            color: whitesmoke;
+            text-align: center;
+            font-size: 10pt;
+        }
+        tbody {
+            background-color: #fff;
+            font-size: 10pt;
+        }
+        #body_jsk4120 td{
+            border: 1px solid #0D0D70;
+            padding: 2px;
+        }
+        #body_jsk4120 td:nth-child(5), 
+        #body_jsk4120 td:nth-child(6), 
+        #body_jsk4120  td:nth-child(7), 
+        #body_jsk4120 td:nth-child(8), 
+        #body_jsk4120 td:nth-child(9), 
+        #body_jsk4120 td:nth-child(11){
+            text-align:right;
+        }
+        #tb_jsk4110 td{
+            border: 1px solid #0D0D70;
+            padding: 1px;
+        }
+        #no_pad1{
+            padding-left: unset;
+        }
+        #no_pad2{
+            padding-left: unset;
+        }
+        .datepicker{
+            width: 8em !important;
+        } 
+        #lbl_RANK_NM{
+            width: 22.2em;
+        }
+        .table_container {
+            overflow: hidden;                
+            padding: 0;
+        }        
+        
+        #tbl_jsk4120 {
+            max-height: 20em;
+            display: flex;
+            flex-flow: column;
+            /*height: 100%;*/
+            width: 100%;
+            padding: 0 2px 0 2px;
+            border-spacing: 0;
+        }
+        #tbl_jsk4120 thead {
+            /* head takes the height it requires, 
+            and it's not scaled when table is resized */
+            flex: 0 0 auto;
+            width: calc(100% - 19px);
+        }
+        #tbl_jsk4120 tbody {
+            /* body takes all the remaining available space */
+            flex: 1 1 auto;
+            display: block;
+            overflow-y: scroll;
+            padding: 0;
+        }
+        #tbl_jsk4120 tbody tr {
+            width: 100%;
+        }
+        #tbl_jsk4120 thead,
+        #tbl_jsk4120 tbody tr {
+            display: table;
+            table-layout: fixed;
+            padding: 0;
+        }
+
+        #tbl_jsk4120 thead th {
+            background-color: #0D0D70;
+            border: 1px solid #AAA;
+            color: whitesmoke;
+            text-align: -webkit-center;
+            padding: 0;
+            border-collapse: collapse;
+        }
+        #tbl_jsk4120 tbody td{
+            background-color: #fff;
+            border: 1px solid #0D0D70;
+            text-align: left; 
+            border-collapse: collapse;
+        }
+        #tbl_jsk4120 thead th:first-child,
+        #tbl_jsk4120 tbody tr td:first-child {
+          width: 6em;
+        }        
+        #tbl_jsk4120 thead th:nth-child(3),
+        #tbl_jsk4120 tbody tr td:nth-child(3){
+            width: 9em;
+        }          
+        #tbl_jsk4120 thead th:nth-child(4),
+        #tbl_jsk4120 tbody tr td:nth-child(4){
+            width: 30%;
+        }
+        #tbl_jsk4120 thead th:nth-child(5),
+        #tbl_jsk4120 tbody tr td:nth-child(5){
+            width: 5%;
+        }
+        #tbl_jsk4110 {
+            max-height: 20em;
+            display: flex;
+            flex-flow: column;
+            /*height: 100%;*/
+            width: 100%;
+            padding: 0;
+            border-spacing: 0;
+        }
+        #tbl_jsk4110 thead {
+            /* head takes the height it requires, 
+            and it's not scaled when table is resized */
+            flex: 0 0 auto;
+            width: calc(100% - 19px);
+        }
+        #tbl_jsk4110 tbody {
+            /* body takes all the remaining available space */
+            flex: 1 1 auto;
+            display: block;
+            overflow-y: scroll;
+            padding: 0;
+        }
+        #tbl_jsk4110 tbody tr {
+            width: 100%;
+        }
+        #tbl_jsk4110 thead,
+        #tbl_jsk4110 tbody tr {
+            display: table;
+            table-layout: fixed;
+            padding: 0;
+        }
+
+        #tbl_jsk4110 thead th {
+            background-color: #0D0D70;
+            border: 1px solid #AAA;
+            color: whitesmoke;
+            text-align: -webkit-center;
+            padding: 0;
+            border-collapse: collapse;
+        }
+        #tbl_jsk4110 tbody td{
+            background-color: #fff;
+            border: 1px solid #0D0D70;
+            padding: 0;
+            text-align: -webkit-center; 
+            border-collapse: collapse;
+        }
+        #tbl_jsk4110 thead th:first-child,
+        #tbl_jsk4110 tbody tr td:first-child {
+          width: 11em;
+        }  
+        #tbl_staff {
+            max-height: 5em;
+            display: flex;
+            flex-flow: column;
+            /*height: 100%;*/
+            width: 100%;
+            padding: 0;
+            border-spacing: 0;
+            max-width: 25em;
+        }
+        #tbl_staff thead {
+            /* head takes the height it requires, 
+            and it's not scaled when table is resized */
+            flex: 0 0 auto;
+            width: calc(100% - 19px);
+        }
+        #tbl_staff tbody {
+            /* body takes all the remaining available space */
+            flex: 1 1 auto;
+            display: block;
+            overflow-y: scroll;
+            padding: 0;
+        }
+        #tbl_staff tbody tr {
+            width: 100%;
+        }
+        #tbl_staff thead,
+        #tbl_staff tbody tr {
+            display: table;
+            table-layout: fixed;
+            padding: 0;
+        }
+
+        #tbl_staff thead th {
+            background-color: #0D0D70;
+            border: 1px solid #AAA;
+            color: whitesmoke;
+            text-align: -webkit-center;
+            padding: 0;
+            border-collapse: collapse;
+        }
+        #tbl_staff tbody td{
+            background-color: #fff;
+            border: 1px solid #0D0D70;
+            padding: 0;
+            text-align: -webkit-center; 
+            border-collapse: collapse;
+        }
+        .lbl_age{
+           min-width:2em;
+        }
+    </style>
+ 
+    <title>顧客</title>
+  </head>
+  <body id="test">
+        <?php
+            if( isset($_GET['home']) ) {
+                if( "1" ==  $_GET['home'] ){
+                include("../home/View/Common/PageHeader.php");
+                }else{
+                    include("Common/PageHeader.php");
+                }
+            }else{
+                include("../home/View/Common/PageHeader.php");
+            }
+        ?>    
+    <script type="text/javascript">
+      function openCity(evt, cityName) {
+          //console.log(evt.currentTarget);
+          //console.log(cityName);
+        var i, tabcontent, tablinks, tab, elems_button;
+        tab = document.getElementsByClassName("tab")[0];
+        elems_button = tab.getElementsByTagName("BUTTON");
+        for (i = 0; i < elems_button.length; i++) {
+          elems_button[i].className = "";
+        }        
+        tabcontent = document.getElementsByClassName("tabcontent");
+        for (i = 0; i < tabcontent.length; i++) {
+          tabcontent[i].style.display = "none";
+        }
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) {
+          tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        document.getElementById(cityName).style.display = "block";
+        window[evt.target.id].className += " active";
+      }
+      
+      
+      function template(){
+            //spath = window.location.href;
+            //spath = spath.split('?'); 
+            spath = 'http://localhost/customer/index.php?param=ProdCustomer/show';
+            window.location.replace(spath);
+      }
+      function birth(e){
+        //console.log(e);
+        if(e.target.value === ""){
+            return;
+        }
+        if(e.target.value.replace(/\//g,'').length > 8){
+            document.getElementById(e.target.id).value = "";
+            //error message
+            alert("※//"+ e.target.value.replace('\/','').length +"// 生年月日(西暦)が正しくありません。（yyyymmddかyyyy/mm/dd）");
+            document.getElementById(e.target.id).focus();
+            return;            
+        }
+        birth_date = check_date(e.target.value);
+        if(birth_date === "error"){
+            document.getElementById(e.target.id).value = "";
+            //error message
+            alert("※生年月日(西暦)が正しくありません。（yyyymmddかyyyy/mm/dd）");
+            document.getElementById(e.target.id).focus();
+            return;
+        }
+        document.getElementById(e.target.id).value = birth_date.replace(/-/g, '\/');
+        setTimeout(function(){
+            var age = calc_age(birth_date);
+            //console.log(age);
+            //console.log(birth_date);
+            switch (e.target.id){
+                case "txt_BIRTH":
+                    document.getElementById("lbl_BIRTH1").innerHTML = age+" 才";
+                    document.getElementById("txt_BIRTH_MON").value = birth_date.split("-")[1];
+                    break;
+                case "txt_BIRTH1":
+                    document.getElementById("lbl_AGE1").innerHTML = age;
+                    document.getElementById("txt_BIRTH_MON1").value = birth_date.split("-")[1];                    
+                    break;
+                case "txt_BIRTH2":
+                    document.getElementById("lbl_AGE2").innerHTML = age;
+                    document.getElementById("txt_BIRTH_MON2").value = birth_date.split("-")[1];                    
+                    break; 
+                case "txt_BIRTH3":
+                    document.getElementById("lbl_AGE3").innerHTML = age;
+                    document.getElementById("txt_BIRTH_MON3").value = birth_date.split("-")[1];                    
+                    break; 
+                case "txt_BIRTH4":
+                    document.getElementById("lbl_AGE4").innerHTML = age;
+                    document.getElementById("txt_BIRTH_MON4").value = birth_date.split("-")[1];                    
+                    break; 
+                case "txt_BIRTH5":
+                    document.getElementById("lbl_AGE5").innerHTML = age;
+                    document.getElementById("txt_BIRTH_MON5").value = birth_date.split("-")[1];                    
+                    break; 
+                case "txt_BIRTH6":
+                    document.getElementById("lbl_AGE6").innerHTML = age;
+                    document.getElementById("txt_BIRTH_MON6").value = birth_date.split("-")[1];                    
+                    break; 
+                case "txt_BIRTH7":
+                    document.getElementById("lbl_AGE7").innerHTML = age;
+                    document.getElementById("txt_BIRTH_MON7").value = birth_date.split("-")[1];                    
+                    break; 
+                case "txt_BIRTH8":
+                    document.getElementById("lbl_AGE8").innerHTML = age;
+                    document.getElementById("txt_BIRTH_MON8").value = birth_date.split("-")[1];                    
+                    break;                 
+            }
+        }, 1000);
+      }
+      function check_date(date_to_check){
+          if(!isNaN(date_to_check)){
+            if(date_to_check.length === 6){
+                if(date_to_check.substr(0,2) <= 50 ){
+                    date_to_check = 20+date_to_check;
+                }else{
+                    date_to_check = 19+date_to_check;
+                }
+
+            }if(date_to_check.length === 8){
+                //ない
+            }else{
+                return "error";
+            }
+            date_to_check = date_to_check.replace(/(\d{4})(\d{2})(\d{2})/g, '$1-$2-$3');
+          }else{
+              date_to_check = date_to_check.replace(/\//g,'-');
+          }
+          d_var = new Date(date_to_check);
+          if(d_var.toString() === "Invalid Date"){
+              return "error";
+          }else{
+              return date_to_check;
+          }
+      }
+      function calc_age(birth_date){
+            var dbirth = birth_date;
+            dbirth= new Date(dbirth);
+            today = new Date();
+            var res = today.getFullYear() - dbirth.getFullYear() ;
+            if(today.getMonth() < dbirth.getMonth()) {
+              res--;
+            }
+            if(today.getMonth() === dbirth.getMonth() && today.getDate() < dbirth.getDate()) {
+              res--;
+            }
+            return res;          
+      }
+      function sumday(e){
+          val = Number(e.target.value);
+          if((val > 28 && val !== 99) || val === 0  ){
+              alert("※顧客締日が不正です。(指定範囲:1～28,99)");
+              document.getElementById(e.target.id).value = "";
+              document.getElementById(e.target.id).focus();
+              return;              
+          }
+          document.getElementById(e.target.id).value = ("00"+e.target.value).slice(-2);
+      }
+      function check_entry(e){
+        if(!e.data){
+            e.data=e.target.value.slice(-1);
+        }          
+        if(e.data){
+            elem = document.getElementById(e.target.id);
+            if(e.data.indexOf("￥") !== -1 || e.data.indexOf("／") !== -1){
+               elem.value = elem.value.replace(e.data,'');
+            }
+            if(field_num_lst.indexOf("'"+e.target.id+"'") !== -1){
+                if(isNaN(e.data)){
+                    elem.value = elem.value.replace(/\D/g,'');
+                    alert("　※数値のみ入力できます");
+                }
+            }else if(e.target.id === 'txt_TEL' || e.target.id === 'txt_ZIP' || e.target.id === 'txt_FAX') {
+                if(isNaN(e.data) && e.data !== '-' ){
+                    elem.value = elem.value.slice(0,-1);
+                    alert("　※数値のみ入力できます");
+                }
+                if(e.target.value[0] === '-'){
+                    elem.value = elem.value.slice(1);
+                }
+                elem.value = elem.value.replace('--','-');
+                if(e.target.id === 'txt_TEL'){
+                    txt_TEL4.value = txt_TEL.value.replace(/\D/g,'').slice(-4);
+                }
+            }           
+        }
+      }
+      function fill_tel4(){
+          txt_TEL4.value = txt_TEL.value.replace(/\D/g,'').slice(-4);
+      }
+        function createlistner(){
+            elem_input = document.getElementsByTagName("INPUT");
+            //console.log(elem_input);
+            for(i=0;i<elem_input.length;i++){
+                w_elem = elem_input[i];
+                //console.log(w_elem);
+                if(w_elem.id !== ""){
+                    w_elem.addEventListener('input',check_entry);
+                }
+            }
+            txt_TEL.addEventListener('change',fill_tel4);
+        }
+        
+        window.onload = function(){
+            //console.log("here");
+            createlistner();
+        }
+      
+    </script>
+        <div id="sb-site" style="overflow: auto;">
+          <div> 
+            <h4> 顧客マスタ  顧客マスタ</h4>
+            <!--<button id="bt_test_template" onclick="template()"  >template</button> -->
+            <div class="group_no_float">
+              <div class="blocline_left"><label for="txt_CUST_CD" class="lbl_head1"> 顧客コード          </label><br /><input type="text" id="txt_CUST_CD" maxlength="13">     </div> 
+              <div class="blocline_left"><label for="txt_MAX_CUST_CD" class="lbl_head1"> 新規顧客コード  </label><br /><input type="text" id="txt_MAX_CUST_CD" disabled readonly> </div>
+              <div class="blocline_right"> <button type="button" id="bt_search" onclick="searchdata()">検索</button> </div>
+            </div>
+            <div class="group_no_float"> 
+              <div class="blocline_left"><label for="txt_TEL4"  class="lbl_head1"> TEL下４桁            </label><br /><input type="text" id="txt_TEL4" maxlength="4" disabled readonly>        </div>
+              <div class="blocline_left"><label for="txt_SHOP_CD"  class="lbl_head1"> 登録店舖CD          </label><br /><input type="text" id="txt_SHOP_CD">     </div>
+              <div class="blocline_left"><label for="txt_INSDATE"   class="lbl_head1"> 登録年月日          </label><br /><input type="text" id="txt_INSDATE" disabled readonly>     </div>
+              <div class="blocline_right"><label id="lbl_INSDATETIME">作成日時:</label><br /><label id="lbl_UPDDATETIME">更新日時:</label>    </div>
+            </div>
+
+            <div class="group_no_float">
+              <br />
+              <div class="blocline_left">
+                   <label for="txt_CUST_KN" class="lbl_head2"> お客様情報     </label><br /> 
+                   <label for="txt_CUST_KN" class="lbl_head1"> 顧客名（カナ） </label><input type="text" class="input_long" id="txt_CUST_KN" maxlength="30"><br />
+                   <label for="txt_CUST_NM" class="lbl_head1"> 顧客名（漢字） </label><input type="text" class="input_long"  id="txt_CUST_NM" maxlength="30"> 
+              </div>
+            </div>      
+          </div>
+          <div class="group_no_float">
+              <br />
+          <!-- Tab links -->
+            <div class="tab">
+              <button id="button1" onclick="openCity(event, 'tpg_BASE_INFO')" disabled >基本情報</button>
+              <button id="button2" onclick="openCity(event, 'tpg_FAM')"  disabled >家族情報</button>
+              <button id="button3" onclick="openCity(event, 'tpg_CUST_PRO')"  disabled  >顧客属性</button>
+              <button id="button4" onclick="openCity(event, 'tpg_CUST_BUY')"  disabled >購買履歴</button>
+              <button id="button5" onclick="openCity(event, 'tpg_JSK')"  disabled >顧客実績</button>      
+            </div>
+          </div>
+          <!-- Tab content -->
+          <div id="tpg_BASE_INFO" class="tabcontent">
+            <label class="label_base" for="txt_ZIP"> 郵便番号 </label>                 
+            <input type="text" id="txt_ZIP" maxlength='8'>                          <br />
+            <label class="label_base" for="txt_ADDR1" > 住所１ </label>                  
+            <input type="text" class="input_long" id="txt_ADDR1" maxlength='42'>                        <br />
+            <label class="label_base" for="txt_ADDR2"> 住所２ </label>                 
+            <input type="text" class="input_long" id="txt_ADDR2" maxlength='42'>                        <br />
+            <label class="label_base" for="txt_TEL" > 電話番号 </label>                  
+            <input type="text" id="txt_TEL" maxlength='14'>                          <br />
+            <label class="label_base" for="txt_FAX" > FAX番号 </label>                 
+            <input type="text" id="txt_FAX" maxlength='14'>                          <br />
+            <label class="label_base" for="txt_EMAIL"> メールアドレス </label>          
+            <input type="text" class="input_long" id="txt_EMAIL" maxlength='50'>                        <br />
+            <label class="label_base" for="txt_IMODE"> 携帯メールアドレス </label>      
+            <input type="text" class="input_long" id="txt_IMODE" maxlength='50'>                        <br /> 
+
+            <label class="label_base" for="txt_SEX"> 性別/区分 </label>     
+            <select id="txt_SEX">
+              <option value="1">男性</option>
+              <option value="2">女性</option>
+              <option value="3">企業(法人)</option>
+              <option value="4">企業(個人)</option>
+              <option value="5">その他</option>
+            </select>                       
+            <br />
+
+            <label class="label_base" for="txt_BIRTH"> 生年月日（西暦） </label>      
+            <input type="text" id="txt_BIRTH" class="datepicker" onchange="birth(event)" maxlength='10'>
+            <label class="lbl_BIRTH1" ID="lbl_BIRTH1">  </label>        
+            <label for="txt_BIRTH_MON"> 誕生月 </label>      
+            <input type="text" class="input_small" id="txt_BIRTH_MON" maxlength='2'> 
+            <label for="txt_BIRTH_MON"> 月 </label>      <br /> 
+
+            <label class="label_base" for="txt_MEMORIAL"> 記念日  （西暦）</label>       
+            <input type="text"  class="datepicker" id="txt_MEMORIAL" maxlength='10' onchange="birth(event)"><br /> 
+
+            <label class="label_base" for="txt_DISSENDDM"> DM発送区分 </label>      
+            <select id="txt_DISSENDDM">
+              <option value="0">要</option>
+              <option value="1">不要</option> 
+            </select>                       
+            <br />
+
+            <label class="label_base" for="txt_DISSENDEMAIL"> E-Mail送信区分 </label>      
+            <select id="txt_DISSENDEMAIL">
+              <option value="0">要</option>
+              <option value="1">不要</option> 
+            </select>                       
+            <br />
+
+            <label class="label_base" for="txt_DISSENDIMODE"> 携帯メール送信区分 </label>     
+            <select id="txt_DISSENDIMODE">
+              <option value="0">要</option>
+              <option value="1">不要</option> 
+            </select>                       
+            <br />
+
+            <label class="label_base" for="txt_SPCL_SALEPRICE_KBN"> 特殊売価 </label>      
+            <select id="txt_SPCL_SALEPRICE_KBN">
+              <option value="0">適用しない</option>
+              <option value="1">特殊売価1</option>
+              <option value="2">特殊売価2</option>  
+            </select>                                                 
+          </div>
+
+          <div id="tpg_FAM" class="tabcontent">
+            <table id="tbl_fam">
+              <tr>
+                <th>No</th>
+                <th>家族名</th>
+                <th>家族名(カナ)</th>    
+                <th>続柄</th>
+                <th>性別</th>
+                <th>生年月日</th> 
+                <th>年齢</th>
+                <th>誕生月</th>
+              </tr>
+              <tr>
+                <td>1</td>
+                <td><input type="text" class="input_middle" id="txt_FAM_NM1" maxlength="15"></td>
+                <td><input type="text" class="input_middle" id="txt_FAM_KN1" maxlength="15"></td>
+                <td><select id="cmb_FAM_CD1"></select></td>
+                <td>      
+                    <select id="txt_FAM_SEX1">
+                        <option value="0">未設定</option>
+                        <option value="1">男性</option>
+                        <option value="2">女性</option>
+                    </select>
+                </td>
+                <td><input type="text" id="txt_BIRTH1" class="datepicker" onchange="birth(event)"></td>
+                <td><label class="lbl_age" id="lbl_AGE1"> 　 </label> </td>
+                <td><input type="text" class="input_small" id="txt_BIRTH_MON1"><label for="txt_BIRTH_MON1"> 月 </label></td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td><input type="text" class="input_middle" id="txt_FAM_NM2" maxlength="15"></td>
+                <td><input type="text" class="input_middle" id="txt_FAM_KN2" maxlength="15"></td>
+                <td><select id="cmb_FAM_CD2"></select></td>
+                <td>      
+                    <select id="txt_FAM_SEX2">
+                        <option value="0">未設定</option>
+                        <option value="1">男性</option>
+                        <option value="2">女性</option>
+                    </select>
+                </td>
+                <td><input type="text" id="txt_BIRTH2" class="datepicker"  onchange="birth(event)"></td>
+                <td><label class="lbl_age" id="lbl_AGE2"> 　 </label> </td>
+                <td><input type="text" class="input_small" id="txt_BIRTH_MON2"><label for="txt_BIRTH_MON2"> 月 </label></td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td><input type="text" class="input_middle" id="txt_FAM_NM3" maxlength="15"></td>
+                <td><input type="text" class="input_middle" id="txt_FAM_KN3" maxlength="15"></td>
+                <td><select id="cmb_FAM_CD3"></select></td>
+                <td>      
+                    <select id="txt_FAM_SEX3">
+                        <option value="0">未設定</option>
+                        <option value="1">男性</option>
+                        <option value="2">女性</option>
+                    </select>
+                </td>
+                <td><input type="text" id="txt_BIRTH3" class="datepicker" onchange="birth(event)"></td>
+                <td><label class="lbl_age" id="lbl_AGE3"> 　 </label> </td>
+                <td><input type="text" class="input_small" id="txt_BIRTH_MON3"><label for="txt_BIRTH_MON3"> 月 </label></td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td><input type="text" class="input_middle" id="txt_FAM_NM4" maxlength="15"></td>
+                <td><input type="text" class="input_middle" id="txt_FAM_KN4" maxlength="15"></td>
+                <td><select id="cmb_FAM_CD4"></select></td>
+                <td>      
+                    <select id="txt_FAM_SEX4">
+                        <option value="0">未設定</option>
+                        <option value="1">男性</option>
+                        <option value="2">女性</option>
+                    </select>
+                </td>
+                <td><input type="text" id="txt_BIRTH4" class="datepicker" onchange="birth(event)"></td>
+                <td><label class="lbl_age" id="lbl_AGE4"> 　 </label> </td>
+                <td><input type="text" class="input_small" id="txt_BIRTH_MON4"><label for="txt_BIRTH_MON4"> 月 </label></td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td><input type="text" class="input_middle" id="txt_FAM_NM5" maxlength="15"></td>
+                <td><input type="text" class="input_middle" id="txt_FAM_KN5" maxlength="15"></td>
+                <td><select id="cmb_FAM_CD5"></select></td>
+                <td>      
+                    <select id="txt_FAM_SEX5">
+                        <option value="0">未設定</option>
+                        <option value="1">男性</option>
+                        <option value="2">女性</option>
+                    </select>
+                </td>
+                <td><input type="text" id="txt_BIRTH5" class="datepicker" onchange="birth(event)"></td>
+                <td><label class="lbl_age" id="lbl_AGE5"> 　 </label> </td>
+                <td><input type="text" class="input_small" id="txt_BIRTH_MON5"><label for="txt_BIRTH_MON5"> 月 </label></td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td><input type="text" class="input_middle" id="txt_FAM_NM6" maxlength="15"></td>
+                <td><input type="text" class="input_middle" id="txt_FAM_KN6" maxlength="15"></td>
+                <td><select id="cmb_FAM_CD6"></select></td>
+                <td>      
+                    <select id="txt_FAM_SEX6">
+                        <option value="0">未設定</option>
+                        <option value="1">男性</option>
+                        <option value="2">女性</option>
+                    </select>
+                </td>
+                <td><input type="text" id="txt_BIRTH6" class="datepicker" onchange="birth(event)"></td>
+                <td><label class="lbl_age" id="lbl_AGE6"> 　 </label> </td>
+                <td><input type="text" class="input_small" id="txt_BIRTH_MON6"><label for="txt_BIRTH_MON6"> 月 </label></td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td><input type="text" class="input_middle" id="txt_FAM_NM7" maxlength="15"></td>
+                <td><input type="text" class="input_middle" id="txt_FAM_KN7" maxlength="15"></td>
+                <td><select id="cmb_FAM_CD7"></select></td>
+                <td>      
+                    <select id="txt_FAM_SEX7">
+                        <option value="0">未設定</option>
+                        <option value="1">男性</option>
+                        <option value="2">女性</option>
+                    </select>
+                </td>
+                <td><input type="text" id="txt_BIRTH7" class="datepicker" onchange="birth(event)"></td>
+                <td><label class="lbl_age" id="lbl_AGE7"> 　 </label> </td>
+                <td><input type="text" class="input_small" id="txt_BIRTH_MON7"><label for="txt_BIRTH_MON7"> 月 </label></td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td><input type="text" class="input_middle" id="txt_FAM_NM8" maxlength="15"></td>
+                <td><input type="text" class="input_middle" id="txt_FAM_KN8" maxlength="15"></td>
+                <td><select id="cmb_FAM_CD8"></select></td>
+                <td>      
+                    <select id="txt_FAM_SEX8">
+                        <option value="0">未設定</option>
+                        <option value="1">男性</option>
+                        <option value="2">女性</option>
+                    </select>
+                </td>
+                <td><input type="text" id="txt_BIRTH8" class="datepicker" onchange="birth(event)"></td>
+                <td><label class="lbl_age" id="lbl_AGE8"> 　 </label> </td>
+                <td><input type="text" class="input_small" id="txt_BIRTH_MON8"><label for="txt_BIRTH_MON8"> 月 </label></td>
+              </tr>
+            </table>
+          </div>
+
+          <div id="tpg_CUST_PRO" class="tabcontent">
+              <br />
+              <div class="parent">
+                <div class="blocline_left">
+                  <label class="label_pro" for="rbn_FEES_RECE_KBN0"> 会費未入金区分 </label> 
+                  <input type="radio" name="rbn_FEES_RECE_KBN" id="rbn_FEES_RECE_KBN0" value="0" checked> 入金
+                  <input type="radio" name="rbn_FEES_RECE_KBN" id="rbn_FEES_RECE_KBN1" value="1"> 未入金  <br />
+                  <label class="label_pro" for="rbn_CRED_IMPO_KBN0"> 掛売不可区分 </label> 
+                  <input type="radio" name="rbn_CRED_IMPO_KBN" id="rbn_CRED_IMPO_KBN0" value="0" checked> 可能
+                  <input type="radio" name="rbn_CRED_IMPO_KBN" id="rbn_CRED_IMPO_KBN1" value="1"> 不可  <br />                  
+                  <label class="label_pro" for="txt_CUST_SUMDAY" > 顧客締日 </label>      
+                  <input type="text" id="txt_CUST_SUMDAY" onchange="sumday(event)" maxlength="2">  <br /> 
+                  <label class="label_pro" for="txt_OPTION_FLG"> 任意フラグ </label>      
+                  <input type="text" id="txt_OPTION_FLG" maxlength="10">   <br /> 
+                  <label class="label_pro" for="txt_VIP_CD"> 資生堂会員コード </label>      
+                  <input type="text" id="txt_VIP_CD" maxlength="20">     <br /> 
+                  <label class="label_pro" for="txt_MEMO1"> メモ１(レジ表示) </label>      
+                  <input type="text" class="input_long" id="txt_MEMO1" maxlength="40">      <br /> 
+                  <label class="label_pro" for="txt_MEMO2"> メモ2 </label>      
+                  <input type="text" class="input_long" id="txt_MEMO2" maxlength="40">    <br /> 
+                  <label class="label_pro" for="txt_MEMO3"> メモ3 </label>      
+                  <input type="text" class="input_long" id="txt_MEMO3" maxlength="40">     <br /> 
+                  <label class="label_pro" for="txt_MEMO4"> メモ4 </label>      
+                  <input type="text" class="input_long" id="txt_MEMO4" maxlength="40">     <br /> 
+                  <label class="label_pro" for="txt_MEMO5"> メモ5 </label>      
+                  <input type="text" class="input_long" id="txt_MEMO5" maxlength="40">    <br /> 
+                  <br /> 
+                  <label class="label_pro" for="rbn_DESIG_PRICE_KBN0"> 指定価格登録区分 </label> 
+                  <input type="radio" name="rbn_DESIG_PRICE_KBN" id="rbn_DESIG_PRICE_KBN0" value="0" checked> 有
+                  <input type="radio" name="rbn_DESIG_PRICE_KBN" id="rbn_DESIG_PRICE_KBN1" value="1"> 無  <br /> 
+                  <div class="table_container">
+                    <table id="tbl_staff" class="tbl_staff" >
+                      <thead>
+                      <tr><th>店舗名</th><th>担当者コード</th><th>担当者名</th>
+                      </tr> 
+                      </thead>
+                      <tbody id="staff_data">
+                      </tbody>
+                    </table>
+                 </div> 
+                </div>
+                <div class="blocline_right">
+                  <label class="label_pro" for="txt_CUST_TYPECD"> 顧客分類コード </label>      
+                  <input type="text" id="txt_CUST_TYPECD" maxlength="4" onchange="addzero(event)">
+                  <label class="test_class" ID="lbl_CUST_TYPENM">  </label> <br /> 
+                  <label class="label_pro" for="txt_AREA_CD01"> 地区コード  1   </label>      
+                  <input type="text" id="txt_AREA_CD01" maxlength="4" onchange="addzero(event)">
+                  <label class="test_class" ID="lbl_AREA_NM01">  </label> <br />  
+                  <label class="label_pro" for="txt_AREA_CD02"> 地区コード  2 </label>      
+                  <input type="text" id="txt_AREA_CD02" maxlength="4" onchange="addzero(event)">
+                  <label class="test_class" ID="lbl_AREA_NM02">  </label> <br />  
+                  <label class="label_pro" for="txt_CUST_B_CD01"> 顧客備考  1 </label>      
+                  <input type="text" id="txt_CUST_B_CD01" maxlength="4" onchange="addzero(event)">
+                  <label class="test_class" ID="lbl_CUST_B_NM1">  </label> <br />  
+                  <label class="label_pro" for="txt_CUST_B_CD02"> 顧客備考  2 </label>      
+                  <input type="text" id="txt_CUST_B_CD02" maxlength="4" onchange="addzero(event)">
+                  <label class="test_class" ID="lbl_CUST_B_NM2">  </label> <br /> 
+                  <label class="label_pro" for="txt_CUST_B_CD03"> 顧客備考  3 </label>      
+                  <input type="text" id="txt_CUST_B_CD03" maxlength="4" onchange="addzero(event)">
+                  <label class="test_class" ID="lbl_CUST_B_NM3">  </label> <br /> 
+                  <label class="label_pro" for="txt_CUST_B_CD04"> 顧客備考  4 </label>      
+                  <input type="text" id="txt_CUST_B_CD04" maxlength="4" onchange="addzero(event)">
+                  <label class="test_class" ID="lbl_CUST_B_NM4">  </label> <br /> 
+                  <label class="label_pro" for="txt_CUST_B_CD05"> 顧客備考  5 </label>      
+                  <input type="text" id="txt_CUST_B_CD05" maxlength="4" onchange="addzero(event)">
+                  <label class="test_class" ID="lbl_CUST_B_NM5">  </label> <br /> 
+                  <label class="label_pro" for="txt_CUST_B_CD06"> 顧客備考  6 </label>      
+                  <input type="text" id="txt_CUST_B_CD06" maxlength="4" onchange="addzero(event)">
+                  <label class="test_class" ID="lbl_CUST_B_NM6">  </label> <br /> 
+                  <label class="label_pro" for="txt_CUST_B_CD07"> 顧客備考  7 </label>      
+                  <input type="text" id="txt_CUST_B_CD07" maxlength="4" onchange="addzero(event)">
+                  <label class="test_class" ID="lbl_CUST_B_NM7">  </label> <br /> 
+                  <label class="label_pro" for="txt_CUST_B_CD08"> 顧客備考  8 </label>      
+                  <input type="text" id="txt_CUST_B_CD08" maxlength="4" onchange="addzero(event)">
+                  <label class="test_class" ID="lbl_CUST_B_NM8">  </label> <br /> 
+                  <label class="label_pro" for="txt_CUST_B_CD09"> 顧客備考  9 </label>      
+                  <input type="text" id="txt_CUST_B_CD09" maxlength="4" onchange="addzero(event)">
+                  <label class="test_class" ID="lbl_CUST_B_NM9">  </label> <br /> 
+                  <label class="label_pro" for="txt_CUST_B_CD10"> 顧客備考  10 </label>      
+                  <input type="text" id="txt_CUST_B_CD10" maxlength="4" onchange="addzero(event)">
+                  <label class="test_class" ID="lbl_CUST_B_NM10">  </label> <br /> 
+                  <!--
+                  <label class="label_pro" for="txt_STAFF_CD"> 担当者コード </label>      
+                  <input type="text" id="txt_STAFF_CD" >
+                  <label class="test_class" ID="lbl_STAFF_CDNM" >  </label> <br /> -->                                                                                 
+                </div>
+          </div>
+          </div>  
+
+          <div id="tpg_CUST_BUY" class="tabcontent">
+              <label for="txt_JSK4120_STR"> 期間 </label>      
+              <input type="text" id="txt_JSK4120_STR" class="datepicker">
+              <label for="txt_JSK4120_END"> ～</label>      
+              <input type="text" id="txt_JSK4120_END" class="datepicker">
+              <label for="txt_org_id"> 店舗CD </label>      
+              <input type="text" id="txt_org_id">
+              <br /><br />
+              <div class="table_container">
+                <table id="tbl_jsk4120">
+                  <thead>
+                      <tr>
+                          <th>日時</th>
+                          <th>取引No</th>
+                          <th>商品/部門</th>
+                          <th>商品名/部門名</th>
+                          <th>数量</th>
+                          <th>売単価</th>
+                          <th>売価金額</th>
+                          <th>値引/割引</th>
+                          <th>取引金額</th>
+                          <th>店舗名</th>
+                          <th>店舗CD</th>
+                      </tr>
+                  </thead>
+                  <tbody id="body_jsk4120">
+                  </tbody>
+                </table>
+              </div>
+          </div> 
+
+          <div id="tpg_JSK" class="tabcontent">
+              <div class="parent">
+                <div class="blocline_left">
+                    <div><label for="txt_RANK_CD" class="input_small2"> ランク</label><input type="text" id="txt_RANK_CD" class="input_small"><label for="txt_RANK_CD" id="lbl_RANK_NM"></label></div>
+                    <div class="group_no_float">
+                      <div class="blocline_left" id="no_pad1"><label for="txt_SUM_TOTAL" class="input_small2"> 累計買上金額           </label><br /><input type="text" id="txt_SUM_TOTAL" class="input_small3" readonly>    </div> 
+                      <div class="blocline_left"><label for="txt_SUM_PROFIT" class="input_small2"> 累計粗利金額          </label><br /><input type="text" id="txt_SUM_PROFIT" class="input_small3" readonly>   </div>
+                      <div class="blocline_left"><label for="txt_SUM_POINT" class="input_small2"> 累計得点               </label><br /><input type="text" id="txt_SUM_POINT" class="input_small3" readonly>    </div>
+                      <div class="blocline_left"><label for="txt_SUM_CNT" class="input_small2"> 累計来店回数             </label><br /><input type="text" id="txt_SUM_CNT" class="input_small3" readonly>      </div>
+                    </div>
+                    <div class="group_no_float">
+                      <div class="blocline_left" id="no_pad2"><label for="txt_TOTAL" class="input_small2"> 当月買上金額               </label><br /><input type="text" id="txt_TOTAL" class="input_small3" readonly>        </div> 
+                      <div class="blocline_left"><label for="txt_PROFIT" class="input_small2"> 当月粗利金額              </label><br /><input type="text" id="txt_PROFIT" class="input_small3" readonly>       </div>
+                      <div class="blocline_left"><label for="txt_POINT" class="input_small2"> 当月得点                   </label><br /><input type="text" id="txt_POINT" class="input_small3" readonly>        </div>
+                      <div class="blocline_left"><label for="txt_VISIT_CNT" class="input_small2"> 当月来店回数           </label><br /><input type="text" id="txt_VISIT_CNT" class="input_small3" readonly>    </div>
+                    </div>
+                        <label for="txt_LAST_DATE" class="input_small2"> 最新取引日           </label><input type="text" id="txt_LAST_DATE" readonly>   <br />
+                        <label for="txt_WELLSET_DATE" class="input_small2"> 最終締処理日      </label><input type="text" id="txt_WELLSET_DATE" readonly><br />
+                        <label for="txt_NOW_BALANCE" class="input_small2"> 売掛残高           </label><input type="text" id="txt_NOW_BALANCE" readonly> <br />   
+                </div>
+                <div class="blocline_right">
+                  <label for="txt_JSK4110_STR"> 得点履歴 </label>      
+                  <input type="text" id="txt_JSK4110_STR" class="datepicker">
+                  <label for="txt_JSK4110_END"> ～</label>      
+                  <input type="text" id="txt_JSK4110_END" class="datepicker">
+                  <label for="txt_jsk4110_org_id"> 店舗CD </label>      
+                  <input type="text" id="txt_jsk4110_org_id" class="input_small">
+                  <div class="table_container">
+                    <table id="tbl_jsk4110">
+                      <thead>
+                          <tr>
+                              <th>日時</th>
+                              <th>取引No</th>
+                              <th>処理内容</th>
+                              <th>得点</th>
+                              <th>店舗名</th>
+                              <th >店舗CD</th>
+                          </tr>
+                      </thead>
+                      <tbody id="tb_jsk4110">
+                      </tbody>
+                    </table>
+                  </div>
+                </div>  
+              </div>
+          </div> 
+          <div id="bt_function">
+            <input type="text" id="txt_updins" hidden >
+            <button type="button" id="bt_updins" onclick="savedata()">登録</button>
+            <button type="button" id="bt_delete" onclick="deldata()">削除</button>
+          </div>
+        </div>
+    <script type="text/javascript">  
+
+        function crea_tbl_jsk4110(tbl_entry){
+            tbod =  document.getElementById("tb_jsk4110");
+            tbod.innerHTML = '';
+            old_account = -1;
+            for(i=0;i < tbl_entry.length;i++ ){
+                 var trow           = tbod.insertRow(i);
+                 var dsp_dt         = trow.insertCell(0);
+                 var account_no     = trow.insertCell(1);
+                 var dsp_nm         = trow.insertCell(2);
+                 var point         = trow.insertCell(3);
+                 var org_nm         = trow.insertCell(4);
+                 var org_id         = trow.insertCell(5);
+                 dsp_dt.innerHTML		= "";
+                 account_no.innerHTML           = "";
+                 point.innerHTML		= "";
+                 dsp_nm.innerHTML		= "";
+                 org_nm.innerHTML		= "";
+                 org_id.innerHTML		= ""; 
+                 if(tbl_entry[i].proc_date){ dsp_dt.innerHTML          = tbl_entry[i].proc_date.replace(/(\d{4})(\d{2})(\d{2})/g, '$1/$2/$3');}
+                 if(tbl_entry[i].trntime){ dsp_dt.innerHTML           += tbl_entry[i].trntime.replace(/(\d{2})(\d{2})(\d{2})/g, ' $1:$2:$3');}                    
+                 if(tbl_entry[i].account_no){ 
+                     if(tbl_entry[i].account_no != old_account) {
+                         account_no.innerHTML                          = ("0000" + tbl_entry[i].account_no).slice(-4);}
+                         old_account                                   = tbl_entry[i].account_no; }
+                 if(tbl_entry[i].organization_name){ org_nm.innerHTML  = tbl_entry[i].organization_name;}
+                 if(tbl_entry[i].sender){ org_id.innerHTML             = tbl_entry[i].sender;}
+                 if(tbl_entry[i].point_inc_dec){
+                    var strpoint_inc_dec =  tbl_entry[i].point_inc_dec;
+                    var n = strpoint_inc_dec.search(/[1-9]/);
+                    var val = strpoint_inc_dec.substr(n,1);
+                    if(tbl_entry[i].organization_id){point.innerHTML             = "  ";}
+                    switch(n){
+                        case 0:
+                            if(tbl_entry[i].point_detail01){point.innerHTML             = numberWithCommas(tbl_entry[i].point_detail01.split('.')[0]);}
+                            if(val == "1"){
+                                dsp_nm.innerHTML = "売上";
+                            }
+                            else if(val == "2"){
+                                dsp_nm.innerHTML = "返品";
+                            }
+                        case 1:
+                            if(tbl_entry[i].point_detail02){point.innerHTML             = numberWithCommas(tbl_entry[i].point_detail02.split('.')[0]);}
+                            if(val == "1"){
+                                dsp_nm.innerHTML = "得点増";
+                            }
+                            else if(val == "2"){
+                                dsp_nm.innerHTML = "得点減";
+                            }
+                        case 2:
+                            if(tbl_entry[i].point_detail03){point.innerHTML             = numberWithCommas(tbl_entry[i].point_detail03.split('.')[0]);}
+                            if(val == "1"){
+                                dsp_nm.innerHTML = "【取消】金券発行";
+                            }
+                            else if(val == "2"){
+                                dsp_nm.innerHTML = "金券発行";
+                            }
+                        case 3:
+                            if(tbl_entry[i].point_detail04){point.innerHTML             = numberWithCommas(tbl_entry[i].point_detail04.split('.')[0]);}
+                            if(val == "1"){
+                                dsp_nm.innerHTML = "【取消】景品交換";
+                            }
+                            else if(val == "2"){
+                                dsp_nm.innerHTML = "景品交換";
+                            }
+                        case 4:
+                            if(tbl_entry[i].point_detail05){point.innerHTML             = numberWithCommas(tbl_entry[i].point_detail05.split('.')[0]);}
+                            if(val == "1"){
+                                dsp_nm.innerHTML = "【取消】ポイント支払";
+                            }
+                            else if(val == "2"){
+                                dsp_nm.innerHTML = "ポイント支払";
+                            } 
+                        case 5:
+                            if(tbl_entry[i].point_detail06){point.innerHTML             = numberWithCommas(tbl_entry[i].point_detail06.split('.')[0]);}
+                            if(val == "1"){
+                                dsp_nm.innerHTML = "カード再発行";
+                            }
+                            else if(val == "2"){
+                                dsp_nm.innerHTML = "ポイント失効";
+                            }                          
+                    }
+                 }
+                 
+             }
+            
+        }
+        
+        function crea_tbl_jsk4120(tbl_entry){
+            tbod =  document.getElementById("body_jsk4120");
+            tbod.innerHTML = '';
+            old_account = -1;
+            for(i=0;i < tbl_entry.length;i++ ){
+                 var trow           = tbod.insertRow(i);
+                 var dsp_dt        = trow.insertCell(0);
+                 var account_no   = trow.insertCell(1);
+                 var dsp_cd       = trow.insertCell(2);
+                 var dsp_nm       = trow.insertCell(3);
+                 var amount       = trow.insertCell(4);
+                 var saleprice   = trow.insertCell(5);
+                 var saletotal   = trow.insertCell(6);
+                 var disctotal = trow.insertCell(7);
+                 var puretotal = trow.insertCell(8);
+                 var org_nm    = trow.insertCell(9);
+                 var org_id    = trow.insertCell(10);
+                 dsp_dt.innerHTML		= "";
+                 account_no.innerHTML           = "";
+                 dsp_cd.innerHTML		= "";
+                 dsp_nm.innerHTML		= "";
+                 amount.innerHTML		= "";
+                 saleprice.innerHTML		= "";
+                 saletotal.innerHTML		= "";
+                 disctotal.innerHTML		= "";
+                 puretotal.innerHTML		= "";
+                 org_nm.innerHTML		= "";
+                 org_id.innerHTML		= "";
+                 if(tbl_entry[i].proc_date){ dsp_dt.innerHTML          = tbl_entry[i].proc_date.replace(/(\d{4})(\d{2})(\d{2})/g, '$1/$2/$3');}
+                 if(tbl_entry[i].trntime){ dsp_dt.innerHTML           += tbl_entry[i].trntime.replace(/(\d{2})(\d{2})(\d{2})/g, ' $1:$2:$3');}                    
+                 if(tbl_entry[i].account_no){ 
+                     if(tbl_entry[i].account_no != old_account) {
+                         account_no.innerHTML                            = ("0000" + tbl_entry[i].account_no).slice(-4);}
+                         old_account                                     = tbl_entry[i].account_no;}
+                 if(tbl_entry[i].sect_sale_kbn == '1'){
+                     if(tbl_entry[i].sect_nm){ dsp_nm.innerHTML        = tbl_entry[i].sect_nm;}
+                     if(tbl_entry[i].sect_cd){ dsp_cd.innerHTML        = tbl_entry[i].sect_cd;}
+                 }
+                 else{
+                     if(tbl_entry[i].prod_nm){ dsp_nm.innerHTML        = tbl_entry[i].prod_nm;}
+                     if(tbl_entry[i].prod_cd){ dsp_cd.innerHTML        = tbl_entry[i].prod_cd;}                        
+                 }
+                 if(tbl_entry[i].amount){ amount.innerHTML             = tbl_entry[i].amount;}
+                 if(tbl_entry[i].saleprice){ saleprice.innerHTML       = numberWithCommas(tbl_entry[i].saleprice.split('.')[0]);}
+                 if(tbl_entry[i].saletotal){ saletotal.innerHTML       = numberWithCommas(tbl_entry[i].saletotal.split('.')[0]);}
+                 if(tbl_entry[i].disctotal){ disctotal.innerHTML       = numberWithCommas(tbl_entry[i].disctotal.split('.')[0]);}
+                 if(tbl_entry[i].puretotal){ puretotal.innerHTML       = numberWithCommas(tbl_entry[i].puretotal.split('.')[0]);}
+                 if(tbl_entry[i].organization_name){ org_nm.innerHTML  = tbl_entry[i].organization_name;}
+                 if(tbl_entry[i].organization_id){ org_id.innerHTML    = tbl_entry[i].organization_id;}
+            }            
+        }
+        
+        document.getElementById("txt_CUST_CD").addEventListener("keydown",function(e){
+           if(e.which == 13 || e.keycode == 13) {  
+               document.getElementById("txt_CUST_CD").blur();
+           }
+           else if(document.getElementById("txt_CUST_CD").value.length > 13){
+               document.getElementById("txt_CUST_CD").value = document.getElementById("txt_CUST_CD").value.substring(0,13);
+           }
+        }); 
+
+        document.getElementById("txt_CUST_CD").addEventListener("blur",function(){
+            icust_cd =  document.getElementById("txt_CUST_CD").value;
+            if (icust_cd !== ""){
+                if(!isNaN(icust_cd)){
+                    icust_cd = parseInt(icust_cd);
+                    icust_cd = ("0".repeat(c_size) + icust_cd).slice(-c_size);
+                    String(icust_cd);
+                    //console.log(smst0101list);
+                    document.getElementById("txt_CUST_CD").value = icust_cd ;
+                    //console.log("icust_cd: "+icust_cd);
+                    if(smst0101list.indexOf(icust_cd) !== -1 ){
+                        spath = window.location.href;
+                        spath = spath.split('?'); 
+                        spath = spath[0]+'?param=Customer/show&custcd='+icust_cd;
+                        window.location.replace(spath);
+                    }
+                    else { 
+                         //document.getElementById("bt_updins").removeAttribute("hidden");
+                         var allinput = document.getElementsByTagName ("INPUT");
+                         for(var i=0;i < allinput.length;i++){
+                             allinput[i].value="";
+                         }
+                         var allselect = document.getElementsByTagName ("SELECT");
+                         for(var i=0;i < allselect.length;i++){
+                             allselect[i].value=0;
+                         }
+                         var alllbl = document.getElementsByTagName ("LABEL");
+                         for(var i=0;i < alllbl.length;i++){
+                             if(alllbl[i].id){
+                                  alllbl[i].innerHTML="&nbsp;&nbsp;";
+                              }
+                          }
+                         var alltbody = document.getElementsByTagName ("TBODY");
+                         for(var i=0;i < alltbody.length;i++){
+                             if(alltbody[i].id){
+                                  alltbody[i].innerHTML="";
+                              }
+                         }
+                        txt_SEX.value = 5;
+                        document.getElementById("bt_function").removeAttribute("hidden");
+                        document.getElementById("txt_updins").value = "ins";                        
+                        document.getElementById("txt_MAX_CUST_CD").value =   +ptypmst0101_sd[0]["cust_cd"] +1;  
+                        document.getElementById("txt_CUST_CD").value     =   icust_cd; 
+                        today = new Date();
+                        document.getElementById("txt_INSDATE").value     =   today.getFullYear()+'/'+('0'+(today.getUTCMonth()+1)).slice(-2)+'/'+('00'+today.getUTCDate()).slice(-2)
+                        document.getElementById("lbl_INSDATETIME").innerHTML             =	"作成日時:"+ document.getElementById("txt_INSDATE").value;
+                        document.getElementById("lbl_UPDDATETIME").innerHTML             =	"更新日時:"+ document.getElementById("txt_INSDATE").value;
+                        document.getElementById("rbn_DESIG_PRICE_KBN0").checked = true;
+                        document.getElementById("rbn_CRED_IMPO_KBN0").checked = true;
+                        document.getElementById("rbn_FEES_RECE_KBN0").checked = true;                           
+                        document.getElementById("button1").removeAttribute("disabled");
+                        document.getElementById("button2").removeAttribute("disabled");
+                        document.getElementById("button3").removeAttribute("disabled");
+                        document.getElementById("button4").removeAttribute("disabled");
+                        document.getElementById("button5").removeAttribute("disabled");
+                        // show 1st tab
+                        evt = {};
+                        evt.target = {};
+                        evt.target.id = 'button1';
+                        openCity(evt, 'tpg_BASE_INFO');  
+                    }
+
+                }
+           }
+            else{
+                document.getElementById("txt_CUST_CD").value = "";
+                //document.getElementById("bt_updins").removeAttribute("hidden");                        
+                var allinput = document.getElementsByTagName ("INPUT");
+                for(var i=0;i < allinput.length;i++){
+                    allinput[i].value="";
+                }
+                var allselect = document.getElementsByTagName ("SELECT");
+                for(var i=0;i < allselect.length;i++){
+                    allselect[i].value=0;
+                }
+                var alllbl = document.getElementsByTagName ("LABEL");
+                for(var i=0;i < alllbl.length;i++){
+                    if(alllbl[i].id){
+                         alllbl[i].innerHTML="&nbsp;&nbsp;";
+                     }
+                 }
+                var alltbody = document.getElementsByTagName ("TBODY");
+                for(var i=0;i < alltbody.length;i++){
+                    if(alltbody[i].id){
+                         alltbody[i].innerHTML="";
+                     }
+                }
+               document.getElementById("bt_function").removeAttribute("hidden");        
+               document.getElementById("txt_MAX_CUST_CD").value =   +ptypmst0101_sd[0]["cust_cd"] +1;  
+               document.getElementById("txt_CUST_CD").value     =   icust_cd; 
+               today = new Date();
+               document.getElementById("txt_INSDATE").value     =   today.getFullYear()+'/'+today.getUTCMonth()+1+'/'+('00'+today.getUTCDate()).slice(-2);
+               document.getElementById("lbl_INSDATETIME").innerHTML             = "作成日時:"+ document.getElementById("txt_INSDATE").value;
+               document.getElementById("lbl_UPDDATETIME").innerHTML             = "更新日時:"+ document.getElementById("txt_INSDATE").value;
+               document.getElementById("rbn_DESIG_PRICE_KBN0").checked          = true;
+               document.getElementById("rbn_CRED_IMPO_KBN0").checked            = true;
+               document.getElementById("rbn_FEES_RECE_KBN0").checked            = true;                           
+               document.getElementById("button1").setAttribute("disabled", true);
+               document.getElementById("button2").setAttribute("disabled", true);
+               document.getElementById("button3").setAttribute("disabled", true);
+               document.getElementById("button4").setAttribute("disabled", true);
+               document.getElementById("button5").setAttribute("disabled", true);
+               document.getElementById("bt_function").setAttribute("hidden", true); 
+            }           
+            //size 13
+        });
+        
+        function savedata(){
+            if(!txt_CUST_NM.value){
+                alert('※顧客名(漢字)を入力してください');
+                txt_CUST_NM.focus();
+                return false;
+            }
+            if(!txt_TEL.value){
+                alert('※電話番号を入力してください。');
+                evt = {};
+                evt.target = {};
+                evt.target.id = 'button1';
+                openCity(evt, 'tpg_BASE_INFO');
+                txt_TEL.focus();
+                return false;
+            }else if(txt_TEL.value.replace(/\D/g,'').length < 4){
+                alert('※数字を4桁以上入力してください。');
+                evt = {};
+                evt.target = {};
+                evt.target.id = 'button1';
+                openCity(evt, 'tpg_BASE_INFO');                
+                txt_TEL.focus();
+                return false;                
+            }
+            if(!txt_CUST_SUMDAY.value){
+                alert('※顧客締日を入力してください(1～28,99)。');
+                evt = {};
+                evt.target = {};
+                evt.target.id = 'button3';
+                openCity(evt, 'tpg_CUST_PRO');                
+                txt_CUST_SUMDAY.focus();
+                return false;
+            }else if(txt_CUST_SUMDAY.value > 28){
+                txt_CUST_SUMDAY.value = 99;
+            }            
+            var data = new Object;
+            allinput = document.getElementsByTagName ("INPUT");
+            for(var i=0;i < allinput.length;i++){
+                if(allinput[i].id !== ""){
+                    if(allinput[i].id.indexOf("BIRTH") !== -1 || allinput[i].id.indexOf("MEMORIAL") !== -1 ){
+                       data[allinput[i].id.substring(4)] = allinput[i].value.replace(/\//g,'');
+                    }else{
+                        data[allinput[i].id.substring(4)] = allinput[i].value; 
+                    }
+                }
+            }
+            var allselect = document.getElementsByTagName ("SELECT");
+            for(var i=0;i < allselect.length;i++){
+               if(allselect[i].id !== ""){
+                   data[allselect[i].id.substring(4)] = allselect[i].value; 
+                }
+            }
+            if(document.getElementById("rbn_FEES_RECE_KBN0").checked){
+                data.CRED_IMPO_KBN    = 0;
+            }
+            else{
+                data.CRED_IMPO_KBN    = 1;
+            }
+            if(document.getElementById("rbn_CRED_IMPO_KBN0").checked){
+                data.FEES_RECE_KBN    = 0;
+            }
+            else{
+                data.FEES_RECE_KBN    = 1;
+            }
+            if(document.getElementById("rbn_DESIG_PRICE_KBN0").checked){
+                data.DESIG_PRICE_KBN    = 0;
+            }
+            else{
+                data.DESIG_PRICE_KBN    = 1;
+            }            
+            //console.log(data);
+            var path = 'index.php?param=Customer/addInput&home=1';
+
+            setDataForAjax( data, path,'ajaxScreenUpdate' );
+        }
+        function deldata(){
+            if(ptypjsk4120.length > 0){
+                if (!confirm("既に売上が存在します。削除してもよろしですか。")) {
+                    return;
+                }
+            }
+            //console.log("deleted");
+            icust_cd    = document.getElementById("txt_CUST_CD").value;
+            spath       = window.location.href;
+            spath       = spath.split('?'); 
+            spath       = spath[0]+'?param=Customer/del&custcd='+icust_cd;
+            window.location.replace(spath);             
+
+        }
+        function searchdata(){
+            spath       = window.location.href;
+            spath       = spath.split('?'); 
+            spath       = spath[0]+'?param=Customer/search';          
+            window.location.replace(spath);
+        }
+        function addzero(e){
+            elem = document.getElementById(e.target.id);
+            elem.value = ('0000'+e.target.value).slice(-4);
+        }
+        document.getElementById("txt_JSK4120_STR").addEventListener("keydown",function(e){
+           if(e.which == 13 || e.keycode == 13) {  
+               document.getElementById("txt_JSK4120_STR").blur();
+           }
+        });
+        document.getElementById("txt_JSK4120_STR").addEventListener("blur",sort_jsk4120);
+        
+        document.getElementById("txt_JSK4120_END").addEventListener("keydown",function(e){
+           if(e.which == 13 || e.keycode == 13) {  
+               document.getElementById("txt_JSK4120_END").blur();
+           }
+        });
+        document.getElementById("txt_JSK4120_END").addEventListener("blur",sort_jsk4120); 
+        
+        document.getElementById("txt_org_id").addEventListener("keydown",function(e){
+           if(e.which == 13 || e.keycode == 13) {  
+               document.getElementById("txt_org_id").blur();
+           }
+        });
+        document.getElementById("txt_org_id").addEventListener("change",sort_jsk4120);
+        
+        document.getElementById("txt_JSK4110_STR").addEventListener("keydown",function(e){
+           if(e.which == 13 || e.keycode == 13) {  
+               document.getElementById("txt_JSK4110_STR").blur();
+           }
+        });
+        document.getElementById("txt_JSK4110_STR").addEventListener("blur",sort_jsk4110);
+        
+        document.getElementById("txt_JSK4110_END").addEventListener("keydown",function(e){
+           if(e.which == 13 || e.keycode == 13) {  
+               document.getElementById("txt_JSK4110_END").blur();
+           }
+        });
+        document.getElementById("txt_JSK4110_END").addEventListener("blur",sort_jsk4110); 
+        
+        document.getElementById("txt_jsk4110_org_id").addEventListener("keydown",function(e){
+           if(e.which == 13 || e.keycode == 13) {  
+               document.getElementById("txt_jsk4110_org_id").blur();
+           }
+        });
+        document.getElementById("txt_jsk4110_org_id").addEventListener("change",sort_jsk4110);        
+        
+        document.getElementById("txt_MAX_CUST_CD").value        =       +ptypmst0101_sd[0]["cust_cd"] +1;
+        
+        if(ptypmst0101){
+            document.getElementById("button1").removeAttribute("disabled");
+            document.getElementById("button2").removeAttribute("disabled");
+            document.getElementById("button3").removeAttribute("disabled");
+            document.getElementById("button4").removeAttribute("disabled");
+            document.getElementById("button5").removeAttribute("disabled");
+            if(ptypmst0101["tel4"]){document.getElementById("txt_TEL4").value                               =	ptypmst0101["tel4"];}
+            if(ptypmst0101["shop_cd"]){document.getElementById("txt_SHOP_CD").value                         =	ptypmst0101["shop_cd"];}
+            //if(ptypmst0101["staff_cd"]){document.getElementById("txt_STAFF_CD").value                       =	ptypmst0101["staff_cd"];}
+            if(ptypmst0101["insdatetime"]){document.getElementById("txt_INSDATE").value                     =	ptypmst0101["insdatetime"].substring(0,10).replace(/-/g,'/');}
+            if(ptypmst0101["cust_kn"]){document.getElementById("txt_CUST_KN").value                         =	ptypmst0101["cust_kn"];}
+            if(ptypmst0101["cust_nm"]){document.getElementById("txt_CUST_NM").value                         =	ptypmst0101["cust_nm"];}
+            if(ptypmst0101["cust_cd"]){document.getElementById("txt_CUST_CD").value                         =	ptypmst0101["cust_cd"];}
+            if(ptypmst0101["zip"]){document.getElementById("txt_ZIP").value                                 =	ptypmst0101["zip"];}
+            if(ptypmst0101["addr1"]){document.getElementById("txt_ADDR1").value                             =	ptypmst0101["addr1"];}
+            if(ptypmst0101["addr2"]){document.getElementById("txt_ADDR2").value                             =	ptypmst0101["addr2"];}
+            if(ptypmst0101["tel"]){document.getElementById("txt_TEL").value                                 =	ptypmst0101["tel"];}
+            if(ptypmst0101["fax"]){document.getElementById("txt_FAX").value                                 =	ptypmst0101["fax"];}
+            if(ptypmst0101["email"]){document.getElementById("txt_EMAIL").value                             =	ptypmst0101["email"];}
+            if(ptypmst0101["imode"]){document.getElementById("txt_IMODE").value                             =	ptypmst0101["imode"];}
+            if(ptypmst0101["sex"]){document.getElementById("txt_SEX").value                                 =	ptypmst0101["sex"];}else{document.getElementById("txt_SEX").value = 5;}
+            if(ptypmst0101["dissenddm"]){document.getElementById("txt_DISSENDDM").value                     =	ptypmst0101["dissenddm"];}
+            if(ptypmst0101["dissendemail"]){document.getElementById("txt_DISSENDEMAIL").value               =	ptypmst0101["dissendemail"];}
+            if(ptypmst0101["dissendimode"]){document.getElementById("txt_DISSENDIMODE").value               =	ptypmst0101["dissendimode"];}
+            if(ptypmst0101["spcl_saleprice_kbn"]){document.getElementById("txt_SPCL_SALEPRICE_KBN").value   =	ptypmst0101["spcl_saleprice_kbn"];}        
+            if(ptypmst0101["cust_sumday"]){document.getElementById("txt_CUST_SUMDAY").value                 =	ptypmst0101["cust_sumday"];}
+            if(ptypmst0101["option_flag"]){document.getElementById("txt_OPTION_FLG").value                  =	ptypmst0101["option_flag"];}
+            if(ptypmst0101["cust_res_cd1"]){document.getElementById("txt_VIP_CD").value                     =	ptypmst0101["cust_res_cd1"];}
+            if(ptypmst0101["note1"]){document.getElementById("txt_MEMO1").value                             =	ptypmst0101["note1"];}
+            if(ptypmst0101["note2"]){document.getElementById("txt_MEMO2").value                             =	ptypmst0101["note2"];}
+            if(ptypmst0101["note3"]){document.getElementById("txt_MEMO3").value                             =	ptypmst0101["note3"];}
+            if(ptypmst0101["note4"]){document.getElementById("txt_MEMO4").value                             =	ptypmst0101["note4"];}
+            if(ptypmst0101["note5"]){document.getElementById("txt_MEMO5").value                             =	ptypmst0101["note5"];}
+            if(ptypmst0101["cust_type_cd"]){document.getElementById("txt_CUST_TYPECD").value                =	ptypmst0101["cust_type_cd"];}
+            if(ptypmst0101["area_cd01"]){document.getElementById("txt_AREA_CD01").value                     =	ptypmst0101["area_cd01"];}
+            if(ptypmst0101["area_cd02"]){document.getElementById("txt_AREA_CD02").value                     =	ptypmst0101["area_cd02"];}
+            if(ptypmst0101["cust_b_cd01"]){document.getElementById("txt_CUST_B_CD01").value                  =	ptypmst0101["cust_b_cd01"];}
+            if(ptypmst0101["cust_b_cd02"]){document.getElementById("txt_CUST_B_CD02").value                  =	ptypmst0101["cust_b_cd02"];}
+            if(ptypmst0101["cust_b_cd03"]){document.getElementById("txt_CUST_B_CD03").value                  =	ptypmst0101["cust_b_cd03"];}
+            if(ptypmst0101["cust_b_cd04"]){document.getElementById("txt_CUST_B_CD04").value                  =	ptypmst0101["cust_b_cd04"];}
+            if(ptypmst0101["cust_b_cd05"]){document.getElementById("txt_CUST_B_CD05").value                  =	ptypmst0101["cust_b_cd05"];}
+            if(ptypmst0101["cust_b_cd06"]){document.getElementById("txt_CUST_B_CD06").value                  =	ptypmst0101["cust_b_cd06"];}
+            if(ptypmst0101["cust_b_cd07"]){document.getElementById("txt_CUST_B_CD07").value                  =	ptypmst0101["cust_b_cd07"];}
+            if(ptypmst0101["cust_b_cd08"]){document.getElementById("txt_CUST_B_CD08").value                  =	ptypmst0101["cust_b_cd08"];}
+            if(ptypmst0101["cust_b_cd09"]){document.getElementById("txt_CUST_B_CD09").value                  =	ptypmst0101["cust_b_cd09"];}
+            if(ptypmst0101["cust_b_cd10"]){document.getElementById("txt_CUST_B_CD10").value                 =	ptypmst0101["cust_b_cd10"];}
+            if(ptypmst0101["insdatetime"]){document.getElementById("lbl_INSDATETIME").innerHTML             =	"作成日時:"+ptypmst0101["insdatetime"].split('.')[0].replace(/-/g,'/');}
+            if(ptypmst0101["upddatetime"]){document.getElementById("lbl_UPDDATETIME").innerHTML             =	"更新日時:"+ptypmst0101["upddatetime"].split('.')[0].replace(/-/g,'/');}
+            if(ptypmst0101["cust_rank_cd"]){document.getElementById("txt_RANK_CD").value                    =	ptypmst0101["cust_rank_cd"];}
+            if(ptypmst8401.length > 0){
+                if(ptypmst8401[0].cust_rank_nm){document.getElementById("lbl_RANK_NM").innerHTML            =	ptypmst8401[0].cust_rank_nm;}
+            }
+            else {document.getElementById("lbl_RANK_NM").innerHTML = "&nbsp;&nbsp;"}
+            document.getElementById("txt_updins").value                                                     =   "upd";
+            document.getElementById("bt_function").removeAttribute("hidden");
+            if(ptypmst0101["birth"]){
+                var dbirth = ptypmst0101["birth"].replace(/(\d{4})(\d{2})(\d{2})/g, '$1/$2/$3');
+                document.getElementById("txt_BIRTH").value                                                  =	dbirth;
+                dbirth=dbirth.replace(/\//g,'-');
+                dbirth= new Date(dbirth);
+                today = new Date();
+                var res = today.getFullYear() - dbirth.getFullYear() ;
+                if(today.getMonth() < dbirth.getMonth()) {
+                  res--;
+                }
+                if(today.getMonth() === dbirth.getMonth() && today.getDate() < dbirth.getDate()) {
+                  res--;
+                }
+                document.getElementById("lbl_BIRTH1").innerHTML                                     =	res+" 才";
+            }
+            if(ptypmst0101["birth_month"]){document.getElementById("txt_BIRTH_MON").value           =	ptypmst0101["birth_month"];}
+            if(ptypmst0101["memorial"]){document.getElementById("txt_MEMORIAL").value               =	ptypmst0101["memorial"].replace(/(\d{4})(\d{2})(\d{2})/g, '$1/$2/$3');}
+            if(ptypmst0101["fees_rece_kbn"]){
+                document.getElementById("rbn_FEES_RECE_KBN"+ptypmst0101["fees_rece_kbn"]).checked       =   true;
+            }
+            if(ptypmst0101["cred_impo_kbn"]){
+                document.getElementById("rbn_CRED_IMPO_KBN"+ptypmst0101["cred_impo_kbn"]).checked       =   true;
+            } 
+            if(ptypmst0101["desig_price_kbn"]){
+                document.getElementById("rbn_DESIG_PRICE_KBN"+ptypmst0101["desig_price_kbn"]).checked   =   true;
+            }              
+            
+            if(ptypmst0401.length > 0){document.getElementById("lbl_CUST_TYPENM").innerHTML         =   ptypmst0401[0]["cust_type_nm"];}
+            if(ptypmst0501["area_nm1"]){document.getElementById("lbl_AREA_NM01").innerHTML          =	ptypmst0501["area_nm1"];}
+            if(ptypmst0501["area_nm2"]){document.getElementById("lbl_AREA_NM02").innerHTML          =	ptypmst0501["area_nm2"];}
+            if(ptypmst0701.cust_b_nm1){document.getElementById("lbl_CUST_B_NM1").innerHTML          =	ptypmst0701.cust_b_nm1;}
+            if(ptypmst0701.cust_b_nm2){document.getElementById("lbl_CUST_B_NM2").innerHTML          =	ptypmst0701.cust_b_nm2;}
+            if(ptypmst0701.cust_b_nm3){document.getElementById("lbl_CUST_B_NM3").innerHTML          =	ptypmst0701.cust_b_nm3;}
+            if(ptypmst0701.cust_b_nm4){document.getElementById("lbl_CUST_B_NM4").innerHTML          =	ptypmst0701.cust_b_nm4;}
+            if(ptypmst0701.cust_b_nm5){document.getElementById("lbl_CUST_B_NM5").innerHTML          =	ptypmst0701.cust_b_nm5;}
+            if(ptypmst0701.cust_b_nm6){document.getElementById("lbl_CUST_B_NM6").innerHTML          =	ptypmst0701.cust_b_nm6;}
+            if(ptypmst0701.cust_b_nm7){document.getElementById("lbl_CUST_B_NM7").innerHTML          =	ptypmst0701.cust_b_nm7;}
+            if(ptypmst0701.cust_b_nm8){document.getElementById("lbl_CUST_B_NM8").innerHTML          =	ptypmst0701.cust_b_nm8;}
+            if(ptypmst0701.cust_b_nm9){document.getElementById("lbl_CUST_B_NM9").innerHTML          =	ptypmst0701.cust_b_nm9;}
+            if(ptypmst0701.cust_b_nm10){document.getElementById("lbl_CUST_B_NM10").innerHTML        =	ptypmst0701.cust_b_nm10;}            
+            if(ptypmst6101){
+                var famselect;
+                for (var i=1; i<=8; i++){
+                    famselect=document.getElementById('cmb_FAM_CD'+i);
+                    opt=document.createElement("option");
+                    for( var j=0; j < ptypmst6101.length; j++){
+                        opt=document.createElement("option");
+                        opt.value   = ptypmst6101[j].relation_cd;
+                        opt.text    = ptypmst6101[j].relation_nm;
+                        famselect.options.add(opt,null);
+                    }
+                    if (ptypmst0103[i-1] ){
+                        document.getElementById('cmb_FAM_CD'+i).value            = ptypmst0103[i-1].fam_cd;
+                        document.getElementById("txt_FAM_NM"+i).value            = ptypmst0103[i-1].fam_nm;
+                        document.getElementById("txt_FAM_KN"+i).value            = ptypmst0103[i-1].fam_kn;
+                        document.getElementById("txt_FAM_SEX"+i).value           = ptypmst0103[i-1].sex;                       
+                        document.getElementById("txt_BIRTH_MON"+i).value       = ptypmst0103[i-1].birth_month;
+                        if(ptypmst0103[i-1].birth){
+                            var dbirth = ptypmst0103[i-1].birth.replace(/(\d{4})(\d{2})(\d{2})/g, '$1/$2/$3');
+                            document.getElementById("txt_BIRTH"+i).value             = dbirth;
+                            dbirth=dbirth.replace(/\//g,'-');
+                            dbirth= new Date(dbirth);
+                            today = new Date();
+                            var res = today.getFullYear() - dbirth.getFullYear() ;
+                            if(today.getMonth() < dbirth.getMonth()) {
+                              res--;
+                            }
+                            if(today.getMonth() === dbirth.getMonth() && today.getDate() < dbirth.getDate()) {
+                              res--;
+                            }
+                        }else{
+                            res = '　';
+                        }
+                       document.getElementById("lbl_AGE"+i).innerHTML       = res;
+                   }
+                }
+            }
+            if(ptypmst0601.length > 0){
+                for(i=0;i < ptypmst0601.length;i++ ){
+                    var table = document.getElementById("staff_data");
+                    var row = table.insertRow(-1);
+                    var cell1 = row.insertCell(0);
+                    var cell2 = row.insertCell(1);
+                    var cell3 = row.insertCell(2);
+                    cell1.innerHTML = ptypmst0601[i].organization_name;
+                    cell2.innerHTML = ptypmst0601[i].staff_cd;
+                    cell3.innerHTML = ptypmst0601[i].staff_nm;
+                }
+                
+            }
+            if(ptypjsk4110.length > 0){
+               crea_tbl_jsk4110(ptypjsk4110); 
+            }
+            if(ptypjsk4120.length > 0){
+               tbod =  document.getElementById("body_jsk4120");
+               tbod.innerHTML = '';
+               old_account = -1;
+               for(i=0;i < ptypjsk4120.length;i++ ){
+                    var trow         = tbod.insertRow(i);
+                    var dsp_dt       = trow.insertCell(0);
+                    var account_no   = trow.insertCell(1);
+                    var dsp_cd       = trow.insertCell(2);
+                    var dsp_nm       = trow.insertCell(3);
+                    var amount       = trow.insertCell(4);
+                    var saleprice    = trow.insertCell(5);
+                    var saletotal    = trow.insertCell(6);
+                    var disctotal    = trow.insertCell(7);
+                    var puretotal    = trow.insertCell(8);
+                    var org_nm       = trow.insertCell(9);
+                    var org_id       = trow.insertCell(10);
+                    dsp_dt.innerHTML		= "";
+                    account_no.innerHTML	= "";
+                    dsp_cd.innerHTML		= "";
+                    dsp_nm.innerHTML		= "";
+                    amount.innerHTML		= "";
+                    saleprice.innerHTML		= "";
+                    saletotal.innerHTML		= "";
+                    disctotal.innerHTML		= "";
+                    puretotal.innerHTML		= "";
+                    org_nm.innerHTML		= "";
+                    org_id.innerHTML		= "";
+                    if(ptypjsk4120[i].proc_date){ dsp_dt.innerHTML          = ptypjsk4120[i].proc_date.replace(/(\d{4})(\d{2})(\d{2})/g, '$1/$2/$3');}
+                    if(ptypjsk4120[i].trntime){ dsp_dt.innerHTML           += ptypjsk4120[i].trntime.replace(/(\d{2})(\d{2})(\d{2})/g, ' $1:$2:$3');}                    
+                    if(ptypjsk4120[i].account_no){ 
+                        if(ptypjsk4120[i].account_no != old_account) {
+                            account_no.innerHTML                            = ("0000" + ptypjsk4120[i].account_no).slice(-4);}}
+                    old_account                                             = ptypjsk4120[i].account_no;
+                    if(ptypjsk4120[i].sect_sale_kbn == '1'){
+                        if(ptypjsk4120[i].sect_nm){ dsp_nm.innerHTML        = ptypjsk4120[i].sect_nm;}
+                        if(ptypjsk4120[i].sect_cd){ dsp_cd.innerHTML        = ptypjsk4120[i].sect_cd;}
+                    }
+                    else{
+                        if(ptypjsk4120[i].prod_nm){ dsp_nm.innerHTML        = ptypjsk4120[i].prod_nm;}
+                        if(ptypjsk4120[i].prod_cd){ dsp_cd.innerHTML        = ptypjsk4120[i].prod_cd;}                        
+                    }
+                    if(ptypjsk4120[i].amount){ amount.innerHTML             = ptypjsk4120[i].amount;}
+                    if(ptypjsk4120[i].saleprice){ saleprice.innerHTML       = numberWithCommas(ptypjsk4120[i].saleprice.split('.')[0]);}
+                    if(ptypjsk4120[i].saletotal){ saletotal.innerHTML       = numberWithCommas(ptypjsk4120[i].saletotal.split('.')[0]);}
+                    if(ptypjsk4120[i].disctotal){ disctotal.innerHTML       = numberWithCommas(ptypjsk4120[i].disctotal.split('.')[0]);}
+                    if(ptypjsk4120[i].puretotal){ puretotal.innerHTML       = numberWithCommas(ptypjsk4120[i].puretotal.split('.')[0]);}
+                    if(ptypjsk4120[i].organization_name){ org_nm.innerHTML  = ptypjsk4120[i].organization_name;}
+                    if(ptypjsk4120[i].organization_id){ org_id.innerHTML    = ptypjsk4120[i].organization_id;}
+               }
+            }
+            if(ptypjsk4130.length > 0){
+                if(ptypjsk4130[0].sum_total){document.getElementById("txt_SUM_TOTAL").value         = numberWithCommas(ptypjsk4130[0].sum_total.split('.')[0]);}
+                if(ptypjsk4130[0].sum_profit){document.getElementById("txt_SUM_PROFIT").value       = numberWithCommas(ptypjsk4130[0].sum_profit.split('.')[0]);}
+                if(ptypjsk4130[0].sum_point){document.getElementById("txt_SUM_POINT").value         = numberWithCommas(ptypjsk4130[0].sum_point);}
+                if(ptypjsk4130[0].sum_cnt){document.getElementById("txt_SUM_CNT").value             = numberWithCommas(ptypjsk4130[0].sum_cnt);}
+                if(ptypjsk4130[0].last_date){document.getElementById("txt_LAST_DATE").value         = ptypjsk4130[0].last_date.replace(/(\d{4})(\d{2})(\d{2})/g, '$1/$2/$3');}
+                if(ptypjsk4130[0].wellset_date){document.getElementById("txt_WELLSET_DATE").value   = ptypjsk4130[0].wellset_date.replace(/(\d{4})(\d{2})(\d{2})/g, '$1/$2/$3');}
+                if(ptypjsk4130[0].now_balance){document.getElementById("txt_NOW_BALANCE").value     = numberWithCommas(ptypjsk4130[0].now_balance.split('.')[0]);}
+            }
+            if(ptypjsk4140.length > 0 ){
+                if(ptypjsk4140[0].total){document.getElementById("txt_TOTAL").value                 = numberWithCommas(ptypjsk4140[0].total.split('.')[0]);}
+                if(ptypjsk4140[0].profit){document.getElementById("txt_PROFIT").value               = numberWithCommas(ptypjsk4140[0].profit.split('.')[0]);}
+                if(ptypjsk4140[0].cust_point){document.getElementById("txt_POINT").value            = numberWithCommas(ptypjsk4140[0].cust_point.split('.')[0]);}
+                if(ptypjsk4140[0].visit_cnt){document.getElementById("txt_VISIT_CNT").value         = numberWithCommas(ptypjsk4140[0].visit_cnt);}
+            }
+            // show 1st tab
+            evt = {};
+            evt.target = {};
+            evt.target.id = 'button1';
+            openCity(evt, 'tpg_BASE_INFO');            
+        }
+        if(document.getElementById("txt_CUST_CD").value == ""){
+            document.getElementById("bt_function").setAttribute("hidden", true);
+        }
+    </script>        
+  </body>
+</html>

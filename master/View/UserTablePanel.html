@@ -1,0 +1,118 @@
+<?php
+    /**
+     * @file        従業員マスタ画面(View)
+     * @author      USE K.Narita
+     * @date        2016/06/13
+     * @version     1.00
+     * @note        従業員マスタ画面
+     */
+?>
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-ajax">
+
+                <!-- PageMoveArea -->
+                <?php include("../FwCommon/View/PagingArea.php"); ?>
+
+                <!-- serchListArea -->
+            <!-- 2016/09/19 Y.Sugou -->
+            <?php if( $isScrollBar ) { ?>
+                <div class="serchListArea" style=" clear:both; width:99%; margin:0px auto !important; overflow-y:auto; height:25px;">
+            <?php } else { ?>
+                <div class="serchListArea" style=" clear:both; width:99%; margin:5px auto !important;">
+            <?php } ?>
+            <!-- ---------------------- -->
+                    <table>
+                        <tbody>
+                            <tr>
+                                <th width="37px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?></u><?php hsc($headerArray['userNoSortMark']); ?></span></th><!-- No -->
+                                <th width="50px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0849')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0849')); ?></u><?php hsc($headerArray['userStateSortMark']); ?></span></th><!-- 状態 -->
+                                <th width="70px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0871')); ?>');"><u>在籍状況</u><?php hsc($headerArray['userEnrollmentSortMark']); ?></span></th><!-- 在籍状況 -->
+                                <th width="62px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0872')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0872')); ?></u><?php hsc($headerArray['userEmployeesNoSortMark']); ?></span></th><!-- 従業員No -->
+                                <th width="87px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0873')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0873')); ?></u><?php hsc($headerArray['userNameSortMark']); ?></span></th><!-- 従業員姓名 -->
+                                <!--<th width="87px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0874')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0874')); ?></u><?php hsc($headerArray['userTelSortMark']); ?><br>携帯電話</span></th><!-- 電話番号 -->
+                                <th width="62px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?>');"><u>組織</u><?php hsc($headerArray['userAbbreviatedSortMark']); ?></span></th><!-- 組織名 -->
+                                <th width="50px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0860')); ?>');"><u>役職</u><?php hsc($headerArray['userPositionSortMark']); ?></span></th><!-- 役職名 -->
+                                <th width="62px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0861')); ?>');"><u>雇用形態</u><?php hsc($headerArray['userEmploymentSortMark']); ?></span></th><!-- 雇用形態名 -->
+                                <th width="74px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0862')); ?>');"><u>セクション</u><?php hsc($headerArray['userSectionSortMark']); ?></span></th><!-- セクション名 -->
+                                <th width="70px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0875')); ?>');"><u>賃金形態</u><?php hsc($headerArray['userWageFormSortMark']); ?></span></th><!-- 賃金形態 -->
+                                <th width="62px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0876')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0876')); ?></u><?php hsc($headerArray['userBaseSalarySortMark']); ?></span></th><!-- 基本給 -->
+                                <th width="50px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0877')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0877')); ?></u><?php hsc($headerArray['userHourlyWageSortMark']); ?></span></th><!-- 時給 -->
+                                <th width="74px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0878')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0878')); ?></u><?php hsc($headerArray['userHireDateSortMark']); ?></span></th><!-- 入社日 -->
+                                <th width="74px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0879')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0879')); ?></u><?php hsc($headerArray['userLeavingDateSortMark']); ?></span></th><!-- 退職日 -->
+                                <th width="74px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0853')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0853')); ?></u><?php hsc($headerArray['userDateStartSortMark']); ?></span></th><!-- 適用開始日 -->
+                                <th width="62px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0880')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0880')); ?></u><?php hsc($headerArray['userApprovalSortMark']); ?></span></th><!-- 承認組織 -->
+                                <th width="74px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0881')); ?>');"><u>セキュリティ</u><?php hsc($headerArray['userSecuritySortMark']); ?></span></th><!-- セキュリティ名 -->
+                                <th width="99px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0892')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0892')); ?></u><?php hsc($headerArray['userCommentSortMark']); ?></span></th><!-- コメント -->
+                            </tr>
+                </table>
+            <?php if( $isScrollBar ) { ?>
+                </div>
+                <div class="serchListArea" style="width:99%; margin: 0px auto; overflow-y:auto; height:400px; !important;">
+            <?php } ?>
+                <table id="nameTable" style="background-color: #ffffff">
+                            <?php foreach($userList as $user) { ?>
+                                <?php $user_no++; ?>
+                                <?php if(!$userNoSortFlag) { ?>
+                                    <?php $display_no++; ?>
+                                <?php } ?>
+                                <tr>
+                                    <td align="right" style="width:37px;"><?php hsc($display_no); ?></td>
+                                    <td align="center" style="width:50px;"><?php hsc($user['eff_code']); ?></td>
+                                    <td align="center" style="width:70px;"><?php hsc($user['status']); ?></td>
+                                    <td style="width:62px;"><?php hsc($user['employees_no']); ?></td>
+                                    <?php 
+                                        if(!empty($user['updateDisabled'])) 
+                                        {
+                                            $isUpdateDisabled = 1;
+                                        }
+                                        else
+                                        {
+                                            $isUpdateDisabled = 0;
+                                        }
+                                    ?>
+                                    <td style="width:87px;"><span onClick="editPanelTransition(<?php hsc($user['user_detail_id']); ?>, <?php hsc($isUpdateDisabled); ?>)"><a href="#"><?php hsc($user['user_name']); ?></a></span></td>
+                                    <!--<td><?php hsc($user['tel']); ?><br><?php hsc($user['cellphone']); ?></td>-->
+                                    <td style="width:62px;"><?php hsc($user['abbreviated_name']); ?></td>
+                                    <td style="width:50px;"><?php hsc($user['position_name']); ?></td>
+                                    <td style="width:62px;"><?php hsc($user['employment_name']); ?></td>
+                                    <td style="width:74px;"><?php hsc($user['section_name']); ?></td>
+                                    <td style="width:70px;"><?php hsc($user['wage_form_name']); ?></td>
+                                    <?php if(!empty($user['base_salary'])) { ?>
+                                        <?php $baseSalaryComma = number_format($user['base_salary']); ?>
+                                        <?php $yenMark = "円"; ?>
+                                    <?php } else { ?>
+                                        <?php $baseSalaryComma = ""; ?>
+                                        <?php $yenMark = ""; ?>
+                                    <?php } ?>
+                                    <td align="right" style="width:62px;"><?php hsc($baseSalaryComma); ?><?php hsc($yenMark); ?></td>
+                                    <?php if(!empty($user['hourly_wage'])) { ?>
+                                        <?php $hourlyWageComma = number_format($user['hourly_wage']); ?>
+                                        <?php $yenMark = "円"; ?>
+                                    <?php } else { ?>
+                                        <?php $hourlyWageComma = ""; ?>
+                                        <?php $yenMark = ""; ?>
+                                    <?php } ?>
+                                    <td align="right" style="width:50px;"><?php hsc($hourlyWageComma); ?><?php hsc($yenMark); ?></td>
+                                    <td align="center" style="width:74px;"><?php hsc(str_replace("-", "/", substr($user['hire_date'], 0 , 10))); ?></td>
+                                    <td align="center" style="width:74px;"><?php hsc(str_replace("-", "/", substr($user['leaving_date'], 0 , 10))); ?></td>
+                                    <td align="center" style="width:74px;"><?php hsc(str_replace("-", "/", substr($user['application_date_start'], 0 , 10))); ?></td>
+                                    <td style="width:62px;">
+                                        <?php $frontBracesDel = str_replace( "{", "", $user['approvallist']); ?>
+                                        <?php $backBracesDel = str_replace( "}", "", $frontBracesDel); ?>
+                                        <?php $approvalList = explode ( ",", $backBracesDel); ?>
+                                        <?php foreach($approvalList as $approval) { ?>
+                                            <?php hsc($approval); ?><br>
+                                        <?php } ?>
+                                    </td>
+                                    <td style="width:74px;"><?php hsc($user['security_name']); ?></td>
+                                    <td style="width:99px;"><?php hsc($user['user_comment']); ?></td>
+                                </tr>
+                                <?php if($userNoSortFlag) { ?>
+                                      <?php $display_no--; ?>
+                                <?php } ?>
+                            <?php } ?>
+                        </tbody>
+                    </table>
+                </div><!-- /.serchListArea -->
+           </div><!-- /.jquery-replace-ajax -->

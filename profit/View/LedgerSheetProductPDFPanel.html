@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>商品検索一覧</title>
+
+    <STYLE type="text/css">
+        html,body{width:100%;height:100%;}
+        header{width:100%;height:55px;}
+        main{width:100%;height:580px;}
+        footer{width:100%;height:25px;position:absolute;bottom:0;}
+        .barcode {
+            padding: 1.5mm;
+            margin: 0;
+            vertical-align: top;
+            color: #000044;
+        }
+        .barcodecell {
+            text-align: center;
+            vertical-align: middle;
+        }
+    </STYLE>
+</head>
+<body>
+<!--<div style="page-break-before: always;">-->
+    <div>
+    <header>
+        <div align="left" style="font-style:oblique; line-height: 5px;">
+            <h1><span>商品検索一覧</span></h1>
+        </div>
+        <table style="border-bottom:solid 3px #000000;line-height:25px;font-size:28px;">
+            <tr>
+                <th align="left" style="width:250px;font-style:oblique;">商品CD</th>
+                <th align="left" style="width:250px;font-style:oblique;">品名(カナ)</th>
+                <th align="left" style="width:120px;font-style:oblique;">部門CD</th>
+                <th align="left" style="width:120px;font-style:oblique;">部門名</th>
+                <th align="left" style="width:120px;font-style:oblique;">売価</th>
+                <th align="left" style="width:120px;font-style:oblique;">原価</th>
+                <th align="left" style="width:120px;font-style:oblique;">在庫</th>
+                <th align="left" style="width:160px;font-style:oblique;">前月末在庫</th>
+                <th align="left" style="width:200px;font-style:oblique;">週別実積</th>
+            </tr>
+        </table>
+    </header>
+    <main>
+        <table style="border-bottom:solid 1px #000000;line-height:10px;font-size:16px;">
+            <tr>
+                <td align="left" style="width:250px;">0000000002103</td>
+                <td align="left" style="width:250px;">パブラール</td>
+                <td align="left" style="width:120px;">03</td>
+                <td align="left" style="width:120px;">雑品</td>
+                <td align="left" style="width:120px;">149</td>
+                <td align="left" style="width:120px;">120</td>
+                <td align="left" style="width:120px;">0</td>
+                <td align="center" style="width:160px;">0</td>
+                <td align="center" style="width:200px;">2</td>
+            </tr>
+            <tr>
+                <td align="left" colspan="9">
+                    <barcode code="0000000002103" type="EAN13" />
+                </td>
+            </tr>
+        </table>
+    </main>
+    <footer>
+        <table style="border-top:solid 3px #434359;font-size:18px;">
+            <tr>
+                <td style="width:900px;font-style:oblique;">2018年3月12日</td>
+                <td style="width:200px;font-style:oblique;">1/1ページ</td>
+            <tr>
+        </table>
+    </footer>
+</div>
+</body>
+</html>

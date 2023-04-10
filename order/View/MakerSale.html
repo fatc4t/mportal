@@ -1,0 +1,259 @@
+<?php
+    /**
+     * @file      受注処理画面(View)
+     * @author    USE K.Kanda(media-craft.co.jp)
+     * @date      2018/12/14
+     * @version   1.00
+     * @note      受注処理画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+<head>
+<?php
+    $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述
+    $add = ''; //
+    include("Common/HtmlHeader.php");
+?>
+<script type="text/javascript" src="../js/order/common.js"></script>
+<script type="text/javascript" src="../js/order/jquery-ui.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../css/order/jquery-ui.css">
+<script src="../js/order/jquery/datepicker-ja.js" ></script>
+<script type="text/javascript">
+$(function()
+{
+	$("#ymd1").datepicker();
+	$("#ymd2").datepicker();
+  //検索ボタン押下時
+  $(document).on('click','#search',function()
+	{
+		getOrdersList();
+	});
+  //受注処理ボタンをクリック
+  $(document).on('click','.button_data',function()
+  {
+    var flg = confirm("受注処理を行っていいですか?");
+    if(flg) {
+      var ord_no = $(this).attr('data-ordno');
+      var pha_id = $(this).attr('data-phaid');
+      var path = "./index.php?param=MakerSale/update";
+    	$.ajax({
+    		url: path,
+    		type: "POST",
+    		data: {ord_no:ord_no,pha_id:pha_id},
+    		success: function(rtnData)
+        {
+          console.log(rtnData);
+          if(rtnData=='NG')
+          {
+            alert('エラーが発生しました。システム管理者へ連絡してください');
+          } else {
+            getOrdersList();
+            alert('受注処理を完了しました');
+          }
+    		},
+    		error:function(xhr, textStatus, error) {
+    			alert("通信エラー");
+    		}
+    	});
+    }
+  });
+  //CSV出力
+  $(document).on('click','.button_select',function()
+  {
+    var ord_no = $(this).attr('data-ordno');
+    $("#ord_no").val(ord_no);
+    var pha_id = $(this).attr('data-phaid');
+    $("#pha_id2").val(pha_id);
+    $("#form1").attr('action','./index.php?param=MakerSale/csv');
+    $("#form1").submit();
+  });
+  //すべてをチェック
+  $(document).on('click','#all_check',function()
+  {
+    checked = $(this).prop('checked');
+    if(checked) {
+      $("input:checkbox").prop('checked',true);
+    } else {
+      $("input:checkbox").prop('checked',false);
+    }
+  });
+  //一括受注処理
+  $(document).on('click','.button_order',function()
+  {
+    var flg = confirm("チェックしたデータの受注処理を行ってよろしいですか?\n※戻せません");
+    if(flg) {
+      var jsonTxt = createJson();
+      var jsonBefore = JSON.parse(jsonTxt);
+      var json = JSON.stringify(jsonBefore,null,"  ");
+      //ajax
+
+    	var path = "./index.php?param=MakerSale/all";
+    	$.ajax({
+    		url: path,
+    		type: "POST",
+    		data: json,
+    		success: function(rtnData) {
+          console.log(rtnData);
+          if(rtnData=='NG')
+          {
+            alert('エラーが発生しました。システム管理者へ連絡してください');
+          } else {
+            getOrdersList();
+            alert('受注処理を完了しました');
+          }
+    		},
+    		error:function(xhr, textStatus, error) {
+    			alert("通信エラー");
+    		}
+    	});
+
+    }
+  });
+});
+//JSONの生成
+function createJson() {
+  var record_count   = $("#record_count").val();
+
+  //JSONファイルの生成
+  var flg = false;
+  var jsonTxt = '[';
+  for(i=1;i<=record_count;i++) {
+    val = $("#chk_"+i).val();
+    if(val=="" || !$("#chk_"+i).prop('checked')) {
+      continue;
+    }
+    arr = val.split(':');
+    if(flg) {
+      jsonTxt += ',';
+    }
+    jsonTxt += '{';
+    jsonTxt += ' "pha_id":"'+arr[0]+'"';
+    jsonTxt += ',"ord_no":"'+arr[1]+'"';
+    jsonTxt += '}';
+    flg = true;
+  }
+  jsonTxt += ']';
+  //jsonTxt += '}]';
+
+  return jsonTxt;
+}
+
+function getOrdersList() {
+	//ajax
+	var path = "./index.php?param=MakerSale/list";
+	$.ajax({
+		url: path,
+		type: "POST",
+		data: $("#form1").serialize(),
+		success: function(rtnData) {
+      //console.log(rtnData);
+			$("#listArea").html(rtnData);
+		},
+		error:function(xhr, textStatus, error) {
+			alert("通信エラー");
+		}
+	});
+}
+
+</script>
+<link rel="stylesheet" type="text/css" href="../css/order/order.css">
+</head>
+<body>
+<?php
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+<!-- Site -->
+<style type="text/css">
+#listTable {
+	display:block;
+	position:relative;
+	overflow:auto;
+}
+
+#listTable thead.meisai {
+	display:block;
+	position: -webkit-sticky;
+	position: sticky;
+	top: 0;
+	z-index: 2;
+}
+
+#listTable tbody.meisai {
+	display:block;
+}
+
+#listTable thead.meisai th {
+	height:24px;
+	color:#fff;
+	box-sizing:border-box;
+	padding:3px;
+	display: inline-block;
+	vertical-align:top;
+	text-align:center;
+}
+
+
+#listTable tbody.meisai td {
+	height:38px;
+	padding:3px;
+	box-sizing:border-box;
+	display: inline-block;
+	vertical-align:top;
+	line-height:2.0;
+}
+</style>
+<form id="form1" method="post" enctype="multipart/form-data" target="_blank">
+<input type="hidden" name="ma_cd" id="ma_cd" value="<?php hsc($ma_cd);?>">
+<input type="hidden" name="ord_no" id="ord_no">
+<input type="hidden" name="pha_id2" id="pha_id2">
+<div id="sb-site" style="overflow: auto;">
+    <!-- パンくずリスト -->
+    <?php include("Common/Breadcrumb.php"); ?>
+    <div id="formArea" style="width:950px;">
+
+    	<table>
+        	<tr>
+            <th>受注日</th>
+            <td><input type="text" name="ymd1" id="ymd1" size="10" value="<?php hsc($ymd1);?>" readonly></td>
+            <td>～</td>
+            <td><input type="text" name="ymd2" id="ymd2" size="10" value="<?php hsc($ymd2);?>" readonly></td>
+            <th>取引先</th>
+            <td>
+              <select name="pha_id" id="pha_id">
+                <option value="">--指定なし--</option>
+                <?php
+                foreach($phaList as $key => $value) {
+                ?>
+                <option value="<?php hsc($value['pha_id']);?>"><?php hsc($value['pha_name']);?></option>
+                <?php
+                }
+                ?>
+              </select>
+            </td>
+            <td align="right" style="padding-right:10px;"><div class="button_search" id="search">検索する</div></td>
+          </tr>
+        </table>
+    </div>
+    <div id="listArea" style="width:950px;">
+
+    </div>
+</div>
+</form>
+<script>
+$(function()
+{
+	//一覧の呼出
+	getOrdersList();
+});
+</script>
+</body>
+</html>

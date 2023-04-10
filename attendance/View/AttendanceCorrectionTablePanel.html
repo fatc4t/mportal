@@ -1,0 +1,477 @@
+<?php
+    /**
+    * @file        勤怠修正画面(View)
+    * @author      USE R.dendo
+    * @date        2016/07/29
+    * @version     1.00
+    * @note        勤怠修正画面(一覧部分)
+    */
+?>
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-ajax">
+                <?php
+                    $unitCharacter = '';
+                    $column = '日付';
+                    $titleName = '氏名：';
+                    $titleNameVal = $sendingName;
+                    if( $isScreen == 1 || $isScreen == 3 ) 
+                    {
+                        // 表示単位を設定
+                        $unitCharacter = "日";
+                        $datePrev = date('Y/m/d', strtotime( "-1 day", strtotime($sendingDate) ) );
+                        $dateNext = date('Y/m/d', strtotime( "+1 day", strtotime($sendingDate) ) );
+                        $viewData = date('Y年m月d日', strtotime($sendingDate) );
+                        if( $isScreen == 3 )
+                        {
+                            $column = '氏名';
+                        }
+                ?>
+                        <script type="text/javascript">
+                            // 検索条件の日付を更新
+                            $('#datetext').val( '<?php echo $sendingDate; ?>' );
+                        </script>
+                <?php
+                    }
+                    else if( $isScreen == 2 )
+                    {
+                        // 表示単位を設定
+                        $unitCharacter = "月";
+                        $datePrev = date('Y/m', strtotime( "-1 month", strtotime($sendingDate) ) );
+                        $dateNext = date('Y/m', strtotime( "+1 month", strtotime($sendingDate) ) );
+                        $viewData = date('Y年m月', strtotime($sendingDate) );
+                        $sData    = date('Y/m', strtotime($sendingDate) );
+                ?>
+                        <script type="text/javascript">
+                            // 検索条件の日付を更新
+                            $('#datetextYm').val( '<?php echo $sData; ?>' );
+                        </script>
+               <?php
+                    }
+                    
+                    if( $isScreen == 3 )
+                    {
+                        $titleName = '組織名：';
+                        $titleNameVal = $attendanceCtAllList[0]['abbreviated_name'];
+               ?>
+                        <script type="text/javascript">
+                            // 検索条件の日付を更新
+                            $('#datetext').val( '<?php echo $sendingDate; ?>' );
+                        </script>
+               <?php
+                    }
+                ?>
+                
+<!--                <div class="serchListArea" style="width:<?php hsc($viewSize); ?>px; margin: 5px auto; overflow:hidden; !important;" > -->
+                <div class="serchListArea" style="width:99%; margin: 5px auto; overflow:hidden; !important;" >
+                    <input type="hidden" id="target_date_prev" name="target_date_prev" value="<?php hsc($datePrev); ?>" >
+                    <input type="hidden" id="target_date_next" name="target_date_next" value="<?php hsc($dateNext); ?>" >
+                    <input type="hidden" id="dateTimeUnitView" name="dateTimeUnitView" value="<?php hsc($_POST['dateTimeUnit']); ?>" >
+                    <input type="hidden" id="targetDayBulk" name="targetDayBulk" value="<?php hsc($targetDayBulk); ?>" >
+                    <input type="hidden" id="searchOrganizatioID" name="searchOrganizatioID" value="<?php hsc($searchOrganizatioID); ?>" >
+                    <input type="hidden" id="isScreen" name="isScreen" value="<?php hsc($isScreen); ?>" >
+                    <label style="border-style:solid; border-width: 0px; width: 80px; height: 20px; float:left; margin: 10px 10px 10px 10px ;"><a href="#" onClick="dateMoved(<?php hsc($attendanceCtAllList[0]['user_id']); ?>, 0)" >＜＜</a> 前<?php hsc($unitCharacter); ?></label>
+                    <label style="border-style:solid; border-width: 0px; width: 600px; height: 20px; float:left; margin: 10px 10px 10px 10px ;">対象年月日：<?php hsc($viewData); ?>　修正対象：<?php hsc($titleNameVal); ?></label>
+                    <label style="border-style:solid; border-width: 0px; width: 80px; height: 20px; float:right; margin: 10px 0px 10px 10px ;"> 翌<?php hsc($unitCharacter); ?> <a href="#" onClick="dateMoved(<?php hsc($attendanceCtAllList[0]['user_id']); ?>, 1)" >＞＞</a></label>
+                </div>
+                
+<!--                <div id="divHeader" class="serchListArea" style="width:<?php hsc($viewSize); ?>px; margin: 0px auto; overflow:hidden; !important;" > -->
+                <?php
+                    if( $isScrollBar )
+                    {
+                ?>
+                        <div id="divHeader" class="serchListArea" style="width:99%; margin: 0px auto !important; overflow-y:auto; height:50px;" >
+                <?php 
+                    }else{
+                ?>
+                        <div id="divHeader" class="serchListArea" style="width:99%; margin: 0px auto; overflow:hidden; !important;" >
+                <?php 
+                    }
+                ?>
+<!--                    <table style="width:<?php hsc($dataTableSize); ?>px;">-->
+                    <table style="width:99%;">
+                        <tr>
+                            <th rowspan="2" style="width:80px;" ><?php hsc($column); ?></th>
+                            <th rowspan="2" style="width:90px;" >打刻店舗</th>
+                            <th rowspan="2" style="width:90px;" >勤務状況</th>
+                            <th colspan="2" style="width:80px;" >シフト</th>
+                            <th colspan="2" style="width:70px;" >実打刻時間</th>
+                            <th colspan="8" style="width:360px;" >入力用打刻時間</th>
+                            <th colspan="5" style="width:230px;" >計算用労働時間</th>
+                            <?php
+                                if( $manualAllowanceCnt > 0 )
+                                {
+                            ?>
+                                    <th style="width:<?php hsc($manualAllowanceSize); ?>px;" colspan="<?php hsc($manualAllowanceCnt); ?>" >手当</td>
+                            <?php
+                                }
+                            ?>
+                            <?php
+                                if( $roughEstimateCnt > 0 )
+                                {
+                            ?>
+                                    <th style="width:<?php hsc($roughEstimateSize); ?>px;" colspan="<?php hsc($roughEstimateCnt); ?>" >概算</th>
+                            <?php 
+                                }
+                            ?>
+                            <th rowspan="2" style="width:<?php hsc($baseHeadSize); ?>px;"></th>
+                        </tr>
+                        <tr>
+                            <th style="width:40px;" >出勤</th>
+                            <th style="width:40px;" >退勤</th>
+                            <th style="width:35px;" >出勤</th>
+                            <th style="width:35px;" >退勤</th>
+                            <th style="width:45px;" >出勤</th>
+                            <th style="width:45px;" >退勤</th>
+                            <th style="width:45px;" >休開1</th>
+                            <th style="width:45px;" >休終1</th>
+                            <th style="width:45px;" >休開2</th>
+                            <th style="width:45px;" >休終2</th>
+                            <th style="width:45px;" >休開3</th>
+                            <th style="width:45px;" >休終3</th>
+                            <th style="width:46px;" >普労働</th>
+                            <th style="width:46px;" >残業</th>
+                            <th style="width:46px;" >深労働</th>
+                            <th style="width:46px;" >深残業</th>
+                            <th style="width:46px;" >休憩</th>
+                            <?php
+                                foreach( $manualAllowanceList as $manualAllowance )
+                                {
+                            ?>
+                                    <th style="width:45px;" align = "center" ><?php hsc($manualAllowance['allowance_name']); ?></td>
+                            <?php
+                                }
+                            ?>
+                            <?php
+                                if( $estimateFlg[78] === true )
+                                {
+                            ?>
+                                    <th style="width:45px;" >実績</th>
+                            <?php 
+                                }
+                            ?>
+                            <?php
+                                if( $estimateFlg[79] === true )
+                                {
+                            ?>
+                                    <th style="width:45px;" >シフト</th>
+                            <?php
+                                }
+                            ?>
+                        </tr>
+                    </table>
+                </div>
+                
+<!--                <div id="divBottom" class="serchListArea" style="width:<?php hsc($viewSize); ?>px; margin: 0px auto; <?php hsc($heightSize); ?> overflow:auto; " onscroll="mzScroll();" >-->
+                <div id="divBottom" class="serchListArea" style="width:99%; margin: 0px auto; <?php hsc($heightSize); ?> overflow:auto; " onscroll="mzScroll();" >
+                <?php if($isEnrollment){ ?>
+<!--                    <table style="width:<?php hsc($viewTable); ?>px;">-->
+                    <table style="width:99%; background-color: #ffffff">
+                        <?php
+                            $isBondData = "";
+                            $userNameList = array();
+                            $userNameList[''] = '';
+                            $attendanceCt_no = 0;
+                            foreach($attendanceCtAllList as $attendanceCt)
+                            {
+                                $isDel = true;
+                                $attendanceCt_no++;
+                                if( $isScreen == 3 )
+                                {
+                                    $output  = $attendanceCt['user_name'];
+                                    $rowSpan = $dateCountList[$attendanceCt['user_id']];
+                                    $comparisonData = $attendanceCt['user_id'];
+                                }
+                                else if( $attendanceCt['date'] != '-' )
+                                {
+                                    $month = substr($attendanceCt['date'],5,2);
+                                    $output  = substr($attendanceCt['date'],5,2) . '月' . substr($attendanceCt['date'],8,2) . '日';
+                                    $rowSpan = $dateCountList[$attendanceCt['date']];
+                                    $comparisonData = $attendanceCt['date'];
+                                }
+                                else
+                                {
+                                    $output = '-';
+                                }
+                                
+                                // 行の背景色設定
+                                $bkColor = "#FFFFFF";
+                                if( ( $attendanceCt_no % 2 ) == 0 )
+                                {
+                                    $bkColor = "#EFEFEF";
+                                }
+                                
+                                // アラートの有無を設定
+                                $defaultSpan = "";
+                                if( $attendanceCt['alert'] != "" )
+                                {
+                                    $defaultSpan = ' rowspan=2 ';
+                                }
+                        ?>
+                                <tr style="background-color:<?php hsc($bkColor); ?> !important;" >
+                                    <?php 
+                                        if( $isBondData != $comparisonData )
+                                        {
+                                            $isBondData = $comparisonData;
+                                            // ユーザIDリスト作成
+                                            if( $attendanceCt['user_name'] != '-' )
+                                            {
+                                                $userNameList[$attendanceCt['user_id']] = $attendanceCt['user_name'];
+                                            }
+                                    ?>
+                                            <td align="center" rowspan="<?php hsc($rowSpan); ?>" style="width:80px; background-color:<?php hsc($bkColor); ?> !important;" >
+                                                <?php 
+                                                    if( $output != '-' )
+                                                    {
+                                                        hsc($output);
+                                                    }
+                                                    else
+                                                    {
+                                                        hsc("合計");
+                                                    }
+                                                ?>
+                                            </td>
+                                    <?php
+                                        }
+                                        else if( $output == '-' )
+                                        {
+                                    ?>
+                                            <td align="center" rowspan="<?php hsc($rowSpan); ?>" style="width:80px; background-color:<?php hsc($bkColor); ?> !important;" >
+                                                合計
+                                            </td>
+                                    <?php
+                                        }
+                                    ?>
+                                    <td align = "center" <?php hsc($defaultSpan); ?> style="width:90px; background-color:<?php hsc($bkColor); ?> !important;" >
+                                        <?php if( $output == "-" ) { ?>
+                                            <?php hsc($output); ?>
+                                        <?php } else if( is_null( $attendanceCt['embossing_organization_id'] ) || ( $attendanceCt['approval'] == 0 && $attendanceCt['embossing_organization_id'] == 0 ) ) { ?>
+                                            <?php $isDel = false; ?>
+                                            <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" class="organizationName" id="organizationName_<?php hsc($attendanceCt_no); ?>" name="organizationName_<?php hsc($attendanceCt_no); ?>" style="width: 85px" >
+                                                <?php foreach($abbreviatedList as $abbreviated) { ?>
+                                                    <?php $selected = ""; ?>
+                                                    <?php if($abbreviated['organization_id'] == $_SESSION["ORGANIZATION_ID"] ) { ?>
+                                                        <?php $selected = "selected"; ?>
+                                                    <?php } ?>
+                                                    <option value="<?php hsc($abbreviated['organization_id']); ?>" <?php hsc($selected); ?> ><?php hsc($abbreviated['abbreviated_name']); ?></option>
+                                                <?php } ?>
+                                            </select>
+                                        <?php } else { ?>
+                                            <?php hsc($attendanceCt['embossing_abbreviated_name']); ?>
+                                            <input type="hidden" class="organizationName" id="organizationName_<?php hsc($attendanceCt_no); ?>" name="organizationName_<?php hsc($attendanceCt_no); ?>" value="<?php hsc($attendanceCt['embossing_organization_id']); ?>">
+                                        <?php } ?>
+                                    </td>
+                                    <td align = "center" <?php hsc($defaultSpan); ?> style="width:90px; background-color:<?php hsc($bkColor); ?> !important;" >
+                                        <?php if( $output == "-" ) { ?>
+                                            <?php hsc($output); ?>
+                                        <?php } else if( $attendanceCt['approval'] == 0 ) { ?>
+                                            <select class="holidayName" name="holidayName_<?php hsc($attendanceCt_no); ?>" id="holidayName_<?php hsc($attendanceCt_no); ?>" style="width: 85px">
+                                                <?php
+                                                    // 出勤状況を設定する
+                                                    $holidayName = 0;
+                                                    if( $attendanceCt['is_holiday'] != 0 )
+                                                    {
+                                                        $holidayName = $attendanceCt['is_holiday'];
+                                                    }
+                                                    else if( $attendanceCt['absence_count'] == 1 )
+                                                    {
+                                                        $holidayName = SystemParameters::$ABSENCE;
+                                                    }
+                                                    else if( $this->changeMinuteFromTime( $attendanceCt['attendance_time'] ) != 0 )
+                                                    {
+                                                        $holidayName = SystemParameters::$ATTENDANCE;
+                                                    }
+                                                    foreach($holidayNameList as $holiday)
+                                                    {
+                                                        $selected = "";
+                                                        if( $holiday['holiday_id'] == $holidayName )
+                                                        {
+                                                            $selected = "selected";
+                                                        }
+                                                ?>
+                                                        <option value="<?php hsc($holiday['holiday_id']); ?>" <?php hsc($selected); ?>><?php hsc($holiday['holiday']); ?></option>
+                                                <?php } ?>
+                                            </select>
+                                        <?php } else { ?>
+                                            <?php
+                                                // 勤怠状況リスト
+                                                $holidayName = 0;
+                                                if( $attendanceCt['is_holiday'] != 0 )
+                                                {
+                                                    $holidayName = $attendanceCt['is_holiday'];
+                                                }
+                                                else if( $attendanceCt['absence_count'] == 1 )
+                                                {
+                                                    $holidayName = SystemParameters::$ABSENCE;
+                                                }
+                                                else if( $this->changeMinuteFromTime( $attendanceCt['total_working_time'] ) != 0 )
+                                                {
+                                                    $holidayName = SystemParameters::$ATTENDANCE;
+                                                }
+                                                $selected = "";
+                                                $selectedID = 0;
+                                                foreach($holidayNameList as $holiday)
+                                                {
+                                                    if( $holiday['holiday_id'] == $holidayName )
+                                                    {
+                                                        $selected = $holiday['holiday'];
+                                                        $selectedID = $holiday['holiday_id'];
+                                                    }
+                                                }
+                                                hsc($selected);
+                                            ?>
+                                            <input type="hidden" class="holidayName" id="holidayName_<?php hsc($attendanceCt_no); ?>" name="holidayName_<?php hsc($attendanceCt_no); ?>" value="<?php hsc($selectedID); ?>">
+                                        <?php } ?>
+                                    </td>
+                                    <?php if( $output == "-" ) { ?>
+                                        <td align = "center" <?php hsc($defaultSpan); ?> style="width:40px; background-color:<?php hsc($bkColor); ?> !important;" ><?php hsc($output); ?></td>
+                                        <td align = "center" <?php hsc($defaultSpan); ?> style="width:40px; background-color:<?php hsc($bkColor); ?> !important;"><?php hsc($output); ?></td>
+                                    <?php } else { ?>
+                                        <td align = "right" <?php hsc($defaultSpan); ?>  style="width:40px; background-color:<?php hsc($bkColor); ?> !important;" >
+                                            <?php 
+                                                hsc($attendanceCt['shift_attendance_time']);
+                                                $updateDate = $attendanceCt['date'];
+                                                if( is_null( $attendanceCt['date'] ) )
+                                                {
+                                                    $updateDate = $sendingDate;
+                                                }
+                                            ?>
+                                            <input type="hidden" class="date" id="date_<?php hsc($attendanceCt_no); ?>" value="<?php hsc($updateDate); ?>">
+                                            <input type="hidden" class="attendanceID" id="attendanceID_<?php hsc($attendanceCt_no); ?>" value="<?php hsc($attendanceCt['attendance_id']); ?>">
+                                            <input type="hidden" class="updateTime" id="updateTime_<?php hsc($attendanceCt_no); ?>" value="<?php hsc($attendanceCt['update_time']); ?>">
+                                            <input type="hidden" class="userID" id="userID_<?php hsc($attendanceCt_no); ?>" value="<?php hsc($attendanceCt['user_id']); ?>">
+                                            <input type="hidden" class="approval" id="approval_<?php hsc($attendanceCt_no); ?>" value="<?php hsc( $attendanceCt['approval'] ); ?>">
+                                        </td>
+                                        <td align = "right" <?php hsc($defaultSpan); ?> style="width:40px; background-color:<?php hsc($bkColor); ?> !important;"><?php hsc($attendanceCt['shift_taikin_time']); ?></td>
+                                    <?php } ?>
+                                    <?php if( $output == "-" ) { ?>
+                                        <td align = "center" <?php hsc($defaultSpan); ?> style="width:35px; background-color:<?php hsc($bkColor); ?> !important;" ><?php hsc($attendanceCt['embossing_attendance_time']); ?></td>
+                                        <td align = "center" <?php hsc($defaultSpan); ?> style="width:35px; background-color:<?php hsc($bkColor); ?> !important;" ><?php hsc($attendanceCt['embossing_clock_out_time']); ?></td>
+                                        <td align = "center" <?php hsc($defaultSpan); ?> style="width:45px; background-color:<?php hsc($bkColor); ?> !important;" ><?php hsc($attendanceCt['attendance_time']); ?></td>
+                                        <td align = "center" <?php hsc($defaultSpan); ?> style="width:45px; background-color:<?php hsc($bkColor); ?> !important;" ><?php hsc($attendanceCt['clock_out_time']); ?></td>
+                                        <td align = "center" <?php hsc($defaultSpan); ?> style="width:45px; background-color:<?php hsc($bkColor); ?> !important;" ><?php hsc($attendanceCt['s_break_time_1']); ?></td>
+                                        <td align = "center" <?php hsc($defaultSpan); ?> style="width:45px; background-color:<?php hsc($bkColor); ?> !important;" ><?php hsc($attendanceCt['e_break_time_1']); ?></td>
+                                        <td align = "center" <?php hsc($defaultSpan); ?> style="width:45px; background-color:<?php hsc($bkColor); ?> !important;" ><?php hsc($attendanceCt['s_break_time_2']); ?></td>
+                                        <td align = "center" <?php hsc($defaultSpan); ?> style="width:45px; background-color:<?php hsc($bkColor); ?> !important;" ><?php hsc($attendanceCt['e_break_time_2']); ?></td>
+                                        <td align = "center" <?php hsc($defaultSpan); ?> style="width:45px; background-color:<?php hsc($bkColor); ?> !important;" ><?php hsc($attendanceCt['s_break_time_3']); ?></td>
+                                        <td align = "center" <?php hsc($defaultSpan); ?> style="width:45px; background-color:<?php hsc($bkColor); ?> !important;" ><?php hsc($attendanceCt['e_break_time_3']); ?></td>
+                                    <?php } else { ?>
+                                        <td align = "right" <?php hsc($defaultSpan); ?> style="width:35px; background-color:<?php hsc($bkColor); ?> !important;" ><?php hsc($attendanceCt['embossing_attendance_time']); ?></td>
+                                        <td align = "right" <?php hsc($defaultSpan); ?> style="width:35px; background-color:<?php hsc($bkColor); ?> !important;" ><?php hsc($attendanceCt['embossing_clock_out_time']); ?></td>
+                                        <td align = "center" style="width:45px; background-color:<?php hsc($bkColor); ?> !important;" >
+                                            <input type="text" class="attendanceTimeMod" id="attendanceTimeMod_<?php hsc($attendanceCt_no); ?>" title="<?php hsc($Log->getMsgLog('MSG_BASE_0319')); ?>" pattern="(0[0-9]|1[0-9]|2[0-9]|3[0-5])([0-5][0-9])" maxlength="4" style="width: 40px" value="<?php hsc($attendanceCt['attendance_time']); ?>" class="En" style="text-align:center;">
+                                        </td>
+                                        <td align = "center" style="width:45px; background-color:<?php hsc($bkColor); ?> !important;" >
+                                            <input type="text" class="clockOutTimeMod" id="clockOutTimeMod_<?php hsc($attendanceCt_no); ?>" title="<?php hsc($Log->getMsgLog('MSG_BASE_0319')); ?>" pattern="(0[0-9]|1[0-9]|2[0-9]|3[0-5])([0-5][0-9])" maxlength="4" style="width: 40px" value="<?php hsc($attendanceCt['clock_out_time']); ?>" class="En" style="text-align:center;">
+                                        </td>
+                                        <td align = "center" style="width:45px; background-color:<?php hsc($bkColor); ?> !important;" >
+                                            <input type="text" class="sBreakTimeMod1" id="sBreakTimeMod1_<?php hsc($attendanceCt_no); ?>" title="<?php hsc($Log->getMsgLog('MSG_BASE_0319')); ?>" pattern="(0[0-9]|1[0-9]|2[0-9]|3[0-5])([0-5][0-9])" maxlength="4" style="width: 40px" value="<?php hsc($attendanceCt['s_break_time_1']); ?>" class="En" style="text-align:center;">
+                                        </td>
+                                        <td align = "center" style="width:45px; background-color:<?php hsc($bkColor); ?> !important;" >
+                                            <input type="text" class="eBreakTimeMod1" id="eBreakTimeMod1_<?php hsc($attendanceCt_no); ?>" title="<?php hsc($Log->getMsgLog('MSG_BASE_0319')); ?>" pattern="(0[0-9]|1[0-9]|2[0-9]|3[0-5])([0-5][0-9])" maxlength="4" style="width: 40px" value="<?php hsc($attendanceCt['e_break_time_1']); ?>" class="En" style="text-align:center;">
+                                        </td>
+                                        <td align = "center" style="width:45px; background-color:<?php hsc($bkColor); ?> !important;" >
+                                            <input type="text" class="sBreakTimeMod2" id="sBreakTimeMod2_<?php hsc($attendanceCt_no); ?>" title="<?php hsc($Log->getMsgLog('MSG_BASE_0319')); ?>" pattern="(0[0-9]|1[0-9]|2[0-9]|3[0-5])([0-5][0-9])" maxlength="4" style="width: 40px" value="<?php hsc($attendanceCt['s_break_time_2']); ?>" class="En" style="text-align:center;">
+                                        </td>
+                                        <td align = "center" style="width:45px; background-color:<?php hsc($bkColor); ?> !important;" >
+                                            <input type="text" class="eBreakTimeMod2" id="eBreakTimeMod2_<?php hsc($attendanceCt_no); ?>" title="<?php hsc($Log->getMsgLog('MSG_BASE_0319')); ?>" pattern="(0[0-9]|1[0-9]|2[0-9]|3[0-5])([0-5][0-9])" maxlength="4" style="width: 40px" value="<?php hsc($attendanceCt['e_break_time_2']); ?>" class="En" style="text-align:center;">
+                                        </td>
+                                        <td align = "center" style="width:45px; background-color:<?php hsc($bkColor); ?> !important;" >
+                                            <input type="text" class="sBreakTimeMod3" id="sBreakTimeMod3_<?php hsc($attendanceCt_no); ?>" title="<?php hsc($Log->getMsgLog('MSG_BASE_0319')); ?>" pattern="(0[0-9]|1[0-9]|2[0-9]|3[0-5])([0-5][0-9])" maxlength="4" style="width: 40px" value="<?php hsc($attendanceCt['s_break_time_3']); ?>" class="En" style="text-align:center;">
+                                        </td>
+                                        <td align = "center" style="width:45px; background-color:<?php hsc($bkColor); ?> !important;" >
+                                            <input type="text" class="eBreakTimeMod3" id="eBreakTimeMod3_<?php hsc($attendanceCt_no); ?>" title="<?php hsc($Log->getMsgLog('MSG_BASE_0319')); ?>" pattern="(0[0-9]|1[0-9]|2[0-9]|3[0-5])([0-5][0-9])" maxlength="4" style="width: 40px" value="<?php hsc($attendanceCt['e_break_time_3']); ?>" class="En" style="text-align:center;">
+                                        </td>
+                                    <?php } ?>
+                                    <td align = "right" <?php hsc($defaultSpan); ?> style="width:46px; background-color:<?php hsc($bkColor); ?> !important;" >
+                                        <?php
+                                            // 普通残業時間を算出
+                                            $normalOvertime = $this->changeMinuteFromTime( $attendanceCt['overtime'] ) - $this->changeMinuteFromTime( $attendanceCt['night_overtime'] );
+                                            // 深夜労働時間を算出
+                                            $nightWorkingTime = $this->changeMinuteFromTime( $attendanceCt['night_working_time'] ) - $this->changeMinuteFromTime( $attendanceCt['night_overtime'] );
+                                            // 普通労働時間を算出
+                                            $normalWorkHours = $this->changeMinuteFromTime( $attendanceCt['total_working_time'] ) - $this->changeMinuteFromTime( $attendanceCt['overtime'] ) - $nightWorkingTime;
+                                            if( $normalWorkHours > 0 || $output == "-" || !empty($attendanceCt['overtime']) )
+                                            {
+                                                hsc( $this->changeTimeFromMinute( $normalWorkHours ) );
+                                            }
+                                        ?>
+                                    </td>
+                                    <td align = "right" <?php hsc($defaultSpan); ?> style="width:46px; background-color:<?php hsc($bkColor); ?> !important;" >
+                                        <?php
+                                            if( $normalOvertime > 0 || $output == "-" || !empty($attendanceCt['overtime']) )
+                                            {
+                                                hsc( $this->changeTimeFromMinute( $normalOvertime ) );
+                                            }
+                                        ?>
+                                    </td>
+                                    <td align = "right" <?php hsc($defaultSpan); ?> style="width:46px; background-color:<?php hsc($bkColor); ?> !important;" >
+                                        <?php
+                                            if( $nightWorkingTime > 0 || $output == "-" || !empty($attendanceCt['overtime']) )
+                                            {
+                                                hsc( $this->changeTimeFromMinute( $nightWorkingTime ) );
+                                            }
+                                        ?>
+                                    </td>
+                                    <td align = "right" <?php hsc($defaultSpan); ?> style="width:46px; background-color:<?php hsc($bkColor); ?> !important;" ><?php hsc($attendanceCt['night_overtime']); ?></td>
+                                    <td align = "right" <?php hsc($defaultSpan); ?> style="width:46px; background-color:<?php hsc($bkColor); ?> !important;" ><?php hsc($attendanceCt['break_time']); ?></td>
+                                    <?php
+                                        foreach( $manualAllowanceList as $manualAllowance )
+                                        {
+                                    ?>
+                                            <td align = "center" <?php hsc($defaultSpan); ?> style="width:45px; background-color:<?php hsc($bkColor); ?> !important;" >
+                                                <?php if( $output == "-" ) { ?>
+                                                    <?php hsc($output); ?>
+                                                <?php } else { 
+                                                
+                                                    $displayChecked = "";
+                                                    foreach( $allowanceAllList[$attendanceCt['attendance_id']] as $allowance )
+                                                    {
+                                                        if( $manualAllowance['allowance_id'] == $allowance['allowance_id'] )
+                                                        {
+                                                            $displayChecked = "checked";
+                                                        }
+                                                    }
+                                                ?>
+                                                    <input type="checkbox" class="allowanceId_<?php hsc($manualAllowance['allowance_id']); ?>" id="allowanceId_<?php hsc($manualAllowance['allowance_id']); ?>_<?php hsc($attendanceCt_no); ?>" name="allowanceId_<?php hsc($manualAllowance['allowance_id']); ?>_<?php hsc($attendanceCt_no); ?>" value="<?php hsc($manualAllowance['allowance_id']); ?>" <?php hsc($displayChecked); ?> >
+                                                <?php } ?>
+                                            </td>
+                                    <?php
+                                        }
+                                    ?>
+
+                                    <?php
+                                        if( $estimateFlg[78] === true )
+                                        {
+                                    ?>
+                                            <td align = "right" <?php hsc($defaultSpan); ?> style="width:45px; background-color:<?php hsc($bkColor); ?> !important;" ><?php hsc( $this->isNumberFormat( $attendanceCt['rough_estimate'] ) ); ?></td>
+                                    <?php
+                                        }
+                                    ?>
+                                    <?php
+                                        if( $estimateFlg[79] === true )
+                                        {
+                                    ?>
+                                            <td align = "right" <?php hsc($defaultSpan); ?> style="width:45px; background-color:<?php hsc($bkColor); ?> !important;" ><?php hsc( $this->isNumberFormat( $attendanceCt['shift_rough_estimate'] ) ); ?></td>
+                                    <?php
+                                        }
+                                    ?>
+                                    <td align = "center" <?php hsc($defaultSpan); ?> style="width:100px; background-color:<?php hsc($bkColor); ?> !important;" >
+                                        <?php if( $attendanceCt['approval'] == 0 && $output != "-" ) { ?>
+                                            <input type="submit" id="edtBtn-mod<?php hsc($attendanceCt_no); ?>" value="<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>" onclick="setLineInfo(<?php hsc($attendanceCt_no); ?>, '<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>')" <?php hsc($isBtMod); ?> >
+                                            <?php if( $isDel ) { ?>
+                                                <input type="submit" id="edtBtn-del<?php hsc($attendanceCt_no); ?>" value="<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>" onclick="setLineInfo(<?php hsc($attendanceCt_no); ?>, '<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>')" <?php hsc($isBtDel); ?> >
+                                            <?php } ?>
+                                        <?php } ?>
+                                    </td>
+                                </tr>
+                                <?php if( $output != "-" && $defaultSpan != '' ) { ?>
+                                    <tr style="background-color:<?php hsc($bkColor); ?> !important;" >
+                                        <td colspan="8" style="background-color:<?php hsc($bkColor); ?> !important;" ><font color=#ff0000><?php echo( $attendanceCt['alert'] ); ?></font></td>
+                                    </tr>
+                                <?php } ?>
+                        <?php } ?>
+                    </table>
+                <?php } ?>
+                </div>
+            </div><!-- /.jquery-replace-ajax -->

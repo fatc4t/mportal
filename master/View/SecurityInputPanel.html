@@ -1,0 +1,468 @@
+<?php
+    /**
+     * @file      セキュリティマスタ入力画面(View)
+     * @author    USE S.Nakamura
+     * @date      2016/07/14
+     * @version   1.00
+     * @note      セキュリティマスタ入力画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array( 'default.css',
+                                'common.js', 
+                                'jquery-ui.min.js', 
+                                'jquery-ui.css' );    // cssまたはｊｓファイルを拡張子付きで配列に記述 
+            $add = '';  
+            include("Common/HtmlHeader.php"); 
+        ?>
+
+        <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+        <script src="http://code.jquery.com/jquery-1.8.3.js"></script>
+        <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+        <script type="text/javascript">
+            var lineInfo = null;
+            var btnInfo  = null;
+            var allCnt = 0;
+
+
+            $(document).ready(function() 
+            {
+                /**
+                 * 削除ボタン押下時処理
+                 */
+                $('#del').click(function()
+                {
+                    event.preventDefault();
+
+                    document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$DELETE_DIALOG_MSG); ?>';
+                    $("#dialog_mod").dialog('open');
+
+                    // サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+            
+                // 登録系ボタン押下時
+                $('#addForm').submit(function(event)
+                {
+                    event.preventDefault();
+
+                    if(btnInfo !== '<?php hsc($Log->getMsgLog("MSG_BASE_0803")); ?>')
+                    {
+                        if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0800")); ?>')
+                        {
+                            // 一覧画面新規作成ボタンから遷移してきた場合
+                            document.getElementById("dialog_add").textContent='<?php hsc(SystemParameters::$NEW_DIALOG_MSG); ?>';
+                            $("#dialog_add").dialog('open');
+                        
+                        }
+                        else if(btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>')
+                        {
+                            document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$UPDATE_DIALOG_MSG); ?>';
+                            $("#dialog_mod").dialog('open');
+                        }
+                    }
+                    else
+                    {
+                        document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$DELETE_DIALOG_MSG); ?>';
+                        $("#dialog_mod").dialog('open');
+                    }
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+            });
+
+            /**
+              * 戻るボタン押下時処理
+              */
+            function setBack()
+            {
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                                back : $('#back').val(),
+                                searchOrganizationID : $('#searchOrganizationID').val(),
+                                searchClassID : $('#classID').val(),
+                                searchSecurityName : $('#searchSecurityName').val(),
+                                searchoptionName : $('#searchOptionName').val(),
+                                searchComment : $('#searchComment').val(),
+                                searchReference : $('#searchReference').val(),
+                                searchRegistration : $('#searchRegistration').val(),
+                                searchDelete : $('#searchDelete').val(),
+                                searchApproval : $('#searchApproval').val(),
+                                searchPrinting : $('#searchPrinting').val(),
+                                searchOutput : $('#searchOutput').val(),
+                                is_del : $('#delF').val(),
+                            }
+                var path = 'index.php?param=Security/show&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' )
+
+                // サブミット後、ページをリロードしないようにする
+                return false;
+            
+            }
+
+            /**
+             * 新規作成データの設定
+             */
+            function setAddData()
+            {
+                var path = 'index.php?param=Security/add&home=1';
+                // サーバ送信
+                sendData( path );
+
+            }
+
+            /**
+             * データ更新の設定
+             */
+            function setModData()
+            {
+                var path = 'index.php?param=Security/del&home=1';
+                if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>' )
+                {
+                    path = 'index.php?param=Security/mod&home=1';
+                }
+
+                // サーバ送信
+                sendData( path );
+            }
+
+            /**
+             * 更新キャンセル
+             */
+            function cancel()
+            {
+                var data = null;
+                var path = '';
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                                searchOrganizationID : $('#searchOrganizationID').val(),
+                                searchClassID : $('#classID').val(),
+                                searchSecurityName : $('#searchSecurityName').val(),
+                                searchoptionName : $('#searchOptionName').val(),
+                                searchComment : $('#searchComment').val(),
+                                searchReference : $('#searchReference').val(),
+                                searchRegistration : $('#searchRegistration').val(),
+                                searchDelete : $('#searchDelete').val(),
+                                searchApproval : $('#searchApproval').val(),
+                                searchPrinting : $('#searchPrinting').val(),
+                                searchOutput : $('#searchOutput').val(),
+                                is_del : $('#delF').val(),
+                            }
+                var path = 'index.php?param=Security/show&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+                // サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+
+            /**
+             * 行情報を設定
+             */
+            function setLineInfo(thisBtnInfo)
+            {
+                btnInfo  = thisBtnInfo;
+                return false;
+            }
+            
+            /**
+             * 遷移先の設定
+             */
+            function moveRedirect()
+            {
+                cancel();
+            }
+            
+            /**
+             * サーバ送信
+             */
+            function sendData( path )
+            {
+                var referenceArray = $(".reference").map(function(){
+                    return $(this).val();
+                }).get();
+                var registrationArray = $(".registration").map(function(){
+                    return $(this).val();
+                }).get();
+                var deleteArray = $(".delete").map(function(){
+                    return $(this).val();
+                }).get();
+                var approvalArray = $(".approval").map(function(){
+                    return $(this).val();
+                }).get();
+                var printingArray = $(".printing").map(function(){
+                    return $(this).val();
+                }).get();
+                var outputArray = $(".output").map(function(){
+                    return $(this).val();
+                }).get();
+                var accessAuthorityIDArray = $(".accessAuthorityID").map(function(){
+                    return $(this).val();
+                }).get();
+                
+                // 表示項目が空の場合、0を設定
+                var optionNameID = 0;
+                if( $('#optionName').val() != "" )
+                {
+                    optionNameID = $('#optionName').val();
+                }
+                
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                                securityID : $('#securityID').val(),
+                                searchSecurityID : $('#searchSecurityID').val(),
+                                searchOrganizationID : $('#searchOrganizationID').val(),
+                                searchSecurityName : $('#searchSecurityName').val(),
+                                searchoptionName : $('#searchOptionName').val(),
+                                searchComment : $('#searchComment').val(),
+                                searchReference : $('#searchReference').val(),
+                                searchRegistration : $('#searchRegistration').val(),
+                                searchDelete : $('#searchDelete').val(),
+                                searchApproval : $('#searchApproval').val(),
+                                searchPrinting : $('#searchPrinting').val(),
+                                searchOutput : $('#searchOutput').val(),
+                                organization_id : $('#organizationName').val(),
+                                security_name : $('#security').val(),
+                                optionName : optionNameID,
+                                comment : $('#comment').val(),
+                                dispOrder : $('#newDispOrder').val(),
+                                referenceList : referenceArray,
+                                registrationList : registrationArray,
+                                deleteList : deleteArray,
+                                approvalList : approvalArray,
+                                printingList : printingArray,
+                                outputList : outputArray,
+                                accessIDList : accessAuthorityIDArray,
+                                isDel : $('#isDel').val(),
+                                updateTime : $('#updateTime').val(),
+                            };
+
+                // データ更新
+                setDataForAjax( data, path, "ajaxScreenUpdate" );
+            }
+            
+        </script>
+
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site">
+            <!-- パンくずリスト -->
+            <?php include("Common/Breadcrumb.php"); ?>
+            
+            <!-- logicButtonArea -->
+            <div class="logicButtonArea">
+                <p align=center>
+                    <input type="button" id="back" name="back" value="戻る" onClick="setBack()" class="return" >
+                </p>
+            </div><!-- /.logicButtonArea -->
+
+            <!-- serchEditArea -->
+            <form id="addForm" name="addForm">
+                <!-- 以下、hiddenの値は修正/削除時の条件に使用 -->
+                <input type="hidden" id="securityID" name="securityID" value="<?php hsc($securityID); ?>">
+                <input type="hidden" name="isDel" id="isDel" value="<?php hsc($nameList['is_del']); ?>">
+                <input type="hidden" name="updateTime" id="updateTime" value="<?php hsc($nameList['update_time']); ?>">
+                <!-- 以下、hiddenの値は一覧表の検索条件保持のため、使用 -->
+                <input type="hidden" id="classID" name="classID" value="<?php hsc($_POST['searchClassID']); ?>">
+                <input type="hidden" id="searchOrganizationID" name="searchOrganizationID" value="<?php hsc($_POST['searchOrganizationID']); ?>">
+                <input type="hidden" id="searchSecurityName" name="searchSecurityName" value="<?php hsc($_POST['searchSecurityName']); ?>">
+                <input type="hidden" id="searchOptionName" name="searchOptionName" value="<?php hsc($_POST['searchoptionName']); ?>">
+                <input type="hidden" id="searchComment" name="searchComment" value="<?php hsc($_POST['searchComment']); ?>">
+                <input type="hidden" id="searchReference" name="searchReference" value="<?php hsc($_POST['searchReference']); ?>">
+                <input type="hidden" id="searchRegistration" name="searchRegistration" value="<?php hsc($_POST['searchRegistration']); ?>">
+                <input type="hidden" id="searchDelete" name="searchDelete" value="<?php hsc($_POST['searchDelete']); ?>">
+                <input type="hidden" id="searchApproval" name="searchApproval" value="<?php hsc($_POST['searchApproval']); ?>">
+                <input type="hidden" id="searchPrinting" name="searchPrinting" value="<?php hsc($_POST['searchPrinting']); ?>">
+                <input type="hidden" id="searchOutput" name="searchOutput" value="<?php hsc($_POST['searchOutput']); ?>">
+                <input type="hidden" id="delF" name="delF" value="<?php hsc($_POST['searchDelF']); ?>">
+                <div class="serchEditArea" style="width:795px; margin:10px auto !important;" >
+                    <table>
+                        <tbody>
+                            <tr>
+                                <th style="width:102px"><?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?></th><!-- 組織名 -->
+                                <td style="width:203px">
+                                    <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0308')); ?>" id="organizationName" name="organizationName" style="width:200px" required>
+                                        <?php foreach($abbreviatedNameList as $abbreviated) { ?>
+                                            <?php $selected = ""; ?>
+                                            <?php if($abbreviated['organization_id'] == $nameList['organization_id']) { ?>
+                                                <?php $selected = "selected"; ?>
+                                            <?php } ?>
+                                            <option value="<?php hsc($abbreviated['organization_id']); ?>" <?php hsc($selected); ?>><?php hsc($abbreviated['abbreviated_name']); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </td>
+                                <th style="width:102px"><?php hsc($Log->getMsgLog('MSG_BASE_0881')); ?></th><!-- セキュリティ名 -->
+                                <td style="width:103px">
+                                    <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0308')); ?>" id="security" name="security"  style="width:100px" maxlength="30" value="<?php hsc($nameList['security_name']); ?>" class="Em" required>
+                                </td>
+                                <th style="width:102px"><?php hsc($Log->getMsgLog('MSG_BASE_0894')); ?></th><!-- 表示項目 -->
+                                <td style="width:103px">
+                                    <select name="optionName" id="optionName" style="width:100px" >
+                                        <?php foreach($optionNameList as $optionVal) { ?>
+                                            <?php $selected = ""; ?>
+                                            <?php if($optionVal['display_item_id'] == $nameList['display_item_id']) { ?>
+                                                <?php $selected = "selected"; ?>
+                                            <?php } ?>
+                                            <option value="<?php hsc($optionVal['display_item_id']); ?>" <?php hsc($selected); ?>><?php hsc($optionVal['name']); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0892')); ?></th><!-- コメント -->
+                                <td colspan="3">
+                                    <input type="text" id="comment" name="comment" style="width:400px" maxlength="30" value="<?php hsc($nameList['comment']); ?>" class="Em">
+                                </td>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0852')); ?></th><!-- 表示順 -->
+                                <td>
+                                    <input type="text" pattern="[1-9][0-9]*" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" id="newDispOrder" name="newDispOrder" style="width:100px" maxlength="5" value="<?php hsc($nameList['disp_order']); ?>" class="En" required>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div><!-- /.serchEditArea -->
+
+                <!-- serchListArea -->
+                <?php if( $isScrollBar ) { ?>
+                    <div class="serchListArea" style="width:918px; margin:0px auto !important;" >
+                <?php } else { ?>
+                    <div class="serchListArea" style="width:900px; margin:0px auto !important;" >
+                <?php } ?>
+                        <table>
+
+                            <tr>
+                                <th width="360px"><?php hsc($Log->getMsgLog('MSG_BASE_0921')); ?></th>
+                                <th width="90px"><?php hsc($Log->getMsgLog('MSG_BASE_0886')); ?></th>
+                                <th width="90px"><?php hsc($Log->getMsgLog('MSG_BASE_0887')); ?></th>
+                                <th width="90px"><?php hsc($Log->getMsgLog('MSG_BASE_0888')); ?></th>
+                                <th width="90px"><?php hsc($Log->getMsgLog('MSG_BASE_0889')); ?></th>
+                                <th width="90px"><?php hsc($Log->getMsgLog('MSG_BASE_0890')); ?></th>
+                                <th width="90px"><?php hsc($Log->getMsgLog('MSG_BASE_0891')); ?></th>
+                                <?php if( $isScrollBar ) { ?>
+                                    <td width="18px" style="border-style:none;" ></td>
+                                <?php } ?>
+                            </tr>
+                        </table>
+              <?php if( $isScrollBar ) { ?>
+                  </div>
+                  <div class="serchListArea" style="width:918px; margin: 0px auto; overflow-y:auto; height:300px; !important;">
+              <?php } ?>
+                      <table style="background-color: #ffffff">
+                          <?php foreach($authorityNameList as $authorityName) { ?>
+                              <tr>
+                                  <td width="360px">
+                                       <?php hsc($authorityName['screen_name']); ?>
+                                       <input type="hidden" id="accessAuthorityID" name="accessAuthorityID" class="accessAuthorityID" value="<?php hsc($authorityName['access_authority_id']); ?>">
+                                  </td>
+                                  <td width="90px">  
+                                      <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" name="reference" id="reference" class="reference" style="width: 80px" required>
+                                          <?php foreach($referenceList as $reference) { ?>
+                                              <?php $selected = ""; ?>
+                                              <?php if($reference['security_class_id'] == $authorityName['reference']) { ?>
+                                                  <?php $selected = "selected"; ?>
+                                              <?php } ?>
+                                              <option value="<?php hsc($reference['security_class_id']); ?>"<?php hsc($selected); ?>><?php hsc($reference['security_class_name']); ?></option>
+                                          <?php } ?>
+                                      </select>
+                                  </td>
+                                  <td width="90px">
+                                      <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="registration" name="registration" class="registration" style="width: 80px" required>
+                                          <?php foreach($registrationList as $registration) { ?>
+                                              <?php $selected = ""; ?>
+                                              <?php if($registration['security_class_id'] == $authorityName['registration']) { ?>
+                                                  <?php $selected = "selected"; ?>
+                                              <?php } ?>
+                                              <option value="<?php hsc($registration['security_class_id']); ?>"<?php hsc($selected); ?>><?php hsc($registration['security_class_name']); ?></option>
+                                          <?php } ?>
+                                      </select>
+                                  </td>
+                                  <td width="90px">
+                                      <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>"  name="delete" id="delete" class="delete" style="width: 80px" required>
+                                          <?php foreach($deleteList as $delete) { ?>
+                                              <?php $selected = ""; ?>
+                                              <?php if($delete['security_class_id'] == $authorityName['delete']) { ?>
+                                                  <?php $selected = "selected"; ?>
+                                              <?php } ?>
+                                              <option value="<?php hsc($delete['security_class_id']); ?>"<?php hsc($selected); ?>><?php hsc($delete['security_class_name']); ?></option>
+                                          <?php } ?>
+                                      </select>
+                                  </td>
+                                  <td width="90px">
+                                      <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="approval" name="approval" class="approval" style="width: 80px" required>
+                                          <?php foreach($approvalList as $approval) { ?>
+                                              <?php $selected = ""; ?>
+                                              <?php if($approval['security_class_id'] == $authorityName['approval']) { ?>
+                                                  <?php $selected = "selected"; ?>
+                                              <?php } ?>
+                                              <option value="<?php hsc($approval['security_class_id']); ?>"<?php hsc($selected); ?>><?php hsc($approval['security_class_name']); ?></option>
+                                          <?php } ?>
+                                      </select>
+                                  </td>
+                                  <td width="90px">
+                                      <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="printing" name="printing" class="printing" style="width: 80px" required>
+                                          <?php foreach($printingList as $printing) { ?>
+                                              <?php $selected = ""; ?>
+                                              <?php if($printing['security_class_id'] == $authorityName['printing']) { ?>
+                                                  <?php $selected = "selected"; ?>
+                                              <?php } ?>
+                                              <option value="<?php hsc($printing['security_class_id']); ?>"<?php hsc($selected); ?>><?php hsc($printing['security_class_name']); ?></option>
+                                          <?php } ?>
+                                      </select>
+                                  </td>
+                                  <td width="90px">
+                                      <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="output" name="output" class="output" style="width: 80px" required>
+                                          <?php foreach($outputList as $output) { ?>
+                                              <?php $selected = ""; ?>
+                                              <?php if($output['security_class_id'] == $authorityName['output']) { ?>
+                                                  <?php $selected = "selected"; ?>
+                                              <?php } ?>
+                                              <option value="<?php hsc($output['security_class_id']); ?>"<?php hsc($selected); ?>><?php hsc($output['security_class_name']); ?></option>
+                                          <?php } ?>
+                                      </select>
+                                  </td>
+                              </tr>
+                          <?php } ?>
+                    </table>
+                </div><!-- /.serchListArea -->
+                <br>
+                <!-- logicButtonArea -->
+                <div class="logicButtonArea">
+                    <p align=center>
+                        <?php 
+                            if($securityID != 0) 
+                            { 
+                        ?>
+                            <input type="submit" id="del" name="del" value="<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>" onclick="setLineInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>')" class="delete" <?php hsc($del_disabled); ?>>
+                            <input type="submit" id="newadd" name="newadd" value="　<?php hsc($Log->getMsgLog('MSG_BASE_0805')); ?>" onclick="setLineInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0800')); ?>')" class="add" <?php hsc($add_disabled); ?>>
+                            <input type="submit" id="mod" name="mod" value="<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>" onclick="setLineInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>')" class="update" <?php hsc($add_disabled); ?>>
+                        <?php } else { ?>
+                            <input type="submit" id="add" name="add" value="　<?php hsc($Log->getMsgLog('MSG_BASE_0805')); ?>" onclick="setLineInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0800')); ?>')" class="add" <?php hsc($add_disabled); ?>>
+                        <?php } ?>
+                    </p>
+                </div><!-- /.logicButtonArea -->
+            </form>
+
+        </div><!-- /#sb-site -->
+        <?php include("../FwCommon/View/Dialog.php"); ?>
+    </body>
+</html>

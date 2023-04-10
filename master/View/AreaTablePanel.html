@@ -1,0 +1,119 @@
+<?php
+    /**
+     * @file      組織マスタ画面(View)
+     * @author    USE R.dendo
+     * @date      2016/07/11
+     * @version   1.00
+     * @note      組織マスタ画面(一覧部分)
+     */
+?>
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+            <script src="../js/attendance/jquery/datepicker-ja.js" /></script>
+            <script type="text/javascript">
+                /**
+                 *  DatePickerを設定
+                 */
+                $(function()
+                {
+                    for( var i = 1; i <= <?php hsc(count($organizationList)); ?>; i++ )
+                    {
+                        $( "#applicationDateStartEdit" + i ).datepicker({
+                            showButtonPanel: true,
+                            dateFormat: 'yy/mm/dd',
+                        });
+                    }
+                });
+            </script>
+
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-ajax">
+            
+            <!-- PageMoveArea -->
+                <?php include("../FwCommon/View/PagingArea.php"); ?>
+                <!-- serchListArea -->
+                <!-- 2016/09/19 Y.Sugou -->
+                <?php if( $isScrollBar ) { ?>
+                    <div class="serchListArea" style=" clear:both; width:99%; margin:0px auto ; overflow-y:auto; height:33px; !important;">
+                <?php } else { ?>
+                    <div class="serchListArea" style=" clear:both; width:99%; margin:5px auto !important;">
+                <?php } ?>
+                <!-- ---------------------- -->
+                    <input type="hidden" id="token" name="token" value="<?php hsc($TokenID); ?>">
+                    <table>
+                        <tr>
+                            <th width="37px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0848')) ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?></u><?php hsc($headerArray['organizationNoSortMark']); ?></span></th><!-- No -->
+                            <th width="50px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0849')) ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0849')); ?></u><?php hsc($headerArray['organizationStateSortMark']); ?></span></th><!-- 状態 -->
+                            <th width="50px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0850')) ?>');"><u>エリアコード</u><?php hsc($headerArray['departmentCodeSortMark']); ?></span></th><!-- 部門コード -->
+                            <th width="123px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0854')) ?>');"><u>エリア名</u><?php hsc($headerArray['organizationNameSortMark']); ?></span></th><!-- 組織名 -->
+                            <th width="62px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0903')) ?>');"><u>エリア名カナ</u><?php hsc($headerArray['abbreviatedNameSortMark']); ?></span></th><!-- 組織略称 --> 
+                            <th width="87px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0853')) ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0853')); ?></u><?php hsc($headerArray['applicationDateStarSortMark']); ?></span></th><!-- 適用開始日 -->
+                            <th width="50px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0852')) ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0852')); ?></u><?php hsc($headerArray['organizationDispOrderSortMark']); ?></span></th><!-- 表示順 -->
+                            <th width="111px"></th>
+                        </tr>
+                    </table>
+            <?php if( $isScrollBar ) { ?>
+                </div>
+                <div class="serchListArea" style="width:99%; margin: 0px auto; overflow-y:auto; height:380px; !important;">
+            <?php } ?>
+                    <table  id="nameTable" style="background-color: #ffffff">
+                        <?php foreach($organizationList as $organization) { ?>
+                            <?php $organization_no++; ?>
+                            <?php if(!$organizationNoFlag) { ?>
+                                <?php $display_no++; ?>
+                            <?php } ?>
+                            <tr>
+                                <td align = "right" style="width:37px;">
+                                    <?php hsc($display_no); ?>
+                                    <input type="hidden" id="organizationIdMod<?php hsc($organization_no); ?>" name="organizationId<?php hsc($organization_no); ?>" value="<?php hsc($organization['organization_id']); ?>">
+                                    <input type="hidden" id="organizationDetailIdMod<?php hsc($organization_no); ?>" name="organizationDetailId<?php hsc($organization_no); ?>" value="<?php hsc($organization['organization_detail_id']); ?>">
+                                    <input type="hidden" id="updateTime<?php hsc($organization_no); ?>" name="updateTime<?php hsc($organization_no); ?>" value="<?php hsc($organization['mo_update_time']); ?>">
+                                    <input type="hidden" id="modUpdateTime<?php hsc($organization_no); ?>" name="modUpdateTime<?php hsc($organization_no); ?>" value="<?php hsc($organization['mod_update_time']); ?>">
+                                </td>
+                                <!-- 状態を表示 -->
+                                <td align="center" style="width:50px;"><?php hsc($organization['eff_code']); ?>
+                                </td>
+                                <!-- 部門コード -->
+                                <td align = "right" id="oCode<?php hsc($organization_no); ?>" style="width:50px;"><?php hsc($organization['department_code']); ?></td>
+                                <td id="oCode-edit<?php hsc($organization_no); ?>" style="display : none; width:50px;" align = "center">
+                                    <input type="text" pattern="^[0-9A-Za-z]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0302')); ?>" id="codeEdit<?php hsc($organization_no); ?>" name="oCodeEdit<?php hsc($organization_no); ?>" style="width: 44px" maxlength="20" value="<?php hsc($organization['department_code']); ?>" class="En" required>
+                                </td>
+                                <!-- 組織名 -->
+                                <td id="oOrganization<?php hsc($organization_no); ?>" style="width:123px;"><?php hsc($organization['organization_name']); ?></td>
+                                <td id="oOrganization-edit<?php hsc($organization_no); ?>" style="display : none;width:123px;" align = "center">
+                                    <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0302')); ?>" id="organizationNameEdit<?php hsc($organization_no); ?>" name="sOrganization<?php hsc($organization_no); ?>" style="width: 115px" maxlength="128" value="<?php hsc($organization['organization_name']); ?>" class="Em" required>
+                                </td>
+                                <!-- 組織略称 -->
+                                <td id="oAbbreviated_name<?php hsc($organization_no); ?>" style="width:62px;"><?php hsc($organization['abbreviated_name']); ?></td>
+                                <td id="oAbbreviated_name-edit<?php hsc($organization_no); ?>" style="display : none; width:62px;" align = "center">
+                                    <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0302')); ?>" id="abbreviatedNameEdit<?php hsc($organization_no); ?>" name="sOrganization<?php hsc($organization_no); ?>" style="width: 50px" maxlength="128" value="<?php hsc($organization['abbreviated_name']); ?>" class="Em" required>
+                                </td>
+                                <!-- 適用開始日 -->
+                                <td align = "center" id="oApplication_date_start<?php hsc($organization_no); ?>" style="width:87px;"><?php hsc($organization['application_date_start']); ?></td>
+                                <td id="oApplication_date_start-edit<?php hsc($organization_no); ?>" style="display : none; width:87px;" align = "center">
+                                    <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" pattern="\d{4}/\d{2}/\d{2}" id="applicationDateStartEdit<?php hsc($organization_no); ?>" name="oApplication_date_start<?php hsc($organization_no); ?>" style="width: 80px" value="<?php hsc($organization['application_date_start']); ?>" class="En" required>
+                                </td>
+                                <!-- 表示順 -->
+                                <td align = "right" id="oDisp_order<?php hsc($organization_no); ?>" style="width:50px;"><?php hsc($organization['disp_order']); ?></td>
+                                <td align = "right" id="oDisp_order-edit<?php hsc($organization_no); ?>" style="display : none;width:50px;">
+                                    <input type="text" pattern="^[0-9]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" id="modDispOrder<?php hsc($organization_no); ?>" name="oDisp<?php hsc($organization_no); ?>" style="width: 40px" maxlength="5" value="<?php hsc($organization['disp_order']); ?>" class="En" required>
+                                </td>
+                                <td align="center" style="width:111px;">
+                                    <?php if($organization['eff_code'] == "適用中" or $organization['eff_code'] == "適用予定" ) 
+                                        { ?>
+                                            <input type="button" id="edtBtn<?php hsc($organization_no); ?>" value="<?php hsc($Log->getMsgLog('MSG_BASE_0801')); ?>" onclick="editRow(this)" <?php hsc($organization['cor_disabled']); ?> ><!-- 修正 -->
+                                            <input type="submit" id="edtBtn-mod<?php hsc($organization_no); ?>" name="mod<?php hsc($organization_no); ?>" style="display : none;" value="<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>')" <?php hsc($organization['mod_disabled']); ?>><!-- 更新 -->  
+                                    <?php } ?>
+                                    <?php if($organization['eff_code'] == "適用中" and $organization['is_apply_plan'] == null)
+                                        { ?>
+                                            <input type="button" id="edtBtn-plans<?php hsc($organization_no); ?>" value="<?php hsc($Log->getMsgLog('MSG_BASE_0924')); ?>" onclick="editRow(this)" <?php hsc($organization['cor_disabled']); ?> ><!-- 予定 -->
+                                    <?php } ?>
+                                            <input type="button" id="edtBtn-del<?php hsc($organization_no); ?>" name="del<?php hsc($organization_no); ?>" style="display : none; " value="<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>')" <?php hsc($organization['del_disabled']); ?>><!-- 削除 -->
+                                </td>
+                            </tr>
+                            <?php if($organizationNoFlag) { ?>
+                                <?php $display_no--; ?>
+                            <?php } ?>
+                        <?php } ?>
+                    </table>
+                </div><!-- /.serchListArea -->
+            </div><!-- /.jquery-replace-ajax -->

@@ -1,0 +1,379 @@
+<?php
+    /**
+     * @file      商品別帳票画面(View)
+     * @author    millionet oota
+     * @date      2016/06/30
+     * @version   1.00
+     * @note      商品別帳票画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述 
+            include("../profit/View/Common/HtmlHeader.php"); 
+        ?>
+    <script type="text/javascript">
+        function chf(frm){
+            if( 1 < window.location.search.length )
+                {
+                    // 最初の1文字 (?記号) を除いた文字列を取得する
+                    var query = window.location.search.substring( 1 );
+                    // クエリの区切り記号 (&) で文字列を配列に分割する
+                    var parameters = query.split( '&' );
+                    if(1 < parameters.length){
+                        frm.action += '?param=' +frm.elements["codeName"].value + '&home=1';
+                    }else{
+                        frm.action += '?param=' +frm.elements["codeName"].value;
+                    }
+                }
+       }
+    </script>
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site">
+<form name="serchForm" id="serchForm" action="/profit/index.php" method="post" onsubmit="return chf(this)">
+<div class="serchListArea">
+<table align="center">
+<tr>
+<td>
+<table id="serchTable">
+<tr>
+<th id="serchTableTitle" align="center" width="65">帳票種別</th>
+<td id="serchTableItem">
+<select name="codeName" id="codeName">
+    <option value="LedgerSheetDay/show">売上分析</option>
+    <option value="LedgerSheetMonth/show">月次帳票</option>
+    <option value="LedgerSheetItem/show" selected>商品別帳票</option>
+    <option value="LedgerSheetTime/show">時間別帳票</option>
+    <option value="LedgerSheetTimeZone/show">時間帯別帳票</option>
+    <option value="LedgerSheetCost/show">コスト帳票</option>
+</select>
+</td>
+<th id="serchTableTitle" align="center" width="65">集計期間</th>
+<td id="serchTableItem">
+<select name="from_year" class="from_year" >
+<option value="2011">2011 年</option>
+<option value="2012">2012 年</option>
+<option value="2013">2013 年</option>
+<option value="2014">2014 年</option>
+<option value="2015">2015 年</option>
+<option value="2016" selected>2016 年</option>
+</select>
+<select name="from_month" class="from_month" >
+<option value="1">01 月</option>
+<option value="2">02 月</option>
+<option value="3">03 月</option>
+<option value="4">04 月</option>
+<option value="5">05 月</option>
+<option value="6">06 月</option>
+<option value="7" selected>07 月</option>
+<option value="8">08 月</option>
+<option value="9">09 月</option>
+<option value="10">10 月</option>
+<option value="11">11 月</option>
+<option value="12">12 月</option>
+</select>
+<label class="label_kara" >～</label>
+<select name="to_year" class="to_year" >
+<option value="2011">2011 年</option>
+<option value="2012">2012 年</option>
+<option value="2013">2013 年</option>
+<option value="2014">2014 年</option>
+<option value="2015">2015 年</option>
+<option value="2016" selected>2016 年</option>
+</select>
+<select name="to_month" class="to_month" >
+<option value="1">01 月</option>
+<option value="2">02 月</option>
+<option value="3">03 月</option>
+<option value="4">04 月</option>
+<option value="5">05 月</option>
+<option value="6">06 月</option>
+<option value="7" selected>07 月</option>
+<option value="8">08 月</option>
+<option value="9">09 月</option>
+<option value="10">10 月</option>
+<option value="11">11 月</option>
+<option value="12">12 月</option>
+</select>
+<select name="to_day" class="to_day" >
+<option value="1">01 日</option>
+<option value="2">02 日</option>
+<option value="3">03 日</option>
+<option value="4">04 日</option>
+<option value="5">05 日</option>
+<option value="6">06 日</option>
+<option value="7">07 日</option>
+<option value="8">08 日</option>
+<option value="9">09 日</option>
+<option value="10">10 日</option>
+<option value="11">11 日</option>
+<option value="12">12 日</option>
+<option value="13">13 日</option>
+<option value="14">14 日</option>
+<option value="15">15 日</option>
+<option value="16">16 日</option>
+<option value="17">17 日</option>
+<option value="18">18 日</option>
+<option value="19">19 日</option>
+<option value="20">20 日</option>
+<option value="21">21 日</option>
+<option value="22">22 日</option>
+<option value="23">23 日</option>
+<option value="24">24 日</option>
+<option value="25">25 日</option>
+<option value="26">26 日</option>
+<option value="27">27 日</option>
+<option value="28">28 日</option>
+<option value="29">29 日</option>
+<option value="30">30 日</option>
+<option value="31" selected>31 日</option>
+</select>　
+</td>
+</tr>
+</table>
+</td>
+<td>
+　<input class="submit" type="submit" name="submit" value="検索">
+</td>
+</table><br />
+</form>
+<div id="menu-wrap">
+</div>
+<table id='viewList' align='center'>
+<div id="menu-wrap">
+<thead>
+<tr>
+<th id='viewList' align='center' width=20>No</th>
+<th id='viewList' align='center' width=200>部門名</th>
+<th id='viewList' align='center' width=200>商品名</th>
+<th id='viewList' align='center' width=200>売上</th>
+<th id='viewList' align='center' width=200>販売数</th>
+<th id='viewList' align='center' width=200>構成比</th>
+<th id='viewList' align='center' width=200>ランク</th>
+</tr>
+</thead>
+</div>
+<tbody>
+<tr>
+<td id='viewList' align='left' width=100>1</td>
+<td id='viewList' align='right' width=60>フード</td>
+<td id='viewList' align='right' width=60>から揚げ</td>
+<td id='viewList' align='right' width=60>150,450</td>
+<td id='viewList' align='right' width=60>102</td>
+<td id='viewList' align='right' width=60>23.75%</td>
+<td id='viewList' align='right' width=60>A</td>
+</tr>
+<tr>
+<td id='viewList' align='left' width=100>2</td>
+<td id='viewList' align='right' width=60></td>
+<td id='viewList' align='right' width=60>揚げ出豆腐</td>
+<td id='viewList' align='right' width=60>100,450</td>
+<td id='viewList' align='right' width=60>98</td>
+<td id='viewList' align='right' width=60>15.85%</td>
+<td id='viewList' align='right' width=60>A</td>
+</tr>
+<tr>
+<td id='viewList' align='left' width=100>3</td>
+<td id='viewList' align='right' width=60></td>
+<td id='viewList' align='right' width=60>つけ物</td>
+<td id='viewList' align='right' width=60>100,210</td>
+<td id='viewList' align='right' width=60>45</td>
+<td id='viewList' align='right' width=60>15.82%</td>
+<td id='viewList' align='right' width=60>A</td>
+</tr>
+<tr>
+<td id='viewList' align='left' width=100>4</td>
+<td id='viewList' align='right' width=60></td>
+<td id='viewList' align='right' width=60>グラタン</td>
+<td id='viewList' align='right' width=60>98,450</td>
+<td id='viewList' align='right' width=60>38</td>
+<td id='viewList' align='right' width=60>15.54%</td>
+<td id='viewList' align='right' width=60>A</td>
+</tr>
+<tr>
+<td id='viewList' align='left' width=100>5</td>
+<td id='viewList' align='right' width=60></td>
+<td id='viewList' align='right' width=60>サラダ</td>
+<td id='viewList' align='right' width=60>61,770</td>
+<td id='viewList' align='right' width=60>20</td>
+<td id='viewList' align='right' width=60>9.75%</td>
+<td id='viewList' align='right' width=60>B</td>
+</tr>
+<tr>
+<td id='viewList' align='left' width=100>6</td>
+<td id='viewList' align='right' width=60></td>
+<td id='viewList' align='right' width=60>スープ</td>
+<td id='viewList' align='right' width=60>54,996</td>
+<td id='viewList' align='right' width=60>20</td>
+<td id='viewList' align='right' width=60>8.68%</td>
+<td id='viewList' align='right' width=60>B</td>
+</tr>
+<tr>
+<td id='viewList' align='left' width=100>7</td>
+<td id='viewList' align='right' width=60></td>
+<td id='viewList' align='right' width=60>おにぎり</td>
+<td id='viewList' align='right' width=60>41,450</td>
+<td id='viewList' align='right' width=60>15</td>
+<td id='viewList' align='right' width=60>6.54%</td>
+<td id='viewList' align='right' width=60>B</td>
+</tr>
+<tr>
+<td id='viewList' align='left' width=100>8</td>
+<td id='viewList' align='right' width=60></td>
+<td id='viewList' align='right' width=60>天ぷら</td>
+<td id='viewList' align='right' width=60>15,450</td>
+<td id='viewList' align='right' width=60>4</td>
+<td id='viewList' align='right' width=60>2.44%</td>
+<td id='viewList' align='right' width=60>C</td>
+</tr>
+<tr>
+<td id='viewList' align='left' width=100>9</td>
+<td id='viewList' align='right' width=60></td>
+<td id='viewList' align='right' width=60>デザート</td>
+<td id='viewList' align='right' width=60>8,900</td>
+<td id='viewList' align='right' width=60>3</td>
+<td id='viewList' align='right' width=60>1.40%</td>
+<td id='viewList' align='right' width=60>C</td>
+</tr>
+<tr>
+<td id='viewList' align='left' width=100>10</td>
+<td id='viewList' align='right' width=60></td>
+<td id='viewList' align='right' width=60>お土産</td>
+<td id='viewList' align='right' width=60>1,450</td>
+<td id='viewList' align='right' width=60>2</td>
+<td id='viewList' align='right' width=60>0.23%</td>
+<td id='viewList' align='right' width=60>C</td>
+</tr>
+<tr>
+<th id='viewList' align='left'> </th>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>小計</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'></td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>633,576</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>347</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>100%</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'></td>
+</tr>
+<tr>
+<td id='viewList' align='left' width=100>11</td>
+<td id='viewList' align='right' width=60>ドリンク</td>
+<td id='viewList' align='right' width=60>生ビール</td>
+<td id='viewList' align='right' width=60>320,120</td>
+<td id='viewList' align='right' width=60>202</td>
+<td id='viewList' align='right' width=60>19.33%</td>
+<td id='viewList' align='right' width=60>A</td>
+</tr>
+<tr>
+<td id='viewList' align='left' width=100>12</td>
+<td id='viewList' align='right' width=60></td>
+<td id='viewList' align='right' width=60>チューハイ</td>
+<td id='viewList' align='right' width=60>301,100</td>
+<td id='viewList' align='right' width=60>178</td>
+<td id='viewList' align='right' width=60>18.18%</td>
+<td id='viewList' align='right' width=60>A</td>
+</tr>
+<tr>
+<td id='viewList' align='left' width=100>13</td>
+<td id='viewList' align='right' width=60></td>
+<td id='viewList' align='right' width=60>赤ワイン</td>
+<td id='viewList' align='right' width=60>204,450</td>
+<td id='viewList' align='right' width=60>54</td>
+<td id='viewList' align='right' width=60>12.34%</td>
+<td id='viewList' align='right' width=60>B</td>
+</tr>
+<tr>
+<td id='viewList' align='left' width=100>14</td>
+<td id='viewList' align='right' width=60></td>
+<td id='viewList' align='right' width=60>白ワイン</td>
+<td id='viewList' align='right' width=60>184,630</td>
+<td id='viewList' align='right' width=60>41</td>
+<td id='viewList' align='right' width=60>11.15%</td>
+<td id='viewList' align='right' width=60>B</td>
+</tr>
+<tr>
+<td id='viewList' align='left' width=100>15</td>
+<td id='viewList' align='right' width=60></td>
+<td id='viewList' align='right' width=60>ブランデー</td>
+<td id='viewList' align='right' width=60>171,520</td>
+<td id='viewList' align='right' width=60>37</td>
+<td id='viewList' align='right' width=60>10.36%</td>
+<td id='viewList' align='right' width=60>B</td>
+</tr>
+<tr>
+<td id='viewList' align='left' width=100>16</td>
+<td id='viewList' align='right' width=60></td>
+<td id='viewList' align='right' width=60>ウィスキー</td>
+<td id='viewList' align='right' width=60>170,100</td>
+<td id='viewList' align='right' width=60>34</td>
+<td id='viewList' align='right' width=60>10.27%</td>
+<td id='viewList' align='right' width=60>B</td>
+</tr>
+<tr>
+<td id='viewList' align='left' width=100>17</td>
+<td id='viewList' align='right' width=60></td>
+<td id='viewList' align='right' width=60>コーラ</td>
+<td id='viewList' align='right' width=60>153,100</td>
+<td id='viewList' align='right' width=60>30</td>
+<td id='viewList' align='right' width=60>9.24%</td>
+<td id='viewList' align='right' width=60>B</td>
+</tr>
+<tr>
+<td id='viewList' align='left' width=100>18</td>
+<td id='viewList' align='right' width=60></td>
+<td id='viewList' align='right' width=60>ウーロン茶</td>
+<td id='viewList' align='right' width=60>148,742</td>
+<td id='viewList' align='right' width=60>30</td>
+<td id='viewList' align='right' width=60>8.98%</td>
+<td id='viewList' align='right' width=60>B</td>
+</tr>
+<tr>
+<td id='viewList' align='left' width=100>19</td>
+<td id='viewList' align='right' width=60></td>
+<td id='viewList' align='right' width=60>ジャスミン茶</td>
+<td id='viewList' align='right' width=60>1,450</td>
+<td id='viewList' align='right' width=60>8</td>
+<td id='viewList' align='right' width=60>0.09%</td>
+<td id='viewList' align='right' width=60>C</td>
+</tr>
+<tr>
+<td id='viewList' align='left' width=100>20</td>
+<td id='viewList' align='right' width=60></td>
+<td id='viewList' align='right' width=60>オレンジ</td>
+<td id='viewList' align='right' width=60>1,100</td>
+<td id='viewList' align='right' width=60>4</td>
+<td id='viewList' align='right' width=60>0.07%</td>
+<td id='viewList' align='right' width=60>C</td>
+</tr>
+<tr>
+<th id='viewList' align='left'> </th>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>小計</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'></td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>1,656,312</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>618</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>100%</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'></td>
+</tr>
+</tbody>
+</table>
+</div>
+<br />
+<br />
+<br />
+<script type="text/javascript" src="../jquery/js/scrolltopcontrol2.js"></script> <!--スクロールしながらページのトップに戻る-->
+        </div><!-- /#sb-site -->
+</body>
+</html>

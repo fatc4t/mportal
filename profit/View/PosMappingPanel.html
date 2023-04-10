@@ -1,0 +1,628 @@
+<?php
+    /**
+     * @file      日次マッピングマスタ画面(View)
+     * @author    millionet oota
+     * @date      2016/06/30
+     * @version   1.00
+     * @note      日次マッピングマスタ画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array( 'default.css',
+                                'common.js', 
+                                'jquery-ui.min.js', 
+                                'jquery-ui.css' );    // cssまたはｊｓファイルを拡張子付きで配列に記述 
+            include("../profit/View/Common/HtmlHeader.php"); 
+        ?>
+
+        <script type="text/javascript">
+            var lineInfo = null;
+            var btnInfo  = null;
+            var displayPageNo = 1;
+            var displayRecordCnt = 10;
+            var posMappingItemInfo = null;
+            var posMappingSort = null;
+            var no_click_count = 0;
+            var disporder_click_count = 0;
+            var pos_brand_id_click_count = 0;
+            var mapping_name_id_click_count = 0;
+            var logic_type_click_count = 0;
+            var logic_click_count = 0;
+            var keta_click_count = 0;
+            var round_type_click_count = 0;
+            var pos_key_file_id_click_count = 0;
+            var symbol_click_count = 0;
+            var registration_time_click_count = 0;
+            var update_time_click_count = 0;
+            var state_click_count = 0;
+            
+            $(document).ready(function()
+            {
+                /**
+                 * 検索ボタンクリック
+                 */
+                $('#search').click(function()
+                {
+                    displayPageNo = 1;
+
+                    // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                    var data = {
+                                  displayPageNo : displayPageNo,
+                                  displayRecordCnt : displayRecordCnt,
+                                  searchPosBrandId : $('#posBrandId').val(),
+                                  searchMappingNameId : $('#mappingNameId').val(),
+                                  searchDelF : document.getElementById("delF").checked,
+                                  sortConditions  : 0
+                               };
+                    var path = 'index.php?param=PosMapping/search&home=1';
+
+                    // データ更新
+                    setDataForAjax( data, path );
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+                /**
+                 * 登録ボタンクリック
+                 */
+                $('#addForm').submit(function(event)
+                {
+                    event.preventDefault();
+                    document.getElementById("dialog_add").textContent='<?php hsc(SystemParameters::$NEW_DIALOG_MSG); ?>';
+                    
+                    $("#dialog_add").dialog('open');
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+                /**
+                 * 更新/削除ボタンクリック
+                 */
+                $('#modForm').submit(function(event)
+                {
+                    
+                    event.preventDefault();
+                    if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>' )
+                    {
+                        document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$UPDATE_DIALOG_MSG); ?>';
+                    }
+                    else
+                    {
+                        document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$DELETE_DIALOG_MSG); ?>';
+                    }
+                    
+                    $("#dialog_mod").dialog('open');
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+                
+            });
+
+            /*
+             * editRow: 編集ボタン該当行の内容を入力・編集またモード切り替え
+             */
+            function editRow(obj)
+            {
+                var objTR = obj.parentNode.parentNode.parentNode;
+                var rowId = objTR.sectionRowIndex;
+                var rowCount = nameTable.rows.length - 1;
+
+                // モードの切り替えはボタンの値で判定	
+                $('#sDisp' + rowId).css('display' , 'none');
+                $('#sDisp-edit' + rowId).val($('#sDisp').text()).css('display' , '');
+                $('#sPosBrandId' + rowId).css('display' , 'none');
+                $('#sPosBrandId-edit' + rowId).val($('#sPosBrandId').text()).css('display' , '');
+                $('#sMappingNameId' + rowId).css('display' , 'none');
+                $('#sMappingNameId-edit' + rowId).val($('#sMappingNameId').text()).css('display' , '');
+                $('#sLogicType' + rowId).css('display' , 'none');
+                $('#sLogicType-edit' + rowId).val($('#sLogicType').text()).css('display' , '');
+                $('#sLogic' + rowId).css('display' , 'none');
+                $('#sLogic-edit' + rowId).val($('#sLogic').text()).css('display' , '');
+                $('#sPosKeyFileId' + rowId).css('display' , 'none');
+                $('#sPosKeyFileId-edit' + rowId).val($('#sPosKeyFileId').text()).css('display' , '');
+                $('#sKeta' + rowId).css('display' , 'none');
+                $('#sKeta-edit' + rowId).val($('#sKeta').text()).css('display' , '');
+                $('#sRoundType' + rowId).css('display' , 'none');
+                $('#sRoundType-edit' + rowId).val($('#sRoundType').text()).css('display' , '');
+                $('#sSymbol' + rowId).css('display' , 'none');
+                $('#sSymbol-edit' + rowId).val($('#sSymbol').text()).css('display' , '');
+                $('#edtBtn' + rowId).css('display' , 'none');
+                $('#edtBtn-mod' + rowId).css('display' , '');
+                $('#edtBtn-del' + rowId).css('display' , '');
+                $('#add').prop('disabled', true);
+
+                for(var i = 1; i <= rowCount; i++)
+                {
+                    $('#edtBtn' + i).prop('disabled', true);
+                }
+            }
+
+            /**
+             * 行情報を設定
+             */
+            function setLineInfo(thisLineInfo, thisBtnInfo)
+            {
+                lineInfo = thisLineInfo;
+                btnInfo  = thisBtnInfo;
+                return false;
+            }
+
+            /**
+             * ソート処理
+             */
+            function setColumnInfo(thisItemInfo)
+            {
+               posMappingItemInfo = thisItemInfo;
+
+                posMappingSort = 0;
+                // No
+                if(posMappingItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0810')); ?>")
+                {
+                    no_click_count++;
+                    if((no_click_count % 2) != 0)
+                    {
+                        posMappingSort = 1;
+                    }
+                    else
+                    {
+                        posMappingSort = 2;
+                    }
+                }
+                // 表示順
+                else if(posMappingItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0811')); ?>")
+                {
+                    disporder_click_count++;
+                    if((disporder_click_count % 2) != 0)
+                    {
+                        posMappingSort = 3;
+                    }
+                    else
+                    {
+                        posMappingSort = 4;
+                    }
+                }
+                // POS種別名
+                else if(posMappingItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0840')); ?>")
+                {
+                     
+                    mapping_type_click_count++;
+                    if((mapping_type_click_count % 2) != 0)
+                    {
+                        posMappingSort = 5;
+                    }
+                    else
+                    {
+                        posMappingSort = 6;
+                    }
+                }
+                // Mコード
+                else if(posMappingItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0842')); ?>" )
+                {
+                    link_click_count++;
+                    if((link_click_count % 2) != 0)
+                    {
+                        posMappingSort = 7;
+                    }
+                    else
+                    {
+                        posMappingSort = 8;
+                    }
+                }
+                // POSマッピング名
+                else if(posMappingItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0843')); ?>" )
+                {
+                    list_f_click_count++;
+                    if((list_f_click_count % 2) != 0)
+                    {
+                        posMappingSort = 9;
+                    }
+                    else
+                    {
+                        posMappingSort = 10;
+                    }
+                }
+                // タイプ
+                else if(posMappingItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0844')); ?>" )
+                {
+                    mapping_code_click_count++;
+                    if((mapping_code_click_count % 2) != 0)
+                    {
+                        posMappingSort = 11;
+                    }
+                    else
+                    {
+                        posMappingSort = 12;
+                    }
+                }
+                // ロジック
+                else if(posMappingItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0845')); ?>" )
+                {
+                    mapping_name_click_count++;
+                    if((mapping_name_click_count % 2) != 0)
+                    {
+                        posMappingSort = 13;
+                    }
+                    else
+                    {
+                        posMappingSort = 14;
+                    }
+                }
+                // キーファイル名
+                else if(posMappingItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        posMappingSort = 15;
+                    }
+                    else
+                    {
+                        posMappingSort = 16;
+                    }
+                }
+                // 端数処理 桁数
+                else if(posMappingItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        posMappingSort = 17;
+                    }
+                    else
+                    {
+                        posMappingSort = 18;
+                    }
+                }
+                // 端数処理 タイプ
+                else if(posMappingItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        posMappingSort = 19;
+                    }
+                    else
+                    {
+                        posMappingSort = 20;
+                    }
+                }
+                // 単位
+                else if(posMappingItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        posMappingSort = 21;
+                    }
+                    else
+                    {
+                        posMappingSort = 22;
+                    }
+                }
+                // 初回登録日
+                else if(posMappingItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0813')); ?>" )
+                {
+                    registration_time_click_count++;
+                    if((registration_time_click_count % 2) != 0)
+                    {
+                        posMappingSort = 23;
+                    }
+                    else
+                    {
+                        posMappingSort = 24;
+                    }
+                }
+                // 更新日
+                else if(posMappingItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0814')); ?>" )
+                {
+                    update_time_click_count++;
+                    if((update_time_click_count % 2) != 0)
+                    {
+                        posMappingSort = 25;
+                    }
+                    else
+                    {
+                        posMappingSort = 26;
+                    }
+                }
+                // 状態
+                else if(posMappingItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0815')); ?>" )
+                {
+                    state_click_count++;
+                    if((state_click_count % 2) != 0)
+                    {
+                        posMappingSort = 27;
+                    }
+                    else
+                    {
+                        posMappingSort = 28;
+                    }
+                }
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchPosBrandId : $('#posBrandId').val(),
+                              searchMappingNameId : $('#mappingNameId').val(),
+                              searchDelF : document.getElementById("delF").checked,
+                              sortConditions : posMappingSort 
+                           };
+                var path = 'index.php?param=PosMapping/search&home=1';
+  
+                // データ更新
+                setDataForAjax( data, path );
+
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 表示レコード数選択
+             */
+            function displayRecord(recordCnt)
+            {
+                displayRecordCnt = recordCnt;
+                displayPageNo = 1;
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchPosBrandId : $('#posBrandId').val(),
+                              searchMappingNameId : $('#mappingNameId').val(),
+                              searchDelF : document.getElementById("delF").checked,
+                              sortConditions : posMappingSort
+                           };
+                var path = 'index.php?param=PosMapping/search&home=1';
+                // データ更新
+                setDataForAjax( data, path );
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 表示ページ数選択
+             */
+            function displayPage(pageCnt)
+            {
+                displayPageNo = pageCnt;
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchPosBrandId : $('#posBrandId').val(),
+                              searchMappingNameId : $('#mappingNameId').val(),
+                              searchDelF : document.getElementById("delF").checked,
+                              sortConditions : posMappingSort 
+                           };
+                var path = 'index.php?param=PosMapping/search&home=1';
+                // データ更新
+                setDataForAjax( data, path );
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 新規作成データの設定
+             */
+            function setAddData()
+            {
+
+                displayPageNo = 1;
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchPosBrandId : $('#posBrandId').val(),
+                              searchMappingNameId : $('#mappingNameId').val(),
+                              searchDelF : document.getElementById("delF").checked,
+                              sortConditions : posMappingSort,
+                              posBrandId : $('#posBrandNewId').val(),
+                              mappingNameId : $('#mappingNewNameId').val(),
+                              logicType : $('#logicNewType').val(),
+                              logic : $('#logicNew').val(),
+                              posKeyFileId : $('#posKeyNewFileId').val(),
+                              keta : $('#ketaNew').val(),
+                              roundType : $('#roundNewType').val(),
+                              symbol : $('#symbolNew').val(),
+                              dispOrder : $('#newDispOrder').val(),
+                              token : $('#token').val()
+                           };
+                var path = 'index.php?param=PosMapping/add&home=1';
+
+                // データ更新
+                setDataForAjax( data, path );
+
+                // 新規登録エリア設定
+                setInputArea();
+
+            }
+
+            /**
+             * 更新用データの設定
+             */
+            function setModData()
+            {
+                var objTR = lineInfo.parentNode.parentNode.parentNode;
+                var rowId = objTR.sectionRowIndex;
+                var data = null;
+                var path = '';
+                
+                if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>' )
+                {
+                    path = 'index.php?param=PosMapping/mod';
+                }
+                else
+                {
+                    path = 'index.php?param=PosMapping/del&home=1';
+                }
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                data = {
+                          displayPageNo : displayPageNo,
+                          displayRecordCnt : displayRecordCnt,
+                          searchPosBrandId : $('#posBrandId').val(),
+                          searchMappingNameId : $('#mappingNameId').val(),
+                          searchDelF : document.getElementById("delF").checked,
+                          sortConditions : posMappingSort,
+                          posMappingId : $('#posMappingIdMod' + rowId).val(),
+                          posBrandId : $('#posBrandIdMod' + rowId).val(),
+                          mappingNameId : $('#mappingNameIdMod' + rowId).val(),
+                          logicType : $('#logicTypeMod' + rowId).val(),
+                          logic : $('#logicMod' + rowId).val(),
+                          posKeyFileId : $('#posKeyFileIdMod' + rowId).val(),
+                          keta : $('#ketaMod' + rowId).val(),
+                          roundType : $('#roundTypeMod'  + rowId).val(),
+                          symbol : $('#symbolMod'  + rowId).val(),
+                          dispOrder : $('#sDispMod'  + rowId).val(),
+                          updateTime : $('#updateTime'  + rowId).val(),
+                          token : $('#token').val()
+                       };
+
+                // データ更新
+                setDataForAjax( data, path, 'jquery-replace-ajax', false );
+                
+            }
+
+            /**
+             * 更新キャンセル
+             */
+            function cancel()
+            {
+                
+                var data = null;
+                var path = '';
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                data = {
+                          displayPageNo : displayPageNo,
+                          displayRecordCnt : displayRecordCnt,
+                          searchPosBrandId : $('#posBrandId').val(),
+                          searchMappingNameId : $('#mappingNameId').val(),
+                          searchDelF : document.getElementById("delF").checked,
+                          sortConditions : posMappingSort,
+                          token : $('#token').val()
+                       };
+
+                // 検索する為、パスを変更する
+                path = 'index.php?param=PosMapping/search&home=1';
+
+                // データ更新
+                setDataForAjax( data, path );
+                
+                // 新規データをクリア
+                $('#posBrandNewId').val('');
+                $('#mappingNewNameId').val('');
+                $('#logicNewType').val('');
+                $('#logicNew').val('');
+                $('#posKeyNewFileId').val('');
+                $('#ketaNew').val('');
+                $('#roundNewType').val('');
+                $('#symbolNew').val('');
+            }
+
+            /**
+             * 新規登録エリア設定
+             */
+            function setInputArea()
+            {
+                var data = null;
+                var path = '';
+
+                // 検索用セクションリスト更新用パス
+                path = 'index.php?param=PosMapping/inputArea&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, "jquery-replace-input-ajax" );
+            }
+            
+        </script>
+
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site">
+            <!-- パンくずリスト -->
+            <?php include("Common/Breadcrumb.php"); ?>
+            <form id="searchForm" name="searchForm" method="post" action="index.php?param=PosMapping/search&home=1" >
+            <input type="hidden" name="companyID" value="<?php hsc( $_SESSION['COMPANY_ID'] ); ?>">
+            <!-- serchBoardArea -->
+            <div class="serchBoardArea">
+                <table id="serchTable">
+                    <tr>
+			<th id="serchTableTitle" align="center" width="80">POS種別名</th>
+			<td id="serchTableItem">
+                                <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="posBrandId" name="posBrandId" style="width: 150px" required>
+                                    <?php foreach($abbPosBrandList as $abbPosBrand) { ?>
+                                        <option value="<?php hsc($abbPosBrand['pos_brand_id']); ?>"><?php hsc($abbPosBrand['pos_brand_name']); ?></option>
+                                    <?php } ?>
+                                </select>
+                        </td>
+			<th id="serchTableTitle" align="center" width="80">POSﾏｯﾋﾟﾝｸﾞ名</th>
+			<td id="serchTableItem">
+                                <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="mappingNameId" name="mappingNameId" style="width: 150px" required>
+                                    <?php foreach($abbMappingNameList as $abbMappingName) { ?>
+                                        <option value="<?php hsc($abbMappingName['mapping_name_id']); ?>"><?php hsc($abbMappingName['mapping_name']); ?></option>
+                                    <?php } ?>
+                                </select>
+                        </td>
+			<th id="serchTableTitle" align="center" width="80">削除</th>
+			<td id="serchTableItem">
+                            <input type="checkbox" name="delF" id="delF" />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <!-- /.serchBoardArea -->
+
+            <!-- serchButtonArea -->
+            <div class="serchButtonArea">
+                <p align=center>
+                    <input type="submit" id="search" name="search" href="#" value="検索" class="serch">
+                </p>
+            </div>
+            <!-- /.serchButtonArea -->
+            </form>
+
+            <!-- 　結果一覧エリア -->
+            <form id="modForm" name="modForm" >
+                <?php include("PosMappingTablePanel.html"); ?>
+            </form>
+            <!-- /.結果一覧エリア -->
+
+            <!-- 　新規入力エリア -->
+            <form id="addForm" name="addForm">
+                <?php include("PosMappingInputPanel.html"); ?>
+            </form>
+            <!-- /.新規入力エリア -->
+
+            <br />
+            <script type="text/javascript" src="../jquery/js/scrolltopcontrol2.js"></script> <!--スクロールしながらページのトップに戻る-->
+        </div><!-- /#sb-site -->
+        
+        <!-- ダイアログ用エリア -->
+        <?php include("../FwCommon/View/Dialog.php"); ?>
+    </body>
+</html>

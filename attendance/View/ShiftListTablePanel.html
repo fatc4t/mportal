@@ -1,0 +1,153 @@
+<?php
+    /**
+     * @file        シフト一覧画面(View)
+     * @author      USE K.narita
+     * @date        2016/07/22
+     * @version     1.00
+     * @note        シフト一覧画面(一覧部分)
+     */
+?>
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-ajax">
+                <!-- serchListArea -->
+                <div class="serchListArea screenSize" style="width:99%; margin:5px auto !important;">
+                    <input type="hidden" id="token" name="token" value="<?php hsc($TokenID); ?>">
+                    <table id="orverViewTable" style="background-color: #ffffff"><p>
+                        <tr>概要
+                            <th width="16%">セクション</th>
+                        <?php foreach( $dayList as $dayVal ) { ?>
+                            <th width="6%"><?php hsc( $dayVal ); ?></th>
+                        <?php } ?>
+                        </tr>
+                    <?php if(!empty($overviewList)) { ?>
+                        <?php foreach( $overviewList as $sectionKey => $overview ) { ?>
+                            <tr>
+                                <td align = "center">
+                                    <?php 
+                                        if( $sectionKey != '' )
+                                        {
+                                            hsc( $sectionKey ); 
+                                        }
+                                        else
+                                        {
+                                            hsc( "指定なし" );
+                                        }
+                                    ?>(人数)
+                                </td>
+                                <?php
+                                    foreach($dateList as $date)
+                                    {
+                                        $isOutData = false;
+                                        foreach($overview as $overViewDate)
+                                        {
+                                            if($overViewDate['day'] == $date)
+                                            {
+                                                $isOutData = true;
+                                ?>
+                                                <td align = "right"><?php hsc($overViewDate['count']); ?></td>
+                                    <?php
+                                            }
+                                        }
+                                        // 出力データがない場合、空(0)を表示
+                                        if( $isOutData == false )
+                                        {
+                                            echo '<td align = "right">0</td>';
+                                        }
+                                    }
+                                ?>
+                            </tr>
+                        <?php } ?>
+                    <?php } else { ?>
+                        <td></td>
+                        <?php foreach($dayList as $dayVal) { ?>
+                            <td align="right">0</td>
+                        <?php } ?>
+                    <?php } ?>
+                    </table>
+                    <?php foreach( $shiftListAllList as $sectionKey => $sectionList ) { ?>
+                        <table id="firstTable"><p>
+                            <tr><?php 
+                                        if( $sectionKey != '' )
+                                        {
+                                            hsc( $sectionKey ); 
+                                        }
+                                        else
+                                        {
+                                            hsc( "指定なし" );
+                                        }
+                                    ?>
+                                <th width="16%">スタッフ</th>
+                                <?php foreach( $dayList as $dayVal ) { ?>
+                                    <th width="6%"><?php hsc($dayVal ); ?></th>
+                                <?php } ?>
+                            </tr>
+                            <?php foreach( $sectionList as $nameKey => $nameList ) { ?>
+                                <tr>
+                                    <td align = "center"><?php hsc($nameKey); ?></td>
+                                    <?php
+                                        $listCnt = 0;
+                                        $dateCnt = count($dateList);
+                                        // セクションごとの人一人分の全シフト数をループ
+                                        for($i = 0 ; $i < $dateCnt ; $i++)
+                                        {
+                                            $isOutData = false;
+                                            $color = "";  // セルのカラーを設定
+                                            // その人のシフト表示分データ数ループ
+                                            foreach( $nameList as $nameVal )
+                                            {
+                                                // 出力対象日である
+                                                if( $nameVal['day'] == $dateList[$i] )
+                                                {
+                                                    // セルの色設定
+                                                    if($nameVal['color'] != "0" )
+                                                    {
+                                                        $color = "style = background:" . $nameList[$listCnt]['color'] . ";";
+                                                    }
+                                                    
+                                                    // 出勤時間の上2桁取得
+                                                    $attendanceTime = $this->setTimeDisplay( $nameVal['attendance'] );
+                                                    // 退勤時間の上2桁取得
+                                                    $taikinTime = $this->setTimeDisplay( $nameVal['taikin'] );
+
+                                                    $dispTime = "";
+                                                    // 休日リストに存在するか
+                                                    if( array_key_exists( $nameVal['is_holiday'], $holidayList ) )
+                                                    {
+                                                        $dispTime = $holidayList[$nameVal['is_holiday']];
+                                                    }
+                                                    
+                                                    // 出退勤時間が存在する(同じ時間は、出勤ではない)
+                                                    if( $attendanceTime != $taikinTime )
+                                                    {
+                                                        $dispTime = $attendanceTime . "-" . $taikinTime;
+                                                    }
+                                                    
+                                                    // 初回のtd出力である
+                                                    if( $isOutData == false )
+                                                    {
+                                                        echo '<td align = "center" ' . $color . ' >';
+                                                        echo $dispTime;
+                                                        $isOutData = true;
+                                                    }
+                                                    else
+                                                    {
+                                                        echo '<br>' . $dispTime;
+                                                    }
+                                                }
+                                            }
+                                            // 人の1日分のシフトを〆る
+                                            // 初回のtd出力である
+                                            if( $isOutData == false )
+                                            {
+                                                echo '<td align = "center">';
+                                            }
+                                            echo '</td>';
+                                        }
+                                    ?>
+                                </tr>
+                            <?php } ?>
+                        </table>
+                    <?php } ?>
+                </div><!-- /.serchListArea -->
+            </div><!-- /.jquery-replace-ajax -->

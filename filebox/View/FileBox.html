@@ -1,0 +1,36 @@
+<?php
+    /**
+     * @file      売上TOP画面(View)
+     * @author    millionet oota 
+     * @date      2016/07/01
+     * @version   1.00
+     * @note      売上TOP画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述 
+            include("Common/HtmlHeader.php"); 
+        ?>
+<script type="text/javascript" src="../js/profit/jquery/Chart__back.js"></script>
+
+    </head>
+    <body>
+        <?php include("Common/PageHeader.php");
+        ?>
+<div id="sb-site">
+            <table align=center class="list_table_bk" width=100%>
+            <!-- menuNameArea -->
+            <div class="menuNameArea">
+                <h2>
+                    <a href="#"><span class="menu"/></span></a>
+                    <a href="/profit/index.php?param=Top/show">売上トップ</a>
+                </h2>
+            </div><!-- /.menuNameArea -->
+            </table>
+</div>
+<script type="text/javascript" src="../js/profit/jquery/js/scrolltopcontrol.js"></script> <!--スクロールしながらページのトップに戻る-->
+</body>
+</html>

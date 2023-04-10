@@ -1,0 +1,107 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <!-- Force latest IE rendering engine or ChromeFrame if installed -->
+    <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"><![endif]-->
+    <meta charset="utf-8">
+    <title>Large File Upload</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/jquery.fileupload.css">
+</head>
+<body>
+<div class="container">
+    <h1>Large File Upload</h1>
+    <br>
+    <span class="btn btn-success fileinput-button">
+        <i class="glyphicon glyphicon-plus"></i>
+        <span>Select files...</span>
+        <input id="fileupload" type="file" name="files[]" multiple>
+    </span>
+    <a href="#" onclick="location.reload();return false;" class="btn btn-warning reload">Cancel</a>
+    <br>
+    <br>
+    <div id="progress" class="progress">
+        <div class="progress-bar progress-bar-success progress-bar-striped active"></div>
+    </div>
+    <div class="log"></div>
+    <div id="files" class="files"></div>
+    <br>
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">Notes</h3>
+        </div>
+        <div class="panel-body">
+            <ul>
+                <li>The maximum file size for uploads in this is <strong>4 GB</strong>.</li>
+                <li>You can <strong>drag &amp; drop</strong> files from your desktop on this webpage (see <a href="https://github.com/blueimp/jQuery-File-Upload/wiki/Browser-support" target="_blank">Browser support</a>).</li>
+                <li>Only supported by browsers with support for XHR file uploads and the Blob API, which includes <strong>Google Chrome and Mozilla Firefox 4+.</strong></li>
+            </ul>
+        </div>
+    </div>
+</div>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="js/vendor/jquery.ui.widget.js"></script>
+<script src="js/jquery.iframe-transport.js"></script>
+<script src="js/jquery.fileupload.js"></script>
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+<script>
+    /**
+     * errorHandler
+     * @param args
+     * @returns {*}
+     */
+    function errorHandler(args) {
+        var error;
+        if (args[2]) {
+            try {
+                error = $.parseJSON(args[0].responseText).error.toString();
+            } catch (e) {
+                error = 'parsererror(' + args[2] + '): ' + args[0].responseText;
+            }
+        } else {
+            error = args[1] + '(HTTP request failed)';
+        }
+        return error;
+    }
+    $(function () {
+        $('.reload').hide();
+        'use strict';
+        var url = 'server/php/';
+        $('#fileupload').fileupload({
+            maxChunkSize: 20000000,
+            url: url,
+            dataType: 'json'
+        })
+            .bind('fileuploadstart', function (e) {
+                $('.fileinput-button').hide();
+                $('.reload').show();
+            })
+            .bind('fileuploadprogressall', function (e, data) {
+                var progress = parseInt(data.loaded / data.total * 100, 10);
+                $('#progress .progress-bar').css(
+                    'width',
+                    progress + '%'
+                );
+                $('.log').text(progress + '%');
+            })
+            .bind('fileuploaddone', function (e, data) {
+                var file = data.result.files[0];
+                console.log(file);
+                var file_url = file.url;
+                $('.reload').text('Start Over');
+                $('<p/>').text('[complete] File upload completed. File name: ' + file.name).appendTo('#files');
+                $('<p/>').text('File URL: ' + file_url).appendTo('#files');
+                $('#progress .progress-bar').removeClass('progress-bar-striped active');
+            })
+            .on('fileuploadchunksend', function (e, data) {})
+            .on('fileuploadchunkdone', function (e, data) {})
+            .on('fileuploadchunkfail', function (e, data) {})
+            .on('fileuploadchunkalways', function (e, data) {});
+    });
+</script>
+
+</body>
+</html>

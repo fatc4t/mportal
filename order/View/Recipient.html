@@ -1,0 +1,323 @@
+<?php
+    /**
+     * @file      発注先設定画面(View)
+     * @author    USE K.Kanda(media-craft.co.jp)
+     * @date      2018/01/22
+     * @version   1.00
+     * @note      発注先設定
+     */
+?>
+<!DOCTYPE html>
+<html>
+<head>
+<?php
+    $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述
+    $add = ''; //
+    include("Common/HtmlHeader.php");
+?>
+<script type="text/javascript" src="../js/order/common.js"></script>
+<script type="text/javascript" src="../js/order/jquery-ui.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../css/order/jquery-ui.css">
+<script src="../js/order/jquery/datepicker-ja.js" ></script>
+<script type="text/javascript">
+$(function() {
+	$(document).on('click','#search',function() {
+		$('body').append('<div class="modal-overlay"></div>');
+		$('.modal-overlay').fadeIn('slow');
+
+		var modal = '#pharmacyWindow';
+		modalResize();
+		$(modal).fadeIn('slow');
+		$('.modal-overlay').off().click(function() {
+			$(modal).css('display','none');
+			$('.modal-overlay').fadeOut('slow',function() {
+				$('.modal-overlay').remove();
+
+			});
+		});
+		function modalResize() {
+			var w = $(window).width();
+			var x = (w - $(modal).outerWidth(true)) / 2;
+			y = 65;
+			$(modal).css({'left': x + 'px','top': y + 'px'});
+		}
+	});
+
+	$("#pha_id").keyup(function()
+    {
+        var pha_id = $("#pha_id").val();
+		if(pha_id=="") {
+			$("#pha_name").val('');
+			$("#listTable1").html('');
+			$("#listTable2").html('');
+		}
+	});
+	//登録
+	$(document).on('click',"#save",function()
+    {
+        //ajax
+	    var path = "./index.php?param=Recipient/save";
+	    $.ajax({
+		    url: path,
+		    type: "POST",
+		    data: $("#form1").serialize(),
+		    success: function(rtnData) {
+          console.log(rtnData);
+			    alert("登録しました");
+		    },
+		    error:function(xhr, textStatus, error) {
+			    alert("通信エラー");
+		    }
+	    });
+	});
+
+});
+function setPharmacy(id,name) {
+	$("#pha_id").val(id);
+	$("#pha_name").val(name);
+	$('.modal-overlay').remove();
+	$("#pharmacyWindow").css('display','none');
+
+	//未選択のリストを取得
+	getMakerList1();
+	//設定済みのリストを取得
+    getMakerList2();
+}
+function getMakerList1() {
+	var pha_id = $("#pha_id").val();
+	if(pha_id=="") {
+		return;
+	}
+	//通信開始
+    //ajax
+	var path = "./index.php?param=Recipient/search1";
+	$.ajax({
+		url: path,
+		type: "POST",
+		data: {pha_id:pha_id},
+		success: function(rtnData) {
+			$("#listTable1").html(rtnData);
+		},
+		error:function(xhr, textStatus, error) {
+			alert("通信エラー");
+		}
+	});
+}
+function getMakerList2() {
+	var pha_id = $("#pha_id").val();
+	if(pha_id=="") {
+		return;
+	}
+	//通信開始
+    //ajax
+	var path = "./index.php?param=Recipient/search2";
+	$.ajax({
+		url: path,
+		type: "POST",
+		data: {pha_id:pha_id},
+		success: function(rtnData) {
+			$("#listTable2").html(rtnData);
+		},
+		error:function(xhr, textStatus, error) {
+			alert("通信エラー");
+		}
+	});
+}
+function addMakerRow(obj,cd,na) {
+
+	$(obj).closest("tr").remove();
+	var str = '';
+	str += '<tr>';
+	str += '<td style="width:100px;">';
+	str += '<input type="hidden" name="ma_cd[]" value="'+cd+'">';
+	str += cd;
+	str += '</td>';
+	str += '<td style="width:300px;">';
+	str += na;
+	str += '</td>';
+	str += '<td style="width:80px;">';
+	str += '<input type="text" name="postage[]" value="" size="10" placeholder="送料" />';
+	str += '</td>';
+	str += '<td style="width:80px;">';
+	str += '<input type="text" name="free_kin[]" value="" size="10" placeholder="送料無料まで" />';
+	str += '</td>';
+	str += '<td style="width:40px;">';
+	str += '<input type="button" value="解除" onclick="delMakerRow(this,\''+cd+'\',\''+na+'\')">';
+	str += '</td>';
+	str += '</tr>';
+	$("#listTable2").append(str);
+}
+function delMakerRow(obj,cd,na) {
+
+	$(obj).closest("tr").remove();
+	var str = '';
+	str += '<tr>';
+	str += '<td style="width:100px;">';
+	str += cd;
+	str += '</td>';
+	str += '<td style="width:300px;">';
+	str += na;
+	str += '</td>';
+	str += '<td style="width:40px;">';
+	str += '<input type="button" value="選択" onclick="addMakerRow(this,\''+cd+'\',\''+na+'\')">';
+	str += '</td>';
+	str += '</tr>';
+	$("#listTable1").append(str);
+}
+</script>
+</head>
+<body>
+<?php
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+<!-- Site -->
+
+<style type="text/css">
+#formTable {
+	margin:10px;
+}
+#formTable th {
+	background-color:#FF6928;
+	color:#FFF;
+	width:150px;
+	text-align:center;
+	border:1px solid #FFF;
+}
+#formTable td {
+	background-color:#FFF;
+    border:1px solid #FFF;
+}
+#leftBox {
+	float:left;
+	margin:10px;
+}
+#centerBox {
+	float:left;
+	margin:10px;
+	padding-top:300px;
+}
+#rightBox {
+	float:left;
+	margin:10px;
+}
+div.title {
+	padding:5px;
+	font-size:0.9em;
+	height:40px;
+	background-color:#FFF;
+	margin-bottom:5px;
+}
+div.tableBox {
+	width:450px;
+	height:600px;
+	overflow-y:scroll;
+	background-color:#FFF;
+}
+.modal-overlay {
+    z-index:1;
+    display:none;
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:120%;
+    background-color:rgba(0,0,0,0.75);
+}
+#pharmacyWindow {
+	position:fixed;
+	z-index:3;
+	padding:10px;
+	background:#FFF;
+	border-radius: 10px;        /* CSS3草案 */
+    -webkit-border-radius: 10px;    /* Safari,Google Chrome用 */
+    -moz-border-radius: 10px;   /* Firefox用 */
+	display:none;
+	width:480px;
+	height:600px;
+}
+#pharmacyWindow table th {
+	background-color:#FF6928;
+	color:#FFF;
+	width:150px;
+	text-align:center;
+	border:1px solid #CCC;
+}
+#pharmacyWindow table td {
+	background-color:#FFF;
+    border:1px solid #CCC;
+}
+#listTable1 td{
+	background:#FFF;
+	border:1px solid #CCC;
+}
+#listTable2 td{
+	background:#FFF;
+	border:1px solid #CCC;
+}
+</style>
+<div id="sb-site" style="overflow: auto;">
+    <!-- パンくずリスト -->
+    <?php include("Common/Breadcrumb.php"); ?>
+    <form id="form1">
+    	<table id="formTable">
+        	<tr>
+            	<th>薬局コード</th>
+                <td><input type="text" size="4" id="pha_id" name="pha_id"></td>
+                <td><input type="button" value="検索" id="search"></td>
+                <td><input type="text" size="35" id="pha_name" readonly></td>
+                <td><input type="button" value="登録する" id="save"></td>
+            </tr>
+        </table>
+        <div id="leftBox">
+        	<div class="title">発注先に追加したいメーカーの「選択」ボタンをクリックしてください</div>
+            <div class="tableBox">
+                <table id="listTable1">
+                	<?php //include("RecipientList1.html");?>
+                </table>
+            </div>
+        </div>
+        <div id="centerBox">
+        	&gt;&gt;
+        </div>
+        <div id="rightBox">
+        	<div class="title">現在設定されている発注先<br>※発注先を取り消す場合は「解除」ボタンをクリックしてください</div>
+            <div class="tableBox" style="width:610px;">
+                <table id="listTable2">
+                	<?php //include("RecipientList2.html");?>
+                </table>
+            </div>
+        </div>
+    </form>
+</div>
+<div id="pharmacyWindow">
+	<table>
+    	<tr>
+        	<th style="width:100px;">薬局コード</th>
+            <th style="width:300px;">薬局名</th>
+            <th style="width:40px;"></th>
+        </tr>
+        <?php
+        foreach($pharmacyArr as $key => $val)
+        {
+        ?>
+        <tr>
+        	<td><?php hsc($val['pha_id']);?></td>
+            <td><?php hsc($val['pha_name']);?></td>
+            <td><input type="button" value="選択" onClick="setPharmacy('<?php hsc($val['pha_id']);?>','<?php hsc($val['pha_name']);?>')"></td>
+        </tr>
+        <?php
+        }
+        ?>
+    </table>
+</div>
+<?php include("../FwCommon/View/Dialog.php"); ?>
+</body>
+</html>

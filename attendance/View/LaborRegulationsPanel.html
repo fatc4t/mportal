@@ -1,0 +1,604 @@
+<?php
+    /**
+     * @file      就業規則マスタ画面(View)
+     * @author    USE S.Kasai
+     * @date      2016/06/29
+     * @version   1.00
+     * @note      就業規則マスタ画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array( 'default.css',
+                                'common.js', 
+                                'jquery-ui.min.js', 
+                                'jquery-ui.css' );    // cssまたはｊｓファイルを拡張子付きで配列に記述 
+
+            include("Common/HtmlHeader.php");
+        ?>
+        <script type="text/javascript">
+            var lineInfo = null;
+            var btnInfo  = null;
+            var displayPageNo = 1;
+            var displayRecordCnt = <?php hsc($_SESSION["DISPLAY_RECORD_CNT"]); ?>;
+            var LaborRegulationsItemInfo = null;
+            var laborRegulationsSort = null;
+            var no_click_count = 0;
+            var state_click_count = 0;
+            var organization_click_count = 0;
+            var labor_regulations_click_count = 0;
+            var application_date_start_click_count = 0;
+            var overtime_setting_click_count = 0;
+            var legal_time_in_overtime_click_count = 0;
+            var legal_time_out_overtime_click_count = 0;
+            var fixed_overtime_click_count = 0;
+            var legal_holiday_allowance_click_count = 0;
+            var prescribed_holiday_allowance_click_count = 0;
+            var late_at_night_time_click_count = 0;
+            var late_at_night_out_overtime_click_count = 0;
+            var break_time_acquisition_click_count = 0;
+            var comment_click_count = 0;
+            var disp_order_click_count = 0;
+            $(document).ready(function()
+            {
+                /**
+                 * 検索ボタンクリック
+                 */
+                $('#searchForm').submit(function(event)
+                {
+                    event.preventDefault();
+                    displayPageNo = 1;
+                    sortConditions = 0;
+                    var path = 'index.php?param=LaborRegulations/search&home=1';
+                    // 検索実行
+                    searchExe(path, 'jquery-replace-ajax', 0, 0, 0);
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+            });
+
+            /**
+             * データの新規情報入力画面遷移
+             */
+            function inputPanelTransition()
+            {
+                var path = 'index.php?param=LaborRegulations/addInput&home=1';
+                // 検索実行
+                searchExe(path, 'ajaxScreenUpdate', 0, 0, 0);
+
+                // サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * データの更新情報入力画面遷移
+             */
+            function editPanelTransition(thisLineInfo, thisDisaInfo, displayNo)
+            {
+                var path = 'index.php?param=LaborRegulations/addInput&home=1';
+                // 検索実行
+                searchExe(path, 'ajaxScreenUpdate', thisLineInfo, thisDisaInfo , $('#applicationDateId' + displayNo).val());
+
+                // サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * ソート処理
+             */
+            function setColumnInfo(thisItemInfo)
+            {
+                LaborRegulationsItemInfo = thisItemInfo;
+
+                laborRegulationsSort = 0;
+
+                if(LaborRegulationsItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?>")
+                {
+                    no_click_count++;
+                    if((no_click_count % 2) != 0)
+                    {
+                        laborRegulationsSort = 1;
+                    }
+                    else
+                    {
+                        laborRegulationsSort = 2;
+                    }
+                }
+                else if(LaborRegulationsItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0849')); ?>")
+                {
+                    state_click_count++;
+                    if((state_click_count % 2) != 0)
+                    {
+                        laborRegulationsSort = 3;
+                    }
+                    else
+                    {
+                        laborRegulationsSort = 4;
+                    }
+                }
+                else if(LaborRegulationsItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?>" )
+                {
+                    organization_click_count++;
+                    if((organization_click_count % 2) != 0)
+                    {
+                        laborRegulationsSort = 5;
+                    }
+                    else
+                    {
+                        laborRegulationsSort = 6;
+                    }
+                }
+                else if(LaborRegulationsItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0906')); ?>" )
+                {
+                    labor_regulations_click_count++;
+                    if((labor_regulations_click_count % 2) != 0)
+                    {
+                        laborRegulationsSort = 7;
+                    }
+                    else
+                    {
+                        laborRegulationsSort = 8;
+                    }
+                }
+                else if(LaborRegulationsItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0853')); ?>" )
+                {
+                    application_date_start_click_count++;
+                    if((application_date_start_click_count % 2) != 0)
+                    {
+                        laborRegulationsSort = 9;
+                    }
+                    else
+                    {
+                        laborRegulationsSort = 10;
+                    }
+                }
+                else if(LaborRegulationsItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0907')); ?>" )
+                {
+                    overtime_setting_click_count++;
+                    if((overtime_setting_click_count % 2) != 0)
+                    {
+                        laborRegulationsSort = 11;
+                    }
+                    else
+                    {
+                        laborRegulationsSort = 12;
+                    }
+                }
+                else if(LaborRegulationsItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0908')); ?>" )
+                {
+                    legal_time_in_overtime_click_count++;
+                    if((legal_time_in_overtime_click_count % 2) != 0)
+                    {
+                        laborRegulationsSort = 13;
+                    }
+                    else
+                    {
+                        laborRegulationsSort = 14;
+                    }
+                }
+                else if(LaborRegulationsItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0909')); ?>" )
+                {
+                    legal_time_out_overtime_click_count++;
+                    if((legal_time_out_overtime_click_count % 2) != 0)
+                    {
+                        laborRegulationsSort = 15;
+                    }
+                    else
+                    {
+                        laborRegulationsSort = 16;
+                    }
+                }
+                else if(LaborRegulationsItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0910')); ?>" )
+                {
+                    fixed_overtime_click_count++;
+                    if((fixed_overtime_click_count % 2) != 0)
+                    {
+                        laborRegulationsSort = 17;
+                    }
+                    else
+                    {
+                        laborRegulationsSort = 18;
+                    }
+                }
+                else if(LaborRegulationsItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0911')); ?>" )
+                {
+                    legal_holiday_allowance_click_count++;
+                    if((legal_holiday_allowance_click_count % 2) != 0)
+                    {
+                        laborRegulationsSort = 19;
+                    }
+                    else
+                    {
+                        laborRegulationsSort = 20;
+                    }
+                }
+                else if(LaborRegulationsItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0912')); ?>" )
+                {
+                    prescribed_holiday_allowance_click_count++;
+                    if((prescribed_holiday_allowance_click_count % 2) != 0)
+                    {
+                        laborRegulationsSort = 21;
+                    }
+                    else
+                    {
+                        laborRegulationsSort = 22;
+                    }
+                }
+                else if(LaborRegulationsItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0913')); ?>" )
+                {
+                    late_at_night_time_click_count++;
+                    if((late_at_night_time_click_count % 2) != 0)
+                    {
+                        laborRegulationsSort = 23;
+                    }
+                    else
+                    {
+                        laborRegulationsSort = 24;
+                    }
+                }
+                else if(LaborRegulationsItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0914')); ?>" )
+                {
+                    late_at_night_out_overtime_click_count++;
+                    if((late_at_night_out_overtime_click_count % 2) != 0)
+                    {
+                        laborRegulationsSort = 25;
+                    }
+                    else
+                    {
+                        laborRegulationsSort = 26;
+                    }
+                }
+                else if(LaborRegulationsItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0915')); ?>" )
+                {
+                    break_time_acquisition_click_count++;
+                    if((break_time_acquisition_click_count % 2) != 0)
+                    {
+                        laborRegulationsSort = 27;
+                    }
+                    else
+                    {
+                        laborRegulationsSort = 28;
+                    }
+                }
+                else if(LaborRegulationsItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0892')); ?>" )
+                {
+                    comment_click_count++;
+                    if((comment_click_count % 2) != 0)
+                    {
+                        laborRegulationsSort = 29;
+                    }
+                    else
+                    {
+                        laborRegulationsSort = 30;
+                    }
+                }
+                else if(LaborRegulationsItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0852')); ?>" )
+                {
+                    disp_order_click_count++;
+                    if((disp_order_click_count % 2) != 0)
+                    {
+                        laborRegulationsSort = 31;
+                    }
+                    else
+                    {
+                        laborRegulationsSort = 32;
+                    }
+                }
+
+                var path = 'index.php?param=LaborRegulations/search&home=1';
+                 // 検索実行
+                searchExe(path, 'jquery-replace-ajax', 0, 0, 0);
+            }
+
+            /**
+             * 表示レコード数選択
+             */
+            function displayRecord(recordCnt)
+            {
+                displayRecordCnt = recordCnt;
+                displayPageNo = 1;
+
+                var path = 'index.php?param=LaborRegulations/search&home=1';
+                 // 検索実行
+                searchExe(path, 'jquery-replace-ajax', 0, 0, 0);
+            }
+
+            /**
+             * 表示ページ数選択
+             */
+            function displayPage(pageCnt)
+            {
+                displayPageNo = pageCnt;
+                
+                var path = 'index.php?param=LaborRegulations/search&home=1';
+                // 検索実行
+                searchExe(path, 'jquery-replace-ajax', 0, 0, 0);
+            }
+
+            /**
+             * 検索の実行メソッド
+             */
+            function searchExe( path, ajaxPath, laborRegulationsID, disabledID, applicationDateId)
+            {
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                            laborRegulationsID : laborRegulationsID,
+                            disabledID : disabledID,
+                            applicationDateId : applicationDateId,
+                            displayPageNo : displayPageNo,
+                            displayRecordCnt : displayRecordCnt,
+                            searchOrganizationID : $('#organizationName').val(),
+                            searchLaborRegulationsName : $('#laborRegulationsName').val(),
+                            searchOvertimeSetting : $('#overtimeSetting').val(),
+                            searchLegalTimeInOvertime : $('#legalTimeInOvertime').val(),
+                            searchLegalTimeOutOvertime : $('#legalTimeOutOvertime').val(),
+                            searchFixedOvertime : $('#fixedOvertime').val(),
+                            searchLegalHolidayAllowance : $('#legalHolidayAllowance').val(),
+                            searchPrescribedHolidayAllowance : $('#prescribedHolidayAllowance').val(),
+                            searchLateAtNightOutOvertime : $('#lateAtNightOutOvertime').val(),
+                            searchBreakTimeAcquisition : $('#breakTimeAcquisition').val(),
+                            searchLateAtNightStart : $('#lateAtNightStart').val(),
+                            searchLateAtNightEnd : $('#lateAtNightEnd').val(),
+                            searchComment : $('#comment').val(),
+                            searchApplyCheck : document.getElementById("applyCheck").checked,
+                            searchApplySchCheck : document.getElementById("applySchCheck").checked,
+                            searchNonApplyCheck : document.getElementById("nonApplyCheck").checked,
+                            searchDelCheck : document.getElementById("delCheck").checked,
+                            sortConditions : laborRegulationsSort
+                           };
+                
+                // データ更新
+                setDataForAjax( data, path, ajaxPath );
+            }
+
+        </script>
+        
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site" style="overflow: auto;">
+            <!-- パンくずリスト -->
+            <?php include("Common/Breadcrumb.php"); ?>
+            <form id="searchForm" name="searchForm" >
+                <input type="hidden" name="companyID" value="<?php hsc( $_SESSION['COMPANY_ID'] ); ?>">
+                <!-- serchBoardArea -->
+                <div class="serchBoardArea" style="width:99%; margin:5px auto !important; background-color: #ffffff" >
+                    <table>
+                        <tbody>
+                            <tr>
+                                <th style="width:110px"><?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?></th><!-- 組織名 -->
+                                <td style="width:220px">
+                                    <?php include("../FwCommon/View/SearchOrganizationName.php"); ?>
+                                </td>
+                                <th style="width:110px"><?php hsc($Log->getMsgLog('MSG_BASE_0906')); ?></th><!-- 就業規則名 -->
+                                <td style="width:110px">
+                                    <?php include("../FwCommon/View/SearchLaborRegulationsName.php"); ?>
+                                </td>
+                                <th style="width:110px"><?php hsc($Log->getMsgLog('MSG_BASE_0907')); ?></th><!-- 残業設定 -->
+                                <td style="width:110px">
+                                    <select name="overtimeSetting" id="overtimeSetting" style="width: 100px">
+                                            <?php foreach($overtimeSetNameList as $overtimeSetting) { ?>
+                                                <?php $selected = ""; ?>
+                                                <?php if($overtimeSetting['overtime_setting_name'] == $searchArray['overtimeSetting']) { ?>
+                                                    <?php $selected = "selected"; ?>
+                                                <?php } ?>
+                                                    <option value="<?php hsc($overtimeSetting['overtime_setting_name']); ?>" <?php hsc($selected); ?>><?php hsc($overtimeSetting['overtime_setting_name']); ?></option>
+                                            <?php } ?>
+                                    </select>
+                                </td>
+                                <th style="width:110px"><?php hsc($Log->getMsgLog('MSG_BASE_0908')); ?></th><!-- 法定内残業代 -->
+                                <td style="width:110px">
+                                    <select name="legalTimeInOvertime" id="legalTimeInOvertime" style="width: 100px">
+                                            <?php foreach($legalInNameList as $legalIn) { ?>
+                                                <?php $selected = ""; ?>
+                                                <?php if($legalIn['premium_reduction_type_name'] == $searchArray['legalTimeInOvertime']) { ?>
+                                                    <?php $selected = "selected"; ?>
+                                                <?php } ?>
+                                                    <option value="<?php hsc($legalIn['premium_reduction_type_name']); ?>" <?php hsc($selected); ?>><?php hsc($legalIn['premium_reduction_type_name']); ?></option>
+                                            <?php } ?>
+                                    </select>
+                                </td>
+                                <th style="width:110px"><?php hsc($Log->getMsgLog('MSG_BASE_0909')); ?></th><!-- 法定外残業代 -->
+                                <td style="width:110px">
+                                    <select name="legalTimeOutOvertime" id="legalTimeOutOvertime" style="width: 100px">
+                                            <?php foreach($legalOutNameList as $legalOut) { ?>
+                                                <?php $selected = ""; ?>
+                                                <?php if($legalOut['premium_reduction_type_name'] == $searchArray['legalTimeOutOvertime']) { ?>
+                                                    <?php $selected = "selected"; ?>
+                                                <?php } ?>
+                                                    <option value="<?php hsc($legalOut['premium_reduction_type_name']); ?>" <?php hsc($selected); ?>><?php hsc($legalOut['premium_reduction_type_name']); ?></option>
+                                            <?php } ?>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0892')); ?></th><!-- コメント -->
+                                <td><input type="text" name="comment" id="comment" style="width: 200px" maxlength="30" class="Em" value="<?php hsc($searchArray['comment']);?>"></td>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0911')); ?></th><!-- 法定休日残業代 -->
+                                <td>
+                                    <select name="legalHolidayAllowance" id="legalHolidayAllowance" style="width: 100px">
+                                            <?php foreach($legHolidayNameList as $legalHoliday) { ?>
+                                                <?php $selected = ""; ?>
+                                                <?php if($legalHoliday['premium_reduction_type_name'] == $searchArray['legalHolidayAllowance']) { ?>
+                                                    <?php $selected = "selected"; ?>
+                                                <?php } ?>
+                                                    <option value="<?php hsc($legalHoliday['premium_reduction_type_name']); ?>" <?php hsc($selected); ?>><?php hsc($legalHoliday['premium_reduction_type_name']); ?></option>
+                                            <?php } ?>
+                                    </select>
+                                </td>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0912')); ?></th><!-- 公休日残業代 -->
+                                <td>
+                                    <select name="prescribedHolidayAllowance" id="prescribedHolidayAllowance" style="width: 100px">
+                                            <?php foreach($prescribedNameList as $prescribedHoliday) { ?>
+                                                <?php $selected = ""; ?>
+                                                <?php if($prescribedHoliday['premium_reduction_type_name'] == $searchArray['prescribedHolidayAllowance']) { ?>
+                                                    <?php $selected = "selected"; ?>
+                                                <?php } ?>
+                                                    <option value="<?php hsc($prescribedHoliday['premium_reduction_type_name']); ?>" <?php hsc($selected); ?>><?php hsc($prescribedHoliday['premium_reduction_type_name']); ?></option>
+                                            <?php } ?>
+                                    </select>
+                                </td>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0914')); ?></th><!-- 深夜残業代 -->
+                                <td>
+                                    <select name="lateAtNightOutOvertime" id="lateAtNightOutOvertime" style="width: 100px">
+                                            <?php foreach($lateAtNightNameList as $lateAtNight) { ?>
+                                                <?php $selected = ""; ?>
+                                                <?php if($lateAtNight['premium_reduction_type_name'] == $searchArray['lateAtNightOutOvertime']) { ?>
+                                                    <?php $selected = "selected"; ?>
+                                                <?php } ?>
+                                                    <option value="<?php hsc($lateAtNight['premium_reduction_type_name']); ?>" <?php hsc($selected); ?>><?php hsc($lateAtNight['premium_reduction_type_name']); ?></option>
+                                            <?php } ?>
+                                    </select>
+                                </td>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0915')); ?></th><!-- 休憩時間の設定 -->
+                                <td>
+                                    <select name="breakTimeAcquisition" id="breakTimeAcquisition" style="width: 100px">
+                                        <?php 
+                                        $selected = "";
+                                        if( "" == $laborRegDataList['break_time_acquisition'] )
+                                        {
+                                            $selected = "selected";
+                                        }
+                                        ?>
+                                        <option value="" <?php hsc($selected); ?> ></option>
+                                        <?php 
+                                            $selected = "";
+                                            if( 1 == $laborRegDataList['break_time_acquisition'] )
+                                            {
+                                                $selected = "selected";
+                                            }
+                                        ?>
+                                        <option value="1" <?php hsc($selected); ?> >手動取得</option>
+                                        <?php 
+                                            $selected = "";
+                                            if( 2 == $laborRegDataList['break_time_acquisition'] )
+                                            {
+                                                $selected = "selected";
+                                            }
+                                        ?>
+                                        <option value="2" <?php hsc($selected); ?> >自動取得</option>
+                                        <?php 
+                                            $selected = "";
+                                            if( 2 == $laborRegDataList['break_time_acquisition'] )
+                                            {
+                                                $selected = "selected";
+                                            }
+                                        ?>
+                                        <option value="3" <?php hsc($selected); ?> >手動と自動</option>
+                                    </select>
+                                </td>
+                            <tr>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0913')); ?></th><!-- 深夜労働時間 -->
+                                <td><input type="text" name="lateAtNightStart" id="lateAtNightStart" style="width: 50px" maxLength="5" class="En" pattern="([0-3][0-9])(:[0-5][0-9])" title="<?php hsc($Log->getMsgLog('MSG_BASE_0319')); ?>" value="<?php hsc($searchArray['lateAtNightStart']);?>"> ～ <input type="text" name="lateAtNightEnd" id="lateAtNightEnd" style="width: 50px" maxLength="5" class="En" pattern="([0-3][0-9])(:[0-5][0-9])" value="<?php hsc($searchArray['lateAtNightEnd']);?>" title="<?php hsc($Log->getMsgLog('MSG_BASE_0319')); ?>" ></td>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0910')); ?></th><!-- みなし残業 -->
+                                <td>
+                                    <select name="fixedOvertime" id="fixedOvertime" style="width: 100px">
+                                        <?php 
+                                        $selected = "";
+                                        if( "" == $laborRegDataList['break_time_acquisition'] )
+                                        {
+                                            $selected = "selected";
+                                        }
+                                        ?>
+                                        <option value="" <?php hsc($selected); ?> ></option>
+                                        <?php 
+                                            $selected = "";
+                                            if( 1 == $laborRegDataList['break_time_acquisition'] )
+                                            {
+                                                $selected = "selected";
+                                            }
+                                        ?>
+                                        <option value="1" <?php hsc($selected); ?> >無</option>
+                                        <?php 
+                                            $selected = "";
+                                            if( 2 == $laborRegDataList['break_time_acquisition'] )
+                                            {
+                                                $selected = "selected";
+                                            }
+                                        ?>
+                                        <option value="2" <?php hsc($selected); ?> >有</option>
+                                    </select>
+                                </td>
+                                <th><?php hsc($Log->getMsgLog('MSG_BASE_0927')); ?></th>
+                                <td colspan="5">
+                                    <?php
+                                        $applyChecked = '';
+                                        if($effFlag & 8 )
+                                        {
+                                            $applyChecked = 'checked';
+                                        }
+                                    ?>
+                                    <!-- 適用中を表示 -->
+                                    <input type="checkbox" name="applyCheck" id="applyCheck" <?php hsc($applyChecked); ?>> <?php hsc($Log->getMsgLog('MSG_BASE_0916')); ?>
+                                    <?php
+                                        $applySchChecked = '';
+                                        if( ( $effFlag & 4 ) )
+                                        {
+                                            $applySchChecked = 'checked';
+                                        }
+                                    ?>
+                                    <!-- 適用予定を表示 -->
+                                    　<input type="checkbox" name="applySchCheck" id="applySchCheck" <?php hsc($applySchChecked); ?>> <?php hsc($Log->getMsgLog('MSG_BASE_0917')); ?>
+                                    <?php
+                                        $nonApplyChecked = '';
+                                        if( ( $effFlag & 2 ) )
+                                        {
+                                            $nonApplyChecked = 'checked';
+                                        }
+                                    ?>
+                                    <!-- 適用外を表示 -->
+                                    　<input type="checkbox" name="nonApplyCheck" id="nonApplyCheck" <?php hsc($nonApplyChecked); ?>> <?php hsc($Log->getMsgLog('MSG_BASE_0918')); ?>
+                                    <?php
+                                        $delChecked = '';
+                                        if( ( $effFlag & 1 ) )
+                                        {
+                                            $delChecked = 'checked';
+                                        }
+                                    ?>
+                                    <!-- 削除を表示 -->
+                                    　<input type="checkbox" name="delCheck" id="delCheck" <?php hsc($delChecked); ?>> <?php hsc($Log->getMsgLog('MSG_BASE_0899')); ?>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div><!-- /.serchBoardArea -->
+
+                <!-- serchButtonArea -->
+                <div style="text-align: center; white-space: nowrap;">
+                    <div style="display: inline-block;" class="serchButtonArea">
+                        <input type="submit" id="search" name="search" href="#" value="検索" class="serch" />
+                    </div><!-- /.serchButtonArea -->
+                    <div style="display: inline-block;" class="logicButtonArea">
+                        <?php $registrationCnt = 0; ?>
+                        <?php foreach( $_SESSION["REGISTRATION"] as $reg ) { ?>
+                            <?php $registrationCnt = $registrationCnt + $reg['organization_id']; ?>
+                        <?php } ?>
+                        <?php $add_disabled = ""; ?>
+                        <?php if(empty($registrationCnt)) { ?>
+                            <?php $add_disabled = "disabled"; ?>
+                        <?php } ?>
+                        <input type="button" id="add" name="add" onClick="inputPanelTransition()" value="　 新規作成" class="add" <?php hsc($add_disabled); ?>>
+                    </div><!-- /.logicButtonArea -->
+                </div><!-- /.styleAlignCenter -->
+            </form>
+            <form id="modForm" name="modForm" >
+                <?php include("LaborRegulationsTablePanel.html"); ?>
+            </form>
+        </div><!-- /.sb-site -->
+        <?php include("../FwCommon/View/Dialog.php"); ?>
+    </body>
+</html>

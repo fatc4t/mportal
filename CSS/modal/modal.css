@@ -1,0 +1,911 @@
+/* The Modal (background) */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  padding-top: 100px; /* Location of the box */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content */
+.modal-content {
+  background-color: #fefefe;
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 850px;
+  overflow: hidden;
+}
+/* Genearal */
+.modal_div_btn{
+    /*width: fit-content;
+    margin-left: 412px;*/
+    float: right;
+}
+h2{
+	align-items:center;
+	background: #0D0D70;
+	color: white;
+	text-align: center;
+	padding: 5px;
+}
+.search_btn{
+    margin-top: 1em;
+    margin-left: 3em;
+}
+
+/*####### SECT ########*/
+/* Modal search parameters */
+.modal_sect_left{
+	float : left;
+    padding: 5px;
+}
+.modal_sect_label{
+	align-items:center;
+	background: #0D0D70;
+	color: white;
+	text-align: center;
+	padding: 5px;
+	border: 1px solid black;	
+}
+
+.modal_sect_param{
+	border: 1px solid black;
+    overflow: hidden;
+}
+
+.modal_sect_code{
+	width: 7em;
+    padding: 4px;
+    align-items:center;
+}
+.modal_sect_name{
+	padding: 4px;
+	width: 20em;
+    align-items:center;
+}
+.modal_sect_label{
+	align-items:center;
+	background: #0D0D70;
+	color: white;
+	text-align: center;
+	padding: 5px 5px 7px 5px;
+	
+}
+.modal_sect_search{
+	overflow: hidden;
+}	
+/* Modal table */ 
+.modal_sect_table{ 
+	border-collapse: collapse;
+	width: 100%;
+}
+.modal_sect_table th {
+    color: #fff;
+    background: #0D0D70;
+    border-left:1px solid #000000;
+    border-right:1px solid #000000;
+    border-top:1px solid #000000;
+    border-bottom:1px solid #000000;
+    line-height: 120%;
+    text-align: center;
+    text-shadow:0 -1px 0 rgba(34,85,136,0.9);
+    box-shadow: 0px 1px 1px rgba(255,255,255,0.3) inset;
+    height:25px;
+	padding: 2px 5px 2px 5px;      
+}
+.modal_sect_table tbody td{
+	height:1.5em;
+    background-color: #fff;
+    border: 1px solid #0B0B61;
+    padding: 0;
+    text-align: left; 
+    border-collapse: collapse;
+}
+.modal_sect_table thead th:first-child,
+.modal_sect_table tbody tr td:first-child {
+  width: 4em;
+}
+.modal_sect_table tbody td:first-child {
+    text-align: center; 
+}
+
+/*####### ORG ########*/
+/* Modal search parameters */
+.modal_org_left{
+	float : left;
+    padding: 5px;
+}
+.modal_org_label{
+	align-items:center;
+	background: #0D0D70;
+	color: white;
+	text-align: center;
+	padding: 5px;
+	border: 1px solid black;	
+}
+
+.modal_org_param{
+	border: 1px solid black;
+    overflow: hidden;
+}
+
+.modal_org_code{
+	width: 7em;
+    padding: 4px;
+    align-items:center;
+}
+.modal_org_name{
+	padding: 4px;
+	width: 20em;
+    align-items:center;
+}
+.modal_org_label{
+	align-items:center;
+	background: #0D0D70;
+	color: white;
+	text-align: center;
+	padding: 5px 5px 7px 5px;
+	
+}
+.modal_org_search{
+	overflow: hidden;
+}	
+/* Modal table */ 
+.modal_org_table{ 
+	border-collapse: collapse;
+	width: 100%;
+}
+.modal_org_table th {
+    color: #fff;
+    background: #0D0D70;
+    border-left:1px solid #000000;
+    border-right:1px solid #000000;
+    border-top:1px solid #000000;
+    border-bottom:1px solid #000000;
+    line-height: 120%;
+    text-align: center;
+    text-shadow:0 -1px 0 rgba(34,85,136,0.9);
+    box-shadow: 0px 1px 1px rgba(255,255,255,0.3) inset;
+    height:25px;
+	padding: 2px 5px 2px 5px;      
+}
+.modal_org_table tbody td{
+	height:1.5em;
+    background-color: #fff;
+    border: 1px solid #0B0B61;
+    padding: 0;
+    text-align: left; 
+    border-collapse: collapse;
+}
+.modal_org_table thead th:first-child,
+.modal_org_table tbody tr td:first-child {
+  width: 4em;
+}
+.modal_org_table tbody td:first-child {
+    text-align: center; 
+}
+
+/*####### PROD ########*/
+/* Modal search parameters */
+.modal_prod_left{
+	float : left;
+    padding: 5px;
+}
+.modal_prod_label{
+	align-items:center;
+	background: #0D0D70;
+	color: white;
+	text-align: center;
+	padding: 5px;
+	border: 1px solid black;	
+}
+
+.modal_prod_param{
+	border: 1px solid black;
+    overflow: hidden;
+}
+
+.modal_prod_code{
+    width: 10em;
+    padding: 4px;
+    align-items:center;
+}
+.modal_prod_code_small{
+    width: 5em;
+    padding: 4px;
+    align-items:center;
+}
+.modal_prod_label_long{
+	align-items:center;
+	background: #0D0D70;
+	color: white;
+	text-align: left;
+	padding: 5px;
+	border: 1px solid black;
+        width: 9em;
+}
+.modal_prod_name{
+	padding: 4px;
+	width: 20em;
+    align-items:center;
+}
+.modal_prod_label{
+	align-items:center;
+	background: #0D0D70;
+	color: white;
+	text-align: center;
+	padding: 5px 5px 7px 5px;
+	
+}
+.modal_prod_search{
+	overflow: hidden;
+}	
+/* Modal table */ 
+.modal_prod_table{ 
+	border-collapse: collapse;
+	width: 100%;
+}
+.modal_prod_table th {
+    color: #fff;
+    background: #0D0D70;
+    border-left:1px solid #000000;
+    border-right:1px solid #000000;
+    border-top:1px solid #000000;
+    border-bottom:1px solid #000000;
+    line-height: 120%;
+    text-align: center;
+    text-shadow:0 -1px 0 rgba(34,85,136,0.9);
+    box-shadow: 0px 1px 1px rgba(255,255,255,0.3) inset;
+    height:25px;
+	padding: 2px 5px 2px 5px;      
+}
+.modal_prod_table tbody td{
+	height:1.5em;
+    background-color: #fff;
+    border: 1px solid #0B0B61;
+    padding: 0;
+    text-align: left; 
+    border-collapse: collapse;
+}
+.modal_prod_table thead th:first-child,
+.modal_prod_table tbody tr td:first-child {
+  width: 4em;
+}
+#modal_prod_search_prod {
+    margin-top: 120px;
+}
+.modal_prod_table tbody td:first-child {
+    text-align: center; 
+}
+/*####### SUPP ########*/
+/* Modal search parameters */
+.modal_supp_left{
+	float : left;
+    padding: 5px;
+}
+.modal_supp_label{
+	align-items:center;
+	background: #0D0D70;
+	color: white;
+	text-align: center;
+	padding: 5px;
+	border: 1px solid black;	
+}
+
+.modal_supp_param{
+	border: 1px solid black;
+    overflow: hidden;
+}
+
+.modal_supp_code{
+	width: 7em;
+    padding: 4px;
+    align-items:center;
+}
+.modal_supp_name{
+	padding: 4px;
+	width: 20em;
+    align-items:center;
+}
+.modal_supp_label{
+	align-items:center;
+	background: #0D0D70;
+	color: white;
+	text-align: center;
+	padding: 5px 5px 7px 5px;
+	
+}
+.modal_supp_search{
+	overflow: hidden;
+}	
+/* Modal table */ 
+.modal_supp_table{ 
+	border-collapse: collapse;
+	width: 100%;
+}
+.modal_supp_table th {
+    color: #fff;
+    background: #0D0D70;
+    border-left:1px solid #000000;
+    border-right:1px solid #000000;
+    border-top:1px solid #000000;
+    border-bottom:1px solid #000000;
+    line-height: 120%;
+    text-align: center;
+    text-shadow:0 -1px 0 rgba(34,85,136,0.9);
+    box-shadow: 0px 1px 1px rgba(255,255,255,0.3) inset;
+    height:25px;
+	padding: 2px 5px 2px 5px;      
+}
+.modal_supp_table tbody td{
+	height:1.5em;
+    background-color: #fff;
+    border: 1px solid #0B0B61;
+    padding: 0;
+    text-align: left; 
+    border-collapse: collapse;
+}
+.modal_supp_table thead th:first-child,
+.modal_supp_table tbody td:first-child {
+  width: 4em;
+}
+.modal_supp_table tbody td:first-child {
+    text-align: center; 
+}
+/*####### AREA ########*/
+/* Modal search parameters */
+.modal_area_left{
+    float : left;
+    padding: 5px;
+}
+.modal_area_label{
+	align-items:center;
+	background: #0D0D70;
+	color: white;
+	text-align: center;
+	padding: 5px;
+	border: 1px solid black;	
+}
+
+.modal_area_param{
+    border: 1px solid black;
+    overflow: hidden;
+}
+
+.modal_area_code{
+    width: 7em;
+    padding: 4px;
+    align-items:center;
+}
+.modal_area_name{
+	padding: 4px;
+	width: 20em;
+    align-items:center;
+}
+.modal_area_label{
+	align-items:center;
+	background: #0D0D70;
+	color: white;
+	text-align: center;
+	padding: 5px 5px 7px 5px;
+	
+}
+.modal_area_search{
+	overflow: hidden;
+}	
+/* Modal table */ 
+.modal_area_table{ 
+	border-collapse: collapse;
+	width: 100%;
+}
+.modal_area_table th {
+    color: #fff;
+    background: #0D0D70;
+    border-left:1px solid #000000;
+    border-right:1px solid #000000;
+    border-top:1px solid #000000;
+    border-bottom:1px solid #000000;
+    line-height: 120%;
+    text-align: center;
+    text-shadow:0 -1px 0 rgba(34,85,136,0.9);
+    box-shadow: 0px 1px 1px rgba(255,255,255,0.3) inset;
+    height:25px;
+	padding: 2px 5px 2px 5px;      
+}
+.modal_area_table tbody td{
+	height:1.5em;
+    background-color: #fff;
+    border: 1px solid #0B0B61;
+    padding: 0;
+    text-align: left; 
+    border-collapse: collapse;
+}
+.modal_area_table thead th:first-child,
+.modal_area_table tbody tr td:first-child {
+  width: 4em;
+}
+.modal_area_table tbody td:first-child {
+    text-align: center; 
+}
+
+/*####### STAFF ########*/
+/* Modal search parameters */
+.modal_staff_left{
+    float : left;
+    padding: 5px;
+}
+.modal_staff_label{
+	align-items:center;
+	background: #0D0D70;
+	color: white;
+	text-align: center;
+	padding: 5px;
+	border: 1px solid black;	
+}
+
+.modal_staff_param{
+    border: 1px solid black;
+    overflow: hidden;
+}
+
+.modal_staff_code{
+    width: 3em;
+    padding: 4px;
+    align-items:center;
+}
+.modal_staff_name{
+	padding: 4px;
+	width: 20em;
+    align-items:center;
+}
+.modal_staff_label{
+	align-items:center;
+	background: #0D0D70;
+	color: white;
+	text-align: center;
+	padding: 5px 5px 7px 5px;
+	
+}
+.modal_staff_search{
+	overflow: hidden;
+}	
+/* Modal table */ 
+.modal_staff_table{ 
+	border-collapse: collapse;
+	width: 100%;
+}
+.modal_staff_table th {
+    color: #fff;
+    background: #0D0D70;
+    border-left:1px solid #000000;
+    border-right:1px solid #000000;
+    border-top:1px solid #000000;
+    border-bottom:1px solid #000000;
+    line-height: 120%;
+    text-align: center;
+    text-shadow:0 -1px 0 rgba(34,85,136,0.9);
+    box-shadow: 0px 1px 1px rgba(255,255,255,0.3) inset;
+    height:25px;
+	padding: 2px 5px 2px 5px;      
+}
+.modal_staff_table tbody td{
+	height:1.5em;
+    background-color: #fff;
+    border: 1px solid #0B0B61;
+    padding: 0;
+    text-align: left; 
+    border-collapse: collapse;
+}
+.modal_staff_table thead th:first-child,
+.modal_staff_table tbody tr td:first-child {
+  width: 4em;
+}
+.modal_staff_table tbody td:first-child {
+    text-align: center; 
+}
+/*####### 特売 ########*/
+/* Modal search parameters */
+.modal_splan_left{
+    float : left;
+    padding: 5px;
+}
+.modal_splan_label{
+	align-items:center;
+	background: #0D0D70;
+	color: white;
+	text-align: center;
+	padding: 5px;
+	border: 1px solid black;	
+}
+
+.modal_splan_param{
+    border: 1px solid black;
+    overflow: hidden;
+}
+
+.modal_splan_code{
+    width: 4em;
+    padding: 4px;
+    align-items:center;
+}
+.modal_splan_name{
+    padding: 4px;
+    width: 20em;
+    align-items:center;
+}
+.modal_splan_date{
+    padding: 4px;
+    width: 7em;
+    align-items:center;    
+}
+.modal_splan_label{
+	align-items:center;
+	background: #0D0D70;
+	color: white;
+	text-align: center;
+	padding: 5px 5px 7px 5px;
+	
+}
+.modal_splan_search{
+	overflow: hidden;
+}	
+/* Modal table */ 
+.modal_splan_table{ 
+	border-collapse: collapse;
+	width: 100%;
+}
+.modal_splan_table th {
+    color: #fff;
+    background: #0D0D70;
+    border-left:1px solid #000000;
+    border-right:1px solid #000000;
+    border-top:1px solid #000000;
+    border-bottom:1px solid #000000;
+    line-height: 120%;
+    text-align: center;
+    text-shadow:0 -1px 0 rgba(34,85,136,0.9);
+    box-shadow: 0px 1px 1px rgba(255,255,255,0.3) inset;
+    height:25px;
+	padding: 2px 5px 2px 5px;      
+}
+.modal_splan_table tbody td{
+	height:1.5em;
+    background-color: #fff;
+    border: 1px solid #0B0B61;
+    padding: 0;
+    text-align: left; 
+    border-collapse: collapse;
+}
+.modal_splan_table thead th:first-child,
+.modal_splan_table tbody tr td:first-child {
+  width: 4em;
+}
+.modal_splan_table tbody td:first-child {
+    text-align: center; 
+}
+/*####### 顧客 ########*/
+/* Modal search parameters */
+.modal_cust_left{
+    float : left;
+    padding: 5px;
+}
+.modal_cust_label{
+	align-items:center;
+	background: #0D0D70;
+	color: white;
+	text-align: center;
+	padding: 5px;
+	border: 1px solid black;	
+}
+
+.modal_cust_param{
+    border: 1px solid black;
+    overflow: hidden;
+}
+
+.modal_cust_code{
+    width: 10em;
+    padding: 4px;
+    align-items:center;
+}
+.modal_cust_name{
+    padding: 4px;
+    width: 20em;
+    align-items:center;
+}
+.modal_cust_date{
+    padding: 4px;
+    width: 7em;
+    align-items:center;    
+}
+.modal_cust_label{
+	align-items:center;
+	background: #0D0D70;
+	color: white;
+	text-align: center;
+	padding: 5px 5px 7px 5px;
+	
+}
+.modal_cust_search{
+	overflow: hidden;
+}	
+/* Modal table */ 
+.modal_cust_table{ 
+	border-collapse: collapse;
+	width: 100%;
+}
+.modal_cust_table th {
+    color: #fff;
+    background: #0D0D70;
+    border-left:1px solid #000000;
+    border-right:1px solid #000000;
+    border-top:1px solid #000000;
+    border-bottom:1px solid #000000;
+    line-height: 120%;
+    text-align: center;
+    text-shadow:0 -1px 0 rgba(34,85,136,0.9);
+    box-shadow: 0px 1px 1px rgba(255,255,255,0.3) inset;
+    height:25px;
+	padding: 2px 5px 2px 5px;      
+}
+.modal_cust_table tbody td{
+	height:1.5em;
+    background-color: #fff;
+    border: 1px solid #0B0B61;
+    padding: 0;
+    text-align: left; 
+    border-collapse: collapse;
+}
+.modal_cust_table thead th:first-child,
+.modal_cust_table tbody tr td:first-child {
+  width: 4em;
+}
+.modal_cust_table tbody td:first-child {
+    text-align: center; 
+}
+/*####### 商品分類 ########*/
+/* Modal search parameters */
+.modal_prodclass_left{
+    float : left;
+    padding: 5px;
+}
+.modal_prodclass_label{
+	align-items:center;
+	background: #0D0D70;
+	color: white;
+	text-align: center;
+	padding: 5px;
+	border: 1px solid black;	
+}
+
+.modal_prodclass_param{
+    border: 1px solid black;
+    overflow: hidden;
+}
+
+.modal_prodclass_code{
+    width: 10em;
+    padding: 4px;
+    align-items:center;
+}
+.modal_prodclass_name{
+    padding: 4px;
+    width: 20em;
+    align-items:center;
+}
+.modal_prodclass_date{
+    padding: 4px;
+    width: 7em;
+    align-items:center;    
+}
+.modal_prodclass_label{
+	align-items:center;
+	background: #0D0D70;
+	color: white;
+	text-align: center;
+	padding: 5px 5px 7px 5px;
+	
+}
+.modal_prodclass_search{
+	overflow: hidden;
+}	
+/* Modal table */ 
+.modal_prodclass_table{ 
+	border-collapse: collapse;
+	width: 100%;
+}
+.modal_prodclass_table th {
+    color: #fff;
+    background: #0D0D70;
+    border-left:1px solid #000000;
+    border-right:1px solid #000000;
+    border-top:1px solid #000000;
+    border-bottom:1px solid #000000;
+    line-height: 120%;
+    text-align: center;
+    text-shadow:0 -1px 0 rgba(34,85,136,0.9);
+    box-shadow: 0px 1px 1px rgba(255,255,255,0.3) inset;
+    height:25px;
+	padding: 2px 5px 2px 5px;      
+}
+.modal_prodclass_table tbody td{
+	height:1.5em;
+    background-color: #fff;
+    border: 1px solid #0B0B61;
+    padding: 0;
+    text-align: left; 
+    border-collapse: collapse;
+}
+.modal_prodclass_table thead th:first-child,
+.modal_prodclass_table tbody tr td:first-child {
+  width: 4em;
+}
+.modal_prodclass_table tbody td:first-child {
+    text-align: center; 
+}
+
+/*####### 商品分類 ########*/
+/* Modal search parameters */
+.modal_test_left{
+    float : left;
+    padding: 5px;
+}
+.modal_test_label{
+	align-items:center;
+	background: #0D0D70;
+	color: white;
+	text-align: center;
+	padding: 5px;
+	border: 1px solid black;	
+}
+
+.modal_test_param{
+    border: 1px solid black;
+    overflow: hidden;
+}
+
+.modal_test_code{
+    width: 10em;
+    padding: 4px;
+    align-items:center;
+}
+.modal_test_name{
+    padding: 4px;
+    width: 20em;
+    align-items:center;
+}
+.modal_test_date{
+    padding: 4px;
+    width: 7em;
+    align-items:center;    
+}
+.modal_test_label{
+	align-items:center;
+	background: #0D0D70;
+	color: white;
+	text-align: center;
+	padding: 5px 5px 7px 5px;
+	
+}
+.modal_test_search{
+	overflow: hidden;
+}	
+/* Modal table */ 
+.modal_test_table{ 
+	border-collapse: collapse;
+	width: 100%;
+}
+.modal_test_table th {
+    color: #fff;
+    background: #0D0D70;
+    border-left:1px solid #000000;
+    border-right:1px solid #000000;
+    border-top:1px solid #000000;
+    border-bottom:1px solid #000000;
+    line-height: 120%;
+    text-align: center;
+    text-shadow:0 -1px 0 rgba(34,85,136,0.9);
+    box-shadow: 0px 1px 1px rgba(255,255,255,0.3) inset;
+    height:25px;
+	padding: 2px 5px 2px 5px;      
+}
+.modal_test_table tbody td{
+	height:1.5em;
+    background-color: #fff;
+    border: 1px solid #0B0B61;
+    padding: 0;
+    text-align: left; 
+    border-collapse: collapse;
+}
+.modal_test_table thead th:first-child,
+.modal_test_table tbody tr td:first-child {
+ /* width: 5em;*/
+}
+.modal_test_table tbody td:first-child {
+    text-align: left; 
+}
+/*####### ORG ########*/
+/* Modal search parameters */
+/*修正者：バッタライ
+　修正日：2020/02/06
+  修正内容：クレジットモーダルCSS*/
+.modal_credit_left{
+	float : left;
+    padding: 5px;
+}
+.modal_credit_label{
+	align-items:center;
+	background: #0D0D70;
+	color: white;
+	text-align: center;
+	padding: 5px;
+	border: 1px solid black;	
+}
+
+.modal_credit_param{
+	border: 1px solid black;
+    overflow: hidden;
+}
+
+.modal_credit_code{
+	width: 7em;
+    padding: 4px;
+    align-items:center;
+}
+.modal_credit_name{
+	padding: 4px;
+	width: 20em;
+    align-items:center;
+}
+.modal_credit_label{
+	align-items:center;
+	background: #0D0D70;
+	color: white;
+	text-align: center;
+	padding: 5px 5px 7px 5px;
+	
+}
+.modal_credit_search{
+	overflow: hidden;
+}	
+/* Modal table */ 
+.modal_credit_table{ 
+	border-collapse: collapse;
+	width: 100%;
+}
+.modal_credit_table th {
+    color: #fff;
+    background: #0D0D70;
+    border-left:1px solid #000000;
+    border-right:1px solid #000000;
+    border-top:1px solid #000000;
+    border-bottom:1px solid #000000;
+    line-height: 120%;
+    text-align: center;
+    text-shadow:0 -1px 0 rgba(34,85,136,0.9);
+    box-shadow: 0px 1px 1px rgba(255,255,255,0.3) inset;
+    height:25px;
+	padding: 2px 5px 2px 5px;      
+}
+.modal_credit_table tbody td{
+	height:1.5em;
+    background-color: #fff;
+    border: 1px solid #0B0B61;
+    padding: 0;
+    text-align: left; 
+    border-collapse: collapse;
+}
+.modal_credit_table thead th:first-child,
+.modal_credit_table tbody tr td:first-child {
+  width: 4em;
+}
+.modal_credit_table tbody td:first-child {
+    text-align: center; 
+}

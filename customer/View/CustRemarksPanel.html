@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>m-portal</title>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8">
+        <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+        <?php include("../home/View/Common/HtmlHeader.php"); ?>        
+        <script type="text/javascript" src="../../FwCommon/js/common.js" ></script>
+        <script type="text/javascript" src="../js/template1/common.js" ></script> 
+        <script type="text/javascript" src="../js/template1/jquery-ui.min.js" ></script>
+        <script type="text/javascript">
+            controller      = "<?php echo $controller ; ?>";
+            jss_rc   = "../js/"+controller.toLowerCase()+"/template1.js";
+            var script  = document.createElement('script');
+            script.src  = jss_rc;
+            script.type ="text/javascript";            
+            document.head.appendChild(script);
+            var link    = document.createElement('link');
+            link.rel    = "stylesheet";
+            link.href   = "../css/"+controller.toLowerCase()+"/template1.css";
+            document.head.appendChild(link);
+            porg_id_list        = '<?php echo json_encode(json_encode($org_id_list)); ?>';
+            ptyporg_id_list     = JSON.parse(porg_id_list.slice(1,-1)); 
+            org_id              = "<?php hsc( $org_id ); ?>";
+            
+            pagetitle       = "<?php echo $pagetitle ; ?>";
+            addrow          = "<?php echo $addrow ; ?>";
+            save            = "<?php echo $save ; ?>";
+            pr_key_list     = "<?php echo $pr_key_list; ?>";
+            pr_key_id       = '<?php echo json_encode(json_encode($pr_key_id)); ?>';
+            A_pr_key_id     = JSON.parse(pr_key_id.slice(1,-1));
+            key             = '<?php echo json_encode(json_encode($key)); ?>';
+            A_key           = JSON.parse(key.slice(1,-1));
+            title           = '<?php echo json_encode(json_encode($title)); ?>';
+            A_title         = JSON.parse(title.slice(1,-1));
+            //data            = '<?php echo json_encode(json_encode($data)); ?>';
+            working_data    = [];
+            mst0701           = '<?php echo json_encode(json_encode($mst0701)); ?>';
+            A_mst0701         = JSON.parse(mst0701.slice(1,-1));
+            mst0010           = '<?php echo json_encode(json_encode($mst0010)); ?>';
+            A_mst0010        = JSON.parse(mst0010.slice(1,-1));            
+            var new_data    = [];
+            var upd_data    = [];
+            var del_data    = [];
+            var mst0010_upd = [];
+            var cust_typ    = "";
+            if(!A_mst0701["01"]){
+                A_mst0701['01']=[];
+            }
+            working_data = A_mst0701['01'];
+            cust_typ = "01";
+
+            
+            function thead_crea(thead_nm){
+                thead = document.getElementById("thead_template");
+                thead.innerHTML = '';
+                field_nm            = document.createElement('th');                
+                field_nm.innerHTML  = "&nbsp;&nbsp;&nbsp;";
+                thead.appendChild(field_nm); 
+
+                for(i=0;i < thead_nm.length ; i++ ){
+                    field_nm            = document.createElement('th');
+                    field_nm.innerHTML  = "";
+                    field_nm.innerHTML  = thead_nm[i];
+                    thead.appendChild(field_nm);
+                }                
+            }
+            
+            function tbody_crea(work_data){
+                tbod = document.getElementById("tbody_template");
+                tbod.innerHTML = '';
+                var plus = 0;
+                for(i=0;i < work_data.length ; i++ ){
+                    if(!work_data[i]){
+                        continue;
+                    }                        
+                    var trow         = tbod.insertRow();
+                    var ckbox        = trow.insertCell(0);
+                    var newbutton       = document.createElement('button');
+                    newbutton.name      = 'button_del';
+                    newbutton.id        = 'del_' + i;
+                    newbutton.value     = i;
+                    newbutton.innerHTML = "削除";
+                    newbutton.onclick = del_row;
+                    ckbox.appendChild(newbutton);
+
+                    for(j=0;j < A_key.length; j++){
+                        var newcell     = trow.insertCell(j+1);
+                        var newinput   = document.createElement('input');
+                        newinput.type       = 'text';
+                        newinput.name       = A_key[j];
+                        newinput.id         = A_key[j]+"_"+i;
+                        newinput.onchange  = f_change;
+                        newinput.onblur    = f_blur;
+                        newinput.onkeydown = f_keydown;
+                        newinput.oninput    = f_input;
+                        newinput.value      = work_data[i][A_key[j]];
+                        newcell.appendChild(newinput);                            
+                    }
+                }
+                  
+                var trow         = tbod.insertRow();
+                var ckbox        = trow.insertCell(0);
+                var newbutton       = document.createElement('button');
+                newbutton.name      = 'button_add';
+                newbutton.id        = 'add';
+                newbutton.value     = work_data.length;
+                newbutton.innerHTML = "追加";
+                newbutton.onclick = add_row;
+                newbutton.disabled = true;
+                ckbox.appendChild(newbutton);
+
+                for(j=0;j < A_key.length; j++){
+                    var newcell = trow.insertCell(j+1);
+                    var newinput = document.createElement('input');
+                    newinput.type       = 'text';
+                    newinput.name       = A_key[j];
+                    newinput.id         = A_key[j]+"_"+i;
+                    newinput.onchange   = f_change;
+                    newinput.onblur     = f_blur;
+                    newinput.onkeydown  = f_keydown;
+                    newinput.oninput    = f_input;
+                    newinput.value      = "";
+                    newcell.appendChild(newinput);
+                }
+             if(addrow == 0){
+                 list = document.getElementsByName('button_del');
+                 for(i=0;i<list.length;i++){
+                    list[i].setAttribute("disabled", true);
+                 }
+                 document.getElementById("add").setAttribute("disabled", true);
+             }
+             if(save == 0){
+                  document.getElementById('send_result').setAttribute("disabled", true);
+             }
+                
+            }
+            function f_change(e){
+                T_f_change(e);
+            }
+            function f_blur(e){
+                T_f_blur(e);
+            }
+            function f_keydown(e){
+                result = T_f_keydown(e);
+                return result;
+            }
+            function f_input(e){
+                if(!e.data){
+                    e.data=e.target.value.slice(-1);
+                }                
+                T_f_input(e);
+            }
+            function add_row(e){
+                res = T_addrow(e);
+                
+                if (res === "ok"){
+                    newval           = +e.target.value +1;
+                    elemt            = document.getElementById("add");
+                    elemt.id         = 'del_'+e.target.value;
+                    elemt.name       = 'button_del';
+                    elemt.innerHTML  = "削除";
+                    elemt.onclick   = del_row;
+                    
+                    tbod = document.getElementById("tbody_template");
+                    var trow         = tbod.insertRow();
+                    var ckbox        = trow.insertCell(0);
+                    var newbutton       = document.createElement('button');
+                    newbutton.name      = 'button_add';
+                    newbutton.id        = 'add';
+                    newbutton.value     = newval;
+                    newbutton.innerHTML = "追加";
+                    newbutton.disabled  = true;
+                    newbutton.onclick  = add_row;
+                    ckbox.appendChild(newbutton);
+                    for(j=0;j < A_key.length; j++){
+                        var newcell = trow.insertCell(j+1);
+                        var newinput = document.createElement('input');
+                        newinput.type       = 'text';
+                        newinput.name       = A_key[j];
+                        newinput.id         = A_key[j]+"_"+newval;
+                        newinput.onchange   = f_change;
+                        newinput.onblur     = f_blur;
+                        newinput.onkeydown  = f_keydown;
+                        newinput.oninput     = f_input;
+                        newinput.value      = "";
+                        newcell.appendChild(newinput);
+                    }                    
+                elemt           = document.getElementById("add");
+                elemnt_f_id     = A_pr_key_id[0] +"_"+elemt.value;
+                elemnt_f        = document.getElementById(elemnt_f_id);
+                elemnt_f.focus();                  
+                }
+            }
+            function del_row(e){
+                res = T_delrow(e);
+                if (res === "ok"){
+                    row_nb = e.target.parentNode.parentNode.rowIndex;
+                    tbod = document.getElementById("tbody_template").deleteRow(row_nb);
+                }
+            }
+            
+            function send_result(){
+                data_send   = T_send_result();
+            }
+            
+            function reset_data(){
+                T_reset_data();
+            }
+            
+            function showdata(org_id){
+                spath       = window.location.href;
+                spath       = spath.split('?'); 
+                spath       = spath[0]+'?param=CustRemarks/show&org_id='+org_id;
+                window.location.replace(spath);             
+            }
+            function upd_mst0010(e){
+                //console.log('e value:'+e.target.value);
+                //console.log('elem value: '+window[e.target.id].value);
+                val = e.target.value.replace("￥","").replace("/","").substr(0,19);
+                
+                document.getElementById(e.target.id).value = val;
+                if(cust_typ !== ""){
+                    mst0010_upd[cust_typ] =val;
+                }
+            }
+            function cust_typ_select(e){
+                //console.log(e);
+                new_typ = e.target.id.replace("cust_b_type","");
+                if(cust_typ !== new_typ){
+                    cust_typ = new_typ;
+                    working_data = new Array();
+                    if(!A_mst0701[cust_typ]){
+                        A_mst0701[cust_typ] = [];
+                    }
+                    working_data = A_mst0701[cust_typ];
+                    tbody_crea(working_data);
+                    list = document.getElementsByName('cust_b_type');
+                    for(i=0;i<list.length;i++){
+                        list[i].style.background = "";
+                    }                    
+    
+                    e.target.style.background = "lightyellow";
+                      
+                }
+            }
+            function check_entry(e){
+                //console.log('value: '+e.target.value);
+                if(e.key == "/" || e.key == "'" || e.key == '"' || e.key == "\\"){   
+                    console,log('here1');
+                    return false;       
+                }
+                if(document.getElementById(e.target.id).value.length >= 20 ){
+                    console,log('here2');
+                    return false; 
+                }
+                document.getElementById(e.target.id).value = e.target.value;
+                //console.log('elem value: '+document.getElementById(e.target.id).value);
+            }
+            function init_data(e){
+                //clear data
+                list = document.getElementsByName('cust_b_type');
+                for(i=0;i<list.length;i++){
+                    list[i].value = "";
+                }
+                if(Object.keys(A_mst0010).length){
+                    document.getElementById("cust_b_type01").value = A_mst0010.c_biko1;
+                    document.getElementById("cust_b_type02").value = A_mst0010.c_biko2;
+                    document.getElementById("cust_b_type03").value = A_mst0010.c_biko3;
+                    document.getElementById("cust_b_type04").value = A_mst0010.c_biko4;
+                    document.getElementById("cust_b_type05").value = A_mst0010.c_biko5;
+                    document.getElementById("cust_b_type06").value = A_mst0010.c_biko6;
+                    document.getElementById("cust_b_type07").value = A_mst0010.c_biko7;
+                    document.getElementById("cust_b_type08").value = A_mst0010.c_biko8;
+                    document.getElementById("cust_b_type09").value = A_mst0010.c_biko9;
+                    document.getElementById("cust_b_type10").value = A_mst0010.c_biko10;
+                }  
+            }
+            window.onload = function() {
+                
+                compselect  = document.getElementById("comp_nm");
+                opt         = document.createElement("option");
+                for( var j=0; j < ptyporg_id_list.length; j++){
+                    opt     = document.createElement("option");
+                    opt.value   = ptyporg_id_list[j].organization_id;
+                    opt.text    = ptyporg_id_list[j].organization_name;
+                    compselect.options.add(opt,null);
+                } 
+                compselect.value = org_id;
+                init_data();
+                thead_crea(A_title);
+                tbody_crea(working_data);
+                document.getElementById('pagetitle').innerHTML = "&nbsp;" + pagetitle;
+                document.getElementById("cust_b_type01").style.background = "lightyellow";
+            }        
+        </script>
+            
+        <style type="text/css">
+         
+        </style>
+    </head>
+    <body>
+        <?php
+              include("../home/View/Common/PageHeader.php");
+
+        ?> 
+        <div id="sb-site" style="overflow: auto;">
+            <h4 id="pagetitle">顧客備考マスタ</h4>
+            <div class="left">
+            <label for="comp_nm">店舗名</label><select id="comp_nm" onchange="showdata(this.value)">
+                <option value="0"></option>
+            </select>
+            <br /><br /><br />
+            <div style="border-style: ridge">
+                <h4>分類</h4>
+                <input type="text"  name="cust_b_type" id="cust_b_type01" onchange="upd_mst0010(event)" onfocus="cust_typ_select(event)" oninput="check_entry(event)" maxlength="20"><br /><br />
+                <input type="text"  name="cust_b_type" id="cust_b_type02" onchange="upd_mst0010(event)" onfocus="cust_typ_select(event)" onkeydown="check_entry(event)" maxlength="20"><br /><br />
+                <input type="text"  name="cust_b_type" id="cust_b_type03" onchange="upd_mst0010(event)" onfocus="cust_typ_select(event)" onkeydown="check_entry(event)" maxlength="20"><br /><br />
+                <input type="text"  name="cust_b_type" id="cust_b_type04" onchange="upd_mst0010(event)" onfocus="cust_typ_select(event)" onkeydown="check_entry(event)" maxlength="20"><br /><br />
+                <input type="text"  name="cust_b_type" id="cust_b_type05" onchange="upd_mst0010(event)" onfocus="cust_typ_select(event)" onkeydown="check_entry(event)" maxlength="20"><br /><br />
+                <input type="text"  name="cust_b_type" id="cust_b_type06" onchange="upd_mst0010(event)" onfocus="cust_typ_select(event)" onkeydown="check_entry(event)" maxlength="20"><br /><br />
+                <input type="text"  name="cust_b_type" id="cust_b_type07" onchange="upd_mst0010(event)" onfocus="cust_typ_select(event)" onkeydown="check_entry(event)" maxlength="20"><br /><br />
+                <input type="text"  name="cust_b_type" id="cust_b_type08" onchange="upd_mst0010(event)" onfocus="cust_typ_select(event)" onkeydown="check_entry(event)" maxlength="20"><br /><br />
+                <input type="text"  name="cust_b_type" id="cust_b_type09" onchange="upd_mst0010(event)" onfocus="cust_typ_select(event)" onkeydown="check_entry(event)" maxlength="20"><br /><br />
+                <input type="text"  name="cust_b_type" id="cust_b_type10" onchange="upd_mst0010(event)" onfocus="cust_typ_select(event)" onkeydown="check_entry(event)" maxlength="20"><br /><br />
+            </div>
+            <div>
+                <br />
+                &nbsp;<button type="button" id="send_result" onclick="send_result()"  >決定</button>&nbsp;&nbsp;&nbsp;<button type="button" id="reset_data" onclick="reset_data()"  >取消</button>
+            </div>
+
+            </div>
+            <div class="right"><br /><br /><br />
+                <div class="table_container">
+                    <table id="table_template">
+                         <thead id="thead_template">
+                             <tr>
+                                <th>
+                                </th>                         
+                             </tr>
+                         </thead>
+                         <tbody id="tbody_template">
+
+                         </tbody>
+                    </table>        
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript">
+
+        </script>
+    </body>
+</html>

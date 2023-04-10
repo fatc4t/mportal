@@ -1,0 +1,588 @@
+<?php
+    /**
+     * @file      POSキーファイルマスタ画面(View)
+     * @author    millionet oota
+     * @date      2016/06/30
+     * @version   1.00
+     * @note      POSキーファイルマスタ画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array( 'default.css',
+                                'common.js', 
+                                'jquery-ui.min.js', 
+                                'jquery-ui.css' );    // cssまたはｊｓファイルを拡張子付きで配列に記述 
+            include("../profit/View/Common/HtmlHeader.php"); 
+        ?>
+
+        <script type="text/javascript">
+            var lineInfo = null;
+            var btnInfo  = null;
+            var displayPageNo = 1;
+            var displayRecordCnt = 10;
+            var mappingNameItemInfo = null;
+            var mappingNameSort = null;
+            var no_click_count = 0;
+            var disporder_click_count = 0;
+            var mapping_type_click_count = 0;
+            var link_click_count = 0;
+            var list_f_click_count = 0;
+            var mapping_code_click_count = 0;
+            var mapping_name_click_count = 0;
+            var mapping_name_kana_click_count = 0;
+            var registration_time_click_count = 0;
+            var update_time_click_count = 0;
+            var state_click_count = 0;
+            
+            $(document).ready(function()
+            {
+                /**
+                 * 検索ボタンクリック
+                 */
+                $('#search').click(function()
+                {
+                    displayPageNo = 1;
+
+                    // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                    var data = {
+                                  displayPageNo : displayPageNo,
+                                  displayRecordCnt : displayRecordCnt,
+                                  searchMappingType : $('#mappingType').val(),
+                                  searchMappingName : $('#mappingName').val(),
+                                  searchLink : $('#link').val(),
+                                  searchDelF : document.getElementById("delF").checked,
+                                  sortConditions  : 0
+                               };
+                    var path = 'index.php?param=MappingName/search&home=1';
+
+                    // データ更新
+                    setDataForAjax( data, path );
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+                /**
+                 * 登録ボタンクリック
+                 */
+                $('#addForm').submit(function(event)
+                {
+                    event.preventDefault();
+                    document.getElementById("dialog_add").textContent='<?php hsc(SystemParameters::$NEW_DIALOG_MSG); ?>';
+                    
+                    $("#dialog_add").dialog('open');
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+                /**
+                 * 更新/削除ボタンクリック
+                 */
+                $('#modForm').submit(function(event)
+                {
+                    
+                    event.preventDefault();
+                    if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>' )
+                    {
+                        document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$UPDATE_DIALOG_MSG); ?>';
+                    }
+                    else
+                    {
+                        document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$DELETE_DIALOG_MSG); ?>';
+                    }
+                    
+                    $("#dialog_mod").dialog('open');
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+                
+            });
+
+            /*
+             * editRow: 編集ボタン該当行の内容を入力・編集またモード切り替え
+             */
+            function editRow(obj)
+            {
+                var objTR = obj.parentNode.parentNode.parentNode;
+                var rowId = objTR.sectionRowIndex;
+                var rowCount = nameTable.rows.length - 1;
+
+                // モードの切り替えはボタンの値で判定	
+                $('#sDisp' + rowId).css('display' , 'none');
+                $('#sDisp-edit' + rowId).val($('#sDisp').text()).css('display' , '');
+                $('#sMappingType' + rowId).css('display' , 'none');
+                $('#sMappingType-edit' + rowId).val($('#sMappingType').text()).css('display' , '');
+                $('#sLink' + rowId).css('display' , 'none');
+                $('#sLink-edit' + rowId).val($('#sLink').text()).css('display' , '');
+                $('#sListF' + rowId).css('display' , 'none');
+                $('#sListF-edit' + rowId).val($('#sListF').text()).css('display' , '');
+                $('#sMappingCode' + rowId).css('display' , 'none');
+                $('#sMappingCode-edit' + rowId).val($('#sMappingCode').text()).css('display' , '');
+                $('#sMappingName' + rowId).css('display' , 'none');
+                $('#sMappingName-edit' + rowId).val($('#sMappingName').text()).css('display' , '');
+                $('#sMappingNameKana' + rowId).css('display' , 'none');
+                $('#sMappingNameKana-edit' + rowId).val($('#sMappingNameKana').text()).css('display' , '');
+                $('#edtBtn' + rowId).css('display' , 'none');
+                $('#edtBtn-mod' + rowId).css('display' , '');
+                $('#edtBtn-del' + rowId).css('display' , '');
+                $('#add').prop('disabled', true);
+
+                for(var i = 1; i <= rowCount; i++)
+                {
+                    $('#edtBtn' + i).prop('disabled', true);
+                }
+            }
+
+            /**
+             * 行情報を設定
+             */
+            function setLineInfo(thisLineInfo, thisBtnInfo)
+            {
+                lineInfo = thisLineInfo;
+                btnInfo  = thisBtnInfo;
+                return false;
+            }
+
+            /**
+             * ソート処理
+             */
+            function setColumnInfo(thisItemInfo)
+            {
+               mappingNameItemInfo = thisItemInfo;
+
+                mappingNameSort = 0;
+                // No
+                if(mappingNameItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0810')); ?>")
+                {
+                    no_click_count++;
+                    if((no_click_count % 2) != 0)
+                    {
+                        mappingNameSort = 1;
+                    }
+                    else
+                    {
+                        mappingNameSort = 2;
+                    }
+                }
+                // 表示順
+                else if(mappingNameItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0811')); ?>")
+                {
+                    disporder_click_count++;
+                    if((disporder_click_count % 2) != 0)
+                    {
+                        mappingNameSort = 3;
+                    }
+                    else
+                    {
+                        mappingNameSort = 4;
+                    }
+                }
+                // タイプ
+                else if(mappingNameItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0840')); ?>")
+                {
+                     
+                    mapping_type_click_count++;
+                    if((mapping_type_click_count % 2) != 0)
+                    {
+                        mappingNameSort = 5;
+                    }
+                    else
+                    {
+                        mappingNameSort = 6;
+                    }
+                }
+                // 連携
+                else if(mappingNameItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0842')); ?>" )
+                {
+                    link_click_count++;
+                    if((link_click_count % 2) != 0)
+                    {
+                        mappingNameSort = 7;
+                    }
+                    else
+                    {
+                        mappingNameSort = 8;
+                    }
+                }
+                // 報告書一覧
+                else if(mappingNameItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0843')); ?>" )
+                {
+                    list_f_click_count++;
+                    if((list_f_click_count % 2) != 0)
+                    {
+                        mappingNameSort = 9;
+                    }
+                    else
+                    {
+                        mappingNameSort = 10;
+                    }
+                }
+                // Mコード
+                else if(mappingNameItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0844')); ?>" )
+                {
+                    mapping_code_click_count++;
+                    if((mapping_code_click_count % 2) != 0)
+                    {
+                        mappingNameSort = 11;
+                    }
+                    else
+                    {
+                        mappingNameSort = 12;
+                    }
+                }
+                // 種別名
+                else if(mappingNameItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0845')); ?>" )
+                {
+                    mapping_name_click_count++;
+                    if((mapping_name_click_count % 2) != 0)
+                    {
+                        mappingNameSort = 13;
+                    }
+                    else
+                    {
+                        mappingNameSort = 14;
+                    }
+                }
+                // よみがな
+                else if(mappingNameItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0812')); ?>" )
+                {
+                    mapping_name_kana_click_count++;
+                    if((mapping_name_kana_click_count % 2) != 0)
+                    {
+                        mappingNameSort = 15;
+                    }
+                    else
+                    {
+                        mappingNameSort = 16;
+                    }
+                }
+                // 初回登録日
+                else if(mappingNameItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0813')); ?>" )
+                {
+                    registration_time_click_count++;
+                    if((registration_time_click_count % 2) != 0)
+                    {
+                        mappingNameSort = 17;
+                    }
+                    else
+                    {
+                        mappingNameSort = 18;
+                    }
+                }
+                // 更新日
+                else if(mappingNameItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0814')); ?>" )
+                {
+                    update_time_click_count++;
+                    if((update_time_click_count % 2) != 0)
+                    {
+                        mappingNameSort = 19;
+                    }
+                    else
+                    {
+                        mappingNameSort = 20;
+                    }
+                }
+                // 状態
+                else if(mappingNameItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0815')); ?>" )
+                {
+                    state_click_count++;
+                    if((state_click_count % 2) != 0)
+                    {
+                        mappingNameSort = 21;
+                    }
+                    else
+                    {
+                        mappingNameSort = 22;
+                    }
+                }
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchMappingType : $('#mappingType').val(),
+                              searchMappingName : $('#mappingName').val(),
+                              searchLink : $('#link').val(),
+                              searchDelF : document.getElementById("delF").checked,
+                              sortConditions : mappingNameSort 
+                           };
+                var path = 'index.php?param=MappingName/search&home=1';
+  
+                // データ更新
+                setDataForAjax( data, path );
+
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 表示レコード数選択
+             */
+            function displayRecord(recordCnt)
+            {
+                displayRecordCnt = recordCnt;
+                displayPageNo = 1;
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchMappingType : $('#mappingType').val(),
+                              searchMappingName : $('#mappingName').val(),
+                              searchLink : $('#link').val(),
+                              searchDelF : document.getElementById("delF").checked,
+                              sortConditions : mappingNameSort
+                           };
+                var path = 'index.php?param=MappingName/search&home=1';
+                // データ更新
+                setDataForAjax( data, path );
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 表示ページ数選択
+             */
+            function displayPage(pageCnt)
+            {
+                displayPageNo = pageCnt;
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchMappingType : $('#mappingType').val(),
+                              searchMappingName : $('#mappingName').val(),
+                              searchLink : $('#link').val(),
+                              searchDelF : document.getElementById("delF").checked,
+                              sortConditions : mappingNameSort 
+                           };
+                var path = 'index.php?param=MappingName/search&home=1';
+                // データ更新
+                setDataForAjax( data, path );
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 新規作成データの設定
+             */
+            function setAddData()
+            {
+
+                displayPageNo = 1;
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchMappingType : $('#mappingType').val(),
+                              searchMappingName : $('#mappingName').val(),
+                              searchLink : $('#link').val(),
+                              searchDelF : document.getElementById("delF").checked,
+                              sortConditions : mappingNameSort,
+                              mappingType : $('#mappingNewType').val(),
+                              link : $('#linkNew').val(),
+                              listF : $('#listFNew').val(),
+                              mappingCode : $('#mappingNewCode').val(),
+                              mappingName : $('#mappingNewName').val(),
+                              mappingNameKana : $('#mappingNewNameKana').val(),
+                              dispOrder : $('#newDispOrder').val(),
+                              token : $('#token').val()
+                           };
+                var path = 'index.php?param=MappingName/add&home=1';
+
+                // データ更新
+                setDataForAjax( data, path );
+
+                // 新規登録エリア設定
+                setInputArea();
+
+            }
+
+            /**
+             * 更新用データの設定
+             */
+            function setModData()
+            {
+                var objTR = lineInfo.parentNode.parentNode.parentNode;
+                var rowId = objTR.sectionRowIndex;
+                var data = null;
+                var path = '';
+                
+                if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>' )
+                {
+                    path = 'index.php?param=MappingName/mod';
+                }
+                else
+                {
+                    path = 'index.php?param=MappingName/del&home=1';
+                }
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                data = {
+                          displayPageNo : displayPageNo,
+                          displayRecordCnt : displayRecordCnt,
+                          searchMappingType : $('#mappingType').val(),
+                          searchMappingName : $('#mappingName').val(),
+                          searchLink : $('#link').val(),
+                          searchDelF : document.getElementById("delF").checked,
+                          sortConditions : mappingNameSort,
+                          mappingNameId : $('#mappingNameIdMod' + rowId).val(),
+                          mappingType : $('#mappingTypeMod' + rowId).val(),
+                          link : $('#linkMod' + rowId).val(),
+                          listF : $('#listFMod' + rowId).val(),
+                          mappingCode : $('#mappingCodeMod' + rowId).val(),
+                          mappingName : $('#mappingNameMod'  + rowId).val(),
+                          mappingNameKana : $('#mappingNameKanaMod'  + rowId).val(),
+                          dispOrder : $('#sDispMod'  + rowId).val(),
+                          updateTime : $('#updateTime'  + rowId).val(),
+                          token : $('#token').val()
+                       };
+
+                // データ更新
+                setDataForAjax( data, path, 'jquery-replace-ajax', false );
+                
+            }
+
+            /**
+             * 更新キャンセル
+             */
+            function cancel()
+            {
+                var data = null;
+                var path = '';
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                data = {
+                          displayPageNo : displayPageNo,
+                          displayRecordCnt : displayRecordCnt,
+                          searchMappingType : $('#mappingType').val(),
+                          searchMappingName : $('#mappingName').val(),
+                          searchLink : $('#link').val(),
+                          searchDelF : document.getElementById("delF").checked,
+                          sortConditions : mappingNameSort,
+                          token : $('#token').val()
+                       };
+
+                // 検索する為、パスを変更する
+                path = 'index.php?param=MappingName/search&home=1';
+
+                // データ更新
+                setDataForAjax( data, path );
+                
+                // 新規データをクリア
+                $('#mappingNewType').val('');
+                $('#linkNew').val('');
+                $('#listFNew').val('');
+                $('#mappingNewCode').val('');
+                $('#mappingNewName').val('');
+                $('#mappingNewNameKana').val('');
+                $('#newDispOrder').val('');
+            }
+
+            /**
+             * 新規登録エリア設定
+             */
+            function setInputArea()
+            {
+                var data = null;
+                var path = '';
+
+                // 検索用セクションリスト更新用パス
+                path = 'index.php?param=MappingName/inputArea&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, "jquery-replace-input-ajax" );
+            }
+            
+        </script>
+
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site">
+            <!-- パンくずリスト -->
+            <?php include("Common/Breadcrumb.php"); ?>
+            <form id="searchForm" name="searchForm" method="post" action="index.php?param=MpappingName/search&home=1" >
+            <input type="hidden" name="companyID" value="<?php hsc( $_SESSION['COMPANY_ID'] ); ?>">
+            <!-- serchBoardArea -->
+            <div class="serchBoardArea">
+                <table id="serchTable">
+                    <tr>
+			<th id="serchTableTitle" align="center" width="80">タイプ</th>
+			<td id="serchTableItem">
+                                <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="mappingType" name="mappingType" style="width: 150px" required>
+                                    <?php foreach($abbMpappingNameTypeList as $abbMpappingNameType) { ?>
+                                        <option value="<?php hsc($abbMpappingNameType['mapping_type']); ?>"><?php hsc($abbMpappingNameType['mapping_type_name']); ?></option>
+                                    <?php } ?>
+                                </select>
+                        </td>
+			<th id="serchTableTitle" align="center" width="80">連携</th>
+			<td id="serchTableItem">
+                                <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="link" name="link" style="width: 150px" required>
+                                    <?php foreach($abbLinkList as $abblink) { ?>
+                                        <option value="<?php hsc($abblink['link']); ?>"><?php hsc($abblink['link_name']); ?></option>
+                                    <?php } ?>
+                                </select>
+                        </td>
+			<th id="serchTableTitle" align="center" width="80">種別名</th>
+			<td id="serchTableItem">
+                            <input type="text" size="7" name="mappingName" id="mappingName" value="">
+                        </td>
+			<th id="serchTableTitle" align="center" width="80">削除</th>
+			<td id="serchTableItem">
+                            <input type="checkbox" name="delF" id="delF" />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <!-- /.serchBoardArea -->
+
+            <!-- serchButtonArea -->
+            <div class="serchButtonArea">
+                <p align=center>
+                    <input type="submit" id="search" name="search" href="#" value="検索" class="serch">
+                </p>
+            </div>
+            <!-- /.serchButtonArea -->
+            </form>
+
+            <!-- 　結果一覧エリア -->
+            <form id="modForm" name="modForm" >
+                <?php include("MappingNameTablePanel.html"); ?>
+            </form>
+            <!-- /.結果一覧エリア -->
+
+            <!-- 　新規入力エリア -->
+            <form id="addForm" name="addForm">
+                <?php include("MappingNameInputPanel.html"); ?>
+            </form>
+            <!-- /.新規入力エリア -->
+
+            <br />
+            <script type="text/javascript" src="../jquery/js/scrolltopcontrol2.js"></script> <!--スクロールしながらページのトップに戻る-->
+        </div><!-- /#sb-site -->
+        
+        <!-- ダイアログ用エリア -->
+        <?php include("../FwCommon/View/Dialog.php"); ?>
+    </body>
+</html>

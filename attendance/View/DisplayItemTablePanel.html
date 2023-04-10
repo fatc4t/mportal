@@ -1,0 +1,88 @@
+<?php
+    /**
+     * @file      表示項目設定マスタ画面(View)
+     * @author    USE K.Narita
+     * @date      2016/06/21
+     * @version   1.00
+     * @note      表示項目設定マスタ画面(一覧部分)
+     */
+?>
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-ajax">
+
+                <!-- PageMoveArea -->
+                <?php include("../FwCommon/View/PagingArea.php"); ?>
+
+                <!-- serchListArea -->
+                <?php if( $isScrollBar ) { ?>
+                    <div class="serchListArea" style=" clear:both; width:99%; margin:0px auto !important; overflow-y:auto; height:25px;">
+                <?php } else { ?>
+                    <div class="serchListArea" style=" clear:both; width:99%; margin:0px auto !important;">
+                <?php } ?>
+                    <table id="nameTable">
+                        <tr>
+                            <th width="45px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?></u><?php hsc($headerArray['displayItemNoSortMark']); ?></span></th><!-- No -->
+                            <th width="45px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0849')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0849')); ?></u><?php hsc($headerArray['displayItemStateSortMark']); ?></span></th><!-- 状態 -->
+                            <th width="135px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?></u><?php hsc($headerArray['displayItemOrganizationSortMark']); ?></span></th><!-- 組織名 -->
+                            <th width="135px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0895')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0895')); ?></u><?php hsc($headerArray['displayItemOptionSortMark']); ?></span></th><!-- 設定名 -->
+                            <th width="108px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0896')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0896')); ?></u><?php hsc($headerArray['displayItemDisplayFormatSortMark']); ?></span></th><!-- 時間の表示形式 -->
+                            <th width="108px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0897')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0897')); ?></u><?php hsc($headerArray['displayItemNoDataFormatSortMark']); ?></span></th><!-- 時間データなし -->
+                            <th width="99px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0898')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0898')); ?></u><?php hsc($headerArray['displayItemCountSortMark']); ?></span></th><!-- 表示項目数 -->
+                            <th width="192px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0892')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0892')); ?></u><?php hsc($headerArray['displayItemCommentSortMark']); ?></span></th><!-- コメント -->
+                            <th width="63px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0852')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0852')); ?></u><?php hsc($headerArray['displayItemDispOrderSortMark']); ?></span></th><!-- 表示順 -->
+                        </tr>
+                        
+                    </table>
+                <?php if( $isScrollBar ) { ?>
+                    </div>
+                    <div class="serchListArea" style="width:99%; margin: 0px auto; overflow-y:auto; height:300px; !important;">
+                <?php } ?>
+                    <table id="nameTable" style="background-color: #ffffff">
+                        <?php 
+                            foreach($displayItemList as $displayItem)
+                            {
+                                if(!$displayNoSortFlag)
+                                {
+                                    $display_no++;
+                                }
+                        ?>
+                        <tr>
+                            <td align="right" width="45px"><?php hsc($display_no); ?></td>
+                                <?php $del_state = ""; ?>
+                                <?php if(!empty($displayItem['is_del'])) { ?>
+                                    <?php $del_state = "削除"; ?>
+                                <?php } ?>
+                            <td align="center" width="45px"><?php hsc($del_state); ?></td>
+
+                            <td width="135px"><?php hsc($displayItem['abbreviated_name']); ?></td>
+                                <input type="hidden" name="abbreviatedName" id="abbreviatedName" value="<?php hsc($displayItem['organization_id']); ?>">
+                                <?php $optionName = $displayItem['name']; ?>
+                                <?php if($displayItem['is_del'] == 0 ) { ?>
+                            <td width="135px"><span  onClick="editPanelTransition('<?php hsc($displayItem['display_item_id']); ?>')" ><a href="#"><?php hsc($optionName); ?></a></span></td>
+                                <?php } else if($displayItem['is_del'] == 1 ) { ?>
+                            <td width="135px"><?php hsc($optionName); ?></span></td>
+                                <?php } ?>
+                                <?php if($displayItem['display_format'] == 1 ) { ?>
+                                    <?php $displayFormat = "10進数[1.5]" ?>
+                                <?php } else if($displayItem['display_format'] == 2 ) { ?>
+                                    <?php $displayFormat = "時刻[1:30]" ?>
+                                <?php } ?>
+                            <td align="center" width="108px"><?php hsc($displayFormat); ?></td>
+                                <?php if($displayItem['no_data_format'] == 1 ) { ?>
+                                    <?php $noDataFormat = "数値出力[0.00/0:00]" ?>
+                                <?php } else if($displayItem['no_data_format'] == 2 ) { ?>
+                                    <?php $noDataFormat = "空白出力" ?>
+                                <?php } ?>
+                            <td align="center" width="108px"><?php hsc($noDataFormat); ?></td>
+                            <td align="right" width="99px"><?php hsc($displayItem['count']); ?></td>
+                            <td width="192px"><?php hsc($displayItem['comment']); ?></td>
+                            <td align="right" width="63px"><?php hsc($displayItem['disp_order']); ?></td>
+                        </tr>
+                            <?php if($displayNoSortFlag) { ?>
+                                <?php $display_no--; ?>
+                            <?php } ?>
+                        <?php } ?>
+                    </table>
+                </div><!-- /.serchListArea -->
+            </div><!-- /.jquery-replace-ajax -->

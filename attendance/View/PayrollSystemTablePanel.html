@@ -1,0 +1,97 @@
+<?php
+    /**
+     * @file      給与システム連携設定入力画面(View)
+     * @author    USE S.Nakamura
+     * @date      2016/07/22
+     * @version   1.00
+     * @note      給与システム連携設定入力画面(一覧部分)
+     */
+?>
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-ajax">
+
+                <!-- PageMoveArea -->
+                <?php include("../FwCommon/View/PagingArea.php"); ?>
+
+                <!-- serchListArea -->
+                <!-- 2016/09/19 Y.Sugou -->
+                <?php if( $isScrollBar ) { ?>
+                    <div class="serchListArea" style=" clear:both; width:99%; margin:0px auto !important; overflow-y:auto; height:25px;">
+                <?php } else { ?>
+                    <div class="serchListArea" style=" clear:both; width:99%; margin:5px auto !important;">
+                <?php } ?>
+                <!-- ---------------------- -->
+                    <table>
+                        <tr>
+                            <th width="37px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?></u><?php hsc($headerArray['payrollSystemNoSortMark']); ?></span></th>
+                            <th width="62px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0849')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0849')); ?></u><?php hsc($headerArray['payrollSystemStateSortMark']); ?></span></th>
+                            <th width="185px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?></u><?php hsc($headerArray['payrollSystemOrganizationSortMark']); ?></span></th>
+                            <th width="185px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0895')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0895')); ?></u><?php hsc($headerArray['payrollSystemOptionSortMark']); ?></span></th>
+                            <th width="123px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0896')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0896')); ?></u><?php hsc($headerArray['payrollSystemDisplayFormatSortMark']); ?></span></th>
+                            <th width="123px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0920')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0920')); ?></u><?php hsc($headerArray['payrollSystemCountingSortMark']); ?></span></th>
+                            <th width="185px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0897')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0897')); ?></u><?php hsc($headerArray['payrollSystemNoDataFormatSortMark']); ?></span></th>
+                            <th width="87px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0898')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0898')); ?></u><?php hsc($headerArray['payrollSystemCountSortMark']); ?></span></th>
+                            <th width="185px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0892')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0892')); ?></u><?php hsc($headerArray['payrollSystemCommentSortMark']); ?></span></th>
+                            <th width="62px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0852')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0852')); ?></u><?php hsc($headerArray['payrollSystemDispOrderSortMark']); ?></span></th>
+                        </tr>
+                </table>
+            <?php if( $isScrollBar ) { ?>
+                </div>
+                <div class="serchListArea" style="width:99%; margin: 0px auto; overflow-y:auto; height:300px; !important;">
+            <?php } ?>
+                <table id="nameTable" style="background-color: #ffffff">
+                        <?php 
+                            foreach($payrollSystemList as $payrollSystem)
+                            {
+                                if(!$displayNoSortFlag)
+                                {
+                                    $display_no++;
+                                } 
+                        ?>
+                        <tr>
+                            <td align="right" style="width:37px;"><?php hsc($display_no); ?></td>
+                                <?php $del_state = ""; ?>
+                                <?php if(!empty($payrollSystem['is_del'])) { ?>
+                                    <?php $del_state = "削除"; ?>
+                                <?php } ?>
+                            <td align="center" style="width:62px;"><?php hsc($del_state); ?></td>
+                            <td style="width:185px;"><?php hsc($payrollSystem['abbreviated_name']); ?></td>
+                                <input type="hidden" name="abbreviatedName" id="abbreviatedName" value="<?php hsc($payrollSystem['organization_id']); ?>">
+                                <?php $optionName = $payrollSystem['name']; ?>
+                                <?php if($payrollSystem['is_del'] == 0 ) { ?>
+                            <td style="width:185px;"><span  onClick="editPanelTransition('<?php hsc($payrollSystem['payroll_system_id']); ?>')" ><a href="#"><?php hsc($optionName); ?></a></span></td>
+                                <?php } else if($payrollSystem['is_del'] == 1 ) { ?>
+                            <td style="width:185px;"><?php hsc($optionName); ?></span></td>
+                                <?php } ?>
+                                <?php if($payrollSystem['display_format'] == 1 ) { ?>
+                                    <?php $displayFormat = "10進数[1.5]" ?>
+                                <?php } else if($payrollSystem['display_format'] == 2 ) { ?>
+                                    <?php $displayFormat = "時刻[1:30]" ?>
+                                <?php } ?>
+                            <td align="center" style="width:123px;"><?php hsc($displayFormat); ?></td>
+                                <?php if($payrollSystem['counting_unit'] == 1 ) { ?>
+                                    <?php $countingUnit = "1日ずつ" ?>
+                                <?php } else if($payrollSystem['counting_unit'] == 2 ) { ?>
+                                    <?php $countingUnit = "集計期間のみ" ?>
+                                <?php } else if($payrollSystem['counting_unit'] == 3 ) { ?>
+                                    <?php $countingUnit = "両方" ?>
+                                <?php } ?>
+                            <td align="center" style="width:123px;"><?php hsc($countingUnit); ?></td>
+                                <?php if($payrollSystem['no_data_format'] == 1 ) { ?>
+                                    <?php $noDataFormat = "数値出力[0.00/0:00]" ?>
+                                <?php } else if($payrollSystem['no_data_format'] == 2 ) { ?>
+                                    <?php $noDataFormat = "空白出力" ?>
+                                <?php } ?>
+                            <td align="center" style="width:185px;"><?php hsc($noDataFormat); ?></td>
+                            <td align="right" style="width:87px;"><?php hsc($payrollSystem['count']); ?></td>
+                            <td style="width:185px;"><?php hsc($payrollSystem['comment']); ?></td>
+                            <td align="right" style="width:62px;"><?php hsc($payrollSystem['disp_order']); ?></td>
+                        </tr>
+                            <?php if($displayNoSortFlag) { ?>
+                                <?php $display_no--; ?>
+                            <?php } ?>
+                        <?php } ?>
+                    </table>
+                </div><!-- /.serchListArea -->
+            </div><!-- /.jquery-replace-ajax -->

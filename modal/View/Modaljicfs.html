@@ -1,0 +1,52 @@
+<script type="text/javascript">
+   
+    if(!pagenb){
+        pagenb=[];
+    }       
+    pagenb["jic"] = 0;
+    if(!table_keys){
+        table_keys=[];
+    }    
+    table_keys["jic"]=[];
+    table_keys["jic"]=["jic_id","jic_nm"]    
+</script>
+<div>
+    <h2>JICFS検索</h2>
+    <div class="modal_jic_search">
+        <div class="modal_jic_left" id="modal_jic_param">
+            <label class="modal_jic_label" for="modal_jic_jic_id">  JICFSコード  ：　</label><input type="text"  id="modal_jic_jic_id" class="modal_jic_code"><br />
+            <label class="modal_jic_label" for="modal_jic_jic_nm" > JICFS名      ：　</label><input type="text"  id="modal_jic_jic_nm" class="modal_jic_name">
+        </div>
+        <button type="button" id="modal_jic_search_jic" onclick="modal_search(event)"  class="modal_jic_left search_btn">表示</button>
+    </div>
+    <br />
+    <div>
+        <table id="modal_jic_table_id" class="modal_jic_table">
+            <thead>
+                <tr>
+                    <th>選択</th>
+                    <th>JICFSコード</th>
+                    <th>JICFS名</th>
+                </tr>
+            </thead>
+            <tbody id="modal_jic_table_body">
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>                        
+            </tbody>
+        </table>
+    </div>
+    <br />
+    <div>
+        <div class="modal_div_btn">
+            <button type="button" id="modal_jic_unselect" onclick="modal_unselect(event)"  >一括解除</button>
+            <button type="button" id="modal_jic_select" onclick="modal_select(event)"  >一括選択</button>        
+            <button type="button" id="modal_jic_befpage" onclick="modal_befpage(event)"  >前ページ</button>        
+            <button type="button" id="modal_jic_nextpage" onclick="modal_nextpage(event)"  >次ページ</button>        
+            <button type="button" id="modal_jic_validate" onclick="modal_validate(event)"  >決定</button>        
+            <button type="button" id="modal_jic_close" onclick="modal_close(event)"  >終了</button>        
+        </div>
+    </div>
+</div>

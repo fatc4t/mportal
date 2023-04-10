@@ -1,0 +1,265 @@
+<?php
+    /**
+     * @file      日次目標設定画面(View)
+     * @author    millionet oota
+     * @date      2016/06/30
+     * @version   1.00
+     * @note      日次目標設定画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述 
+            include("../profit/View/Common/HtmlHeader.php"); 
+        ?>
+    
+        <script src="../js/profit/jquery/jquery.ui.ympicker.js" /></script>
+        <script src="../js/profit/jquery/jquery-migrate-1.0.0.js" /></script>
+    
+        <script type="text/javascript">
+        function chf(frm){
+            if( 1 < window.location.search.length ){
+                // 最初の1文字 (?記号) を除いた文字列を取得する
+                var query = window.location.search.substring( 1 );
+                // クエリの区切り記号 (&) で文字列を配列に分割する
+                var parameters = query.split( '&' );
+
+                if (frm.onbtn.value == 'serch') {
+                    if(1 < parameters.length){
+                         frm.action += 'TergetReportListDay/show&home=1'
+                                    + '&target_date=' +frm.elements["target_date"].value
+                                    + '&organizationName=' +frm.elements["organizationName"].value ;
+                     }else{
+                         frm.action += 'TergetReportListDay/show'
+                                    + '&target_date=' +frm.elements["target_date"].value
+                                    + '&organizationName=' +frm.elements["organizationName"].value ;
+                     }
+                }else if (frm.onbtn.value == 'add'){
+                    if(1 < parameters.length){
+                         frm.action += 'TergetReportListDay/add&home=1'
+                                    + '&target_date=' +frm.elements["target_date"].value;
+                                    + '&organizationName=' +frm.elements["organizationName"].value;
+                     }else{
+                         frm.action += 'TergetReportListDay/add'
+                                    + '&target_date=' +frm.elements["target_date"].value
+                                    + '&organizationName=' +frm.elements["organizationName"].value;
+                     }
+                }else if (frm.onbtn.value == 'mod'){
+                    if(1 < parameters.length){
+                         frm.action += 'TergetReportListDay/mod&home=1'
+                                    + '&target_date=' +frm.elements["target_date"].value
+                                    + '&organizationName=' +frm.elements["organizationName"].value;
+                     }else{
+                         frm.action += 'TergetReportListDay/mod'
+                                    + '&target_date=' +frm.elements["target_date"].value
+                                    + '&organizationName=' +frm.elements["organizationName"].value;
+                     }
+                }else if (frm.onbtn.value == 'del'){
+                    if(1 < parameters.length){
+                         frm.action += 'TergetReportListDay/del&home=1'
+                                    + '&target_date=' +frm.elements["target_date"].value
+                                    + '&organizationName=' +frm.elements["organizationName"].value;
+                     }else{
+                         frm.action += 'TergetReportListDay/del'
+                                    + '&target_date=' +frm.elements["target_date"].value
+                                    + '&organizationName=' +frm.elements["organizationName"].value;
+                     }
+                }
+            }
+        }
+       
+        function set_value(s_val){
+            document.serchForm.onbtn.value = s_val;
+        }
+       
+    /**
+     * 
+     *  YPickerを設定
+     *
+     */
+    $(function() {
+        $("#target_date").ympicker({
+            altField: "#target_date" //リターンセットUI IDorCLASS名
+            ,altFormat: "yy/mm" //リターン日付形式
+            ,monthNamesShort: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"]  //カレンダー表示月形式
+            ,showAnim: "slideDown" //表示アニメーション形式
+            ,yearRange: "c-2:c+3" //プルダウン年範囲
+        });
+    });
+    </script>
+
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+<!-- Site -->
+<div id="sb-site">
+    <!-- menuNameArea -->
+    <div class="menuNameArea">
+    <!-- パンくずリスト -->
+        <?php include("Common/Breadcrumb.php"); ?>
+    </div>
+    <!-- /.menuNameArea -->
+<form name="serchForm" id="serchForm" action="/profit/index.php?param=" method="post" onsubmit="return chf(this)">
+<div class="serchListArea">
+<table align="center">
+    <tr>
+        <td>
+            <table id="serchTable">
+                <tr>
+                    <th id="serchTableTitle" align="center" width="65">営業日</th>
+                    <td id="serchTableItem" width="300">
+                        <input type="text" pattern="\d{4}/\d{2}" title="西暦/月の形式で入力してください。" id="target_date" name="target_date" size="10" value=<?php hsc($targetDate); ?>>
+                    <th id="serchTableTitle" align="center" width="65">組織名</th>
+                    <td>
+                        <?php include("../FwCommon/View/SearchOrganizationName.php"); ?>
+                    </td>
+                    <td>
+                      <input class="submit" type="submit" name="submit" value="検索" onClick="set_value('serch')">
+                    </td>
+                </tr>
+            </table>
+    </tr>
+</table>
+<br/>
+<!-- 固定ヘッダ -->
+<table>
+    <tr>
+        <th width="90" align="center"></th>
+        <td>
+            <!-- 水平ヘッダ -->
+            <div id="header_h">                                      
+            <table>
+                <tr>
+                <?php if( !empty($tergetReportDayDetailList) ) { ?>
+                    <?php $cnt = 0; ?>
+                    <?php foreach($tergetReportDayDetailList as $reportDay) { ?>
+                        <!-- タイプに合わせて作成 -->
+                        <?php if( $reportDay['report_form_detail_type'] == 1){ ?>
+                            <!-- ヘッダ -->
+                            <th style=<?php hsc($reportDay['placement']); ?>
+                                              colspan=<?php hsc($reportDay['colspan']); ?>
+                                              rowspan=<?php hsc($reportDay['rowspan']); ?>
+                                              width=<?php hsc($reportDay['width']); ?>> 
+                                <?php hsc($reportDay['report_form_detail_name']); ?>
+                            </th>
+                        <?php } ?>
+                        <?php $cnt++ ; ?>
+                    <?php } ?>
+                <?php } ?>
+                </tr>
+            </table>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <!-- 垂直ヘッダ -->
+            <div id="header_v">
+                <table style="width: 90px;">
+                <!-- タイトル部  -->
+                <?php if( !empty($dispDateList) ) { ?>
+                    <?php foreach ($dispDateList as $rows ) { ?>
+                        <tr style="height: 28px;">
+                            <th><?php hsc($rows['ddays']); ?></th>
+                        </tr>
+                    <?php } ?>
+                <?php } ?>
+            </table>
+            </div>
+        </td>
+        <td>
+            <!-- データ部分  -->
+            <div id="data">
+            <table>
+                <?php if( !empty($dayList) ) { ?>
+                    <?php foreach ($dayList as $rows ) { ?>
+                <tr>
+                    <?php foreach ($rows as $tergetReportDayDetail ) { ?>
+                        <!-- タイプに合わせて作成 -->
+                        <?php if( $tergetReportDayDetail['report_form_detail_type'] == 2){ ?>
+                            <!-- テキスト -->
+                            <td align=<?php hsc($tergetReportDayDetail['placement']); ?>
+                                colspan=<?php hsc($tergetReportDayDetail['colspan']); ?>
+                                rowspan=<?php hsc($tergetReportDayDetail['rowspan']); ?>
+                            >
+                                <input id="<?php hsc($tergetReportDayDetail['report_form_detail_id']); ?>"
+                                       name="<?php hsc($tergetReportDayDetail['report_form_detail_id']); ?>"
+                                       type="text"
+                                       size="15"
+                                       style="ime-mode:disabled;text-align:right;"
+                                       value="<?php hsc($tergetReportDayDetail['data']); ?>"
+                                >
+                            </td>
+                        <?php }else if( $tergetReportDayDetail['report_form_detail_type'] == 3){ ?>
+                            <!-- リスト -->
+                        <?php }else if( $tergetReportDayDetail['report_form_detail_type'] == 4){ ?>
+                            <!-- ラジオ -->
+                            <td align=<?php hsc($tergetReportDayDetail['placement']); ?> colspan=<?php hsc($tergetReportDayDetail['colspan']); ?> rowspan=<?php hsc($tergetReportDayDetail['rowspan']); ?>>
+                                <?php $items = explode("," , $tergetReportDayDetail['item']); ?>
+                                <?php for ($hc = 0; $hc < count($items); $hc++){ ?>
+                                    <label>
+                                    <input id="<?php hsc($tergetReportDayDetail['report_form_detail_id']); ?>"
+                                           name="<?php hsc($tergetReportDayDetail['report_form_detail_id']); ?>"
+                                           type="radio"
+                                           <?php if( $items[$hc] == $tergetReportDayDetail['data']){ ?>
+                                           checked="checked"
+                                           <?php } ?>
+                                           value="<?php hsc($items[$hc]); ?>">
+                                    <?php hsc($items[$hc]); ?>
+                                    </label>
+                                <?php } ?>
+                            </td>
+                        <?php }else if( $tergetReportDayDetail['report_form_detail_type'] == 5){ ?>
+                            <!-- 日付 -->
+                        <?php }else if( $tergetReportDayDetail['report_form_detail_type'] == 6){ ?>
+                            <!-- エリア -->
+                            <td id="inputTableItem" align=<?php hsc($tergetReportDayDetail['placement']); ?> colspan=<?php hsc($tergetReportDayDetail['colspan']); ?> rowspan=<?php hsc($tergetReportDayDetail['rowspan']); ?>>
+                                <TEXTAREA id=<?php hsc($tergetReportDayDetail['report_form_detail_id']); ?>
+                                          name=<?php hsc($tergetReportDayDetail['report_form_detail_id']); ?>
+                                          cols=<?php hsc($tergetReportDayDetail['item']); ?>
+                                          rows=<?php hsc($tergetReportDayDetail['rowspan']); ?>
+                                ><?php hsc($tergetReportDayDetail['data']); ?></TEXTAREA>
+                            </td>
+                        <?php }else if( $tergetReportDayDetail['report_form_detail_type'] == 7){ ?>
+                            <!-- チェックボックス -->
+                        <?php }else if( $tergetReportDayDetail['report_form_detail_type'] == 8){ ?>
+                            <!-- 表示専用 計算項目 -->
+                        <?php } ?>
+                    <?php } ?>
+                </tr>
+                    <?php } ?>
+                <?php } ?>
+            </table>
+            </div>
+        </td>
+    </tr>
+</table>
+</div>
+<br />
+<p align=center>
+    <?php if( $dataFlg == ""){ ?>
+        <input class="submit" type="submit" name="submit" value="登録" onClick="set_value('add')">
+    <?php }else{ ?>
+        <input class="submit" type="submit" name="submit" value="更新" onClick="set_value('mod')">
+        <input class="submit" type="submit" name="submit" value="削除" onClick="set_value('del')">
+    <?php } ?>
+    <input type="hidden" name="onbtn">
+</p>
+</form>
+    
+<script type="text/javascript" src="../../jquery/js/scrolltopcontrol3.js"></script> <!--スクロールしながらページのトップに戻る-->
+        </div><!-- /#sb-site -->
+</body>
+</html>

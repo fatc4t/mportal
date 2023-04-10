@@ -1,0 +1,995 @@
+<?php
+    /**
+     * @file      顧客購買履歴画面(View)
+     * @author    K.Sakamoto
+     * @date      2017/08/29
+     * @version   1.00
+     * @note      顧客購買履歴画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array( 'default.css', 'common.js', 'jquery-ui.min.js', 'jquery-ui.css' );    // cssまたはjsファイルを拡張子付きで配列に記述 
+            include("../home/View/Common/HtmlHeader.php"); 
+        ?>
+        <script src="../js/customer/jquery/datepicker-ja.js" /></script>
+        <script type="text/javascript">
+            var displayPageNo = 1;
+            var nowDisplayPageNo = <?php hsc($_SESSION["PAGE_NO"]); ?>;
+            var displayRecordCnt = <?php hsc($_SESSION["DISPLAY_RECORD_CNT"]); ?>;
+            var lineInfo = null;
+            var btnInfo  = null;
+            var appCnt = '<?php hsc($approvalCnt); ?>';
+            var allCnt = '<?php hsc($allowanceCnt); ?>';
+            var jsonAllowance = '<?php hsc($jsonAllowanceArray); ?>';
+            var jsonAmount = '<?php hsc($jsonAmountArray); ?>';
+
+            $(document).ready(function() 
+            {
+                /**
+                 * 戻るボタン押下時処理
+                 */
+                $('#back').click(function()
+                {
+                    // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                    var data = {
+                                    displayPageNo : displayPageNo,
+                                    displayRecordCnt : displayRecordCnt,
+                                    custID : $('#custID').val(),
+                                    searchMinCustCd : $('#HminCustCd').val(),
+                                    searchMaxCustCd : $('#HmaxCustCd').val(),
+                                    searchCustNm : $('#HcustNm').val(),
+                                    searchCustKn : $('#HcustKn').val(),
+                                    searchCustKnNullCheck : $('#HcustKnNullCheck').val(),
+                                    searchMinBirth : $('#HminBirth').val(),
+                                    searchMaxBirth : $('#HmaxBirth').val(),
+                                    searchBirthNullCheck : $('#HbirthNullCheck').val(),
+                                    searchBirthMonth : $('#HbirthMonth').val(),
+                                    searchMinMemorial : $('#HminMemorial').val(),
+                                    searchMaxMemorial : $('#HmaxMemorial').val(),
+                                    searchMemorialNullCheck : $('#HmemorialNullCheck').val(),
+                                    searchZip : $('#Hzip').val(),
+                                    searchZipNullCheck : $('#HzipNullCheck').val(),
+                                    searchSex : $('#Hsex').val(),
+                                    searchSexNullCheck : $('#HsexNullCheck').val(),
+                                    searchAddr1 : $('#Haddr1').val(),
+                                    searchAddr1NullCheck : $('#Haddr1NullCheck').val(),
+                                    searchAddr2 : $('#Haddr2').val(),
+                                    searchAddr2NullCheck : $('#Haddr2NullCheck').val(),
+                                    searchAddr3 : $('#Haddr3').val(),
+                                    searchAddr3NullCheck : $('#Haddr3NullCheck').val(),
+                                    searchCustSumDay : $('#HcustSumDay').val(),
+                                    searchCustSumDayNullCheck : $('#HcustSumDayNullCheck').val(),
+                                    searchFeesReceKbn : $('#HfeesReceKbn').val(),
+                                    searchFeesReceKbnNullCheck : $('#HfeesReceKbnNullCheck').val(),
+                                    searchCredImpoKbn : $('#HcredImpoKbn').val(),
+                                    searchCredImpoKbnNullCheck : $('#HcredImpoKbnNullCheck').val(),
+                                    searchMinPublish : $('#HminPublish').val(),
+                                    searchMaxPublish : $('#HmaxPublish').val(),
+                                    searchPublishNullCheck : $('#HpublishNullCheck').val(),
+                                    searchMinLimitdate : $('#HminLimitdate').val(),
+                                    searchMaxLimitdate : $('#HmaxLimitdate').val(),
+                                    searchLimitdateNullCheck : $('#HlimitdateNullCheck').val(),
+                                    searchMinRenew : $('#HminRenew').val(),
+                                    searchMaxRenew : $('#HmaxRenew').val(),
+                                    searchRenewNullCheck : $('#HrenewNullCheck').val(),
+                                    searchDissenddm : $('#Hdissenddm').val(),
+                                    searchDissendemail : $('#Hdissendemail').val(),
+                                    searchDissendimode : $('#Hdissendimode').val(),
+                                    searchTaxCalcKbn : $('#HtaxCalcKbn').val(),
+                                    searchTaxFracKbn : $('#HtaxFracKbn').val(),
+                                    searchTel : $('#Htel').val(),
+                                    searchTelNullCheck : $('#HtelNullCheck').val(),
+                                    searchFax : $('#Hfax').val(),
+                                    searchTaxNullCheck : $('#HfaxNullCheck').val(),
+                                    searchHphone : $('#Hhphone').val(),
+                                    searchHphoneNullCheck : $('#HhphoneNullCheck').val(),
+                                    searchEmail : $('#Hemail').val(),
+                                    searchEmailNullCheck : $('#HemailNullCheck').val(),
+                                    searchImode : $('#Himode').val(),
+                                    searchImodeNullCheck : $('#HimodeNullCheck').val(),
+                                    searchOrganizationName : $('#HorganizationName').val(),
+                                    searchOrganizationNameNullCheck : $('#HorganizationNameNullCheck').val(),
+                                    searchCustTypeCd : $('#HcustTypeCd').val(),
+                                    searchCustTypeCdNullCheck : $('#HcustTypeCdNullCheck').val(),
+                                    searchAreaCd : $('#HareaCd').val(),
+                                    searchAreaCdNullCheck : $('#HareaCdNullCheck').val(),
+                                    searchUserNo : $('#HuserNo').val(),
+                                    searchUserNoNullCheck : $('#HuserNoNullCheck').val(),
+                                    searchMinLstVisitDt : $('#HminLstVisitDt').val(),
+                                    searchMaxLstVisitDt : $('#HmaxLstVisitDt').val(),
+                                    searchLstVisitDtNullCheck : $('#HlstVisitDtNullCheck').val(),
+                                    searchLastOrganizationName : $('#HlastOrganizationName').val(),
+                                    searchLastOrganizationNameNullCheck : $('#HlastOrganizationNameNullCheck').val(),
+                                    searchNote1 : $('#Hnote1').val(),
+                                    searchNote1NullCheck : $('#Hnote1NullCheck').val(),
+                                    searchNote2 : $('#Hnote2').val(),
+                                    searchNote2NullCheck : $('#Hnote2NullCheck').val(),
+                                    searchNote3 : $('#Hnote3').val(),
+                                    searchNote3NullCheck : $('#Hnote3NullCheck').val(),
+                                    searchNote4 : $('#Hnote4').val(),
+                                    searchNote4NullCheck : $('#Hnote4NullCheck').val(),
+                                    searchNote5 : $('#Hnote5').val(),
+                                    searchNote5NullCheck : $('#Hnote5NullCheck').val(),
+                                    searchCustBCd01 : $('#HcustBCd01').val(),
+                                    searchCustBCd01NullCheck : $('#HcustBCd01NullCheck').val(),
+                                    searchCustBCd02 : $('#HcustBCd02').val(),
+                                    searchCustBCd02NullCheck : $('#HcustBCd02NullCheck').val(),
+                                    searchCustBCd03 : $('#HcustBCd03').val(),
+                                    searchCustBCd03NullCheck : $('#HcustBCd03NullCheck').val(),
+                                    searchCustBCd04 : $('#HcustBCd04').val(),
+                                    searchCustBCd04NullCheck : $('#HcustBCd04NullCheck').val(),
+                                    searchCustBCd05 : $('#HcustBCd05').val(),
+                                    searchCustBCd05NullCheck : $('#HcustBCd05NullCheck').val(),
+                                    searchCustBCd06 : $('#HcustBCd06').val(),
+                                    searchCustBCd06NullCheck : $('#HcustBCd06NullCheck').val(),
+                                    searchCustBCd07 : $('#HcustBCd07').val(),
+                                    searchCustBCd07NullCheck : $('#HcustBCd07NullCheck').val(),
+                                    searchCustBCd08 : $('#HcustBCd08').val(),
+                                    searchCustBCd08NullCheck : $('#HcustBCd08NullCheck').val(),
+                                    searchCustBCd09 : $('#HcustBCd09').val(),
+                                    searchCustBCd09NullCheck : $('#HcustBCd09NullCheck').val(),
+                                    searchCustBCd10 : $('#HcustBCd10').val(),
+                                    searchCustBCd10NullCheck : $('#HcustBCd10NullCheck').val(),
+                                    searchMinTrandate : $('#HminTrandate').val(),
+                                    searchMaxTrandate : $('#HmaxTrandate').val(),
+                                    searchMinTotal : $('#HminTotal').val(),
+                                    searchMaxTotal : $('#HmaxTotal').val(),
+                                    searchMinVisitCnt : $('#HminVisitCnt').val(),
+                                    searchMaxVisitCnt : $('#HmaxVisitCnt').val(),
+                                    searchProdCd01 : $('#HprodCd01').val(),
+                                    searchProdCd02 : $('#HprodCd02').val(),
+                                    searchProdCd03 : $('#HprodCd03').val(),
+                                    searchProdCd04 : $('#HprodCd04').val(),
+                                    searchProdCd05 : $('#HprodCd05').val(),
+                                    searchProdCd06 : $('#HprodCd06').val(),
+                                    searchProdCd07 : $('#HprodCd07').val(),
+                                    searchProdCd08 : $('#HprodCd08').val(),
+                                    searchProdCd09 : $('#HprodCd09').val(),
+                                    searchProdCd10 : $('#HprodCd10').val(),
+                               }
+                    var path = 'index.php?param=Customer/addInput&home=1';
+
+                    // データ更新
+                    setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+                    // サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+                /**
+                 * 顧客検索
+                 */
+                $('#search').click(function()
+                {
+                    // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                    var data = {
+                                    displayPageNo : displayPageNo,
+                                    displayRecordCnt : displayRecordCnt,
+                                    custID : $('#custID').val(),
+                                    custCd : $('#custCd').val(),
+                                    custNm : $('#custNm').val(),
+                                    updateTime : $('#updateTime').val(),
+                                    searchMinCustCd : $('#HminCustCd').val(),
+                                    searchMaxCustCd : $('#HmaxCustCd').val(),
+                                    searchCustNm : $('#HcustNm').val(),
+                                    searchCustKn : $('#HcustKn').val(),
+                                    searchCustKnNullCheck : $('#HcustKnNullCheck').val(),
+                                    searchMinBirth : $('#HminBirth').val(),
+                                    searchMaxBirth : $('#HmaxBirth').val(),
+                                    searchBirthNullCheck : $('#HbirthNullCheck').val(),
+                                    searchBirthMonth : $('#HbirthMonth').val(),
+                                    searchMinMemorial : $('#HminMemorial').val(),
+                                    searchMaxMemorial : $('#HmaxMemorial').val(),
+                                    searchMemorialNullCheck : $('#HmemorialNullCheck').val(),
+                                    searchZip : $('#Hzip').val(),
+                                    searchZipNullCheck : $('#HzipNullCheck').val(),
+                                    searchSex : $('#Hsex').val(),
+                                    searchSexNullCheck : $('#HsexNullCheck').val(),
+                                    searchAddr1 : $('#Haddr1').val(),
+                                    searchAddr1NullCheck : $('#Haddr1NullCheck').val(),
+                                    searchAddr2 : $('#Haddr2').val(),
+                                    searchAddr2NullCheck : $('#Haddr2NullCheck').val(),
+                                    searchAddr3 : $('#Haddr3').val(),
+                                    searchAddr3NullCheck : $('#Haddr3NullCheck').val(),
+                                    searchCustSumDay : $('#HcustSumDay').val(),
+                                    searchCustSumDayNullCheck : $('#HcustSumDayNullCheck').val(),
+                                    searchFeesReceKbn : $('#HfeesReceKbn').val(),
+                                    searchFeesReceKbnNullCheck : $('#HfeesReceKbnNullCheck').val(),
+                                    searchCredImpoKbn : $('#HcredImpoKbn').val(),
+                                    searchCredImpoKbnNullCheck : $('#HcredImpoKbnNullCheck').val(),
+                                    searchMinPublish : $('#HminPublish').val(),
+                                    searchMaxPublish : $('#HmaxPublish').val(),
+                                    searchPublishNullCheck : $('#HpublishNullCheck').val(),
+                                    searchMinLimitdate : $('#HminLimitdate').val(),
+                                    searchMaxLimitdate : $('#HmaxLimitdate').val(),
+                                    searchLimitdateNullCheck : $('#HlimitdateNullCheck').val(),
+                                    searchMinRenew : $('#HminRenew').val(),
+                                    searchMaxRenew : $('#HmaxRenew').val(),
+                                    searchRenewNullCheck : $('#HrenewNullCheck').val(),
+                                    searchDissenddm : $('#Hdissenddm').val(),
+                                    searchDissendemail : $('#Hdissendemail').val(),
+                                    searchDissendimode : $('#Hdissendimode').val(),
+                                    searchTaxCalcKbn : $('#HtaxCalcKbn').val(),
+                                    searchTaxFracKbn : $('#HtaxFracKbn').val(),
+                                    searchTel : $('#Htel').val(),
+                                    searchTelNullCheck : $('#HtelNullCheck').val(),
+                                    searchFax : $('#Hfax').val(),
+                                    searchTaxNullCheck : $('#HfaxNullCheck').val(),
+                                    searchHphone : $('#Hhphone').val(),
+                                    searchHphoneNullCheck : $('#HhphoneNullCheck').val(),
+                                    searchEmail : $('#Hemail').val(),
+                                    searchEmailNullCheck : $('#HemailNullCheck').val(),
+                                    searchImode : $('#Himode').val(),
+                                    searchImodeNullCheck : $('#HimodeNullCheck').val(),
+                                    searchOrganizationName : $('#HorganizationName').val(),
+                                    searchOrganizationNameNullCheck : $('#HorganizationNameNullCheck').val(),
+                                    searchCustTypeCd : $('#HcustTypeCd').val(),
+                                    searchCustTypeCdNullCheck : $('#HcustTypeCdNullCheck').val(),
+                                    searchAreaCd : $('#HareaCd').val(),
+                                    searchAreaCdNullCheck : $('#HareaCdNullCheck').val(),
+                                    searchUserNo : $('#HuserNo').val(),
+                                    searchUserNoNullCheck : $('#HuserNoNullCheck').val(),
+                                    searchMinLstVisitDt : $('#HminLstVisitDt').val(),
+                                    searchMaxLstVisitDt : $('#HmaxLstVisitDt').val(),
+                                    searchLstVisitDtNullCheck : $('#HlstVisitDtNullCheck').val(),
+                                    searchLastOrganizationName : $('#HlastOrganizationName').val(),
+                                    searchLastOrganizationNameNullCheck : $('#HlastOrganizationNameNullCheck').val(),
+                                    searchNote1 : $('#Hnote1').val(),
+                                    searchNote1NullCheck : $('#Hnote1NullCheck').val(),
+                                    searchNote2 : $('#Hnote2').val(),
+                                    searchNote2NullCheck : $('#Hnote2NullCheck').val(),
+                                    searchNote3 : $('#Hnote3').val(),
+                                    searchNote3NullCheck : $('#Hnote3NullCheck').val(),
+                                    searchNote4 : $('#Hnote4').val(),
+                                    searchNote4NullCheck : $('#Hnote4NullCheck').val(),
+                                    searchNote5 : $('#Hnote5').val(),
+                                    searchNote5NullCheck : $('#Hnote5NullCheck').val(),
+                                    searchCustBCd01 : $('#HcustBCd01').val(),
+                                    searchCustBCd01NullCheck : $('#HcustBCd01NullCheck').val(),
+                                    searchCustBCd02 : $('#HcustBCd02').val(),
+                                    searchCustBCd02NullCheck : $('#HcustBCd02NullCheck').val(),
+                                    searchCustBCd03 : $('#HcustBCd03').val(),
+                                    searchCustBCd03NullCheck : $('#HcustBCd03NullCheck').val(),
+                                    searchCustBCd04 : $('#HcustBCd04').val(),
+                                    searchCustBCd04NullCheck : $('#HcustBCd04NullCheck').val(),
+                                    searchCustBCd05 : $('#HcustBCd05').val(),
+                                    searchCustBCd05NullCheck : $('#HcustBCd05NullCheck').val(),
+                                    searchCustBCd06 : $('#HcustBCd06').val(),
+                                    searchCustBCd06NullCheck : $('#HcustBCd06NullCheck').val(),
+                                    searchCustBCd07 : $('#HcustBCd07').val(),
+                                    searchCustBCd07NullCheck : $('#HcustBCd07NullCheck').val(),
+                                    searchCustBCd08 : $('#HcustBCd08').val(),
+                                    searchCustBCd08NullCheck : $('#HcustBCd08NullCheck').val(),
+                                    searchCustBCd09 : $('#HcustBCd09').val(),
+                                    searchCustBCd09NullCheck : $('#HcustBCd09NullCheck').val(),
+                                    searchCustBCd10 : $('#HcustBCd10').val(),
+                                    searchCustBCd10NullCheck : $('#HcustBCd10NullCheck').val(),
+                                    searchMinTrandate : $('#HminTrandate').val(),
+                                    searchMaxTrandate : $('#HmaxTrandate').val(),
+                                    searchMinTotal : $('#HminTotal').val(),
+                                    searchMaxTotal : $('#HmaxTotal').val(),
+                                    searchMinVisitCnt : $('#HminVisitCnt').val(),
+                                    searchMaxVisitCnt : $('#HmaxVisitCnt').val(),
+                                    searchProdCd01 : $('#HprodCd01').val(),
+                                    searchProdCd02 : $('#HprodCd02').val(),
+                                    searchProdCd03 : $('#HprodCd03').val(),
+                                    searchProdCd04 : $('#HprodCd04').val(),
+                                    searchProdCd05 : $('#HprodCd05').val(),
+                                    searchProdCd06 : $('#HprodCd06').val(),
+                                    searchProdCd07 : $('#HprodCd07').val(),
+                                    searchProdCd08 : $('#HprodCd08').val(),
+                                    searchProdCd09 : $('#HprodCd09').val(),
+                                    searchProdCd10 : $('#HprodCd10').val(),
+                                    searchMinTrndate : $('#minTrndate').val(),
+                                    searchMaxTrndate : $('#maxTrndate').val(),
+                                    token : $('#token').val()
+                                };
+                    var path = 'index.php?param=Customer/searchSales&home=1';
+
+                    // データ更新
+                    setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+                    // サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+            });
+
+
+            function salesDetailsSearch(denno)
+            {
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                                displayPageNo : nowDisplayPageNo,
+                                displayRecordCnt : displayRecordCnt,
+                                custID : $('#custID').val(),
+                                custCd : $('#custCd').val(),
+                                custNm : $('#custNm').val(),
+                                denno : denno,
+                                updateTime : $('#updateTime').val(),
+                                searchMinCustCd : $('#HminCustCd').val(),
+                                searchMaxCustCd : $('#HmaxCustCd').val(),
+                                searchCustNm : $('#HcustNm').val(),
+                                searchCustKn : $('#HcustKn').val(),
+                                searchCustKnNullCheck : $('#HcustKnNullCheck').val(),
+                                searchMinBirth : $('#HminBirth').val(),
+                                searchMaxBirth : $('#HmaxBirth').val(),
+                                searchBirthNullCheck : $('#HbirthNullCheck').val(),
+                                searchBirthMonth : $('#HbirthMonth').val(),
+                                searchMinMemorial : $('#HminMemorial').val(),
+                                searchMaxMemorial : $('#HmaxMemorial').val(),
+                                searchMemorialNullCheck : $('#HmemorialNullCheck').val(),
+                                searchZip : $('#Hzip').val(),
+                                searchZipNullCheck : $('#HzipNullCheck').val(),
+                                searchSex : $('#Hsex').val(),
+                                searchSexNullCheck : $('#HsexNullCheck').val(),
+                                searchAddr1 : $('#Haddr1').val(),
+                                searchAddr1NullCheck : $('#Haddr1NullCheck').val(),
+                                searchAddr2 : $('#Haddr2').val(),
+                                searchAddr2NullCheck : $('#Haddr2NullCheck').val(),
+                                searchAddr3 : $('#Haddr3').val(),
+                                searchAddr3NullCheck : $('#Haddr3NullCheck').val(),
+                                searchCustSumDay : $('#HcustSumDay').val(),
+                                searchCustSumDayNullCheck : $('#HcustSumDayNullCheck').val(),
+                                searchFeesReceKbn : $('#HfeesReceKbn').val(),
+                                searchFeesReceKbnNullCheck : $('#HfeesReceKbnNullCheck').val(),
+                                searchCredImpoKbn : $('#HcredImpoKbn').val(),
+                                searchCredImpoKbnNullCheck : $('#HcredImpoKbnNullCheck').val(),
+                                searchMinPublish : $('#HminPublish').val(),
+                                searchMaxPublish : $('#HmaxPublish').val(),
+                                searchPublishNullCheck : $('#HpublishNullCheck').val(),
+                                searchMinLimitdate : $('#HminLimitdate').val(),
+                                searchMaxLimitdate : $('#HmaxLimitdate').val(),
+                                searchLimitdateNullCheck : $('#HlimitdateNullCheck').val(),
+                                searchMinRenew : $('#HminRenew').val(),
+                                searchMaxRenew : $('#HmaxRenew').val(),
+                                searchRenewNullCheck : $('#HrenewNullCheck').val(),
+                                searchDissenddm : $('#Hdissenddm').val(),
+                                searchDissendemail : $('#Hdissendemail').val(),
+                                searchDissendimode : $('#Hdissendimode').val(),
+                                searchTaxCalcKbn : $('#HtaxCalcKbn').val(),
+                                searchTaxFracKbn : $('#HtaxFracKbn').val(),
+                                searchTel : $('#Htel').val(),
+                                searchTelNullCheck : $('#HtelNullCheck').val(),
+                                searchFax : $('#Hfax').val(),
+                                searchTaxNullCheck : $('#HfaxNullCheck').val(),
+                                searchHphone : $('#Hhphone').val(),
+                                searchHphoneNullCheck : $('#HhphoneNullCheck').val(),
+                                searchEmail : $('#Hemail').val(),
+                                searchEmailNullCheck : $('#HemailNullCheck').val(),
+                                searchImode : $('#Himode').val(),
+                                searchImodeNullCheck : $('#HimodeNullCheck').val(),
+                                searchOrganizationName : $('#HorganizationName').val(),
+                                searchOrganizationNameNullCheck : $('#HorganizationNameNullCheck').val(),
+                                searchCustTypeCd : $('#HcustTypeCd').val(),
+                                searchCustTypeCdNullCheck : $('#HcustTypeCdNullCheck').val(),
+                                searchAreaCd : $('#HareaCd').val(),
+                                searchAreaCdNullCheck : $('#HareaCdNullCheck').val(),
+                                searchUserNo : $('#HuserNo').val(),
+                                searchUserNoNullCheck : $('#HuserNoNullCheck').val(),
+                                searchMinLstVisitDt : $('#HminLstVisitDt').val(),
+                                searchMaxLstVisitDt : $('#HmaxLstVisitDt').val(),
+                                searchLstVisitDtNullCheck : $('#HlstVisitDtNullCheck').val(),
+                                searchLastOrganizationName : $('#HlastOrganizationName').val(),
+                                searchLastOrganizationNameNullCheck : $('#HlastOrganizationNameNullCheck').val(),
+                                searchNote1 : $('#Hnote1').val(),
+                                searchNote1NullCheck : $('#Hnote1NullCheck').val(),
+                                searchNote2 : $('#Hnote2').val(),
+                                searchNote2NullCheck : $('#Hnote2NullCheck').val(),
+                                searchNote3 : $('#Hnote3').val(),
+                                searchNote3NullCheck : $('#Hnote3NullCheck').val(),
+                                searchNote4 : $('#Hnote4').val(),
+                                searchNote4NullCheck : $('#Hnote4NullCheck').val(),
+                                searchNote5 : $('#Hnote5').val(),
+                                searchNote5NullCheck : $('#Hnote5NullCheck').val(),
+                                searchCustBCd01 : $('#HcustBCd01').val(),
+                                searchCustBCd01NullCheck : $('#HcustBCd01NullCheck').val(),
+                                searchCustBCd02 : $('#HcustBCd02').val(),
+                                searchCustBCd02NullCheck : $('#HcustBCd02NullCheck').val(),
+                                searchCustBCd03 : $('#HcustBCd03').val(),
+                                searchCustBCd03NullCheck : $('#HcustBCd03NullCheck').val(),
+                                searchCustBCd04 : $('#HcustBCd04').val(),
+                                searchCustBCd04NullCheck : $('#HcustBCd04NullCheck').val(),
+                                searchCustBCd05 : $('#HcustBCd05').val(),
+                                searchCustBCd05NullCheck : $('#HcustBCd05NullCheck').val(),
+                                searchCustBCd06 : $('#HcustBCd06').val(),
+                                searchCustBCd06NullCheck : $('#HcustBCd06NullCheck').val(),
+                                searchCustBCd07 : $('#HcustBCd07').val(),
+                                searchCustBCd07NullCheck : $('#HcustBCd07NullCheck').val(),
+                                searchCustBCd08 : $('#HcustBCd08').val(),
+                                searchCustBCd08NullCheck : $('#HcustBCd08NullCheck').val(),
+                                searchCustBCd09 : $('#HcustBCd09').val(),
+                                searchCustBCd09NullCheck : $('#HcustBCd09NullCheck').val(),
+                                searchCustBCd10 : $('#HcustBCd10').val(),
+                                searchCustBCd10NullCheck : $('#HcustBCd10NullCheck').val(),
+                                searchMinTrandate : $('#HminTrandate').val(),
+                                searchMaxTrandate : $('#HmaxTrandate').val(),
+                                searchMinTotal : $('#HminTotal').val(),
+                                searchMaxTotal : $('#HmaxTotal').val(),
+                                searchMinVisitCnt : $('#HminVisitCnt').val(),
+                                searchMaxVisitCnt : $('#HmaxVisitCnt').val(),
+                                searchProdCd01 : $('#HprodCd01').val(),
+                                searchProdCd02 : $('#HprodCd02').val(),
+                                searchProdCd03 : $('#HprodCd03').val(),
+                                searchProdCd04 : $('#HprodCd04').val(),
+                                searchProdCd05 : $('#HprodCd05').val(),
+                                searchProdCd06 : $('#HprodCd06').val(),
+                                searchProdCd07 : $('#HprodCd07').val(),
+                                searchProdCd08 : $('#HprodCd08').val(),
+                                searchProdCd09 : $('#HprodCd09').val(),
+                                searchProdCd10 : $('#HprodCd10').val(),
+                                searchMinTrndate : $('#minTrndate').val(),
+                                searchMaxTrndate : $('#maxTrndate').val(),
+                                token : $('#token').val()
+                            };
+                var path = 'index.php?param=Customer/searchSales&home=1';
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+    
+            /**
+             * 表示ページ数選択
+             */
+            function displayPage(pageCnt)
+            {
+                displayPageNo = pageCnt;
+                nowDisplayPageNo = pageCnt;
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                                displayPageNo : displayPageNo,
+                                displayRecordCnt : displayRecordCnt,
+                                custID : $('#custID').val(),
+                                custCd : $('#custCd').val(),
+                                custNm : $('#custNm').val(),
+                                updateTime : $('#updateTime').val(),
+                                searchMinCustCd : $('#HminCustCd').val(),
+                                searchMaxCustCd : $('#HmaxCustCd').val(),
+                                searchCustNm : $('#HcustNm').val(),
+                                searchCustKn : $('#HcustKn').val(),
+                                searchCustKnNullCheck : $('#HcustKnNullCheck').val(),
+                                searchMinBirth : $('#HminBirth').val(),
+                                searchMaxBirth : $('#HmaxBirth').val(),
+                                searchBirthNullCheck : $('#HbirthNullCheck').val(),
+                                searchBirthMonth : $('#HbirthMonth').val(),
+                                searchMinMemorial : $('#HminMemorial').val(),
+                                searchMaxMemorial : $('#HmaxMemorial').val(),
+                                searchMemorialNullCheck : $('#HmemorialNullCheck').val(),
+                                searchZip : $('#Hzip').val(),
+                                searchZipNullCheck : $('#HzipNullCheck').val(),
+                                searchSex : $('#Hsex').val(),
+                                searchSexNullCheck : $('#HsexNullCheck').val(),
+                                searchAddr1 : $('#Haddr1').val(),
+                                searchAddr1NullCheck : $('#Haddr1NullCheck').val(),
+                                searchAddr2 : $('#Haddr2').val(),
+                                searchAddr2NullCheck : $('#Haddr2NullCheck').val(),
+                                searchAddr3 : $('#Haddr3').val(),
+                                searchAddr3NullCheck : $('#Haddr3NullCheck').val(),
+                                searchCustSumDay : $('#HcustSumDay').val(),
+                                searchCustSumDayNullCheck : $('#HcustSumDayNullCheck').val(),
+                                searchFeesReceKbn : $('#HfeesReceKbn').val(),
+                                searchFeesReceKbnNullCheck : $('#HfeesReceKbnNullCheck').val(),
+                                searchCredImpoKbn : $('#HcredImpoKbn').val(),
+                                searchCredImpoKbnNullCheck : $('#HcredImpoKbnNullCheck').val(),
+                                searchMinPublish : $('#HminPublish').val(),
+                                searchMaxPublish : $('#HmaxPublish').val(),
+                                searchPublishNullCheck : $('#HpublishNullCheck').val(),
+                                searchMinLimitdate : $('#HminLimitdate').val(),
+                                searchMaxLimitdate : $('#HmaxLimitdate').val(),
+                                searchLimitdateNullCheck : $('#HlimitdateNullCheck').val(),
+                                searchMinRenew : $('#HminRenew').val(),
+                                searchMaxRenew : $('#HmaxRenew').val(),
+                                searchRenewNullCheck : $('#HrenewNullCheck').val(),
+                                searchDissenddm : $('#Hdissenddm').val(),
+                                searchDissendemail : $('#Hdissendemail').val(),
+                                searchDissendimode : $('#Hdissendimode').val(),
+                                searchTaxCalcKbn : $('#HtaxCalcKbn').val(),
+                                searchTaxFracKbn : $('#HtaxFracKbn').val(),
+                                searchTel : $('#Htel').val(),
+                                searchTelNullCheck : $('#HtelNullCheck').val(),
+                                searchFax : $('#Hfax').val(),
+                                searchTaxNullCheck : $('#HfaxNullCheck').val(),
+                                searchHphone : $('#Hhphone').val(),
+                                searchHphoneNullCheck : $('#HhphoneNullCheck').val(),
+                                searchEmail : $('#Hemail').val(),
+                                searchEmailNullCheck : $('#HemailNullCheck').val(),
+                                searchImode : $('#Himode').val(),
+                                searchImodeNullCheck : $('#HimodeNullCheck').val(),
+                                searchOrganizationName : $('#HorganizationName').val(),
+                                searchOrganizationNameNullCheck : $('#HorganizationNameNullCheck').val(),
+                                searchCustTypeCd : $('#HcustTypeCd').val(),
+                                searchCustTypeCdNullCheck : $('#HcustTypeCdNullCheck').val(),
+                                searchAreaCd : $('#HareaCd').val(),
+                                searchAreaCdNullCheck : $('#HareaCdNullCheck').val(),
+                                searchUserNo : $('#HuserNo').val(),
+                                searchUserNoNullCheck : $('#HuserNoNullCheck').val(),
+                                searchMinLstVisitDt : $('#HminLstVisitDt').val(),
+                                searchMaxLstVisitDt : $('#HmaxLstVisitDt').val(),
+                                searchLstVisitDtNullCheck : $('#HlstVisitDtNullCheck').val(),
+                                searchLastOrganizationName : $('#HlastOrganizationName').val(),
+                                searchLastOrganizationNameNullCheck : $('#HlastOrganizationNameNullCheck').val(),
+                                searchNote1 : $('#Hnote1').val(),
+                                searchNote1NullCheck : $('#Hnote1NullCheck').val(),
+                                searchNote2 : $('#Hnote2').val(),
+                                searchNote2NullCheck : $('#Hnote2NullCheck').val(),
+                                searchNote3 : $('#Hnote3').val(),
+                                searchNote3NullCheck : $('#Hnote3NullCheck').val(),
+                                searchNote4 : $('#Hnote4').val(),
+                                searchNote4NullCheck : $('#Hnote4NullCheck').val(),
+                                searchNote5 : $('#Hnote5').val(),
+                                searchNote5NullCheck : $('#Hnote5NullCheck').val(),
+                                searchCustBCd01 : $('#HcustBCd01').val(),
+                                searchCustBCd01NullCheck : $('#HcustBCd01NullCheck').val(),
+                                searchCustBCd02 : $('#HcustBCd02').val(),
+                                searchCustBCd02NullCheck : $('#HcustBCd02NullCheck').val(),
+                                searchCustBCd03 : $('#HcustBCd03').val(),
+                                searchCustBCd03NullCheck : $('#HcustBCd03NullCheck').val(),
+                                searchCustBCd04 : $('#HcustBCd04').val(),
+                                searchCustBCd04NullCheck : $('#HcustBCd04NullCheck').val(),
+                                searchCustBCd05 : $('#HcustBCd05').val(),
+                                searchCustBCd05NullCheck : $('#HcustBCd05NullCheck').val(),
+                                searchCustBCd06 : $('#HcustBCd06').val(),
+                                searchCustBCd06NullCheck : $('#HcustBCd06NullCheck').val(),
+                                searchCustBCd07 : $('#HcustBCd07').val(),
+                                searchCustBCd07NullCheck : $('#HcustBCd07NullCheck').val(),
+                                searchCustBCd08 : $('#HcustBCd08').val(),
+                                searchCustBCd08NullCheck : $('#HcustBCd08NullCheck').val(),
+                                searchCustBCd09 : $('#HcustBCd09').val(),
+                                searchCustBCd09NullCheck : $('#HcustBCd09NullCheck').val(),
+                                searchCustBCd10 : $('#HcustBCd10').val(),
+                                searchCustBCd10NullCheck : $('#HcustBCd10NullCheck').val(),
+                                searchMinTrandate : $('#HminTrandate').val(),
+                                searchMaxTrandate : $('#HmaxTrandate').val(),
+                                searchMinTotal : $('#HminTotal').val(),
+                                searchMaxTotal : $('#HmaxTotal').val(),
+                                searchMinVisitCnt : $('#HminVisitCnt').val(),
+                                searchMaxVisitCnt : $('#HmaxVisitCnt').val(),
+                                searchProdCd01 : $('#HprodCd01').val(),
+                                searchProdCd02 : $('#HprodCd02').val(),
+                                searchProdCd03 : $('#HprodCd03').val(),
+                                searchProdCd04 : $('#HprodCd04').val(),
+                                searchProdCd05 : $('#HprodCd05').val(),
+                                searchProdCd06 : $('#HprodCd06').val(),
+                                searchProdCd07 : $('#HprodCd07').val(),
+                                searchProdCd08 : $('#HprodCd08').val(),
+                                searchProdCd09 : $('#HprodCd09').val(),
+                                searchProdCd10 : $('#HprodCd10').val(),
+                                searchMinTrndate : $('#minTrndate').val(),
+                                searchMaxTrndate : $('#maxTrndate').val(),
+                                token : $('#token').val()
+                           };
+                var path = 'index.php?param=Customer/searchSales&home=1';
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 表示レコード数選択
+             */
+            function displayRecord(recordCnt)
+            {
+                displayRecordCnt = recordCnt;
+                displayPageNo = 1;
+                nowDisplayPageNo = 1;
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                                displayPageNo : displayPageNo,
+                                displayRecordCnt : displayRecordCnt,
+                                custID : $('#custID').val(),
+                                custCd : $('#custCd').val(),
+                                custNm : $('#custNm').val(),
+                                updateTime : $('#updateTime').val(),
+                                searchMinCustCd : $('#HminCustCd').val(),
+                                searchMaxCustCd : $('#HmaxCustCd').val(),
+                                searchCustNm : $('#HcustNm').val(),
+                                searchCustKn : $('#HcustKn').val(),
+                                searchCustKnNullCheck : $('#HcustKnNullCheck').val(),
+                                searchMinBirth : $('#HminBirth').val(),
+                                searchMaxBirth : $('#HmaxBirth').val(),
+                                searchBirthNullCheck : $('#HbirthNullCheck').val(),
+                                searchBirthMonth : $('#HbirthMonth').val(),
+                                searchMinMemorial : $('#HminMemorial').val(),
+                                searchMaxMemorial : $('#HmaxMemorial').val(),
+                                searchMemorialNullCheck : $('#HmemorialNullCheck').val(),
+                                searchZip : $('#Hzip').val(),
+                                searchZipNullCheck : $('#HzipNullCheck').val(),
+                                searchSex : $('#Hsex').val(),
+                                searchSexNullCheck : $('#HsexNullCheck').val(),
+                                searchAddr1 : $('#Haddr1').val(),
+                                searchAddr1NullCheck : $('#Haddr1NullCheck').val(),
+                                searchAddr2 : $('#Haddr2').val(),
+                                searchAddr2NullCheck : $('#Haddr2NullCheck').val(),
+                                searchAddr3 : $('#Haddr3').val(),
+                                searchAddr3NullCheck : $('#Haddr3NullCheck').val(),
+                                searchCustSumDay : $('#HcustSumDay').val(),
+                                searchCustSumDayNullCheck : $('#HcustSumDayNullCheck').val(),
+                                searchFeesReceKbn : $('#HfeesReceKbn').val(),
+                                searchFeesReceKbnNullCheck : $('#HfeesReceKbnNullCheck').val(),
+                                searchCredImpoKbn : $('#HcredImpoKbn').val(),
+                                searchCredImpoKbnNullCheck : $('#HcredImpoKbnNullCheck').val(),
+                                searchMinPublish : $('#HminPublish').val(),
+                                searchMaxPublish : $('#HmaxPublish').val(),
+                                searchPublishNullCheck : $('#HpublishNullCheck').val(),
+                                searchMinLimitdate : $('#HminLimitdate').val(),
+                                searchMaxLimitdate : $('#HmaxLimitdate').val(),
+                                searchLimitdateNullCheck : $('#HlimitdateNullCheck').val(),
+                                searchMinRenew : $('#HminRenew').val(),
+                                searchMaxRenew : $('#HmaxRenew').val(),
+                                searchRenewNullCheck : $('#HrenewNullCheck').val(),
+                                searchDissenddm : $('#Hdissenddm').val(),
+                                searchDissendemail : $('#Hdissendemail').val(),
+                                searchDissendimode : $('#Hdissendimode').val(),
+                                searchTaxCalcKbn : $('#HtaxCalcKbn').val(),
+                                searchTaxFracKbn : $('#HtaxFracKbn').val(),
+                                searchTel : $('#Htel').val(),
+                                searchTelNullCheck : $('#HtelNullCheck').val(),
+                                searchFax : $('#Hfax').val(),
+                                searchTaxNullCheck : $('#HfaxNullCheck').val(),
+                                searchHphone : $('#Hhphone').val(),
+                                searchHphoneNullCheck : $('#HhphoneNullCheck').val(),
+                                searchEmail : $('#Hemail').val(),
+                                searchEmailNullCheck : $('#HemailNullCheck').val(),
+                                searchImode : $('#Himode').val(),
+                                searchImodeNullCheck : $('#HimodeNullCheck').val(),
+                                searchOrganizationName : $('#HorganizationName').val(),
+                                searchOrganizationNameNullCheck : $('#HorganizationNameNullCheck').val(),
+                                searchCustTypeCd : $('#HcustTypeCd').val(),
+                                searchCustTypeCdNullCheck : $('#HcustTypeCdNullCheck').val(),
+                                searchAreaCd : $('#HareaCd').val(),
+                                searchAreaCdNullCheck : $('#HareaCdNullCheck').val(),
+                                searchUserNo : $('#HuserNo').val(),
+                                searchUserNoNullCheck : $('#HuserNoNullCheck').val(),
+                                searchMinLstVisitDt : $('#HminLstVisitDt').val(),
+                                searchMaxLstVisitDt : $('#HmaxLstVisitDt').val(),
+                                searchLstVisitDtNullCheck : $('#HlstVisitDtNullCheck').val(),
+                                searchLastOrganizationName : $('#HlastOrganizationName').val(),
+                                searchLastOrganizationNameNullCheck : $('#HlastOrganizationNameNullCheck').val(),
+                                searchNote1 : $('#Hnote1').val(),
+                                searchNote1NullCheck : $('#Hnote1NullCheck').val(),
+                                searchNote2 : $('#Hnote2').val(),
+                                searchNote2NullCheck : $('#Hnote2NullCheck').val(),
+                                searchNote3 : $('#Hnote3').val(),
+                                searchNote3NullCheck : $('#Hnote3NullCheck').val(),
+                                searchNote4 : $('#Hnote4').val(),
+                                searchNote4NullCheck : $('#Hnote4NullCheck').val(),
+                                searchNote5 : $('#Hnote5').val(),
+                                searchNote5NullCheck : $('#Hnote5NullCheck').val(),
+                                searchCustBCd01 : $('#HcustBCd01').val(),
+                                searchCustBCd01NullCheck : $('#HcustBCd01NullCheck').val(),
+                                searchCustBCd02 : $('#HcustBCd02').val(),
+                                searchCustBCd02NullCheck : $('#HcustBCd02NullCheck').val(),
+                                searchCustBCd03 : $('#HcustBCd03').val(),
+                                searchCustBCd03NullCheck : $('#HcustBCd03NullCheck').val(),
+                                searchCustBCd04 : $('#HcustBCd04').val(),
+                                searchCustBCd04NullCheck : $('#HcustBCd04NullCheck').val(),
+                                searchCustBCd05 : $('#HcustBCd05').val(),
+                                searchCustBCd05NullCheck : $('#HcustBCd05NullCheck').val(),
+                                searchCustBCd06 : $('#HcustBCd06').val(),
+                                searchCustBCd06NullCheck : $('#HcustBCd06NullCheck').val(),
+                                searchCustBCd07 : $('#HcustBCd07').val(),
+                                searchCustBCd07NullCheck : $('#HcustBCd07NullCheck').val(),
+                                searchCustBCd08 : $('#HcustBCd08').val(),
+                                searchCustBCd08NullCheck : $('#HcustBCd08NullCheck').val(),
+                                searchCustBCd09 : $('#HcustBCd09').val(),
+                                searchCustBCd09NullCheck : $('#HcustBCd09NullCheck').val(),
+                                searchCustBCd10 : $('#HcustBCd10').val(),
+                                searchCustBCd10NullCheck : $('#HcustBCd10NullCheck').val(),
+                                searchMinTrandate : $('#HminTrandate').val(),
+                                searchMaxTrandate : $('#HmaxTrandate').val(),
+                                searchMinTotal : $('#HminTotal').val(),
+                                searchMaxTotal : $('#HmaxTotal').val(),
+                                searchMinVisitCnt : $('#HminVisitCnt').val(),
+                                searchMaxVisitCnt : $('#HmaxVisitCnt').val(),
+                                searchProdCd01 : $('#HprodCd01').val(),
+                                searchProdCd02 : $('#HprodCd02').val(),
+                                searchProdCd03 : $('#HprodCd03').val(),
+                                searchProdCd04 : $('#HprodCd04').val(),
+                                searchProdCd05 : $('#HprodCd05').val(),
+                                searchProdCd06 : $('#HprodCd06').val(),
+                                searchProdCd07 : $('#HprodCd07').val(),
+                                searchProdCd08 : $('#HprodCd08').val(),
+                                searchProdCd09 : $('#HprodCd09').val(),
+                                searchProdCd10 : $('#HprodCd10').val(),
+                                searchMinTrndate : $('#minTrndate').val(),
+                                searchMaxTrndate : $('#maxTrndate').val(),
+                                token : $('#token').val()
+                           };
+                var path = 'index.php?param=Customer/searchSales&home=1';
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             *  DatePickerを設定
+             */
+            $(function()
+            {
+                $( "#minTrndate, #maxTrndate" ).datepicker({
+                    showButtonPanel: true,
+                    dateFormat: 'yy/mm/dd',
+                });
+            });
+
+            /**
+             * 遷移先の設定
+             */
+            function moveRedirect()
+            {
+                cancel();
+            }
+
+        </script>
+
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site">
+            <!-- パンくずリスト -->
+            <?php include("Common/Breadcrumb.php"); ?>
+            
+            <!-- serchButtonArea -->
+            <div class="logicButtonArea">
+                <p align=center>
+                    <input type="button" id="back" name="back" value="戻る" class="return" data-href="index.php?param=Customer/addInput&home=1">
+                </p>
+            </div><!-- /.serchButtonArea -->
+
+            <!-- 以下、hiddenの値は修正/削除時の条件に使用 -->
+            <input type="hidden" id="token" name="token" value="<?php hsc($_POST['token']); ?>">
+            <input type="hidden" id="custID" name="custID" value="<?php hsc($_POST['custID']); ?>">
+            <input type="hidden" id="custCd" name="custCd" value="<?php hsc($_POST['custCd']); ?>">
+            <input type="hidden" id="custNm" name="custCd" value="<?php hsc($_POST['custNm']); ?>">
+            <input type="hidden" id="updateTime" name="updateTime" value="<?php hsc($_POST['updateTime']); ?>">
+            <!-- 以下、hiddenの値は一覧表の検索条件保持のため、使用 -->
+            <input type="hidden" id="HminCustCd" name="minCustCd" value="<?php hsc($_POST['searchMinCustCd']); ?>">
+            <input type="hidden" id="HmaxCustCd" name="maxCustCd" value="<?php hsc($_POST['searchMaxCustCd']); ?>">
+            <input type="hidden" id="HcustNm" name="custNm" value="<?php hsc($_POST['searchCustNm']); ?>">
+            <input type="hidden" id="HcustKn" name="custKn" value="<?php hsc($_POST['searchCustKn']); ?>">
+            <input type="hidden" id="HcustKnNullCheck" name="custKnNullCheck" value="<?php hsc($_POST['searchCustKnNullCheck']); ?>">
+            <input type="hidden" id="HminBirth" name="minBirth" value="<?php hsc($_POST['searchMinBirth']); ?>">
+            <input type="hidden" id="HmaxBirth" name="maxBirth" value="<?php hsc($_POST['searchMaxBirth']); ?>">
+            <input type="hidden" id="HbirthNullCheck" name="birthNullCheck" value="<?php hsc($_POST['searchBirthNullCheck']); ?>">
+            <input type="hidden" id="HbirthMonth" name="birthMonth" value="<?php hsc($_POST['searchBirthMonth']); ?>">
+            <input type="hidden" id="HminMemorial" name="minMemorial" value="<?php hsc($_POST['searchMinMemorial']); ?>">
+            <input type="hidden" id="HmaxMemorial" name="maxMemorial" value="<?php hsc($_POST['searchMaxMemorial']); ?>">
+            <input type="hidden" id="HmemorialNullCheck" name="memorialNullCheck" value="<?php hsc($_POST['searchMemorialNullCheck']); ?>">
+            <input type="hidden" id="Hzip" name="zip" value="<?php hsc($_POST['searchZip']); ?>">
+            <input type="hidden" id="HzipNullCheck" name="zipNullCheck" value="<?php hsc($_POST['searchZipNullCheck']); ?>">
+            <input type="hidden" id="Hsex" name="sex" value="<?php hsc($_POST['searchSex']); ?>">
+            <input type="hidden" id="HsexNullCheck" name="sexNullCheck" value="<?php hsc($_POST['searchSexNullCheck']); ?>">
+            <input type="hidden" id="Haddr1" name="addr1" value="<?php hsc($_POST['searchAddr1']); ?>">
+            <input type="hidden" id="Haddr1NullCheck" name="addr1NullCheck" value="<?php hsc($_POST['searchAddr1NullCheck']); ?>">
+            <input type="hidden" id="Haddr2" name="addr2" value="<?php hsc($_POST['searchAddr2']); ?>">
+            <input type="hidden" id="Haddr2NullCheck" name="addr2NullCheck" value="<?php hsc($_POST['searchAddr2NullCheck']); ?>">
+            <input type="hidden" id="Haddr3" name="addr3" value="<?php hsc($_POST['searchAddr3']); ?>">
+            <input type="hidden" id="Haddr3NullCheck" name="addr3NullCheck" value="<?php hsc($_POST['searchAddr3NullCheck']); ?>">
+            <input type="hidden" id="HcustSumDay" name="custSumDay" value="<?php hsc($_POST['searchCustSumDay']); ?>">
+            <input type="hidden" id="HcustSumDayNullCheck" name="custSumDayNullCheck" value="<?php hsc($_POST['searchCustSumDayNullCheck']); ?>">
+            <input type="hidden" id="HfeesReceKbn" name="feesReceKbn" value="<?php hsc($_POST['searchFeesReceKbn']); ?>">
+            <input type="hidden" id="HfeesReceKbnNullCheck" name="feesReceKbnNullCheck" value="<?php hsc($_POST['searchFeesReceKbnNullCheck']); ?>">
+            <input type="hidden" id="HcredImpoKbn" name="credImpoKbn" value="<?php hsc($_POST['searchCredImpoKbn']); ?>">
+            <input type="hidden" id="HcredImpoKbnNullCheck" name="credImpoKbnNullCheck" value="<?php hsc($_POST['searchCredImpoKbnNullCheck']); ?>">
+            <input type="hidden" id="HminPublish" name="minPublish" value="<?php hsc($_POST['searchMinPublish']); ?>">
+            <input type="hidden" id="HmaxPublish" name="maxPublish" value="<?php hsc($_POST['searchMaxPublish']); ?>">
+            <input type="hidden" id="HpublishNullCheck" name="publishNullCheck" value="<?php hsc($_POST['searchPublishNullCheck']); ?>">
+            <input type="hidden" id="HminLimitdate" name="minLimitdate" value="<?php hsc($_POST['searchMinLimitdate']); ?>">
+            <input type="hidden" id="HmaxLimitdate" name="maxLimitdate" value="<?php hsc($_POST['searchMaxLimitdate']); ?>">
+            <input type="hidden" id="HlimitdateNullCheck" name="limitdateNullCheck" value="<?php hsc($_POST['searchLimitdateNullCheck']); ?>">
+            <input type="hidden" id="HminRenew" name="minRenew" value="<?php hsc($_POST['searchMinRenew']); ?>">
+            <input type="hidden" id="HmaxRenew" name="maxRenew" value="<?php hsc($_POST['searchMaxRenew']); ?>">
+            <input type="hidden" id="HrenewNullCheck" name="renewNullCheck" value="<?php hsc($_POST['searchRenewNullCheck']); ?>">
+            <input type="hidden" id="Hdissenddm" name="dissenddm" value="<?php hsc($_POST['searchDissenddm']); ?>">
+            <input type="hidden" id="Hdissendemail" name="dissendemail" value="<?php hsc($_POST['searchDissendemail']); ?>">
+            <input type="hidden" id="Hdissendimode" name="dissendimode" value="<?php hsc($_POST['searchDissendimode']); ?>">
+            <input type="hidden" id="HtaxCalcKbn" name="taxCalcKbn" value="<?php hsc($_POST['searchTaxCalcKbn']); ?>">
+            <input type="hidden" id="HtaxFracKbn" name="taxFracKbn" value="<?php hsc($_POST['searchTaxFracKbn']); ?>">
+            <input type="hidden" id="Htel" name="tel" value="<?php hsc($_POST['searchTel']); ?>">
+            <input type="hidden" id="HtelNullCheck" name="telNullCheck" value="<?php hsc($_POST['searchTelNullCheck']); ?>">
+            <input type="hidden" id="Hfax" name="fax" value="<?php hsc($_POST['searchFax']); ?>">
+            <input type="hidden" id="HfaxNullCheck" name="faxNullCheck" value="<?php hsc($_POST['searchTaxNullCheck']); ?>">
+            <input type="hidden" id="Hhphone" name="hphone" value="<?php hsc($_POST['searchHphone']); ?>">
+            <input type="hidden" id="HhphoneNullCheck" name="hphoneNullCheck" value="<?php hsc($_POST['searchHphoneNullCheck']); ?>">
+            <input type="hidden" id="Hemail" name="email" value="<?php hsc($_POST['searchEmail']); ?>">
+            <input type="hidden" id="HemailNullCheck" name="emailNullCheck" value="<?php hsc($_POST['searchEmailNullCheck']); ?>">
+            <input type="hidden" id="Himode" name="imode" value="<?php hsc($_POST['searchImode']); ?>">
+            <input type="hidden" id="HimodeNullCheck" name="imodeNullCheck" value="<?php hsc($_POST['searchImodeNullCheck']); ?>">
+            <input type="hidden" id="HorganizationName" name="organizationName" value="<?php hsc($_POST['searchOrganizationName']); ?>">
+            <input type="hidden" id="HorganizationNameNullCheck" name="organizationNameNullCheck" value="<?php hsc($_POST['searchOrganizationNameNullCheck']); ?>">
+            <input type="hidden" id="HcustTypeCd" name="custTypeCd" value="<?php hsc($_POST['searchCustTypeCd']); ?>">
+            <input type="hidden" id="HcustTypeCdNullCheck" name="custTypeCdNullCheck" value="<?php hsc($_POST['searchCustTypeCdNullCheck']); ?>">
+            <input type="hidden" id="HareaCd" name="areaCd" value="<?php hsc($_POST['searchAreaCd']); ?>">
+            <input type="hidden" id="HareaCdNullCheck" name="areaCdNullCheck" value="<?php hsc($_POST['searchAreaCdNullCheck']); ?>">
+            <input type="hidden" id="HuserNo" name="userNo" value="<?php hsc($_POST['searchUserNo']); ?>">
+            <input type="hidden" id="HuserNoNullCheck" name="userNoNullCheck" value="<?php hsc($_POST['searchUserNoNullCheck']); ?>">
+            <input type="hidden" id="HminLstVisitDt" name="minLstVisitDt" value="<?php hsc($_POST['searchMinLstVisitDt']); ?>">
+            <input type="hidden" id="HmaxLstVisitDt" name="maxLstVisitDt" value="<?php hsc($_POST['searchMaxLstVisitDt']); ?>">
+            <input type="hidden" id="HlstVisitDtNullCheck" name="lstVisitDtNullCheck" value="<?php hsc($_POST['searchLstVisitDtNullCheck']); ?>">
+            <input type="hidden" id="HlastOrganizationName" name="lastOrganizationName" value="<?php hsc($_POST['searchLastOrganizationName']); ?>">
+            <input type="hidden" id="HlastOrganizationNameNullCheck" name="lastOrganizationNameNullCheck" value="<?php hsc($_POST['searchLastOrganizationNameNullCheck']); ?>">
+            <input type="hidden" id="Hnote1" name="note1" value="<?php hsc($_POST['searchNote1']); ?>">
+            <input type="hidden" id="Hnote1NullCheck" name="note1NullCheck" value="<?php hsc($_POST['searchNote1NullCheck']); ?>">
+            <input type="hidden" id="Hnote2" name="note2" value="<?php hsc($_POST['searchNote2']); ?>">
+            <input type="hidden" id="Hnote2NullCheck" name="note2NullCheck" value="<?php hsc($_POST['searchNote2NullCheck']); ?>">
+            <input type="hidden" id="Hnote3" name="note3" value="<?php hsc($_POST['searchNote3']); ?>">
+            <input type="hidden" id="Hnote3NullCheck" name="note3NullCheck" value="<?php hsc($_POST['searchNote3NullCheck']); ?>">
+            <input type="hidden" id="Hnote4" name="note4" value="<?php hsc($_POST['searchNote4']); ?>">
+            <input type="hidden" id="Hnote4NullCheck" name="note4NullCheck" value="<?php hsc($_POST['searchNote4NullCheck']); ?>">
+            <input type="hidden" id="Hnote5" name="note5" value="<?php hsc($_POST['searchNote5']); ?>">
+            <input type="hidden" id="Hnote5NullCheck" name="note5NullCheck" value="<?php hsc($_POST['searchNote5NullCheck']); ?>">
+            <input type="hidden" id="HcustBCd01" name="custBCd01" value="<?php hsc($_POST['searchCustBCd01']); ?>">
+            <input type="hidden" id="HcustBCd01NullCheck" name="custBCd01NullCheck" value="<?php hsc($_POST['searchCustBCd01NullCheck']); ?>">
+            <input type="hidden" id="HcustBCd02" name="custBCd02" value="<?php hsc($_POST['searchCustBCd02']); ?>">
+            <input type="hidden" id="HcustBCd02NullCheck" name="custBCd02NullCheck" value="<?php hsc($_POST['searchCustBCd02NullCheck']); ?>">
+            <input type="hidden" id="HcustBCd03" name="custBCd03" value="<?php hsc($_POST['searchCustBCd03']); ?>">
+            <input type="hidden" id="HcustBCd03NullCheck" name="custBCd03NullCheck" value="<?php hsc($_POST['searchCustBCd03NullCheck']); ?>">
+            <input type="hidden" id="HcustBCd04" name="custBCd04" value="<?php hsc($_POST['searchCustBCd04']); ?>">
+            <input type="hidden" id="HcustBCd04NullCheck" name="custBCd04NullCheck" value="<?php hsc($_POST['searchCustBCd04NullCheck']); ?>">
+            <input type="hidden" id="HcustBCd05" name="custBCd05" value="<?php hsc($_POST['searchCustBCd05']); ?>">
+            <input type="hidden" id="HcustBCd05NullCheck" name="custBCd05NullCheck" value="<?php hsc($_POST['searchCustBCd05NullCheck']); ?>">
+            <input type="hidden" id="HcustBCd06" name="custBCd06" value="<?php hsc($_POST['searchCustBCd06']); ?>">
+            <input type="hidden" id="HcustBCd06NullCheck" name="custBCd06NullCheck" value="<?php hsc($_POST['searchCustBCd06NullCheck']); ?>">
+            <input type="hidden" id="HcustBCd07" name="custBCd07" value="<?php hsc($_POST['searchCustBCd07']); ?>">
+            <input type="hidden" id="HcustBCd07NullCheck" name="custBCd07NullCheck" value="<?php hsc($_POST['searchCustBCd07NullCheck']); ?>">
+            <input type="hidden" id="HcustBCd08" name="custBCd08" value="<?php hsc($_POST['searchCustBCd08']); ?>">
+            <input type="hidden" id="HcustBCd08NullCheck" name="custBCd08NullCheck" value="<?php hsc($_POST['searchCustBCd08NullCheck']); ?>">
+            <input type="hidden" id="HcustBCd09" name="custBCd09" value="<?php hsc($_POST['searchCustBCd09']); ?>">
+            <input type="hidden" id="HcustBCd09NullCheck" name="custBCd09NullCheck" value="<?php hsc($_POST['searchCustBCd09NullCheck']); ?>">
+            <input type="hidden" id="HcustBCd10" name="custBCd10" value="<?php hsc($_POST['searchCustBCd10']); ?>">
+            <input type="hidden" id="HcustBCd10NullCheck" name="custBCd10NullCheck" value="<?php hsc($_POST['searchCustBCd10NullCheck']); ?>">
+            <input type="hidden" id="HminTrandate" name="minTrandate" value="<?php hsc($_POST['searchMinTrandate']); ?>">
+            <input type="hidden" id="HmaxTrandate" name="maxTrandate" value="<?php hsc($_POST['searchMaxTrandate']); ?>">
+            <input type="hidden" id="HminTotal" name="minTotal" value="<?php hsc($_POST['searchMinTotal']); ?>">
+            <input type="hidden" id="HmaxTotal" name="maxTotal" value="<?php hsc($_POST['searchMaxTotal']); ?>">
+            <input type="hidden" id="HminVisitCnt" name="minVisitCnt" value="<?php hsc($_POST['searchMinVisitCnt']); ?>">
+            <input type="hidden" id="HmaxVisitCnt" name="maxVisitCnt" value="<?php hsc($_POST['searchMaxVisitCnt']); ?>">
+            <input type="hidden" id="HprodCd01" name="prodCd01" value="<?php hsc($_POST['searchProdCd01']); ?>">
+            <input type="hidden" id="HprodCd02" name="prodCd02" value="<?php hsc($_POST['searchProdCd02']); ?>">
+            <input type="hidden" id="HprodCd03" name="prodCd03" value="<?php hsc($_POST['searchProdCd03']); ?>">
+            <input type="hidden" id="HprodCd04" name="prodCd04" value="<?php hsc($_POST['searchProdCd04']); ?>">
+            <input type="hidden" id="HprodCd05" name="prodCd05" value="<?php hsc($_POST['searchProdCd05']); ?>">
+            <input type="hidden" id="HprodCd06" name="prodCd06" value="<?php hsc($_POST['searchProdCd06']); ?>">
+            <input type="hidden" id="HprodCd07" name="prodCd07" value="<?php hsc($_POST['searchProdCd07']); ?>">
+            <input type="hidden" id="HprodCd08" name="prodCd08" value="<?php hsc($_POST['searchProdCd08']); ?>">
+            <input type="hidden" id="HprodCd09" name="prodCd09" value="<?php hsc($_POST['searchProdCd09']); ?>">
+            <input type="hidden" id="HprodCd10" name="prodCd10" value="<?php hsc($_POST['searchProdCd10']); ?>">
+
+            <!-- serchEditArea -->
+            <form  id="searchForm" name="searchForm" method="POST" action="index.php?param=Customer/searchSales&home=1">
+                <div class="serchBoardArea" style=" clear:both; width:600px; margin:5px auto !important;" >
+                    <table>
+                        <tbody>
+                            <tr>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0850')); ?></th><!-- 顧客コード -->
+                                <td style="width:200px"><?php hsc($_POST['custCd']); ?></td>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0851')); ?></th><!-- 顧客名 -->
+                                <td style="width:200px"><?php hsc($_POST['custNm']); ?></td>
+                            </tr>
+                            <tr>
+                                <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0918')); ?></th><!-- 売上期間 -->
+                                <td style="width:200px" colspan="3">
+                                    <input type="text" name="minTrndate" id="minTrndate" style="width:100px" maxlength="10" value="<?php hsc($searchArray['minTrndate']); ?>" pattern="\d{4}/\d{2}/\d{2}" >
+                                    　～　
+                                    <input type="text" name="maxTrndate" id="maxTrndate" style="width:100px" maxlength="10" value="<?php hsc($searchArray['maxTrndate']); ?>" pattern="\d{4}/\d{2}/\d{2}" >
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div style="text-align: center; white-space: nowrap;" id="styleAlignCenter">
+                    <div style="display: inline-block;" class="serchButtonArea">
+                        <input type="submit" id="search" name="search" href="#" value="検索" class="serch" />
+                    </div><!-- /.serchButtonArea -->
+                </div><!-- /#styleAlignCenter -->
+                
+            </form>
+
+            <!--<form id="modForm" name="modForm" >-->
+                <!-- PageMoveArea -->
+                <?php include("../FwCommon/View/PagingArea.php"); ?>
+                <!--<div id="jquery-replace-ajax">-->
+                    <?php if(!$salesList) { ?>
+                    <?php } else { ?>
+                        <?php if( $isScrollBar === 'true' ) { ?>
+                            <div class="serchListArea" style=" clear:both; width:99%; margin:0px auto !important; overflow-y:auto;">
+                        <?php } else { ?>
+                            <div class="serchListArea" style=" clear:both; width:99%; margin:5px auto !important;">
+                        <?php } ?>
+                            <table>
+                                <tbody>
+                                    <tr>
+                                        <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0919')); ?></th>
+                                        <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0920')); ?></th>
+                                        <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0921')); ?></th>
+                                        <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0922')); ?></th>
+                                        <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0923')); ?></th>
+                                        <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0924')); ?></th>
+                                    </tr>
+                            </table>
+                        <?php if( $isScrollBar === 'true' ) { ?>
+                            </div>
+                            <div class="serchListArea" style="width:99%; margin: 0px auto; overflow-y:auto; height:251px; !important;">
+                        <?php } ?>
+                        <?php $total = 0; ?>
+                        <?php $profit = 0; ?>
+                            <table id="nameTable">
+                                <?php foreach($salesList as $sales) { ?>
+                                    <tr>
+                                        <td style="width:100px;"><?php hsc($sales['trndate']); ?>&nbsp;&nbsp;<?php hsc($sales['trntime']); ?></td>
+                                        <td style="width:100px;"><span onClick="salesDetailsSearch('<?php hsc($sales['denno']); ?>')"><a href="#"><?php hsc($sales['denno']); ?></a></span></td>
+                                        <td style="width:100px;"><?php hsc($sales['abbreviated_name']); ?></td>
+                                        <td style="width:100px;"><?php hsc($sales['user_name']); ?></td>
+                                        <td align="right" style="width:100px;"><?php hsc(number_format($sales['total'])); ?>円</td>
+                                        <td align="right" style="width:100px;"><?php hsc(number_format($sales['profit'])); ?>円</td>
+                                        <?php $total += $sales['total']; ?>
+                                        <?php $profit += $sales['profit']; ?>
+                                    </tr>
+                                <?php } ?>
+                            </table>
+                        </div>
+                        <table style="width:99%" >
+                            <tr>
+                                <td style="width:100px;"></td>
+                                <td style="width:100px;"></td>
+                                <td style="width:100px;"></td>
+                                <td align="center" style="width:100px;">合計</td>
+                                <td align="center" style="width:100px;"><?php hsc(number_format($total)); ?>円</td>
+                                <td align="center" style="width:100px;"><?php hsc(number_format($profit)); ?>円</td>
+                            </tr>
+                        </table>
+                <?php } ?>
+
+                <?php if(!$salesDetailsAllList) { ?>
+                <?php } else { ?>
+                        <div class="serchListArea" style=" clear:both; width:99%; margin:5px auto !important;">
+                            <table>
+                                <tbody>
+                                    <tr>
+                                        <th style="width:200px"><?php hsc($Log->getMsgLog('MSG_BASE_0925')); ?></th>
+                                        <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0926')); ?></th>
+                                        <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0927')); ?></th>
+                                        <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0928')); ?></th>
+                                        <th style="width:100px"><?php hsc($Log->getMsgLog('MSG_BASE_0924')); ?></th>
+                                    </tr>
+                        <?php $total = 0; ?>
+                        <?php $profit = 0; ?>
+                                <?php foreach($salesDetailsAllList as $details) { ?>
+                                    <tr>
+                                        <td style="width:200px;"><?php hsc($details['prod_nm']); ?></td>
+                                        <td align="right" style="width:100px;"><?php hsc($details['amount']); ?></td>
+                                        <td align="right" style="width:100px;"><?php hsc(number_format($details['amount'])); ?></td>
+                                        <td align="right" style="width:100px;"><?php hsc(number_format($details['total'])); ?>円</td>
+                                        <td align="right" style="width:100px;"><?php hsc(number_format($details['profit'])); ?>円</td>
+                                    </tr>
+                                <?php } ?>
+                            </table>
+                        </div>
+                <?php } ?>
+
+        </div><!-- /#sb-site -->
+        
+        <?php include("../FwCommon/View/Dialog.php"); ?>
+    </body>
+</html>

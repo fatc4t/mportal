@@ -1,0 +1,1194 @@
+<?php
+    /**
+     * @file      画面PLU設定マスタ(MST6701)
+     * @author    柴田
+     * @date      
+     * @version   1.00
+     * @note      
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+//            $fileNames = array('default.css', 'common.js', 'jquery-ui.min.js', 'jquery-ui.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述 
+            $fileNames = array( 'default.css',
+                                'common.js',
+                                'jquery-ui.min.js',
+                                'jquery-ui.css',
+                                'viewpos.js');        // cssまたはｊｓファイルを拡張子付きで配列に記述 
+
+            include("Common/HtmlHeader.php"); 
+        ?>
+        <script src="../js/autofil_v<?php echo $_SESSION['AUTOFIL_VER'] ?>.js" ></script>
+        <!-- modal script-->
+        <script src="../js/modal/modal.js" ></script>
+        <link rel="stylesheet" href="../css/modal/modal.css" >  
+        <script src="../FwCommon/js/common.js" ></script>        
+        <script type="text/javascript">
+            Sizelist       = '<?php echo json_encode(json_encode($Sizelist)); ?>';
+            A_Sizelist     = JSON.parse(Sizelist.slice(1,-1));           
+            var displayPageNo = 1;
+            var displayRecordCnt = <?php hsc($_SESSION["DISPLAY_RECORD_CNT"]); ?>;
+            var mst0211ItemInfo = null;
+            var mst0211Sort = null;
+            var organization_click_cnt = 0;
+            var prodCode_click_cnt = 0;
+            var prodName_click_cnt = 0;
+            var prodKana_click_cnt = 0;
+            var capaName_click_cnt = 0;
+            var changeDT_click_cnt = 0;
+            var sectName_click_cnt = 0;
+            var suppName_click_cnt = 0;
+            var org_select_unic_check = true;
+            var prod_select_unic_check = true;
+            var sect_select_unic_check = true;
+            var keep_org_list = '';
+            var keep_org1_list = '';
+            var delete_mod = '';
+            var data_prod_original = {};
+            var data_prod_list = {};
+            porg_id_list        = '<?php echo json_encode(json_encode($org_id_list)); ?>';
+            data_org            = JSON.parse(porg_id_list.slice(1,-1));
+           // ppord_id_list        = '<?php echo json_encode(json_encode($prod_list)); ?>';
+            //data_prod            = JSON.parse(ppord_id_list.slice(1,-1));
+            data_prod=[];
+            psect_id_list        = '<?php echo json_encode(json_encode($sect_list)); ?>';
+            data_sect            = JSON.parse(psect_id_list.slice(1,-1));            
+            var keyno_selected = 'keyNo';
+            var test ="";
+            var test1 = "";
+            var org_id = '';
+            var result1 = '';
+            var A_data = [];
+            var org_lid = '';
+            var prod_list = '';
+            var sect_list = '';
+            var working_data = {};
+            var data_delete = [];
+            var data_prod_update = [];
+            var prod_data = [];
+            page_no = 1;
+            /**
+             * DatePickerを設定
+             */
+            $(function()
+            {
+                $( "#start_date, #end_date" ).datepicker({
+                    numberOfMonths: 1,
+                    showCurrentAtPos: 1,
+                    showButtonPanel: true,
+                    dateFormat: 'yy/mm/dd'
+                });
+            });            
+
+
+           $(document).ready(function()
+            {
+                /**
+                 * POS商品マスタ検索
+                 */
+                $('#search').click(function()
+                {
+                    displayPageNo = 1;
+
+                    // 商品コード入力中にsubmitされるとonblur前にこの処理に移行するためここでもゼロ埋め処理
+                    zeroExtension(document.getElementById('prodCode'),13);
+
+                    // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                    var data = {
+                                displayPageNo           : displayPageNo,
+                                displayRecordCnt        : displayRecordCnt,
+                                searchOrganizationID    : $('#organizationName').val(),
+                                searchProdCode          : $('#prodCode').val(),
+                                searchProdName          : $('#prodName').val(),
+                                searchProdKana          : $('#prodKana').val(),
+                            };
+                    var path = 'index.php?param=Mst0201/search&home=1';
+
+                    // データ更新
+                    setDataForAjax( data, path );
+                    // サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+            });
+
+            /**
+             * データの新規情報入力画面遷移
+             */
+            function inputPanelTransition()
+            {
+                var lineInfo = "";
+                var disaInfo = "";
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                            mst0211pk               : lineInfo,
+                            disabledID              : disaInfo,
+                            searchOrganizationID    : $('#organizationName').val(),
+                            searchProdCode          : $('#prodCode').val(),
+                            searchProdName          : $('#prodName').val(),
+                            searchProdKana          : $('#prodKana').val(),
+                            searchChangeDT          : $('#changeDT').val(),
+                            sortConditions          : mst0211Sort
+                        };
+                var path = 'index.php?param=Mst0211/addInput&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+                // サブミット後、ページをリロードしないようにする
+                return false;
+            }
+            
+//            AJAX　PLU内容編集部分(商品）
+            function set_proddate()
+            {
+                var proddate = {
+                    keyno : $('#button_+keyNo').val(),
+                    plu_kbn : document.querySelector('input[name="q1"]:checked'),
+                    searchProdName : prodName.value,
+                    disp_prod_nm1 : disp_prod_nm1.val(),
+                    disp_prod_nm2 : disp_prod_nm2.val()
+                };
+            }
+            function set_sectdate()
+            {
+                var sectdate = {
+                    keyno : $('#button_+keyNo').val(),
+                    test : document.querySelector('input[name="q2"]:checked'),
+                    searchSectName : sectName.val()
+                };
+            }    
+            
+        function test_disabled_mnt(state){
+            var input_list = test111.getElementsByTagName('input');
+            for(i=0;i<input_list.length;i++){
+                input_list[i].disabled = state;
+            }
+            var select_list = test111.getElementsByTagName('select');
+            for(i=0;i<select_list.length;i++){
+                select_list[i].disabled = state;
+            }
+            var button_list = test111.getElementsByTagName('button');
+            for(i=0;i<button_list.length;i++){
+                button_list[i].disabled = state;
+            }  
+        }
+        
+        window.onload = function () {
+            creat_listener();
+            document.getElementById("modal_org_validate").addEventListener("click", f_org_select);//組織ID
+            document.getElementById("modal_test_ok").addEventListener("click",  tab_newnm);//
+            document.getElementById("modal_prod_validate").addEventListener("click", btn_select_prod );
+            document.getElementById("modal_sect_validate").addEventListener("click", btn_select_sect );///  
+            org_array = [];
+            modal_create_select("org_select",org_array);
+            modal_create_select("org_select1",org_array);
+            modal_create_select("prod_select",org_array);
+            modal_create_select("sect_select",org_array);
+            button_data_reset();
+            test_disabled_mnt(true);
+            today =  new Date();
+            today.setDate(today.getDate()+1);
+            start_date.value = today.toISOString().slice(0,10).replace(/-/g,"\/"); ;
+            //clear_btn();
+        };
+        
+        
+        //各マスタからの情報を取得
+        function mst6701_modal_select_mgt(e){　
+            if(e.target.id === 'org_select'){
+                //console.log('ここ');
+                org_list = keep_org_list; 
+            }else if(e.target.id === 'org_select1'){
+                org_list = keep_org1_list;
+            }            
+            data_select['org'] = org_list;
+            modal_select_mgt(e);
+            
+            //console.log('org_list: '+org_list);
+        }
+//        ボタンタップ時のキーNO表示
+        function select_button(e){
+            if(e.target.id === 'keyNo2' && x2.checked){ //もしkeyno1にターゲットがあり、PLU配置変更のラジオボタンにチェックがある場合
+                keyno_selected = 'keyNo2';//keynoを選択したIDに代入
+                //console.log('here1');
+            }
+            else if((keyno_selected === 'keyNo' || e.target.id === 'keyNo1' )&& x2.checked){
+                //console.log('here2');
+                keyno_selected = 'keyNo1';
+            }
+            else if(x1.checked) {//もし選択項目の名前がkeynoだった場合
+                //console.log('here3');
+                keyno_selected = 'keyNo';//keynoをkeyno（テキスト)に代入
+            }
+            
+            if(e.target.id.indexOf('button') !==-1){
+                var empty_array = [];
+                f = document.getElementById(keyno_selected);
+                f.value = e.target.id.split('_')[1];
+                modal_create_select("sect_select",empty_array);
+                modal_create_select("prod_select",empty_array);
+                document.getElementById( "disp_prod_nm1" ).value = "";
+                document.getElementById( "disp_prod_nm2" ).value = "";
+                if(  working_data && working_data[page_no] && working_data[page_no][f.value]){
+                    
+                    var button_detail = working_data[page_no][f.value];
+                    var s_plu_kbn = button_detail['plu_kbn'];
+                    var plu_cd = button_detail['plu_cd'];
+                    if( s_plu_kbn === '0'){
+                        document.getElementById( "q1" ).checked = true;
+                        document.getElementById( "q2" ).checked = false;
+                        document.getElementById( "prod_select" ).disabled = false;
+                        document.getElementById( "sect_select" ).disabled = true;
+                        document.getElementById( "disp_prod_nm1" ).disabled = false;
+                        document.getElementById( "disp_prod_nm2" ).disabled = false;
+                        if( A_data['mst0201']['sorted'][plu_cd] && A_data['mst0201']['sorted'][plu_cd]['disp_prod_nm1']){
+                            document.getElementById( "disp_prod_nm1").value = A_data['mst0201']['sorted'][plu_cd]['disp_prod_nm1'];
+                        }
+                        if( A_data['mst0201']['sorted'][plu_cd] && A_data['mst0201']['sorted'][plu_cd]['disp_prod_nm2']){
+                            document.getElementById( "disp_prod_nm2").value = A_data['mst0201']['sorted'][plu_cd]['disp_prod_nm2'];
+                        }
+                        var prod_array = [];
+                        if(A_data['mst0201']['sorted'][plu_cd] &&  A_data['mst0201']['sorted'][plu_cd]['prod_nm']){
+                            prod_array[plu_cd] =  A_data['mst0201']['sorted'][plu_cd]['prod_nm'];
+                        }else{
+                           prod_array[''] = '商品マスタにデータ無し';
+                           
+                        }
+                        modal_create_select("prod_select",prod_array);
+                        modal_create_select("sect_select",empty_array);
+                        prod_list = ","+plu_cd;
+                        data_select['prod'] = prod_list;
+                    }else if( s_plu_kbn === '1'){
+                         document.getElementById( "q1" ).checked = false;
+                         document.getElementById( "q2" ).checked = true;
+                         document.getElementById( "prod_select" ).disabled = true;
+                         document.getElementById( "sect_select" ).disabled = false;
+                         document.getElementById( "disp_prod_nm1" ).disabled = true;
+                         document.getElementById( "disp_prod_nm2" ).disabled = true;
+                         var sect_array = [];
+                         if( A_data['mst1201']['sorted'][plu_cd] && A_data['mst1201']['sorted'][plu_cd]['sect_nm'] ){
+                            sect_array[plu_cd] =  A_data['mst1201']['sorted'][plu_cd]['sect_nm'];
+                        }else{
+                            sect_array[''] = '部門マスタにデータ無し';
+                        }
+                         modal_create_select("sect_select",sect_array);
+                         modal_create_select("prod_select",empty_array);
+                         document.getElementById( "disp_prod_nm1" ).value = "";
+                         document.getElementById( "disp_prod_nm2" ).value = "";
+                         sect_list = ","+plu_cd;
+                         data_select['sect'] = sect_list;
+                    }   
+                }
+                f.focus();
+                //一括選択状態の時
+                if(delete_mod === 'del'){
+                    document.getElementById( "x1" ).checked = true;
+                    document.getElementById(e.target.id).style.borderColor = '#DC143C';
+                    org_id = org_select.value;
+                    result1 = '';
+                    var row_nb  = Object.keys(data_delete).length;
+                    for(i=0;i<row_nb;i++){
+                        if( data_delete[i]['org_id']   === org_select.value && data_delete[i]['func_no'] === keyNo.value && data_delete[i]['func_kbn'] === page_no && data_delete[i]['reji_no']  === regi_select.value){
+                            data_delete.splice(i,1); 
+                            window[e.target.id].style.borderColor='initial';
+                            return;
+                        }
+                    }
+                    data_delete[row_nb] = {};
+                    data_delete[row_nb]['org_id']   = org_select.value;
+                    data_delete[row_nb]['func_no']  = keyNo.value;
+                    data_delete[row_nb]['func_kbn'] = page_no;
+                    data_delete[row_nb]['reji_no']  = regi_select.value;
+                }                
+            } 
+        }
+        //商品のラジオボタン制御
+        function prod_Change(ischecked){
+            if(ischecked　=== true){
+               document.getElementById("sect_select").disabled = true;
+               document.getElementById("prod_select").disabled = false;
+               document.getElementById("disp_prod_nm1").disabled = false;
+               document.getElementById("disp_prod_nm2").disabled = false;  
+            }
+        }
+        //部門のラジオボタン制御
+        function sect_Change(ischecked){
+            if(ischecked　=== true){
+               document.getElementById("sect_select").disabled = false;
+               document.getElementById("prod_select").disabled = true;
+               document.getElementById("disp_prod_nm1").disabled = true;
+               document.getElementById("disp_prod_nm2").disabled = true;               
+            }
+        }        
+        //   modaru呼び出すためのfunction
+        function modaltest(){
+            modal_test.style.display = "block";
+        }
+        //modaruクローズするためのfunction
+        function modal_close_test(){
+            modal_test.style.display = "none"; 
+        }
+        function insert_test(frm){
+            frm.action = 'http://localhost/profit/index.php?param=Mst6701/insert_test&home=1';
+            alert(frm.action);
+            frm.submit();
+        }
+        
+        //ボタンの配置変更
+        function change_test(){
+             t1 ="";
+             t2 = "";
+            if(!keyNo1.value){
+                alert('配置変更番号が空欄です');
+                keyNo1.click();
+                keyNo1.focus();
+                return;
+            }else if(!keyNo2.value){
+                alert('配置変更番号が空欄です');
+                keyNo2.click();
+                keyNo2.focus();
+                return;
+            }
+            if(c1.value === 'c1'){
+                t1 = working_data[page_no][keyNo1.value];
+                t2 = working_data[page_no][keyNo2.value];
+                if(t1){t1.func_no = Number(keyNo2.value);}
+                if(t2){t2.func_no = Number(keyNo1.value);}
+                delete working_data[page_no][keyNo1.value];
+                working_data[page_no][keyNo1.value] = {};
+                working_data[page_no][keyNo2.value] = t1;
+            }else{
+                t1 = working_data[page_no][keyNo1.value];
+                t2 = working_data[page_no][keyNo2.value];
+                if(t1){t1.func_no = Number(keyNo2.value);}
+                if(t2){t2.func_no = Number(keyNo1.value);}
+                working_data[page_no][keyNo1.value] = t2;
+                working_data[page_no][keyNo2.value] = t1;
+//            alert(keyno_selected);
+            }
+            keyNo1.value = '';
+            keyNo2.value = ''; 
+            keyNo1.click();
+            button_data_reset();
+            onload_btn();
+        }
+        
+        //選択した店舗の見出し設定情報を取得
+        function getdata(){
+            if(select_id === 'org_select1'){
+                keep_org1_list = org_list;
+                regi_select1.innerHTML = '';
+                var new_opt = document.createElement("option");
+                new_opt.value   = '';
+                new_opt.text    = '';
+                //regi_select1.options.add(new_opt,null);                
+                new_opt = document.createElement("option");
+                new_opt.value   = '01';
+                new_opt.text    = '01';
+                regi_select1.options.add(new_opt,null); 
+                if( org_select1.value !== 'empty' && A_data['reji_no_list'][org_select1.value]){
+                    regi_lst = Object.keys(A_data['reji_no_list'][org_select1.value]).sort();
+                    for(i=0;i<regi_lst.length;i++){
+                        loop_regi_no = regi_lst[i];
+                        new_opt = document.createElement("option");
+                        new_opt.value   = loop_regi_no;
+                        new_opt.text    = loop_regi_no;
+                        regi_select1.options.add(new_opt,null);                    
+                    }
+                    regi_select1.disabled = false; 
+                }else{                   
+                    regi_select1.disabled = true;
+                }
+                //modal_gorogoro.hidden = true;                  
+                return;
+            }else{
+                keep_org_list = org_list;
+            }
+            
+            button_data_reset();
+            test_disabled_mnt(true);
+           if(org_select.value === 'empty'){ 
+               working_data={};
+               org_select1.disabled = true;
+               regi_select.disabled = true;
+               start_date.disabled = true;
+               regi_select1.disabled = true;
+               button1.disabled = true;
+               return;
+            }
+            keyNo.value = '1';
+            button1.disabled = false;
+            regi_select.disabled = false;
+            //start_date.disabled = false;
+            //regi_select1.disabled = false; 
+                
+                gorogoro_message.innerHTML = 'データを検索しています';
+                modal_gorogoro.hidden = false;
+                org_id = org_select.value;
+                result1 = '';
+                setTimeout(function () {
+                    datasend = {};
+                    datasend['org_id'] = org_select.value;
+                    Send_querry('param='+JSON.stringify(datasend),'./index.php?param=Mst6701/datasearch','post');
+                    A_data = JSON.parse(result1);
+                    // test122.innerHTML= value.disp_plu1;
+                    console.log('result1: '+result1);  
+                    result1='';
+                    document.getElementById('tab_1').innerText = A_data['mst0010']['disp_plu1'];
+                    document.getElementById('tab_2').innerText = A_data['mst0010']['disp_plu2'];
+                    document.getElementById('tab_3').innerText = A_data['mst0010']['disp_plu3'];
+                    document.getElementById('tab_4').innerText = A_data['mst0010']['disp_plu4'];
+                    document.getElementById('tab_5').innerText = A_data['mst0010']['disp_plu5'];
+                    document.getElementById('tab_6').innerText = A_data['mst0010']['disp_plu6'];
+                    document.getElementById('tab_7').innerText = A_data['mst0010']['disp_plu7'];
+                    document.getElementById('tab_8').innerText = A_data['mst0010']['disp_plu8'];
+                    document.getElementById('tab_9').innerText = A_data['mst0010']['disp_plu9'];
+                    document.getElementById('tab_10').innerText = A_data['mst0010']['disp_plu10'];
+                    if( A_data['mst0201']['sorted']){
+                        data_prod = A_data['mst0201']['sorted'];
+                    }else{
+                        data_prod=[];
+                    }
+                    if(A_data['mst1201']['sorted']){
+                        data_sect = A_data['mst1201']['sorted'];
+                    }else{
+                        data_sect = [];
+                    }
+
+                    //A_data['mst0201']['original'] = [];
+                    data_prod_original = JSON.parse(JSON.stringify( A_data['mst0201']['sorted']));
+                    //console.log(data_prod_original);
+                    document.getElementById( "disp_prod_nm1" ).value = "";
+                    document.getElementById( "disp_prod_nm2" ).value = "";
+                    var org_array = [];
+                    modal_create_select("prod_select",org_array);
+                    modal_create_select("sect_select",org_array);
+                    regi_select.innerHTML = '';
+                    var new_opt = document.createElement("option");
+                    new_opt.value   = '';
+                    new_opt.text    = '';
+                    regi_select.options.add(new_opt,null);                
+                    var new_opt = document.createElement("option");
+                    new_opt.value   = '01';
+                    new_opt.text    = '01';
+                    regi_select.options.add(new_opt,null); 
+                    if(A_data['reji_no_list'][org_id]){
+                        regi_lst = Object.keys(A_data['reji_no_list'][org_id]).sort();
+                        for(i=0;i<regi_lst.length;i++){
+                            loop_regi_no = regi_lst[i];
+                            new_opt = document.createElement("option");
+                            new_opt.value   = loop_regi_no;
+                            new_opt.text    = loop_regi_no;
+                            regi_select.options.add(new_opt,null);                    
+                        }
+                    }
+                    regi_select.disabled = false;
+                    start_date.disabled = false;
+                    //button_data_reset();
+                    //onload_btn();
+                    modal_data(); 
+                    modal_gorogoro.hidden = true;
+                }, 100); 
+        }
+        //登録ボタン処理
+        function insert_btn(){
+            ans = confirm("データを登録します。よろしいですか？");
+            if(ans === true){
+                org_id = org_select.value;
+                result1 = '';
+                datasend = {};
+                gorogoro_message.innerHTML = '登録しています';
+                modal_gorogoro.hidden = false;
+                if(delete_mod === 'del'){
+                    datasend = {
+                                param             : JSON.stringify(data_delete)
+                    };
+                    //Send_querry('param='+JSON.stringify(datasend),'./index.php?param=Mst6701/datadelete','post');  
+                    var path = 'index.php?param=Mst6701/datadelete&home=1';
+
+                    // データ更新
+                    setDataForAjax( datasend, path, 'ajaxScreenUpdate' );                    
+                    return;
+                }
+                datasend['org_id'] = org_select.value;
+                datasend['disp_plu1'] = tab_1.innerText;
+                datasend['disp_plu2'] = tab_2.innerText;
+                datasend['disp_plu3'] = tab_3.innerText;
+                datasend['disp_plu4'] = tab_4.innerText;
+                datasend['disp_plu5'] = tab_5.innerText;
+                datasend['disp_plu6'] = tab_6.innerText;
+                datasend['disp_plu7'] = tab_7.innerText;
+                datasend['disp_plu8'] = tab_8.innerText;
+                datasend['disp_plu9'] = tab_9.innerText;
+                datasend['disp_plu10'] = tab_10.innerText;
+                datasend['reji_no'] = regi_select.value;
+                datasend['org_list'] = keep_org1_list.replace(/^,/,'');
+                datasend['org_select1'] = org_select1.value;
+                datasend['reji_no_1'] = regi_select1.value;
+                datasend['working_data'] = {};
+                datasend['prod_data'] = {};
+                datasend['prod_list'] = "'"+Object.keys(data_prod_list).join("','")+"'";
+                
+                var row_pd  = Object.keys(data_prod_update);
+                for(i=0;i<row_pd.length;i++){
+                    //row_nb = Object.keys(datasend['working_data']).length.toString();
+                    datasend['prod_data'][i]={};
+                    datasend['prod_data'][i]['prod_cd'] = row_pd[i];
+                    datasend['prod_data'][i]['disp_prod_nm1'] = data_prod_update[row_pd[i]]['disp_prod_nm1'];
+                    datasend['prod_data'][i]['disp_prod_nm2'] = data_prod_update[row_pd[i]]['disp_prod_nm2'];
+                }                
+                data_prod_update = {};
+                var page_list = Object.keys(working_data);
+                var button_list;
+                var delete_list = [];
+                var update_list = [];
+                var insert_list = [];
+                datasend['working_data']['ins']=[];
+                datasend['working_data']['upd']=[];
+                for(i=0;i<page_list.length;i++){
+                    var loop_page = page_list[i];
+                    button_list = Object.keys(working_data[loop_page]);
+                    
+                    for(j=0;j<button_list.length;j++){
+                        var loop_button = button_list[j];
+                        if(A_data['mst6701'][regi_select.value]  && A_data['mst6701'][regi_select.value][loop_page] && A_data['mst6701'][regi_select.value][loop_page][loop_button] && !(working_data[loop_page][loop_button] && working_data[loop_page][loop_button]['plu_cd'])){
+                            console.log('here');
+                            //continue;
+                            delete_list[delete_list.length] = "('"+loop_page+"','"+loop_button+"')";
+                            continue;
+                        }
+                        //console.log('loop_page: '+loop_page+' // loop_button:'+loop_button);
+                        //console.log(working_data[loop_page][loop_button]);
+                        row_nb_ins = Object.keys(datasend['working_data']['ins']).length.toString();
+                        row_nb_upd = Object.keys(datasend['working_data']['upd']).length.toString();
+                        if(A_data['mst6701'][regi_select.value]  && A_data['mst6701'][regi_select.value][loop_page] && A_data['mst6701'][regi_select.value][loop_page][loop_button]){
+                            datasend['working_data']['upd'][row_nb_upd] = working_data[loop_page][loop_button];
+                            update_list[update_list.length] = "('"+loop_page+"','"+loop_button+"')";
+                        }else{
+                            datasend['working_data']['ins'][row_nb_ins] = working_data[loop_page][loop_button];
+                            datasend['working_data']['ins'][row_nb_ins]['func_kbn'] = loop_page;
+                            datasend['working_data']['ins'][row_nb_ins]['func_no']  = loop_button; 
+                            insert_list[insert_list.length] = "('"+loop_page+"','"+loop_button+"')";
+                        }
+ 
+                    }
+                }
+                datasend['delete']=delete_list.join();
+                datasend['update']=update_list.join();
+                datasend['insert']=insert_list.join();
+                //datasend['working_data']=JSON.stringify(test);
+                //console.log(testmm);
+                console.log(datasend);
+                setTimeout(function () {
+                    Send_querry('param='+JSON.stringify(datasend),'./index.php?param=Mst6701/dataupdate','post');
+                    //A_data = JSON.parse(result1); 
+                    console.log(result1);
+                    result1 = '';
+                    modal_gorogoro.hidden = true;
+                    getdata();
+                    button_data_reset();
+                    onload_btn();
+                    return true;
+                }, 100); 
+            }else{
+                alert("キャンセルしました");
+                return false;                
+            }
+        }
+        //クリアボタン
+        function clear_btn(){
+            ans = confirm("編集内容をクリアします。よろしいですか？");
+            if(ans === true){
+                working_data = {};
+                //console.log('here');
+                if(A_data['mst6701'][regi_select.value]){
+                    working_data = JSON.parse(JSON.stringify(A_data['mst6701'][regi_select.value]));
+                } else{
+                    working_data['1']={};
+                }
+                A_data['mst0201']['sorted'] = JSON.parse(JSON.stringify(data_prod_original));
+                button_data_reset();
+                onload_btn();
+                return true;
+            }else{
+                alert("キャンセルしました");
+                return false;
+            }
+        }
+        //ajax
+        function  f_org_select(){
+            //console.log(org_select.value);
+            getdata();
+        }
+        //タブの名前（画面PLU名称）取得
+        function tab_name(e){
+            page_no = e.target.id.replace('tab_','');
+            button_data_reset();
+            onload_btn();
+        }   
+        
+        //PLU名称を表示する
+      function onload_btn(){
+            for(i=1;i<57;i++){
+                button_id = 'button_'+i;               
+                if( working_data[page_no] && working_data[page_no][i] ){ //もしmst6701がある、またはmst6701とpegenoがある、またはmmst6701とpegenoとNOの数字がある場合
+                    
+                    button_data_i = working_data[page_no][i];                                     //button_data_iにmst6701とpage_noとkeynoを代入する
+                    if(button_data_i['plu_kbn'] === '0'){                                              //もしbutton_data_iのplu_kbnが0であるならば
+                        //if(! A_data['mst0201']['sorted'][button_data_i['plu_cd']]){continue;}//データない場合は次を実行
+                        window[button_id].style.backgroundColor =  '#FFAD90';
+                        cd_button = A_data['mst0201']['sorted'][button_data_i['plu_cd']];
+                        if(button_data_i.disp_prod_nm1 && button_data_i.disp_prod_nm2){
+                            document.getElementById(button_id).innerHTML = button_data_i.disp_prod_nm1.substr(0,5) + '<br />' + button_data_i.disp_prod_nm2.substr(0,5); 
+                        }else if(button_data_i.disp_prod_nm1){
+                            document.getElementById(button_id).innerHTML = button_data_i.disp_prod_nm1.substr(0,5);
+                        }else if( button_data_i.disp_prod_nm2){
+                            document.getElementById(button_id).innerHTML = button_data_i.disp_prod_nm2.substr(0,5);
+                        }else{
+                            if( button_data_i.prod_nm){
+                                document.getElementById(button_id).innerHTML = button_data_i.prod_nm.substr(0,5);
+                            }else if(cd_button && cd_button.prod_nm){
+                                document.getElementById(button_id).innerHTML = cd_button.prod_nm.substr(0,5);
+                            }else{
+                                document.getElementById(button_id).innerHTML = '商品マスタに<br>データ無し<br />';
+                                window[button_id].style.backgroundColor ='#FFFFCC';
+                            }
+                        }                        
+                    }else if(button_data_i['plu_kbn'] === '1'){
+                        var cd_button = '';
+                        if(A_data['mst1201']['sorted'] && A_data['mst1201']['sorted'][button_data_i['plu_cd']]){
+                            cd_button = A_data['mst1201']['sorted'][button_data_i['plu_cd']];
+                        }//else{return;}
+                        if(cd_button && cd_button.sect_nm){
+                            window[button_id].style.backgroundColor ='#C2EEFF';
+//                                cd_button = A_data['mst1201']['sorted'][button_data_i['plu_cd']];
+                            document.getElementById(button_id).innerHTML = cd_button.sect_nm.substr(0,5);
+                        }else{
+                            document.getElementById(button_id).innerHTML = '部門マスタに<br>データ無し<br />';
+                            window[button_id].style.backgroundColor ='#FFFFCC';
+                        }
+                    }
+                }
+            }
+        }
+        //選択した商品の商品名などの表示
+        function disp_prod_nm(){
+            button_id = 'button_'+keyNo.value; 
+            if(A_data['mst0201']['sorted'][prod_select.value]){
+                A_data['mst0201']['sorted'][prod_select.value]['disp_prod_nm1'] = disp_prod_nm1.value;
+                A_data['mst0201']['sorted'][prod_select.value]['disp_prod_nm2'] = disp_prod_nm2.value;
+            }            
+            if(disp_prod_nm1.value && disp_prod_nm2.value){
+                document.getElementById(button_id).innerHTML = disp_prod_nm1.value.substr(0,5) + '<br />' + disp_prod_nm2.value.substr(0,5); 
+            }else if(disp_prod_nm1.value){
+                document.getElementById(button_id).innerHTML = disp_prod_nm1.value.substr(0,5);
+            }else if(disp_prod_nm2.value){
+                document.getElementById(button_id).innerHTML = disp_prod_nm2.value.substr(0,5);
+            }else{
+                document.getElementById(button_id).innerHTML = prod_select.options[0].innerText.substr(0,5);
+            }
+            working_data[page_no][keyNo.value]['disp_prod_nm1'] =  disp_prod_nm1.value.substr(0,5);
+            working_data[page_no][keyNo.value]['disp_prod_nm2'] =  disp_prod_nm2.value.substr(0,5);  
+            data_prod_update[prod_select.value]={};
+            data_prod_update[prod_select.value]['disp_prod_nm1'] =  disp_prod_nm1.value.substr(0,5);
+            data_prod_update[prod_select.value]['disp_prod_nm2'] =  disp_prod_nm2.value.substr(0,5);            
+            
+        }
+        //商品選択した商品をボタンに表示する。
+        function btn_select_prod(){
+            button_id = 'button_'+keyNo.value;      
+            if(!working_data[page_no]){
+                working_data[page_no]={};
+            }
+            if(!working_data[page_no][keyNo.value]){
+                working_data[page_no][keyNo.value]={};
+            }
+            if(prod_list){
+                window[button_id].style.backgroundColor =  '#FFAD90'; 
+                working_data[page_no][keyNo.value]['organization_id'] = org_select.value;
+                working_data[page_no][keyNo.value]['reji_no'] = regi_select.value;
+                working_data[page_no][keyNo.value]['func_kbn'] = page_no;
+                working_data[page_no][keyNo.value]['func_no'] = keyNo.value;
+                working_data[page_no][keyNo.value]['func_name'] ='PG'+('0'+page_no).slice(-2)+('0'+keyNo.value).slice(-2);
+                working_data[page_no][keyNo.value]['plu_kbn'] = '0';
+                working_data[page_no][keyNo.value]['plu_cd'] = prod_select.value;
+                if(A_data['mst0201']['sorted'][prod_select.value] && A_data['mst0201']['sorted'][prod_select.value]['disp_prod_nm1']){
+                    disp_prod_nm1.value = A_data['mst0201']['sorted'][prod_select.value]['disp_prod_nm1'];
+                }
+                if(A_data['mst0201']['sorted'][prod_select.value] && A_data['mst0201']['sorted'][prod_select.value]['disp_prod_nm2']){
+                    disp_prod_nm2.value = A_data['mst0201']['sorted'][prod_select.value]['disp_prod_nm2'];
+                }
+                disp_prod_nm();
+            }else{
+                document.getElementById(button_id).innerHTML ='PLU名称';
+                window[button_id].style.backgroundColor ='#eee';
+                disp_prod_nm1.value = "";
+                disp_prod_nm2.value = "";
+                delete working_data[page_no][keyNo.value];
+                working_data[page_no][keyNo.value] = {};
+            }
+            data_prod_list[prod_select.value] = 1;
+           
+            //working_data[page_no][keyNo.value]['disp_prod_nm1'] = disp_prod_nm1.value;
+            //working_data[page_no][keyNo.value]['disp_prod_nm2'] = disp_prod_nm2.value;
+            //working_data[page_no][keyNo.value]['uptdel_kbn'] = 'update';
+            
+        }
+        //部門選択した部門をボタンに表示する。
+        function btn_select_sect(){
+            button_id = 'button_'+keyNo.value;
+            window[button_id].style.backgroundColor ='#C2EEFF';
+            document.getElementById(button_id).innerHTML = sect_select.options[0].innerText.substr(0,5);
+            if(!working_data[page_no]){
+                working_data[page_no]={};
+            }
+            if(!working_data[page_no][keyNo.value]){
+                working_data[page_no][keyNo.value]={};
+            }
+            if(sect_list){
+            working_data[page_no][keyNo.value]['organization_id'] = org_select.value;
+            working_data[page_no][keyNo.value]['reji_no'] = '01';
+            working_data[page_no][keyNo.value]['func_kbn'] = page_no;
+            working_data[page_no][keyNo.value]['func_no'] = keyNo.value;
+            working_data[page_no][keyNo.value]['func_name'] ='PG'+('0'+page_no).slice(-2)+('0'+keyNo.value).slice(-2);
+            working_data[page_no][keyNo.value]['plu_kbn'] = '1';
+            working_data[page_no][keyNo.value]['plu_cd'] = sect_select.value;
+            working_data[page_no][keyNo.value]['uptdel_kbn'] = 'update'; 
+        }else{
+            document.getElementById(button_id).innerHTML ='PLU名称';
+            window[button_id].style.backgroundColor ='#eee';
+            delete working_data[page_no][keyNo.value];
+            working_data[page_no][keyNo.value] = {};
+        }
+    }
+            
+        
+        //見出し設定モーダル
+        function modal_data(){
+            org_id = org_select.value;
+            result1 = '';
+            datasend = {};
+            datasend['org_id'] = org_select.value;
+            Send_querry('param='+JSON.stringify(datasend),'./index.php?param=Mst6701/datasearch','post');
+            A_data = JSON.parse(result1);
+            result1='';
+            document.getElementById('name_display_1').innerText = A_data['mst0010']['disp_plu1'];
+            document.getElementById('name_display_2').innerText = A_data['mst0010']['disp_plu2'];
+            document.getElementById('name_display_3').innerText = A_data['mst0010']['disp_plu3'];
+            document.getElementById('name_display_4').innerText = A_data['mst0010']['disp_plu4'];
+            document.getElementById('name_display_5').innerText = A_data['mst0010']['disp_plu5'];
+            document.getElementById('name_display_6').innerText = A_data['mst0010']['disp_plu6'];
+            document.getElementById('name_display_7').innerText = A_data['mst0010']['disp_plu7'];
+            document.getElementById('name_display_8').innerText = A_data['mst0010']['disp_plu8'];
+            document.getElementById('name_display_9').innerText = A_data['mst0010']['disp_plu9'];
+            document.getElementById('name_display_10').innerText = A_data['mst0010']['disp_plu10'];
+        }
+        //ボタン作成
+        function button_data_reset(){
+            system1_content.innerHTML = '';
+             for (i=0;i<7;i++){
+                 for (j=0;j<8;j++){                    
+                    var button_elem = document.createElement('button');
+                    button_elem.className = 'button2';
+                    button_elem.id = 'button_'+((i*8)+(j+1));
+                    button_elem.onclick='select_button';
+                    button_elem.innerHTML = 'PLU名称';
+                    button_elem.style.backgroundColor = '#eee';
+                    button_elem.style.borderColor = 'initial';
+                    system1_content.appendChild(button_elem);
+                    window[button_elem.id].addEventListener('click',select_button);
+                 }
+             }
+        }
+        //見出し名tab部分
+        function tab_newnm(){
+            for(i=1;i<11;i++){
+                input_id = 'name_display_'+i;
+                name_id = 'tab_'+i;
+                window[name_id].innerHTML = window[input_id].innerHTML ;
+            }
+        }
+        function show_data(e){
+           if(!e.target.value){
+               button_data_reset();
+               working_data={};
+               document.getElementById("org_select1").disabled = true;
+               test_disabled_mnt(true);
+               return;
+           }
+           test_disabled_mnt(false);
+           prod_Change(true);
+           document.getElementById("org_select1").disabled = false;
+           if(!A_data['mst6701'][regi_select.value]){
+               working_data  = {};
+               working_data['1']={};
+           }else{
+               working_data =JSON.parse(JSON.stringify(A_data['mst6701'][regi_select.value]));
+           }
+            all_page = Object.keys(working_data);
+           for(i=0;i<all_page.length;i++){
+                loop_page = all_page[i];
+                all_button = Object.keys(working_data[loop_page]);
+               for(j=0;j<all_button.length;j++){
+                   loop_button = all_button[j];
+                    if(working_data[loop_page][loop_button].plu_kbn === '0'){
+                        data_prod_list[working_data[loop_page][loop_button].plu_cd] = 1;
+                    }                   
+               }  
+           }
+           button_data_reset();
+           onload_btn();            
+        }
+        //一括選択ボタン
+        function select_btn(){     
+            if(!delete_mod){
+                if(!clear_btn()){                  
+                    return;
+                }
+                test_disabled_mnt(true);
+                org_select.disabled = true;
+                regi_select.disabled = true;
+                org_select1.disabled = true;
+                regi_select1.disabled = true;
+                start_date.disabled = true;
+                button1.disabled = true;                 
+                delete_mod = 'del';
+                document.getElementById('system1_content').style.backgroundColor = '#AFC8EE';
+                document.getElementById('select_btn').innerHTML = 'キャンセル';
+                document.getElementById('insert_btn').innerHTML = 'PLUを削除する';
+                document.getElementById('insert_btn').disabled = false;
+                document.getElementById('clear_btn').disabled = false;
+                document.getElementById('select_btn').disabled = false;
+//                document.getElementById('clear_btn').disabled = true;
+            }else{
+                delete_mod = '';
+                document.getElementById('system1_content').style.backgroundColor = 'initial';
+                document.getElementById('select_btn').innerHTML = '一括選択';
+                document.getElementById('insert_btn').innerHTML = '登録';
+                clear_btn();
+                test_disabled_mnt(false);
+                org_select.disabled = false;
+                regi_select.disabled = false;
+                org_select1.disabled = false;
+                regi_select1.disabled = false;
+                start_date.disabled = false;
+                button1.disabled = false;                 
+            }
+        }
+        
+
+
+        </script>
+        <style>
+    /*CSSをここに書く*/
+
+    /*タブ切り替え全体のスタイル*/
+    .tabs {
+      margin-top: 50px;
+      background-color: #fff;
+      /*box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);*/
+      min-width: 100px;
+      margin: initial;
+    }
+
+    /*タブのスタイル*/
+    .tab_item {
+      width: 110px;
+      height: 50px;
+      border-bottom: 3px solid rgb(11, 11, 97);/*タブの下のライン*/
+      background-color: #d9d9d9;
+      line-height: 50px;
+      font-size: 11px;
+      text-align: center;
+      color: #565656;
+      display: block;
+      float: left;
+      text-align: center;
+      font-weight: bold;
+      transition: all 0.2s ease;
+      border:1px solid rgb(11, 11, 97);
+    }
+    .tab_item:hover {
+      opacity: 0.75;
+    }
+
+    /*ラジオボタンを全て消す*/
+    input[name="tab_item"] {
+      display: none;
+    }
+
+    /*タブ切り替えの中身のスタイル*/
+    .tab_content {
+      padding-top:5px;
+      /*clear: both;
+      overflow: hidden;*/
+      border:3px solid rgb(11, 11, 97);
+      width: 1240px;
+    }
+    .button1{
+    margin-top: 5px;
+    margin-left: 30px;
+    font-size: 12px;
+    /* 縦方向に10px,横方向に20pxの余白を指定 */
+    padding: 10px 20px;
+    }
+    .button2{
+        /* 文字サイズを1.4emに指定 */
+        font-size: 11px;
+        /* 縦方向に10px、
+         * 横方向に30pxの余白を指定 */
+        margin: 7px;
+        width: 140px;
+        height: 40px; 
+        vertical-align: bottom;        
+    }
+
+    /*選択されているタブのスタイルを変える*/
+    .tabs input:checked + .tab_item {
+      background-color: rgb(11, 11, 97);/*タブ選択時色*/
+      color: #fff;
+    }
+    .button_menu{
+        width: inherit;
+        height:inherit;
+        text-align: center;
+        border:none;
+    }
+    .name01{
+        width: 110px;
+        height: 50px;
+        background-color: #fff;
+    }
+    .test0{
+        float:left;
+        padding-left: 10px;
+    }
+    .test1{
+        float:left;
+        padding-left: 10px;
+    }
+    .model{
+        
+    }
+            /* ゴロゴロモダール*/
+            .loader {
+              float: left;
+              border: 16px solid #f3f3f3;
+              border-radius: 50%;
+              border-top: 16px solid #3498db;
+              width: 50px;
+              height: 50px;
+              -webkit-animation: spin 2s linear infinite; /* Safari */
+              animation: spin 2s linear infinite;
+            }
+
+            /* Safari */
+            @-webkit-keyframes spin {
+              0% { -webkit-transform: rotate(0deg); }
+              100% { -webkit-transform: rotate(360deg); }
+            }
+
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+            .css_gorogoro{
+                background-color: #0D0D70;
+                color: white;
+                margin: auto;
+                padding: 20px;
+                border: 1px solid #888;
+                width: 270px;
+                overflow: hidden;
+                border-radius: 6px;
+                margin-top: 300px;
+            }
+            #modal_gorogoro{
+                position: fixed; /* Stay in place */
+                z-index: 1; /* Sit on top */
+                padding-top: 100px; /* Location of the box */
+                left: 0;
+                top: 0;
+                width: 100%; /* Full width */
+                height: 100%; /* Full height */
+                overflow: auto; /* Enable scroll if needed */
+                background-color: rgb(0,0,0); /* Fallback color */
+                background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            }     
+    </style>
+    </head>
+    <body>
+<!--<form name="serchForm" id="serchForm" method="post" onsubmit="return chf(this)">-->
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site" style="overflow: auto;">
+            <!-- パンくずリスト -->
+            <div class ="group_no_float">
+                <h4 id="pagetitle" style="background-color: rgb(11, 11, 97); border: 1px solid rgb(170, 170, 170); color: whitesmoke; padding: 5px;">&nbsp;商品管理　画面PLU設定マスタ</h4><!--タイトルラベル-->
+            </div>
+            <div>
+                <div class="test0"><label style="background-color: rgb(11, 11, 97); border: 1px solid rgb(170, 170, 170); color: whitesmoke; padding: 2px;">店舗選択</label><!--店舗選択ラベル-->
+                    <select id="org_select" name="org_select"  onchange="mst6701_modal_select_mgt(event)"><option value="no">&nbsp;</option></select>
+                    <input type="checkbox" name="tenpo" value="Yes" id="tenpo" hidden>
+                    <input type="text" name="org_id" value="" id="org_id" hidden>
+                    <input type="text" name="org_nm_lst" value="" id="org_nm_lst" hidden>
+                </div>
+                <div class="test0"><label style="background-color: rgb(11, 11, 97); border: 1px solid rgb(170, 170, 170); color: whitesmoke; padding: 2px;">レジ番号</label><!--レジ番号ラベル-->  
+                    <select id="regi_select" name="regi_select"  onchange="show_data(event)" disabled><option value="01">01</option></select>
+
+                </div>
+                <div class="test0"><label style="background-color: rgb(11, 11, 97); border: 1px solid rgb(170, 170, 170); color: whitesmoke; padding: 2px;">更新店舗選択</label><!--更新店舗選択ラベル-->
+                    <select id="org_select1" name="org_select1"  onchange="mst6701_modal_select_mgt(event)"  disabled><option value="no">&nbsp;</option></select>
+                    <input type="checkbox" name="tenpo" value="Yes" id="tenpo" hidden>
+                    <input type="text" name="org_id" value="" id="org_id" hidden>
+                </div>
+                <div class="test0"><label style="background-color: rgb(11, 11, 97); border: 1px solid rgb(170, 170, 170); color: whitesmoke; padding: 2px;">レジ番号</label><!--レジ番号ラベル-->
+                    <select id="regi_select1" name="regi_select1"  disabled ><option value="01">01</option></select>
+                </div>
+                <div class="test0"><label style="background-color: rgb(11, 11, 97); border: 1px solid rgb(170, 170, 170); color: whitesmoke; padding: 2px;" >変更実施日</label><!--変更実施日ラベル-->
+                    <input type="text" pattern="\d{4}/\d{2}/\d{2}" title="西暦/月の形式で入力してください。" id="start_date" name="start_date" size="10" disabled value=<?php hsc($startDate); ?>>
+                </div><br><br>
+            </div>
+            <!--モーダルの部分-->
+            <div id="modal_org" class="modal">
+                <!-- Modal content -->
+                <div class="modal-content">
+                    <?php include("../modal/View/Modalorganization.html"); ?>
+                </div>
+            </div>
+            <!--モーダルの部分-->
+            <div id="modal_prod" class="modal">
+                <!-- Modal content -->
+                <div class="modal-content">
+                    <?php include("../modal/View/Modalproduct.html"); ?>
+                </div>
+            </div>
+            <!--モーダルの部分-->
+            <div id="modal_sect" class="modal">
+                <!-- Modal content -->
+                <div class="modal-content">
+                    <?php include("../modal/View/Modaldepartment.html"); ?>
+                </div>
+            </div>
+            <!--モーダルの部分-->
+            <div id="modal_test" class="modal">
+                <!-- Modal content -->
+                <div class="modal-content">
+                    <?php include("../modal/View/Modaltest.html"); ?>
+                </div>
+            </div>             
+            <!--タブ部分-->
+            <div id='modal_gorogoro' hidden >
+                <div class="css_gorogoro">
+                    <div class="little_box">
+                        <div class="loader" >
+                        </div>
+                    </div>
+                    <div class="float_rigth">
+                        　<span id='gorogoro_message'>検索しています。</span><br />　お待ちください。
+                    </div>
+                </div>
+            </div>             
+            <div class="tabs">
+                <input id="system1" type="radio" name="tab_item" checked>
+                <label class="tab_item" for="system1" id='tab_1' onClick="tab_name(event)">設定01</label>
+                <input id="system2" type="radio" name="tab_item">
+                <label class="tab_item" for="system2" id='tab_2' onClick="tab_name(event)">設定02</label>
+                <input id="system3" type="radio" name="tab_item">
+                <label class="tab_item" for="system3" id='tab_3' onClick="tab_name(event)">設定03</label>
+                <input id="system4" type="radio" name="tab_item" >
+                <label class="tab_item" for="system4" id='tab_4' onClick="tab_name(event)">設定04</label>
+                <input id="system5" type="radio" name="tab_item" >
+                <label class="tab_item" for="system5" id='tab_5' onClick="tab_name(event)">設定05</label>
+                <input id="system6" type="radio" name="tab_item" >
+                <label class="tab_item" for="system6" id='tab_6' onClick="tab_name(event)">設定06</label>
+                <input id="system7" type="radio" name="tab_item" >
+                <label class="tab_item" for="system7" id='tab_7' onClick="tab_name(event)">設定07</label>
+                <input id="system8" type="radio" name="tab_item" >
+                <label class="tab_item" for="system8" id='tab_8' onClick="tab_name(event)">設定08</label>
+                <input id="system9" type="radio" name="tab_item" >
+                <label class="tab_item" for="system9" id='tab_9' onClick="tab_name(event)">設定09</label>
+                <input id="system10" type="radio" name="tab_item" >
+                <label class="tab_item" for="system10" id='tab_10' onClick="tab_name(event)">設定10</label>
+                <button class="button1" id="button1" onClick="modaltest()"  disabled>見出し設定</button><br><br>
+            
+                <div class="tab_content" id="system1_content">
+                      <!--ボタン作成 tab01 for-->
+<!--<div style="background-color:#CCCCFF;width:100px;height:100px" >-->
+                </div>
+                <!--キーNO部分-->
+                <div id="test111">
+                    <div class="test0"><input type="radio" name="x1"  id="x1" onclick="onRadioButtonChange(ischecked)"  checked>PLU内容編集</div><br><br><!--項目ラジオ<ボタン-->
+                    <div class="test0"><label style="background-color: rgb(11, 11, 97); border: 1px solid rgb(170, 170, 170); color: whitesmoke; padding: 2px;">キーNo</label></div><!--キーNOラベル-->
+                    <div class="test0">                        
+                        <input type="text" onkeyup="if(event.keyCode==9||event.keyCode==16) return; this.value=this.value.replace(/[^0-9]+/i,'')" id="keyNo" name="keyNo" size="2" maxlength="2" readonly><!--キーNO入力項目-->
+                        <!--種別部分-->
+                        <label id="pagetitle" style="background-color: rgb(11, 11, 97); border: 1px solid rgb(170, 170, 170); color: whitesmoke; padding: 2px;margin-left: 10px">種別</label><!--種別ラベル-->
+                        <input type="radio" name="q1" id="q1" value="商品" onclick="prod_Change(this.checked)" checked  >商品<!--商品ラジオボタン-->
+                        <input type="radio" name="q1" id="q2" value="部門" onclick="sect_Change(this.checked)" >部門<!--部門ラジオボタン-->
+                        <br />
+                    </div>
+                <!--商品と部門-->
+                <div><br><br>
+                    <div class="test1"><label style="background-color:#FFAD90;border: 1px solid rgb(170, 170, 170);color: black; padding: 4px; width:104px;height:58px;font-size: 30px;text-align:center;">商品</label></div><!--商品（大）ラベル-->
+                    <div class="test1">
+                        <label id="pagetitle" style="background-color: rgb(11, 11, 97); border: 1px solid rgb(170, 170, 170); color: whitesmoke; padding: 2px;"  >商品</label><!--商品ラベル-->
+                        <select id="prod_select" name="prod_select"  onchange="mst6701_modal_select_mgt(event)"  disabled><option value="no">&nbsp;</option></select><!--商品コード表示項目-->
+                        <br />
+                        <label id="pagetitle" style="background-color: rgb(11, 11, 97); border: 1px solid rgb(170, 170, 170); color: whitesmoke; padding: 2px;">表示用名称（上/下）</label><!--表示用名称ラベル-->
+                        <input type="text" name="disp_prod_nm1" id="disp_prod_nm1"  maxlength="6" size="14" placeholder="PLU名(上)" onchange="disp_prod_nm()"  disabled><!--表示用名称（上）-->
+                        <label id="pagetitle" style="background-color: rgb(11, 11, 97); border: 1px solid rgb(170, 170, 170); color: whitesmoke; padding: 2px;">　/　</label><!--/ラベル-->
+                        <input type="text" name="disp_prod_nm2" id="disp_prod_nm2"  maxlength="6" size="14" placeholder="PLU名(下)" onchange="disp_prod_nm()"  disabled><!--表示用名称（下）-->
+                    </div>
+                <!--部門-->    
+                <div><br><br><br><br>
+                    <div class="test1"><label style="background-color:#C2EEFF;border: 1px solid rgb(170, 170, 170);color: black; padding: 4px; width:104px;height:54px;font-size: 30px;text-align:center">部門</label></div><!--部門（大）ラベル-->
+                    <div class="test1">
+                        <label id="pagetitle" style="background-color: rgb(11, 11, 97); border: 1px solid rgb(170, 170, 170); color: whitesmoke; padding: 2px;">部門</label><!--部門ラベル-->
+                        <select id="sect_select" name="sect_select" onchange="modal_select_mgt(event)" disabled><option value="no" >&nbsp;</option></select><!--部門コード表示項目-->
+                        <br />
+                    </div>
+                </div>
+                <!--登録ボタンなど-->
+                    <div>
+                        <div style="position:absolute; left:1000px;">
+                            <button class="insert" id="insert_btn" name="insert_btn" onclick="insert_btn()"  disabled >登録</button><!--登録ボタン-->
+                            <button class="clear" id="clear_btn" name="clear_btn" onclick="clear_btn()"  disabled >クリア</button><!--クリアボタン-->
+<!--                            <button class="delete" id="delete_btn" name="delete_btn" onclick="delete_btn()" >削除</button>削除ボタン            -->
+                            <button class="select" id="select_btn" name="select_btn" onclick="select_btn()"  disabled >一括選択</button><!--クリアボタン-->
+                        </div>
+                    </div>
+                </div>
+                <div><br><br>
+                    <hr style="border-top: 1px solid #CCCCCC;"><!--区切り線-->
+                </div>
+                <div class="test1">
+                    <input type="radio" name="x1"  id="x2" >PLU配置変更<br><!--項目ラジオ<ボタン-->
+                    <label id="pagetitle" style="background-color: rgb(11, 11, 97); border: 1px solid rgb(170, 170, 170); color: whitesmoke; padding: 2px;">PLU配置変更</label><!--ボタン配置変更ラベル-->
+                    <input type="text" onkeyup="if(event.keyCode==9||event.keyCode==16) return; this.value=this.value.replace(/[^0-9]+/i,'')" name="keyNo1" id="keyNo1" size="2" maxlength="2" onClick="select_button(event)" onInput="input_check('number')" readonly><!--ボタン配置　開始-->
+                    <select name="example" id="c1" >
+                        <option value="c1" >→</option><!--ボタン配置変更条件選択1-->
+                        <option value="c2" >⇆</option><!--ボタン配置変更条件選択2-->
+                    </select>
+                    <input type="text" onkeyup="if(event.keyCode==9||event.keyCode==16) return; this.value=this.value.replace(/[^0-9]+/i,'')" name="keyNo2" id="keyNo2" size="2" maxlength="2" onClick="select_button(event)" readonly><!--ボタン配置　終了-->
+                    <button class="change" name="change" id="change" onclick="change_test()"  disabled>変更</button><!--変更ボタン-->
+                </div>
+            </div>
+        </div><!-- /#sb-site -->
+        </div>
+<!--    </form>-->
+    </body>
+</html>

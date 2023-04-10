@@ -1,0 +1,343 @@
+<?php
+    /**
+     * @file      トップメッセージ画面(View)
+     * @author    millionet oota
+     * @date      2017/01/26
+     * @version   1.00
+     * @note      トップメッセージ画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array('default.css', 'common.js', 'jquery-ui.min.js', 'jquery-ui.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述 
+            include("Common/HtmlHeader.php"); 
+        ?>
+        <script src="../js/topMessage/jquery/datepicker-ja.js" /></script>
+        <script type="text/javascript">
+            var displayPageNo = 1;
+            var displayRecordCnt = <?php hsc($_SESSION["DISPLAY_RECORD_CNT"]); ?>;
+            var topMessageItemInfo = null;
+            var topMessageSort = null;
+            var no_click_cnt = 0;
+            var title_click_cnt = 0;
+            var contents_click_cnt = 0;
+            var registrationTime_click_cnt = 0;
+
+            $(document).ready(function()
+            {
+                /**
+                 * トップメッセージ検索
+                 */
+                $('#search').click(function()
+                {
+                    displayPageNo = 1;
+                    // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                    var data = {
+                                  displayPageNo : displayPageNo,
+                                  displayRecordCnt : displayRecordCnt,
+                                  searchTitle : $('#title').val(),
+                                  searchContents : $('#contents').val(),
+                                  searchThumbnail : $('#thumbnail').val(),
+                                  searchFile : $('#file').val(),
+                                  searchViewer_count : $('#viewer_count').val(),
+                                  searchSAppStartDate : $('#minApplicationStartDate').val(),
+                                  searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                               };
+                    var path = 'index.php?param=TopMessage/search&home=1';
+
+                    // データ更新
+                    setDataForAjax( data, path );
+
+                    // サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+            });
+
+            /**
+             * データの新規情報入力画面遷移
+             */
+            function inputPanelTransition()
+            {
+                var lineInfo = "";
+                var disaInfo = "";
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              topMessageID : lineInfo,
+                              disabledID : disaInfo,
+                              searchTitle : $('#title').val(),
+                              searchContents : $('#contents').val(),
+                              searchThumbnail : $('#thumbnail').val(),
+                              searchFile : $('#file').val(),
+                              searchViewer_count : $('#viewer_count').val(),
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              sortConditions : topMessageSort
+                           };
+                var path = 'index.php?param=TopMessage/addInput&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+                // サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * データの更新情報入力画面遷移
+             */
+            function editPanelTransition(thisLineInfo, thisDisaInfo)
+            {
+                var lineInfo = thisLineInfo;
+                var disaInfo = thisDisaInfo;
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              topMessageID : lineInfo,
+                              disabledID : disaInfo,
+                              searchTitle : $('#title').val(),
+                              searchContents : $('#contents').val(),
+                              searchThumbnail : $('#thumbnail').val(),
+                              searchFile : $('#file').val(),
+                              searchViewer_count : $('#viewer_count').val(),
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              sortConditions : topMessageSort
+                           };
+                var path = 'index.php?param=TopMessage/addInput&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+                // サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * ソート処理
+             */
+            function setColumnInfo(thisItemInfo)
+            {
+                topMessageItemInfo = thisItemInfo;
+
+                topMessageSort = 0;
+                if(topMessageItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?>")
+                {
+                    no_click_cnt++;
+                    if((no_click_cnt % 2) != 0)
+                    {
+                        topMessageSort = 1;
+                    }
+                    else
+                    {
+                        topMessageSort = 2;
+                    }
+                }
+                else if(topMessageItemInfo === "タイトル")
+                {
+                    title_click_cnt++;
+                    if((title_click_cnt % 2) != 0)
+                    {
+                        topMessageSort = 3;
+                    }
+                    else
+                    {
+                        topMessageSort = 4;
+                    }
+                }
+                else if(topMessageItemInfo === "内容")
+                {
+                    contents_click_cnt++;
+                    if((contents_click_cnt % 2) != 0)
+                    {
+                        topMessageSort = 5;
+                    }
+                    else
+                    {
+                        topMessageSort = 6;
+                    }
+                }
+                else if(topMessageItemInfo === "作成日")
+                {
+                    registrationTime_click_cnt++;
+                    if((registrationTime_click_cnt % 2) != 0)
+                    {
+                        topMessageSort = 7;
+                    }
+                    else
+                    {
+                        topMessageSort = 8;
+                    }
+                }
+                
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchTitle : $('#title').val(),
+                              searchContents : $('#contents').val(),
+                              searchThumbnail : $('#thumbnail').val(),
+                              searchFile : $('#file').val(),
+                              searchViewer_count : $('#viewer_count').val(),
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              sortConditions : topMessageSort
+                           };
+                var path = 'index.php?param=TopMessage/search&home=1';
+
+                // データ更新
+                setDataForAjax( data, path );
+
+                // サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 表示ページ数選択
+             */
+            function displayPage(pageCnt)
+            {
+                displayPageNo = pageCnt;
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchTitle : $('#title').val(),
+                              searchContents : $('#contents').val(),
+                              searchThumbnail : $('#thumbnail').val(),
+                              searchFile : $('#file').val(),
+                              searchViewer_count : $('#viewer_count').val(),
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              sortConditions : topMessageSort
+                           };
+                var path = 'index.php?param=TopMessage/search&home=1';
+                // データ更新
+                setDataForAjax( data, path );
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 表示レコード数選択
+             */
+            function displayRecord(recordCnt)
+            {
+                displayRecordCnt = recordCnt;
+                displayPageNo = 1;
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchTitle : $('#title').val(),
+                              searchContents : $('#contents').val(),
+                              searchThumbnail : $('#thumbnail').val(),
+                              searchFile : $('#file').val(),
+                              searchViewer_count : $('#viewer_count').val(),
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              sortConditions : topMessageSort
+                           };
+                var path = 'index.php?param=TopMessage/search&home=1';
+                // データ更新
+                setDataForAjax( data, path );
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             *  DatePickerを設定
+             */
+            $(function()
+            {
+                $( "#minApplicationStartDate, #maxApplicationStartDate" ).datepicker({
+                    showButtonPanel: true,
+                    dateFormat: 'yy/mm/dd',
+                });
+            });
+             
+        </script>
+
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site" style="overflow: auto;">
+            <!-- パンくずリスト -->
+            <?php include("Common/Breadcrumb.php"); ?>
+            <form id="searchForm" name="searchForm" method="POST" action="index.php?param=TopMessage/search&home=1">
+                <input type="hidden" name="companyID" value="<?php hsc( $_SESSION['COMPANY_ID'] ); ?>">
+                <!-- serchBoardArea -->
+                <div class="serchBoardArea" style=" clear:both; width:99%; margin:5px auto !important; background-color: #ffffff" >
+                    <table>
+                        <tbody>
+                            <tr>
+                                <th style="width:100px">タイトル</th>
+                                <td style="width:220px">
+                                    <input type="text" name="title" id="title" style="width:200px" value="<?php hsc($searchArray['title']); ?>">
+                                </td>
+                                <th style="width:100px">内容</th>
+                                <td style="width:220px">
+                                    <input type="text" name="comment" id="contents" style="width:200px" value="<?php hsc($searchArray['contents']); ?>">
+                                </td>
+                                <th style="width:100px">作成日</th>
+                                <td style="width:220px">
+                                    <input type="text" name="minApplicationStartDate" id="minApplicationStartDate" style="width:80px" pattern="\d{4}/\d{2}/\d{2}" title="<?php hsc($Log->getMsgLog('MSG_BASE_0305')); ?>" value="<?php hsc($searchArray['sAppStartDate']); ?>">
+                                    　～　
+                                    <input type="text" name="maxApplicationStartDate" id="maxApplicationStartDate" style="width:80px" pattern="\d{4}/\d{2}/\d{2}" title="<?php hsc($Log->getMsgLog('MSG_BASE_0305')); ?>" value="<?php hsc($searchArray['eAppStartDate']); ?>">
+                                </td>
+                            </tr>
+                            <tr>
+<!--                            
+                                <th style="width:220px">サムネイル</th>
+                                <td style="width:220px">
+                                    <input type="text" name="thumbnail" id="thumbnail" value="<?php hsc($searchArray['thumbnail']); ?>" style="width:200px" >
+                                </td>
+                                <th style="width:220px">添付ファイル名</th>
+                                <td style="width:220px">
+                                    <input type="text" name="file" id="file" value="<?php hsc($searchArray['file']); ?>" style="width:200px" >
+                                </td>
+                                <th style="width:220px">閲覧数</th>
+                                <td>
+                                    <input type="text" name="viewer_count" id="viewer_count" style="width:200px" value="<?php hsc($searchArray['viewer_count']); ?>">
+                                </td>
+-->
+                            </tr>
+                        </tbody>
+                    </table>
+                </div><!-- /.serchBoardArea -->
+
+                <!-- serchButtonArea -->
+                <div style="text-align: center; white-space: nowrap;" id="styleAlignCenter">
+                    <div style="display: inline-block;" class="serchButtonArea">
+                        <input type="submit" id="search" name="search" href="#" value="検索" class="serch" />
+                    </div><!-- /.serchButtonArea -->
+                    <div style="display: inline-block;" class="logicButtonArea">
+                        <input type="button" id="add" name="add" onClick="inputPanelTransition()" value="　 新規作成" class="add">
+                    </div><!-- /.logicButtonArea -->
+                </div><!-- /#styleAlignCenter -->
+            </form>
+            <form id="modForm" name="modForm" >
+                <?php include("TopMessageTablePanel.html"); ?>
+            </form>
+
+        </div><!-- /#sb-site -->
+
+        <?php include("../FwCommon/View/Dialog.php"); ?>
+    </body>
+</html>

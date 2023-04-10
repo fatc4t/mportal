@@ -1,0 +1,43 @@
+<?php
+/**
+ * @file      商品検索結果(View)
+ * @author    USE K.Kanda(media-craft.co.jp)
+ * @date      2018/01/22
+ * @version   1.00
+ * @note      商品検索結果
+ */
+require_once( SystemParameters::$SANITIZE_SETTING_FILE );
+$index = 1;
+$index2 = 1;
+
+/** 明細のループ */
+foreach($proArr as $key => $val)
+{
+  /** 最初の1行目 */
+  if($index2==1) {
+?>
+<tr>
+<?php
+  }
+?>
+    <td style="width:20px;text-align:center;" class="products"><input type="checkbox" name="jan_cd_<?php hsc($index);?>" class="jan_check" value="<?php hsc($val['jan_cd']);?>"></td>
+    <td>
+        <span onclick="open_syosai(<?php hsc($val['jan_cd']);?>)"><u>
+            <img style="width:160px;height:160px;" id="main_img" src="<?php hsc($val['imgs']);?>"><br>
+            <?php hsc($val['pro_name']);?><br>
+            <?php hsc($val['tanka']);?>円
+        </u></span>
+    </td>
+<?php
+  $index2++;
+  /** 商品6つごとに行変更 */
+  if($index2==6) {
+?>
+</tr>
+<?php
+    $index2 = 1;
+  }
+    $index++;
+}
+?>
+</tr>

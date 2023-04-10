@@ -1,0 +1,37 @@
+<?php
+require_once( SystemParameters::$SANITIZE_SETTING_FILE );
+if(!empty($ordersList))
+{
+  //print_r($ordersList);
+?>
+<table id="listTable" style="height:550px;width:1100px;">
+    <thead class="meisai">
+        <tr>
+            <th style="width:180px;">受注日時
+            <th style="width:100px;">ステータス
+            <th style="width:300px;">取引先
+            <th style="width:100px;">点数
+            <th style="width:100px;">金額
+            <th style="width:80px;">
+        </tr>
+    </thead>
+    <tbody class="meisai">
+        <?php
+        foreach($ordersList as $key => $value) {
+       	?>
+        <tr>
+            <td style="width:180px;text-align:center;"><?php hsc($value['order_time']);?>
+            <td style="width:100px;text-align:center;"><?php hsc($value['kbn_name']);?>
+            <td style="width:300px;"><?php hsc($value['pha_name']);?>
+            <td style="width:100px;text-align:right;"><?php hsc($value['suu']+$value['hakosuu']);?>
+            <td style="width:100px;text-align:right;"><?php hsc(number_format($value['syokei']+$value['souryo']));?>
+            <td style="width:80px;text-align:center;"><div class="button_select" data-phaid="<?php hsc($value['pha_id']);?>" data-ordno="<?php hsc($value['ord_no']);?>">CSV</div>
+        </tr>
+        <?php
+        }
+        ?>
+    </tbody>
+</table>
+<?php
+}
+?>

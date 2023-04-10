@@ -1,0 +1,51 @@
+<?php
+    /**
+     * @file      勤怠一覧印刷画面(View)
+     * @author    USE M.Higashihara
+     * @date      2016/07/13
+     * @version   1.00
+     * @note      勤怠一覧印刷画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php            $fileNames = array( 'default.css', 'common.js', 'jquery-ui.min.js', 'jquery-ui.css' );    // cssまたはｊｓファイルを拡張子付きで配列に記述 
+            include("Common/HtmlHeader.php");
+        ?>
+        
+        <script src="../js/attendance/jquery/printThis.js"></script>
+        <script type="text/javascript">
+            /**
+             * 印刷プレビュー画面へ
+             */
+            function goPrint()
+            {
+                $('#outPrint').printThis();
+            }
+             
+            /**
+             * 検索画面へ
+             */
+            function dateMoved()
+            {
+                location.href = 'index.php?param=AttendanceRecord/show&home=1';
+            }
+            
+        </script>
+    </head>
+    <body onload="goPrint(); setTimeout('dateMoved();',1);" id="outPrint">
+        <!-- Site -->
+        <div id="sb-site">
+            <div class="approvalStampContainer">
+                <div class="approvalStamp"></div>
+                <div class="approvalStamp"></div>
+                <div class="approvalStamp"></div>
+                <div class="approvalStampBlank"></div>
+            </div>
+            <div style=" clear:both;"></div>
+            <?php include("AttendanceRecordTablePanel.html"); ?>
+            
+        </div><!-- /.sb-site -->
+    </body>
+</html>

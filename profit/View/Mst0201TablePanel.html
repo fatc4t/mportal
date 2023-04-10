@@ -1,0 +1,78 @@
+<?php
+    /**
+     * @file        POS商品マスタ画面(View)
+     * @author      川橋
+     * @date        2018/11/15
+     * @version     1.00
+     * @note        POS商品マスタ画面
+     */
+?>
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ); ?>
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-ajax">
+
+            <!-- PageMoveArea -->
+            <?php include("../FwCommon/View/PagingArea.php"); ?>
+
+            <?php if( $isScrollBar ) { ?>
+                <div class="serchListArea" style="clear:both; width:1200px; margin:5px auto 0px auto !important; height:25px;">
+            <?php } else { ?>
+                <div class="serchListArea" style="clear:both; width:1200px; margin:5px auto 0px auto !important;">
+            <?php } ?>
+                <table style="margin-top:0px; margin-bottom:0px;">
+                    <tbody>
+                        <tr>
+                            <th style="width:50px;"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0810')); ?></u><?php hsc($headerArray['mst0201NoSortMark']); ?></span></th><!-- No -->
+                            <th style="width:120px;"><span onClick="setColumnInfo('組織');"><u>組織</u><?php hsc($headerArray['prodOrganizationSortMark']); ?></span></th>
+                            <th style="width:110px;"><span onClick="setColumnInfo('商品コード');"><u>商品コード</u><?php hsc($headerArray['prodCodeSortMark']); ?></span></th>
+                            <th style="width:540px;"><span onClick="setColumnInfo('商品名');"><u>商品名</u><?php hsc($headerArray['prodNameSortMark']); ?></span></th>
+                            <th style="width:260px;"><span onClick="setColumnInfo('商品名カナ');"><u>商品名カナ</u><?php hsc($headerArray['prodKanaSortMark']); ?></span></th>
+                            <th><span onClick="setColumnInfo('規格容量');"><u>規格容量</u><?php hsc($headerArray['capaNameSortMark']); ?></span></th>
+                        </tr>
+                    </tbody>
+                </table>
+            <?php if( $isScrollBar ) { ?>
+                </div>
+                <div class="serchListArea" style="width:1200px; margin:0px auto; overflow-y:auto; height:400px; !important;">
+            <?php } ?>
+                <table id="nameTable" style="background-color: #ffffff">
+                            <?php foreach($mst0201List as $mst0201) { ?>
+                                <?php $mst0201_no++; ?>
+                                <?php if(!$mst0201NoSortFlag) { ?>
+                                    <?php $display_no++; ?>
+                                <?php } ?>
+                                <tr>
+                                    <?php
+                                        /*
+                                    <td align="right" style="width:20px;"><?php hsc($display_no); ?></td>
+                                        */
+                                    ?>
+                                    <?php
+                                        $mst0201_pk = strval($mst0201['organization_id']).':'.strval($mst0201['prod_cd']);
+                                    ?>
+                                    <?php 
+                                        if(!empty($mst0201['updateDisabled'])){
+                                            $isUpdateDisabled = 1;
+                                        }else{
+                                            $isUpdateDisabled = 0;
+                                        }
+                                    ?>
+                                    <td style="text-align:right;  width:50px;"><?php hsc($display_no); ?></td>
+                                    <td style="text-align:center; width:120px;"><?php hsc($mst0201['abbreviated_name']); ?></td>
+                                    <td style="text-align:left;   width:110px;">
+                                        <span onClick="editPanelTransition('<?php hsc($mst0201_pk); ?>', '<?php hsc($isUpdateDisabled); ?>')">
+                                            <a href="#"><?php hsc($mst0201['prod_cd']); ?></a>
+                                        </span>
+                                    </td>
+                                    <td style="text-align:left;   width:540px;"><?php hsc(mb_strimwidth($mst0201['prod_nm'],0,90,'...')); ?></td>
+                                    <td style="text-align:left;   width:260px;"><?php hsc($mst0201['prod_kn']); ?></td>
+                                    <td style="text-align:left;"><?php hsc($mst0201['prod_capa_nm']); ?></td>
+                                </tr>
+                                <?php if($mst0201NoSortFlag) { ?>
+                                      <?php $display_no--; ?>
+                                <?php } ?>
+                            <?php } ?>
+                        </tbody>
+                    </table>
+                </div><!-- /.serchListArea -->
+           </div><!-- /.jquery-replace-ajax -->

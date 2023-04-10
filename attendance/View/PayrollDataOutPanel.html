@@ -1,0 +1,324 @@
+<?php
+    /**
+     * @file      給与データ出力マスタ画面(View)
+     * @author    USE R.dendo
+     * @date      2016/06/24
+     * @version   1.00
+     * @note      給与データ出力マスタ画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array( 'default.css',
+                                'common.js', 
+                                'jquery-ui.min.js', 
+                                'jquery-ui.css' );    // cssまたはｊｓファイルを拡張子付きで配列に記述 
+
+            include("Common/HtmlHeader.php");
+        ?>
+        <script src="../js/attendance/jquery/jquery.ui.ympicker.js" /></script>
+        <script src="../js/attendance/jquery/jquery-migrate-1.0.0.js" /></script>
+        <script type="text/javascript">
+            var lineInfo = null;
+            var btnInfo  = null;
+            var displayPageNo = 1;
+            var displayRecordCnt = <?php hsc($_SESSION["DISPLAY_RECORD_CNT"]); ?>;
+            var PayrollDataOutItemInfo = null;
+            var payrollDataOutSort = 0;
+            var no_click_count = 0;
+            var organization_click_count = 0;
+            var approval_click_count = 0;
+            var lclosing_conditions_click_count = 0;
+            $(document).ready(function()
+            {
+                /**
+                 * 検索ボタンクリック
+                 */
+                $('#searchForm').submit(function()
+                {
+                    event.preventDefault();
+
+                    displayPageNo = 1;
+                    // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                    var data = {
+                                  displayPageNo : displayPageNo,
+                                  displayRecordCnt : displayRecordCnt,
+                                  searchOrganizatioID : $('#organizationName').val(),
+                                  searchClosingDate : $('#closingDate').val(),
+                                  searchBeneath : document.getElementById("isBeneath").checked,
+                                  sortConditions  : 0
+                               };
+
+                    var path = 'index.php?param=PayrollDataOut/search&home=1';
+
+                    // データ更新
+                    setDataForAjax( data, path );
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+                
+                /**
+                 * 出力ボタンクリック
+                 */
+                $('#output').click(function()
+                {
+                    event.preventDefault();
+                    document.getElementById("dialog_output").textContent = 'この条件で出力してよろしいですか？';
+                    $("#dialog_output").dialog('open');
+                });
+            });
+
+            /**
+             * CSVダウンロード実行
+             */
+            function excAction()
+            {
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              searchUserID : $('#userID').val(),
+                              searchOrganizatioID : $('#organizationName').val(),
+                              searchClosingDate : $('#closingDate').val(),
+                              searchBeneath : document.getElementById("isBeneath").checked,
+                              sortConditions  : 0
+                           };
+
+                var path = 'index.php?param=PayrollDataOut/output&home=1';
+
+                // データ更新
+                var f = document.forms['searchForm'];
+                f.method = 'POST'; // method(GET or POST)を設定する
+                f.action = path; // action(遷移先URL)を設定する
+                f.submit(); // submit する
+                return true;
+            }
+
+            /**
+             * ソート処理
+             */
+            function setColumnInfo(thisItemInfo)
+            {
+                PayrollDataOutItemInfo = thisItemInfo;
+
+                payrollDataOutSort = 0;
+
+                if(PayrollDataOutItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?>")<!-- No -->
+                {
+                    no_click_count++;
+                    if((no_click_count % 2) != 0)
+                    {
+                        payrollDataOutSort = 1;
+                    }
+                    else
+                    {
+                        payrollDataOutSort = 2;
+                    }
+                }
+                else if(PayrollDataOutItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0922')); ?>")<!-- 締め年月 -->
+                {
+                    closing_date_click_count++;
+                    if((closing_date_click_count % 2) != 0)
+                    {
+                        payrollDataOutSort = 3;
+                    }
+                    else
+                    {
+                        payrollDataOutSort = 4;
+                    }
+                }
+                else if(PayrollDataOutItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?>")<!-- 組織名 -->
+                {
+                    organization_click_count++;
+                    if((organization_click_count % 2) != 0)
+                    {
+                        payrollDataOutSort = 5;
+                    }
+                    else
+                    {
+                        payrollDataOutSort = 6;
+                    }
+                }
+                else if(PayrollDataOutItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0923')); ?>")<!-- 締め状況 -->
+                {
+                    approval_click_count++;
+                    if((approval_click_count % 2) != 0)
+                    {
+                        payrollDataOutSort = 7;
+                    }
+                    else
+                    {
+                        payrollDataOutSort = 8;
+                    }
+                }
+                else if(PayrollDataOutItemInfo === "<?php hsc($Log->getMsgLog('MSG_BASE_0924')); ?>")<!-- 下部組織の締め状況 -->
+                {
+                    lclosing_conditions_click_count++;
+                    if((lclosing_conditions_click_count % 2) != 0)
+                    {
+                        payrollDataOutSort = 9;
+                    }
+                    else
+                    {
+                        payrollDataOutSort = 10;
+                    }
+                }
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                           displayPageNo : displayPageNo,
+                           displayRecordCnt : displayRecordCnt,
+                           searchUserID : $('#userID').val(),
+                           searchOrganizatioID : $('#organizationName').val(),
+                           searchClosingDate : $('#closingDate').val(),
+                           searchBeneath : document.getElementById("isBeneath").checked,
+                           //下部組織の締め状況
+                           searchLClosingConditions : $('#lclosingConditions').val(),
+                           sortConditions : payrollDataOutSort 
+                           };
+
+                var path = 'index.php?param=PayrollDataOut/search&home=1';
+                // データ更新
+                setDataForAjax( data, path );
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 表示レコード数選択
+             */
+            function displayRecord(recordCnt)
+            {
+                displayRecordCnt = recordCnt;
+                displayPageNo = 1;
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchUserID : $('#userID').val(),
+                              searchOrganizatioID : $('#organizationName').val(),
+                              searchClosingDate : $('#closingDate').val(),
+                              searchBeneath : document.getElementById("isBeneath").checked,
+                              //下部組織の締め状況 searchLClosingConditions : $('#lclosingConditions').val(),
+                              sortConditions : payrollDataOutSort 
+                            };
+                var path = 'index.php?param=PayrollDataOut/search&home=1';
+                // データ更新
+                setDataForAjax( data, path );
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+             /**
+             * 表示ページ数選択
+             */
+            function displayPage(pageCnt)
+            {
+                displayPageNo = pageCnt;
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              displayPageNo : displayPageNo,
+                              displayRecordCnt : displayRecordCnt,
+                              searchUserID : $('#userID').val(),
+                              searchOrganizatioID : $('#organizationName').val(),
+                              searchClosingDate : $('#closingDate').val(),
+                              searchBeneath : document.getElementById("isBeneath").checked,
+                              //下部組織の締め状況 searchLClosingConditions : $('#lclosingConditions').val(),
+                              sortConditions : payrollDataOutSort 
+                            };
+                var path = 'index.php?param=PayrollDataOut/search&home=1';
+                // データ更新
+                setDataForAjax( data, path );
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+              * 画面生成時自動読み込み
+              */
+            $(function() {
+                /*
+                 * DatePickerInisilizer
+                 * @author 2016/06/30 Y.Sugou
+                 */
+                $("#closingDate").ympicker({
+                    altField: "#closingDate" //リターンセットUI IDorCLASS名
+                    ,altFormat: "yy/mm" //リターン日付形式
+                    ,monthNamesShort: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"]  //カレンダー表示月形式
+                    ,showAnim: "slideDown" //表示アニメーション形式
+                    ,yearRange: "c-2:c+3" //プルダウン年範囲
+                });
+            });
+            
+        </script>
+        
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site" style="overflow: auto;">
+            <!-- パンくずリスト -->
+            <?php include("Common/Breadcrumb.php"); ?>
+            <form id="searchForm" name="searchForm" method="POST" >
+                <input type="hidden" name="companyID" value="<?php hsc( $_SESSION['COMPANY_ID'] ); ?>">
+                <!-- serchBoardArea -->
+                <div class="serchBoardArea" style="width:99%; margin:5px auto !important; background-color: #ffffff">
+                    <table>
+                        <tbody>
+                            <tr>
+                                <th style="width:110px"><?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?></th><!-- 組織名 -->
+                                <td style="width:220px">
+                                    <?php include("../FwCommon/View/SearchOrganizationName.php"); ?>
+                                </td>
+                                <th style="width:110px">出力対象年月日</th>
+                                <td style="width:110px">
+                                    <input type="text" pattern="\d{4}/\d{2}" name="closingDate" id="closingDate" style="width: 100px" value="<?php hsc (date('Y/m', strtotime(date('Y-m-1') . '-1 month')));?>">
+                                </td>
+                                <th style="width:110px">下位組織も対象</th>
+                                <td style="width:110px"><input type="checkbox" name="isBeneath" id="isBeneath" checked></td>
+                            </tr>
+                            <tr>
+                                <th>ファイル分割</th>
+                                <td>
+                                    <input type="radio" name="file" value="1" checked>給与フォーマットごと
+                                    <input type="radio" name="file" value="2">1ファイル
+                                </td>
+                                <th>出力条件</th>
+                                <td colspan="3">
+                                    <input type="radio" name="output" value="1" checked>勤怠締め済みのみ
+                                    <input type="radio" name="output" value="2">勤怠締めていないもの含む
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div><!-- /.serchBoardArea -->
+                <!-- serchButtonArea -->
+                <div class="serchButtonArea">
+                    <p align=center>
+                        <input type="submit" id="search" name="search" href="#" value="検索" class="serch" />
+                        <input type="submit" id="output" name="output" href="#" value="出力" class="csv" />
+                    </p>
+                </div><!-- /.serchButtonArea -->
+                <?php include("PayrollDataOutTablePanel.html"); ?>
+            </form>
+
+        </div><!-- /.sb-site -->
+        <?php include("../FwCommon/View/Dialog.php"); ?>
+    </body>
+</html>

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>特売検索</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!--<link rel="stylesheet" href="../css/product/jquery-ui.css" >	
+        <link rel="stylesheet" href="../css/product/default.css" >	        -->
+        <style>
+            body {
+              /*font-family: MS Gothic;*/
+                background-color: whitesmoke;
+            }
+            label {
+              background-color: #0B0B61;
+              color: white;
+              font-weight: bold;
+              padding: 2px;
+              text-transform: uppercase;
+            /*font-size: 12pt;*/
+              font-size: 11pt;
+              margin: 1px;
+              display: inline-block;              
+            } 
+            .input_small2{
+                width: 8em;
+            } 
+            thead#thead_id th {
+                background-color: #0B0B61;
+                border: 1px solid #AAA;
+                color: white;
+                text-align: -webkit-center;
+                font-size: 11pt;
+            }
+            tbody#tbody_id {
+                background-color: #fff;
+                border: 1px solid #0B0B61;
+                font-size: 11pt;
+            }
+            /* organization */
+            thead#thead_id th:nth-child(2),
+            tbodytbody_id tr td:nth-child(2){
+                width: 12em;
+            }
+            /* sale_plan_cd */
+            thead#thead_id th:nth-child(3),
+            tbodytbody_id tr td:nth-child(3){
+                width: 6em;                
+            }
+            /* sale_plan_nm */
+            thead#thead_id th:nth-child(4),
+            tbodytbody_id tr td:nth-child(4){
+                width: 30em;
+            }
+            thead#thead_id th:nth-child(5),
+            tbodytbody_id tr td:nth-child(5),
+            thead#thead_id th:nth-child(6),
+            tbodytbody_id tr td:nth-child(6){
+                width: 8em;
+            }
+            thead#thead_id th:nth-child(7),
+            tbodytbody_id tr td:nth-child(7){
+                width: 6em;
+            }
+        </style>
+
+        <script type="text/javascript" src="../js/product/jquery/jquery.min.js"></script>
+        <script type="text/javascript" src="../js/template1/jquery-ui.min.js" ></script>
+        <link rel="stylesheet" href="../css/product/jquery-ui.css" >	
+        <script src="../js/product/jquery/datepicker-ja.js" /></script>
+        <script type="text/javascript">
+            $.datepicker.setDefaults( $.datepicker.regional[ "ja" ] );
+            $(function()
+            {
+                $( "#txt_SALE_PLAN_DT" ).datepicker({
+                    showButtonPanel: true,
+                    beforeShow: function( input ) {
+                        setTimeout(function() {
+                            var buttonPane = $( input )
+                                .datepicker( "widget" )
+                                .find( ".ui-datepicker-buttonpane" );
+
+                            $( "<button>", {
+                                text: "クリア",
+                                click: function() {
+                                    //Code to clear your date field (text box, read only field etc.) I had to remove the line below and add custom code here
+                                    $.datepicker._clearDate( input );
+                                }
+                            }).appendTo( buttonPane ).addClass("ui-datepicker-clear ui-state-default ui-priority-primary ui-corner-all");
+                        }, 1 );
+                    },
+                    onChangeMonthYear: function( year, month, instance ) {
+                        setTimeout(function() {
+                            var buttonPane = $( instance )
+                                .datepicker( "widget" )
+                                .find( ".ui-datepicker-buttonpane" );
+
+                            $( "<button>", {
+                                text: "クリア",
+                                click: function() {
+                                    //Code to clear your date field (text box, read only field etc.) I had to remove the line below and add custom code here
+                                    $.datepicker._clearDate( instance.input );
+                                }
+                            }).appendTo( buttonPane ).addClass("ui-datepicker-clear ui-state-default ui-priority-primary ui-corner-all");
+                        }, 1 );
+                    }
+                });
+            });
+
+            var table_size = 30;
+            var pagenb = 0;
+            
+            var keys=[];
+            keys=["abbreviated_name","sale_plan_cd", "sale_plan_nm", "sale_plan_str_dt", "sale_plan_end_dt", "detail_cnt"];
+            var result = "";
+            thead_nm            = ["","組織名","コード","特売企画名","開始年月日","終了年月日","明細数"];
+            pmst1301_sd         = '<?php echo json_encode(json_encode($mst1301_searchdata)); ?>';
+            ptypmst1301_sd      = JSON.parse(pmst1301_sd.slice(1,-1));
+            working_data        = ptypmst1301_sd;
+            var pagemaxnb = Math.ceil(ptypmst1301_sd.length/table_size)-1 ;
+            //
+            abbreviated_list    = '<?php echo json_encode(json_encode($abbreviatedNameList)); ?>';
+            A_abbreviated_list  = JSON.parse(abbreviated_list.slice(1,-1));
+            
+            function fresult(e){
+                result=e.target.value;
+                //console.log(result);
+                checkboxlst=document.getElementsByName('ckbox_val');
+                //console.log(checkboxlst);
+                for(i=0;i < checkboxlst.length; i++){
+                    checkboxlst[i].checked= false;
+                }
+                document.getElementById(e.target.id).checked= true;
+            }
+            function tbodydata(data,start,nbRow){ 
+                tbod = document.getElementById("tbody_id");
+                tbod.innerHTML = '';
+                if(data.length > 0){ 
+                    if(keys.length <= 0){
+                        keys = Object.keys(data[0]);            
+                    }
+                    ilength=data.length;
+                    if(nbRow > ilength-start){
+                        nbRow=ilength-start;                        
+                    }
+                    for(i=0;i < nbRow ; i++ ){ 
+                        var trow         = tbod.insertRow(i);
+                        var ckbox        = trow.insertCell(0);
+                        var newckBox     = document.createElement('input');
+                        newckBox.type    = 'checkbox';
+                        newckBox.name    = 'ckbox_val';
+                        newckBox.id      = 'ckbox_' + i;
+//                        newckBox.value   = data[ilength-start-i-1].supp_cd;
+                        var iIdx = ilength-start-i-1;
+                        newckBox.value   = data[iIdx].organization_id + ':' + data[iIdx].sale_plan_cd;
+                        newckBox.onclick = fresult;
+                        ckbox.appendChild(newckBox);
+                        for(j=0;j < keys.length; j++){
+                            var newcell = trow.insertCell(j+1);
+                            newcell.innerHTML = data[ilength-start-i-1][keys[j]];
+                            if (keys[j] === "detail_cnt"){
+                                newcell.style.textAlign = 'right';
+                            }
+                        }
+                    }
+                }                
+            }
+            function datashowpage(showpage){
+                tbodydata(working_data,showpage*table_size,table_size);
+            }
+            function firstpage(){
+                pagenb=0;
+                document.getElementById("bt_previous").setAttribute("disabled", true);
+                document.getElementById("bt_next").removeAttribute("disabled");
+                datashowpage(pagenb);
+            }
+            function lastpage(){
+                pagenb=pagemaxnb;
+                document.getElementById("bt_previous").removeAttribute("disabled");
+                document.getElementById("bt_next").setAttribute("disabled", true);
+                datashowpage(pagenb);
+            }
+            function previous(){
+                pagenb--;
+                if(pagenb > 0){  
+                    document.getElementById("bt_previous").removeAttribute("disabled");
+                }
+                else {
+                    pagenb = 0;
+                    document.getElementById("bt_previous").setAttribute("disabled", true);
+                }
+                if(pagenb < pagemaxnb){
+                    document.getElementById("bt_next").removeAttribute("disabled");
+                }
+                else {
+                    pagenb = pagemaxnb;                    
+                    document.getElementById("bt_next").setAttribute("disabled", true);
+                }                
+                datashowpage(pagenb);
+            }
+            function next(){ 
+                pagenb++;
+                if(pagenb < pagemaxnb){
+                    document.getElementById("bt_next").removeAttribute("disabled");
+                }
+                else {
+                    pagenb = pagemaxnb;                    
+                    document.getElementById("bt_next").setAttribute("disabled", true);
+                }
+                if(pagenb > 0){  
+                    document.getElementById("bt_previous").removeAttribute("disabled");
+                }
+                else {
+                    pagenb = 0;
+                    document.getElementById("bt_previous").setAttribute("disabled", true);
+                }                
+                datashowpage(pagenb);
+            }
+            function searchdata(event_id){
+                var orgn_id_val     = document.getElementById("cmb_ORGANIZATION_ID").value;
+                var plan_nm_val     = document.getElementById("txt_SALE_PLAN_NM").value;
+                var plan_dt_val     = document.getElementById("txt_SALE_PLAN_DT").value;
+
+                if(!orgn_id_val && !plan_nm_val && !plan_dt_val){
+                    working_data = ptypmst1301_sd;
+                    pagemaxnb = Math.ceil(working_data.length/table_size)-1 ;
+                    firstpage();
+                    return;
+                }
+
+                working_data = [];
+                for(var i = 0 ; i<ptypmst1301_sd.length;i++){
+                    var j=0;
+                    if(orgn_id_val){
+                        if(!ptypmst1301_sd[i].organization_id){continue;}
+                        if(ptypmst1301_sd[i].organization_id == orgn_id_val){
+                            j=1;
+                        }
+                        else{continue;}
+                    }
+                    if(plan_nm_val){
+                        if(!ptypmst1301_sd[i].sale_plan_nm){continue;}
+                        if(ptypmst1301_sd[i].sale_plan_nm.indexOf(plan_nm_val) !== -1  ){
+                            j=1;
+                        }
+                        else{continue;}
+                    }
+                    if(plan_dt_val){
+                        if(!ptypmst1301_sd[i].sale_plan_str_dt && !ptypmst1301_sd[i].sale_plan_end_dt){continue;}
+                        if(ptypmst1301_sd[i].sale_plan_str_dt <= plan_dt_val && ptypmst1301_sd[i].sale_plan_end_dt >= plan_dt_val){
+                            j=1;
+                        }
+                        else{continue;}
+                    }                    
+                    if(j===1){
+                        working_data.push(ptypmst1301_sd[i]);
+                    }
+                }
+                pagemaxnb = Math.ceil(working_data.length/table_size)-1 ;
+                firstpage();
+            }
+            function send_result(){
+                if (result != ""){
+                    spath = window.location.href;
+                    spath = spath.split('?'); 
+                    spath = spath[0]+'?param=Mst1301/show&search='+result;
+                    window.location.replace(spath);
+                }
+            }
+//ADDEND 2020/10/21 kanderu
+            //検索画面からmain画面に戻る
+            function goBack() {
+                    spath = window.location.href;
+                    spath = spath.split('?'); 
+                    spath = spath[0]+'?param=Mst1301/show&sectcd=';
+                    window.location.replace(spath);   
+            }
+//ADDEND 2020/10/21 kanderu
+        </script>
+        <style>
+            /*//ADDSTR kanderu 20201021            */
+             #back{
+              width: 80px;
+              margin-right: 2px;
+            }
+            tbody  {
+                background-color: #fff;
+                border: 1px solid #0B0B61;
+            }
+            td {
+                background-color: #fff;
+                border: 1px solid #0B0B61;
+                
+            }
+            #send_result{
+              width: 80px;
+              margin-right: 250px;
+            }
+            #btn{
+               right:3.4%;
+               margin-top:23px;
+               margin-left: 350px;
+            }
+            #tblsrc{
+          margin-bottom: -37px;
+               }
+            #sb-site{
+                max-width: 1220px;
+                margin-left: auto !important;
+                margin-right: auto !important;
+            }   
+            #cmb_ORGANIZATION_ID{
+              position: absolute;
+               width:183px;
+            }
+            #tblsrc{
+          margin-left: 350px;
+            }:
+            #data{
+              margin-top:1000px;
+            }   
+/*//ADDEND kanderu 20201021            */   
+        </style>    
+        
+        
+    </head>
+    <body>
+    <!-- Site -->
+    <div id="sb-site" style="overflow: auto;">
+        
+        <table width="312px">
+        <th id="titlesrc" style="background-color:#0B0B61; color:white; font-size:12pt; ">商品管理 ★特売マスタ★特売検索</th>
+        </table >
+<!--        <div>特売検索</div>-->
+<!--ADDSTR kanderu 20201021        -->   
+<!--戻るbutton-->
+        <p align=center>
+        <input type="button"  id="back" name="back" value="戻る" class="return" onclick="goBack()">
+        <button type="button" id="send_result" onclick="send_result()"  >決定</button>
+        </p>   
+<!--ADDEND kanderu 20201021        -->
+        <div>
+            <label class="input_small2" for="cmb_ORGANIZATION_ID"> 組織名 </label>
+            <select id="cmb_ORGANIZATION_ID" onchange="searchdata('cmb_ORGANIZATION_ID')">
+                <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+                <?php foreach($abbreviatedNameList as $abbreviated) { ?>
+                    <option value="<?php hsc($abbreviated['organization_id']); ?>" <?php hsc($selected); ?>><?php hsc($abbreviated['abbreviated_name']); ?></option>
+                <?php } ?>
+            </select><br />
+            <label class="input_small2" for="txt_SALE_PLAN_NM"> 特売企画名 </label>
+            <input type="text"  id="txt_SALE_PLAN_NM" style="width:170px;" onblur="searchdata('txt_SALE_PLAN_NM')"><br />
+            <label class="input_small2" for="txt_SALE_PLAN_DT"> 日付 </label>
+            <input type="text"  id="txt_SALE_PLAN_DT" onchange="searchdata('txt_SALE_PLAN_DT')" readonly><br /><br />
+            <button type="button" id="bt_fisrt" onclick="firstpage()"  >先頭ページ</button><button type="button" id="bt_previous" onclick="previous()" disabled >前ページ</button><button type="button" id="bt_next" onclick="next()">次ページ</button><button type="button" id="bt_last" onclick="lastpage()"  >最終ページ</button>
+        </div>
+        <br />
+        <div>
+            <table>
+                <thead id="thead_id">
+                    <tr>
+                        <th>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="tbody_id">
+                    
+                </tbody>
+            </table>
+        </div>
+<!--        <button type="button" id="send_result" onclick="send_result()"  >決定</button>-->
+    </div><!-- /#sb-site -->
+        <script type="text/javascript">
+            thead = document.getElementById("thead_id");
+            thead.innerHTML = '';           
+            for(i=0;i < thead_nm.length ; i++ ){
+                field_nm            = document.createElement('th');
+                field_nm.innerHTML  = "";
+                field_nm.innerHTML  = thead_nm[i];
+                thead.appendChild(field_nm);
+            }
+            tbodydata(ptypmst1301_sd,0,table_size);
+           
+        </script>
+    </body>
+</html>

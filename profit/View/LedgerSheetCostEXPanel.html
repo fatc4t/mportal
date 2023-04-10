@@ -1,0 +1,148 @@
+<?php
+    /**
+     * @file      コスト帳票画面(View)
+     * @author    millionet oota
+     * @date      2016/06/30
+     * @version   1.00
+     * @note      コスト帳票画面
+     */
+?>
+<?php
+    header('Content-Type: application/vnd.ms-excel');
+    header('Content-Type: application/vnd.ms-excel');
+    header('Content-Disposition: attachment; filename="コスト帳票.xls"');
+ ?>
+<!DOCTYPE html>
+<html>
+    <head>
+<?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+<!-- Stylesheets -->
+    <STYLE type="text/css">
+#sb-site .serchListArea {
+	margin:10px 10px;
+}
+
+.serchListArea table th {
+  color: #fff;
+  padding: 2px 2px;
+  background: #0D0D70;
+  border-left:1px solid #000000;
+  border-right:1px solid #000000;
+  border-top:1px solid #000000;
+  border-bottom:1px solid #000000;
+  line-height: 120%;
+  text-align: center;
+  text-shadow:0 -1px 0 rgba(34,85,136,0.9);
+  box-shadow: 0px 1px 1px rgba(255,255,255,0.3) inset;
+  height:25px;
+}
+.serchListArea table th:first-child {
+  border-radius: 5px 0 0 0;	
+}
+.serchListArea table th:last-child {
+  border-radius:0 5px 0 0;
+  border-right:1px solid #258;
+  box-shadow: 2px 2px 1px rgba(0,0,0,0.1),0px 1px 1px rgba(255,255,255,0.3) inset;
+}
+.serchListArea table tr td {
+  padding: 2px 2px;
+  border-top: 1px solid #000000;
+  border-bottom: 1px solid #000000;
+  border-left: 1px solid #000000;
+  border-right: 1px solid #000000;
+  vertical-align: middle;
+  height: 25px;
+}
+.serchListArea tr:nth-child(even) td {  
+  background-color: #EFEFEF;  
+}
+    </STYLE>
+    </head>
+    <body>
+<!-- Site -->
+<div id="sb-site">
+<form name="serchForm">
+<div class="serchListArea">
+<table align="center">
+    <tr>
+        <td>
+            <table id="serchTable" align="left" style="width:500px;">
+                <tr>
+                    <th align="center" width="65">帳票種別</th>
+                    <td>コスト帳票</td>
+                    <th align="center" width="65">集計期間</th>
+                    <td><?php hsc($startDate); ?> ～ <?php hsc($endDate); ?></td>
+                </tr>
+            </table>
+        </td>
+        <td>
+            <input class="submit" type="submit" name="submit" value="検索">
+        </td>
+</table>
+<br />
+<!-- 固定ヘッダ -->
+<table>
+    <tr>
+        <!-- 空わく固定 -->
+        <th id="viewList" align="center" colspan=1 rowspan=<?php hsc($maxRowspan); ?> width=150></th>
+        <td>
+            <!-- 水平ヘッダ 現在は固定 -->
+            <div id="header_h">                                      
+            <table>
+                <tr>
+                    <?php if( !empty($orgList) ) { ?>
+                        <?php foreach($orgList as $oList) { ?>
+                            <th align="center" width=60><?php hsc($oList['organization_name']); ?></th>
+                        <?php } ?>
+                    <?php } ?>
+                </tr>
+            </table>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <!-- 垂直ヘッダ -->
+            <div id="header_v">
+                <table style="width: 150px;">
+                <!-- タイトル部  -->
+                <?php if( !empty($headrList) ) {
+                        foreach ($headrList as $rows ) {
+                ?>
+                        <tr>
+                            <th id='viewList' align='left' width=150><?php hsc($rows['headrName']); ?></th>
+                        </tr>
+                    <?php } ?>
+                <?php } ?>
+            </table>
+            </div>
+        </td>
+        <td>
+            <!-- データ部分  -->
+            <div id="data">
+            <table>
+                <?php if( !empty($headrList) ) { ?>
+                    <?php $headrList_no = 0 ?>
+                    <?php foreach ($headrList as $hrows ) { ?>
+                <tr>
+                    <?php if( !empty($mcodeList) ) { ?>
+                        <?php foreach ($mcodeList as $mcode ) { ?>
+                            <td align='right' width=60><?php hsc(number_format($mcode[$headrList_no]['value'])); ?></td>
+                        <?php } ?>
+                    <?php } ?>
+                </tr>
+                    <?php $headrList_no += 1 ?>
+                    <?php } ?>
+                <?php } ?>
+            </table>
+            </div>
+        </td>
+    </tr>
+</table>
+</div>
+</form>
+</div><!-- /#sb-site -->
+</body>
+</html>

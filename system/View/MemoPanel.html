@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+        <?php include("../home/View/Common/HtmlHeader.php"); ?>  
+    <script type="text/javascript" src="../js/system/common.js" ></script>        
+    <script type="text/javascript" src="../js/system/jquery-ui.min.js" ></script>
+    <script type="text/javascript" src="../js/system/jquery/datepicker-ja.js" ></script>
+    <link rel="stylesheet" href="../css/system/jquery-ui.css" >	
+    <link rel="stylesheet" href="../css/system/default.css" >	
+    <script type="text/javascript" src="../../FwCommon/js/common.js" ></script>
+
+    <title>得点倍率マスタ</title>
+    <style>
+        
+        body {
+            
+            background-color: whitesmoke;
+        }
+        label {
+          background-color: #0B0B61;
+          color: white;
+          font-weight: bold;
+          padding: 2px;
+          text-transform: uppercase;
+          font-size: 12pt;
+          margin: 1px;
+          width: 9em;
+          margin-right: 5px;
+        }
+        div{
+          /*margin: 0px;  */
+            margin-left: 5px;
+        }
+        #sect {
+            max-height: 50em;
+            display: flex;
+            flex-flow: column;
+            height: 100%;
+            width: 100%;
+            padding: 0;
+            border-spacing: 0;  
+        }
+        #sect thead {
+            /* head takes the height it requires, 
+            and it's not scaled when table is resized */
+            flex: 0 0 auto;
+            width: calc(100% - 17px);
+        }
+        #sect tbody {
+            /* body takes all the remaining available space */
+            flex: 1 1 auto;
+            display: block;
+            overflow-y: scroll;
+            padding: 0;
+        }
+        #sect tbody tr {
+            width: 100%;
+        }
+        #sect thead,
+        #sect tbody tr {
+            display: table;
+            table-layout: fixed;
+            padding: 0;
+        }  
+        #sect   thead th:first-child,
+        #sect   tbody tr td:first-child {
+            width: 3em;
+        }        
+
+        /* Style the tab */
+        .tab {
+          overflow: hidden;
+          border: 1px solid #ccc;
+          background-color: #f1f1f1;
+        }
+
+        /* Style the buttons inside the tab */
+        .tab button {
+          background-color: inherit;
+          float: left;
+          border: none;
+          outline: none;
+          cursor: pointer;
+          padding: 14px 16px;
+          transition: 0.3s;
+          font-size: 17px;
+        }
+
+        /* Change background color of buttons on hover */
+        .tab button:hover {
+          background-color: #ddd;
+        }
+
+        /* Create an active/current tablink class */
+        .tab button.active {
+          background-color: #ccc;
+        }
+
+        /* Style the tab content */
+        .tabcontent {
+          display: none;
+          padding: 6px 12px;
+          border: 1px solid #ccc;
+          border-top: none; 
+        }        
+
+        .left {
+          float : left;
+          padding-left: 1em;
+          vertical-align: middle;
+          min-width: 30em;
+
+        }  
+         .right {
+          float : right;
+          padding-left: 1em;
+          vertical-align: middle;
+          width: 20em;
+        }
+        .lbl_table{
+                background-color: #0B0B61;
+                color: white;
+                font-weight: bold;
+                padding: 2px;
+                text-transform: uppercase;
+                font-size: 12pt;
+                display: inline-block;  
+        }
+        .memo{
+            width: 15em;
+        }
+        .cd{
+            width: 4em;
+        }
+        thead th {
+            background-color: #0B0B61;
+            border: 1px solid #AAA;
+            color: white;
+            text-align: -webkit-center;
+            min-width: 2em;
+        }
+        tbody {
+            background-color: #fff;
+        }  
+        .datepicker{
+            width: 8em !important;
+        }
+        p {
+            text-align: right;
+        }
+        .small{
+           width: 1.5em;
+        }
+    </style>
+    
+    <script type="text/javascript"> 
+       
+        company_id          = "<?php hsc( $_SESSION['COMPANY_ID'] ); ?>";
+        porg_id_list        = '<?php echo json_encode(json_encode($org_id_list)); ?>';
+        ptyporg_id_list     = JSON.parse(porg_id_list.slice(1,-1)); 
+        pmst6201            = '<?php echo json_encode(json_encode($mst6201)); ?>';
+        ptypmst6201         = JSON.parse(pmst6201.slice(1,-1)); 
+        pmst6201list        = '<?php echo json_encode(json_encode($mst6201list)); ?>';
+        ptypmst6201list     = JSON.parse(pmst6201list.slice(1,-1));  
+        org_id              = "<?php hsc( $org_id ); ?>";
+        receipt_cd          = "<?php hsc( $receipt_cd ); ?>"; 
+        upd                 = "<?php hsc( $upd ); ?>"; 
+        data                = {};
+        if(!ptypmst6201list.list){
+            ptypmst6201list={list:""};
+        }
+        r_size = 4;
+            
+        /**
+         * 
+         *  DatePickerを設定
+         *
+         */
+        $.datepicker.setDefaults( $.datepicker.regional[ "ja" ] );
+        $(function()
+        {
+            $( ".datepicker", ).datepicker({
+                showButtonPanel: true,
+                dateFormat: 'yy/mm/dd'
+            });
+
+        });      
+        
+        window.onload = function() {
+            compselect  = document.getElementById("comp_nm");
+            opt         = document.createElement("option");
+            for( var j=0; j < ptyporg_id_list.length; j++){
+                opt     = document.createElement("option");
+                opt.value   = ptyporg_id_list[j].organization_id;
+                opt.text    = ptyporg_id_list[j].organization_name;
+                compselect.options.add(opt,null);
+            } 
+            compselect.value = org_id;
+            
+            clearval();
+            setval();
+            createlistner();
+            
+            $('H4').css({backgroundColor:'#0B0B61',border:'1px solid #AAA',color:'whitesmoke',padding:'5px'});
+        };
+        
+        function createlistner(){
+            elem_input = document.getElementsByTagName("INPUT");
+            //console.log(elem_input);
+            for(i=0;i<elem_input.length;i++){
+                w_elem = elem_input[i];
+                //console.log(w_elem);
+                if(w_elem.id !== ""){
+                    //console.log(w_elem.id);
+                    w_elem.addEventListener('change',f_change);
+                    w_elem.addEventListener('input',f_input);
+                    if(w_elem.id.indexOf("dt") !== -1){
+                        w_elem.addEventListener('blur',f_change);
+                    }
+                }
+            }
+        }        
+        function f_change(e){
+            elem        = document.getElementById(e.target.id);
+            val         = e.target.value;
+            strkey      = e.target.id;
+            if(e.target.id === 'receipt_cd'){
+                if(val !== ""){
+                    if(val !== receipt_cd){
+                        val = ("0".repeat(r_size) + val).slice(-r_size);
+                        elem.value = val;
+                        receipt_cd = val;
+                        if(ptypmst6201list.list.indexOf(val) !== -1 ){
+                           showdata(e); 
+                        }else{
+                            clearval();
+                            upd = "";
+                        }
+                    }
+                }
+            }else if(e.target.id.indexOf("dt") !== -1){
+// case date        
+                //console.log("here1");
+                w_val = e.target.value;
+                if(e.target.value !== ""){
+                    if(!isNaN(e.target.value) ){
+                        w_val = w_val.replace(/\./g, "");
+                        w_val = w_val.replace(/-/g, "");
+                        w_val = w_val.replace(/(\d{4})(\d{2})(\d{2})/g, '$1/$2/$3');
+                        date_val = new Date (w_val);
+                        if(isNaN(date_val)){
+                            document.getElementById(e.target.id).value = "";
+                            alert("※生年月日(西暦)が正しくありません。（yyyymmddかyyyy/mm/dd）");
+                            document.getElementById(e.target.id).focus();
+                            return;
+                        }  
+                        document.getElementById(e.target.id).value = w_val;
+                    }else{
+                        date_val = new Date (w_val);
+                        if(isNaN(date_val)){
+                            document.getElementById(e.target.id).value = "";
+                            alert("※生年月日(西暦)が正しくありません。（yyyymmddかyyyy/mm/dd）");
+                            document.getElementById(e.target.id).focus();
+                            return;
+                        }
+                    }
+                }   
+                setTimeout(function(){ 
+                    if(document.getElementById(e.target.id).value === ""){
+                       val = document.getElementById(e.target.id).value;
+                       return;
+                    }
+                    val = document.getElementById(e.target.id).value.replace(/\//g,"");
+                    //console.log("id: "+e.target.id);
+                    if(strkey.indexOf("str") !== -1){
+                        effect_end_id = "receipt_end_dt";
+                        end_val = document.getElementById(effect_end_id).value.replace(/\//g,"");
+                        //console.log('str: '+val+' / end: '+end_val);
+                        if(end_val !== ""){
+                            if(val > end_val){
+                                document.getElementById(e.target.id).value = "";
+                                alert("※期間指定が不正です。開始日が終了日を超えています。");
+                                document.getElementById(e.target.id).focus();
+                                return;
+                            }
+                        }
+                        return;                        
+                    }else{
+                        effect_str_id = "receipt_str_dt";
+                        str_val = document.getElementById(effect_str_id).value.replace(/\//g,"");
+                        if(str_val !== ""){
+                            if(val < str_val){
+                                document.getElementById(e.target.id).value = "";
+                                alert("※期間指定が不正です。開始日が終了日を超えています。");
+                                document.getElementById(e.target.id).focus();
+                                return;
+                            }
+                        }
+                        return;                        
+                    }
+                }, 100);
+            }
+        }
+        
+        function f_input(e){
+            if(!e.data){
+                e.data=e.target.value.slice(-1);
+            }
+            //console.log(e.data);
+            elem = document.getElementById(e.target.id);
+            var w_val = e.target.value;                
+                w_val = w_val.split(".")[0];
+                w_val = w_val.replace(/\s/g, "");
+                w_val = w_val.replace(/\./g, "");
+                w_val = w_val.replace(/-/g, "");
+                if("receipt_cd" === e.target.id){
+                    if(isNaN(e.data)){                    
+                       w_val = w_val.replace(/\D/g,'');
+                       alert(" ※数値のみ入力できます");
+                    }
+                }
+                if(e.target.id.indexOf("dt") === -1){
+                    if(isNaN(e.data) && e.data !== "/"){
+                        w_val = w_val.replace(e.target.data,'');
+                    }
+                }
+                elem.value = w_val;            
+        }
+        function clearval(){
+            document.getElementById("receipt_kbn").value= "01";
+            document.getElementById("receipt_str_dt").value= "";
+            document.getElementById("receipt_end_dt").value= "";
+            document.getElementById("receipt_line_1").value= "";
+            document.getElementById("receipt_line_2").value= "";
+            document.getElementById("receipt_line_3").value= "";
+            document.getElementById("receipt_line_4").value= "";
+            document.getElementById("receipt_line_5").value= "";
+        }
+        
+        function setval(){
+            document.getElementById("receipt_cd").value= receipt_cd;
+            if(ptypmst6201.length > 0){
+                document.getElementById("receipt_kbn").value= ptypmst6201[0].receipt_kbn;
+                document.getElementById("receipt_str_dt").value= ptypmst6201[0].receipt_str_dt.replace(/(\d{4})(\d{2})(\d{2})/g, '$1/$2/$3');
+                document.getElementById("receipt_end_dt").value= ptypmst6201[0].receipt_end_dt.replace(/(\d{4})(\d{2})(\d{2})/g, '$1/$2/$3');
+                document.getElementById("receipt_line_1").value= ptypmst6201[0].receipt_line_1;
+                document.getElementById("receipt_line_2").value= ptypmst6201[0].receipt_line_2;
+                document.getElementById("receipt_line_3").value= ptypmst6201[0].receipt_line_3;
+                document.getElementById("receipt_line_4").value= ptypmst6201[0].receipt_line_4;
+                document.getElementById("receipt_line_5").value= ptypmst6201[0].receipt_line_5;
+            }
+        }
+        
+        function showdata(e){
+            if(e.target.id === "comp_nm"){
+                org_id = e.target.value;
+            }
+            spath       = window.location.href;
+            spath       = spath.split('?'); 
+            spath       = spath[0]+'?param=Memo/show&org_id='+org_id;
+            if(e.target.id === "receipt_cd"){
+               spath += "&receipt_cd="+e.target.value; 
+            }
+            window.location.replace(spath);             
+        }
+
+        function send_result(){
+            data_send = [];
+            if(document.getElementById("receipt_str_dt").value === "" || document.getElementById("receipt_end_dt").value === ""){
+                alert("※有効期間(開始と終了)を入力してください。");
+                return;
+            }
+
+            data_send["receipt_kbn"]    = 	document.getElementById("receipt_kbn").value;   
+            data_send["receipt_str_dt"] = 	document.getElementById("receipt_str_dt").value.replace(/\//g,"");
+            data_send["receipt_end_dt"] = 	document.getElementById("receipt_end_dt").value.replace(/\//g,"");
+            data_send["receipt_line_1"] = 	document.getElementById("receipt_line_1").value;
+            data_send["receipt_line_2"] = 	document.getElementById("receipt_line_2").value;
+            data_send["receipt_line_3"] = 	document.getElementById("receipt_line_3").value;
+            data_send["receipt_line_4"] = 	document.getElementById("receipt_line_4").value;
+            data_send["receipt_line_5"] = 	document.getElementById("receipt_line_5").value;  
+            data_send["upd"]            =       upd;
+            if(data_send["receipt_str_dt"] > data_send["receipt_end_dt"] ){
+                alert("※期間指定が不正です。開始日が終了日を超えています。");
+                receipt_end_dt.value = '';
+                receipt_end_dt.focus();
+                return;
+            }
+            if(comp_nm && !confirm("※データ保存します。よろしいですか？")){
+                return;
+            }             
+            //console.log(data_send);
+    //data_sendを送ります。
+            spath       = 'index.php?param=Memo/addInput&org_id='+org_id+"&receipt_cd="+receipt_cd;
+            setDataForAjax( data_send, spath ,'ajaxScreenUpdate' );            
+            
+        }
+        function deldata(){
+            if(!confirm("※データ削除します。よろしいですか？")){
+                return;
+            }              
+            spath       = window.location.href;
+            spath       = spath.split('?'); 
+            spath       = spath[0]+'?param=Memo/del&org_id='+org_id+"&receipt_cd="+receipt_cd;
+            window.location.replace(spath);             
+        }        
+        
+    </script>              
+  </head>
+  <body>
+        <?php
+            if( isset($_GET['home']) ) {
+                if( "1" ==  $_GET['home'] ){
+                include("../home/View/Common/PageHeader.php");
+                }else{
+                    include("Common/PageHeader.php");
+                }
+            }else{
+                include("../home/View/Common/PageHeader.php");
+            }
+        ?>
+        <div id="sb-site" style="overflow: auto;"> 
+            <h4> システム管理  レシートメモマスタ</h4>
+            <div > 
+                <label for="comp_nm">店舗名</label><select id="comp_nm" onchange="showdata(event)">
+                    <option value="0"></option>
+                </select><br />
+                
+            </div>
+            <div>
+                <label for="receipt_cd">レシートメモNO</label><input type="text" id="receipt_cd" class="cd" maxlength="4"><br />
+                <br />
+                <div class="left">
+                    <label for="receipt_kbn"   >レシートメモ区分 </label>
+                    <select id="receipt_kbn">
+                        <option value="01">01:レシートメモ</option>
+                        <option value="02">02:金券タイトル</option>
+                        <option value="03">03:金券メモ</option>
+                        <option value="04">04:カード忘メッセージ</option>
+                        <option value="05">05:キャンぺーンレシート</option>
+                        <option value="06">06:リライトカードのメモ</option>
+                        <option value="07">07:ランク変更時のメッセージ</option>
+                    </select><br />                
+                    <label for="receipt_str_dt">有効期間        </label><input type="text" id="receipt_str_dt" maxlength="10" class="datepicker">
+                    <label for="receipt_end_dt" class="small">～</label><input type="text" id="receipt_end_dt" maxlength="10" class="datepicker"><br />
+                    <label for="receipt_line_1">レシートメモ1行目</label><input type="text" id="receipt_line_1" maxlength="13" class="memo"><br />
+                    <label for="receipt_line_2">レシートメモ2行目</label><input type="text" id="receipt_line_2" maxlength="13" class="memo"><br />
+                    <label for="receipt_line_3">レシートメモ3行目</label><input type="text" id="receipt_line_3" maxlength="13" class="memo"><br />
+                    <label for="receipt_line_4">レシートメモ4行目</label><input type="text" id="receipt_line_4" maxlength="13" class="memo"><br />
+                    <label for="receipt_line_5">レシートメモ5行目</label><input type="text" id="receipt_line_5" maxlength="13" class="memo"><br />
+                    <br />
+                    &nbsp;<button type="button" id="send_result" onclick="send_result()"  >決定</button>&nbsp;<button type="button" id="bt_delete" onclick="deldata()">削除</button>        
+                </div>
+            </div> 
+        <div />
+  </body>
+</html>

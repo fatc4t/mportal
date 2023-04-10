@@ -1,0 +1,95 @@
+<?php
+    /**
+     * @file        セキュリティマスタ画面(View)
+     * @author      USE S.Nakamura
+     * @date        2016/07/14
+     * @version     1.00
+     * @note        セキュリティマスタ画面
+     */
+?>
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-ajax">
+
+                <!-- PageMoveArea -->
+                <?php include("../FwCommon/View/PagingArea.php"); ?>
+
+                <!-- serchListArea -->
+                <?php if( $isScrollBar ) { ?>
+                    <div class="serchListArea" style=" clear:both; width:99%; margin:0px auto !important; overflow-y:auto; height:25px;">
+                <?php } else { ?>
+                    <div class="serchListArea" style=" clear:both; width:99%; margin:5px auto !important;">
+                <?php } ?>
+                    <table>
+                        <tr>
+                            <th width="50px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?></u><?php hsc($headerArray['securityNoSortMark']); ?></span></th><!--No-->
+                            <th width="62px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0849')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0849')); ?></u><?php hsc($headerArray['securityStateSortMark']); ?></span></th><!--状態-->
+                            <th width="98px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0893')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0893')); ?></u><?php hsc($headerArray['securityClassSortMark']); ?></span></th><!--区分-->
+                            <th width="123px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?></u><?php hsc($headerArray['securityOrganizationSortMark']); ?></span></th><!--組織名-->
+                            <th width="123px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0881')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0881')); ?></u><?php hsc($headerArray['securityNameSortMark']); ?></span></th><!--セキュリティ名-->
+                            <th width="123px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0894')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0894')); ?></u><?php hsc($headerArray['securityOptionNameSortMark']); ?></span></th><!--表示項目-->
+                            <th width="62px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0886')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0886')); ?></u><?php hsc($headerArray['securityReferenceSortMark']); ?></span></th><!--参照-->
+                            <th width="62px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0887')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0887')); ?></u><?php hsc($headerArray['securityRegistrationSortMark']); ?></span></th><!--登録-->
+                            <th width="62px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0888')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0888')); ?></u><?php hsc($headerArray['securityDeleteSortMark']); ?></span></th><!--削除-->
+                            <th width="62px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0889')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0889')); ?></u><?php hsc($headerArray['securityApprovalSortMark']); ?></span></th><!--承認-->
+                            <th width="62px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0890')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0890')); ?></u><?php hsc($headerArray['securityPrintingSortMark']); ?></span></th><!--印刷-->
+                            <th width="62px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0891')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0891')); ?></u><?php hsc($headerArray['securityOutputSortMark']); ?></span></th><!--出力-->
+                            <th width="200px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0892')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0892')); ?></u><?php hsc($headerArray['securityCommentSortMark']); ?></span></th> <!--コメント-->
+                            <th width="62px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0852')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0852')); ?></u><?php hsc($headerArray['securityDispOrderSortMark']); ?></span></th><!--表示順-->
+                        </tr>
+                    </table>
+              <?php if( $isScrollBar ) { ?>
+                  </div>
+                  <div class="serchListArea" style="width:99%; margin: 0px auto; overflow-y:auto; height:300px; !important;">
+              <?php } ?>
+                    <table id="nameTable" style="background-color: #ffffff">
+                        <?php foreach((array)$securityDataList as $security) { ?>
+                            <?php $security_no++; ?>
+                            <?php if(!$securityNoSortFlag) { ?>
+                                <?php $display_no++; ?>
+                            <?php } ?>
+                        <tr>
+                            <td align = "right" width="50px"><?php hsc($display_no); ?></td>
+                            <?php $del_state = ""; ?>
+                            <?php if(!empty($security['is_del'])) { ?>
+                                <?php $del_state = "削除"; ?>
+                            <?php } ?>
+                            <td align = "center" width="62px"><?php hsc($del_state); ?></td>
+                            <td width="98px">
+                                <?php
+                                    // ID別に区分名を設定
+                                    $classificationName = "一般";
+                                    if( 1 == $security['min_classification'] )
+                                    {
+                                        $classificationName = "システム管理者";
+                                    }
+                                    else if( 2 == $security['min_classification'] )
+                                    {
+                                        $classificationName = "管理者";
+                                    }
+                                    hsc( $classificationName ); 
+                                ?>
+                            </td>
+                            <td width="123px"><?php hsc($security['abbreviated_name']); ?></td>
+                        <?php if($security['is_del'] == 0 ) { ?>
+                            <td width="123px"><span onClick="editPanelTransition(<?php hsc($security['security_id']); ?>)"><a href="#"><?php hsc($security['security_name']); ?></a></span></td>
+                        <?php } else if($security['is_del'] == 1 ) { ?>
+                            <td width="123px"><?php hsc($security['security_name']); ?></span></td>
+                        <?php } ?>
+                            <td width="123px"><?php hsc($security['display_item_name']); ?></td>
+                            <td width="62px"><?php hsc($security['min_reference_name']); ?></td>
+                            <td width="62px"><?php hsc($security['min_registration_name']); ?></td>
+                            <td width="62px"><?php hsc($security['min_delete_name']); ?></td>
+                            <td width="62px"><?php hsc($security['min_approval_name']); ?></td>
+                            <td width="62px"><?php hsc($security['min_printing_name']); ?></td>
+                            <td width="62px"><?php hsc($security['min_output_name']); ?></td>
+                            <td width="200px"><?php hsc($security['comment']); ?></td>
+                            <td align = "right" width="62px"><?php hsc($security['disp_order']); ?></td>
+                        </tr>
+                            <?php if($securityNoSortFlag) { ?>
+                                <?php $display_no--; ?>
+                            <?php } ?>
+                        <?php } ?>
+                    </table>
+                </div><!-- /.serchListArea -->
+            </div><!-- /.jquery-replace-ajax -->

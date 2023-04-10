@@ -1,0 +1,1103 @@
+﻿<!DOCTYPE HTML >
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <?php require_once( DataMaintenanceParameters::$SANITIZE_SETTING_FILE ) ?>
+    <?php include("Common/HtmlHeader.php"); ?>
+    <script type="text/javascript" src="../js/datamaintenance/common.js" ></script>    
+    <script type="text/javascript" src="../js/datamaintenance/jquery-ui.min.js" ></script>
+    <script type="text/javascript" src="../js/datamaintenance/jquery/datepicker-ja.js" ></script>
+    <link rel="stylesheet" href="../css/datamaintenance/jquery-ui.css" >	
+    <link rel="stylesheet" href="../css/datamaintenance/default.css" >	
+    <script type="text/javascript" src="../../FwCommon/js/common.js" ></script>
+    <script type="text/javascript">
+        if(window.location.href.indexOf("addInput") !== -1 || window.location.href.indexOf("del") !== -1){
+            //go back to show
+            spath       = window.location.href;
+            spath       = spath.split('?'); 
+            spath       = spath[0]+'?param=DataMaintenance/show';
+            window.location.replace(spath); 
+        }
+        /**
+         * 
+         *  DatePickerを設定
+         *
+         */
+        $.datepicker.setDefaults( $.datepicker.regional[ "ja" ] );
+        $(function()
+        {
+            $( "#tax1s_dt, #tax1e_dt, #tax2s_dt, #tax2e_dt, #tax3s_dt, #tax3e_dt", ).datepicker({
+                showButtonPanel: true,
+                dateFormat: 'yy/mm/dd'
+            });
+
+        });
+        
+        result1='';
+        company_id          = "<?php hsc( $_SESSION['COMPANY_ID'] ); ?>";
+        pmst0010            = '<?php echo json_encode(json_encode($mst0010)); ?>';
+        ptypmst0010         =	JSON.parse(pmst0010.slice(1,-1));
+        pmst8401            = '<?php echo json_encode(json_encode($mst8401)); ?>';
+        ptypmst8401         =	JSON.parse(pmst8401.slice(1,-1));
+        porg_id_list        = '<?php echo json_encode(json_encode($org_id_list)); ?>';
+        ptyporg_id_list     =	JSON.parse(porg_id_list.slice(1,-1));         
+        var org_id = 0;
+        var update_data  = [];
+     
+
+        function numberWithCommas(x) {
+            var parts = x.toString().split(".");
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            return parts.join(".");
+        }
+        
+      function openCity(evt, cityName) {
+        var i, tabcontent, tablinks, tab, elems_button;
+        tab = document.getElementsByClassName("tab")[0];
+        elems_button = tab.getElementsByTagName("BUTTON");
+        for (i = 0; i < elems_button.length; i++) {
+          elems_button[i].className = "";
+        }        
+        tabcontent = document.getElementsByClassName("tabcontent");
+        for (i = 0; i < tabcontent.length; i++) {
+          tabcontent[i].style.display = "none";
+        }
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) {
+          tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        document.getElementById(cityName).style.display = "block";
+        evt.currentTarget.className += " active";
+      }
+      
+      function template(){
+            spath = window.location.href;
+            spath = spath.split('?'); 
+            spath = spath[0]+'?param=Customer/template';
+            window.location.replace(spath);
+      }
+        function init_page(){
+          //店舗名
+            compselect=document.getElementById("comp_nm");
+            opt=document.createElement("option");
+            for( var j=0; j < ptyporg_id_list.length; j++){
+                opt=document.createElement("option");
+                opt.value   = ptypmst0010[ptyporg_id_list[j].organization_id].organization_id;
+                opt.text    = ptypmst0010[ptyporg_id_list[j].organization_id].comp_nm;
+                compselect.options.add(opt,null);
+            }
+            //ランク
+            rankselect=document.getElementById("def_cust_rank_cd");
+            opt=document.createElement("option");
+            for( var j=0; j < ptypmst8401.length; j++){
+                opt=document.createElement("option");
+                opt.value   = ptypmst8401[j].cust_rank_cd;
+                opt.text    = ptypmst8401[j].cust_rank_nm;
+                rankselect.options.add(opt,null);
+            }  
+            create_listner();
+            loaddata(org_id);
+        }
+      
+        function loaddata(o_id){
+            
+            
+            ////console.log("o_id: "+o_id);
+            document.getElementById("comp_kn").value	= "";
+            document.getElementById("zip").value	= "";
+            document.getElementById("addr1").value	= "";
+            document.getElementById("addr2").value	= "";
+            document.getElementById("tel").value	= "";
+            document.getElementById("fax").value	= "";
+            document.getElementById("shop_cd").value	= "";
+            document.getElementById("firm_cust_cd").value	= "";
+            document.getElementById("pos_cnt").value	= "";
+            document.getElementById("month_repday").value	= "";
+            document.getElementById("shop_mode_kbn").value	= "";
+            document.getElementById("ht_type").value	= "";
+            document.getElementById("mag_card_type").value	= "";
+            document.getElementById("rounding_kbn").value	= "";
+            document.getElementById("bb_date_kbn").value	= "";
+            document.getElementById("card_str_posi").value	= "";
+            document.getElementById("card_read_byte").value	= "";
+            document.getElementById("bar_read_rule").value	= "";
+            document.getElementById("bar_str_posi").value	= "";
+            document.getElementById("bar_read_byte").value	= "";
+            document.getElementById("bar_read_rule_staff").value	= "";
+            document.getElementById("bar_str_posi_staff").value         = "";
+            document.getElementById("bar_read_byte_staff").value	= "";
+            document.getElementById("p_manag_kbn").value	= "";
+            document.getElementById("p_frac_kbn").value         = "";
+            document.getElementById("p_calc_point").value	= "";
+            document.getElementById("p_calc_money").value	= "";
+            document.getElementById("p_gift_rule").value	= "";
+            document.getElementById("p_rest_point").value	= "";
+            document.getElementById("p_rest_money").value	= "";
+            document.getElementById("def_cust_rank_cd").value	= "";
+            document.getElementById("p_limit_kbn").value	= "";
+            document.getElementById("p_limit_month").value	= "";
+            document.getElementById("cashback_flg").value	= "";
+            document.getElementById("cashback_point").value	= "";
+            document.getElementById("cashback_p_rest_point").value	= "";
+            document.getElementById("cashback_p_rest_money").value	= "";
+            document.getElementById("tax1").value	= "";
+            document.getElementById("tax1s_dt").value	= "";
+            document.getElementById("tax1e_dt").value	= "";
+            document.getElementById("tax2").value	= "";
+            document.getElementById("tax2s_dt").value	= "";
+            document.getElementById("tax2e_dt").value	= "";
+            document.getElementById("tax3").value	= "";
+            document.getElementById("tax3s_dt").value	= "";
+            document.getElementById("tax3e_dt").value	= "";
+            document.getElementById("tax_frac_kbn").value	= "";
+            document.getElementById("c_biko1").value	= "";
+            document.getElementById("c_biko2").value	= "";
+            document.getElementById("c_biko3").value	= "";
+            document.getElementById("c_biko4").value	= "";
+            document.getElementById("c_biko5").value	= "";
+            document.getElementById("c_biko6").value	= "";
+            document.getElementById("c_biko7").value	= "";
+            document.getElementById("c_biko8").value	= "";
+            document.getElementById("c_biko9").value	= "";
+            document.getElementById("c_biko10").value	= "";
+            document.getElementById("disp_prem_cd").value	= "";
+            document.getElementById("p_kubun1").value	= "";
+            document.getElementById("p_kubun2").value	= "";
+            document.getElementById("p_kubun3").value	= "";
+            document.getElementById("p_kubun4").value	= "";
+            document.getElementById("p_kubun5").value	= "";
+            document.getElementById("p_kubun6").value	= "";
+            document.getElementById("p_kubun7").value	= "";
+            document.getElementById("p_kubun8").value	= "";
+            document.getElementById("p_kubun9").value	= "";
+            document.getElementById("p_kubun10").value	= "";
+            document.getElementById("disp_plu1").value	= "";
+            document.getElementById("disp_plu2").value	= "";
+            document.getElementById("disp_plu3").value	= "";
+            document.getElementById("disp_plu4").value	= "";
+            document.getElementById("disp_plu5").value	= "";
+            document.getElementById("disp_plu6").value	= "";
+            document.getElementById("disp_plu7").value	= "";
+            document.getElementById("disp_plu8").value	= "";
+            document.getElementById("disp_plu9").value	= "";
+            document.getElementById("disp_plu10").value	= "";
+            document.getElementById("empl_cale_kbn").value	= "";
+            document.getElementById("empl_cale_val").value	= "";
+            document.getElementById("den_isscnt").value	= "";
+            document.getElementById("den_title1").value	= "";
+            document.getElementById("den_title2").value	= "";
+            document.getElementById("den_title3").value	= "";
+            document.getElementById("sales_talk_use_kbn").value	= "";
+            document.getElementById("invoice_biko_up").value	= "";
+            document.getElementById("invoice_biko_down").value	= "";
+            document.getElementById("invoice_logo_path").value	= "";
+            document.getElementById("res_cust_cd_str").value	= "";
+            document.getElementById("res_cust_cd_end").value	= "";
+
+            
+            if(o_id == 0 ){
+                document.getElementById("button1").setAttribute("disabled", true);
+                document.getElementById("button2").setAttribute("disabled", true);
+                document.getElementById("button3").setAttribute("disabled", true);
+                document.getElementById("button4").setAttribute("disabled", true);
+                document.getElementById("button5").setAttribute("disabled", true);                
+                return;
+                
+            }else{
+                document.getElementById("button1").removeAttribute("disabled");
+                document.getElementById("button2").removeAttribute("disabled");
+                document.getElementById("button3").removeAttribute("disabled");
+                document.getElementById("button4").removeAttribute("disabled");
+                document.getElementById("button5").removeAttribute("disabled");                  
+            }
+           
+            if(ptypmst0010[o_id]["comp_kn"]){document.getElementById("comp_kn").value                                 = ptypmst0010[o_id]["comp_kn"];};
+            if(ptypmst0010[o_id]["zip"]){document.getElementById("zip").value                                         = ptypmst0010[o_id]["zip"];};
+            if(ptypmst0010[o_id]["addr1"]){document.getElementById("addr1").value                                     = ptypmst0010[o_id]["addr1"];};
+            if(ptypmst0010[o_id]["addr2"]){document.getElementById("addr2").value                                     = ptypmst0010[o_id]["addr2"];};
+            if(ptypmst0010[o_id]["tel"]){document.getElementById("tel").value                                         = ptypmst0010[o_id]["tel"];};
+            if(ptypmst0010[o_id]["fax"]){document.getElementById("fax").value                                         = ptypmst0010[o_id]["fax"];};
+            if(ptypmst0010[o_id]["shop_cd"]){document.getElementById("shop_cd").value                                 = ptypmst0010[o_id]["shop_cd"].toString().split(".")[0];};
+            if(ptypmst0010[o_id]["firm_cust_cd"]){document.getElementById("firm_cust_cd").value                       = ptypmst0010[o_id]["firm_cust_cd"].toString().split(".")[0];};
+            if(ptypmst0010[o_id]["pos_cnt"]){document.getElementById("pos_cnt").value                                 = ptypmst0010[o_id]["pos_cnt"].toString().split(".")[0];};
+            if(ptypmst0010[o_id]["month_repday"]){document.getElementById("month_repday").value                       = ptypmst0010[o_id]["month_repday"].toString().split(".")[0];};
+            if(ptypmst0010[o_id]["shop_mode_kbn"]){document.getElementById("shop_mode_kbn").value                     = ptypmst0010[o_id]["shop_mode_kbn"];};
+            if(ptypmst0010[o_id]["ht_type"]){document.getElementById("ht_type").value                                 = ptypmst0010[o_id]["ht_type"];};
+            if(ptypmst0010[o_id]["mag_card_type"]){document.getElementById("mag_card_type").value                     = ptypmst0010[o_id]["mag_card_type"];};
+            if(ptypmst0010[o_id]["rounding_kbn"]){document.getElementById("rounding_kbn").value                       = ptypmst0010[o_id]["rounding_kbn"];};
+            if(ptypmst0010[o_id]["bb_date_kbn"]){document.getElementById("bb_date_kbn").value                         = ptypmst0010[o_id]["bb_date_kbn"];};
+            if(ptypmst0010[o_id]["card_str_posi"]){document.getElementById("card_str_posi").value                     = ptypmst0010[o_id]["card_str_posi"].toString().split(".")[0];};
+            if(ptypmst0010[o_id]["card_read_byte"]){document.getElementById("card_read_byte").value                   = ptypmst0010[o_id]["card_read_byte"].toString().split(".")[0];};
+            if(ptypmst0010[o_id]["bar_read_rule"]){document.getElementById("bar_read_rule").value                     = ptypmst0010[o_id]["bar_read_rule"];};
+            if(ptypmst0010[o_id]["bar_str_posi"]){document.getElementById("bar_str_posi").value                       = ptypmst0010[o_id]["bar_str_posi"].toString().split(".")[0];};
+            if(ptypmst0010[o_id]["bar_read_byte"]){document.getElementById("bar_read_byte").value                     = ptypmst0010[o_id]["bar_read_byte"].toString().split(".")[0];};
+            if(ptypmst0010[o_id]["bar_read_rule_staff"]){document.getElementById("bar_read_rule_staff").value         = ptypmst0010[o_id]["bar_read_rule_staff"];};
+            if(ptypmst0010[o_id]["bar_str_posi_staff"]){document.getElementById("bar_str_posi_staff").value           = ptypmst0010[o_id]["bar_str_posi_staff"].toString().split(".")[0];};
+            if(ptypmst0010[o_id]["bar_read_byte_staff"]){document.getElementById("bar_read_byte_staff").value         = ptypmst0010[o_id]["bar_read_byte_staff"].toString().split(".")[0];};
+            if(ptypmst0010[o_id]["p_manag_kbn"]){document.getElementById("p_manag_kbn").value                         = ptypmst0010[o_id]["p_manag_kbn"];};
+            if(ptypmst0010[o_id]["p_frac_kbn"]){document.getElementById("p_frac_kbn").value                           = ptypmst0010[o_id]["p_frac_kbn"];};            
+            if(ptypmst0010[o_id]["p_calc_point"]){document.getElementById("p_calc_point").value                       = ptypmst0010[o_id]["p_calc_point"].toString().split(".")[0];};
+            if(ptypmst0010[o_id]["p_calc_money"]){document.getElementById("p_calc_money").value                       = ptypmst0010[o_id]["p_calc_money"].toString().split(".")[0];};
+            if(ptypmst0010[o_id]["p_gift_rule"]){document.getElementById("p_gift_rule").value                         = ptypmst0010[o_id]["p_gift_rule"];};
+            if(ptypmst0010[o_id]["p_rest_point"]){document.getElementById("p_rest_point").value                       = ptypmst0010[o_id]["p_rest_point"].toString().split(".")[0];};
+            if(ptypmst0010[o_id]["p_rest_money"]){document.getElementById("p_rest_money").value                       = ptypmst0010[o_id]["p_rest_money"].toString().split(".")[0];};
+            if(ptypmst0010[o_id]["def_cust_rank_cd"]){document.getElementById("def_cust_rank_cd").value               = ptypmst0010[o_id]["def_cust_rank_cd"];};
+            if(ptypmst0010[o_id]["p_limit_kbn"]){document.getElementById("p_limit_kbn").value                         = ptypmst0010[o_id]["p_limit_kbn"];};
+            if(ptypmst0010[o_id]["p_limit_month"]){document.getElementById("p_limit_month").value                     = ptypmst0010[o_id]["p_limit_month"].toString().split(".")[0];};
+            if(ptypmst0010[o_id]["cashback_flg"]){document.getElementById("cashback_flg").value                       = ptypmst0010[o_id]["cashback_flg"];};
+            if(ptypmst0010[o_id]["cashback_point"]){document.getElementById("cashback_point").value                   = ptypmst0010[o_id]["cashback_point"].toString().split(".")[0];};
+            if(ptypmst0010[o_id]["cashback_p_rest_point"]){document.getElementById("cashback_p_rest_point").value	= ptypmst0010[o_id]["cashback_p_rest_point"].toString().split(".")[0];};
+            if(ptypmst0010[o_id]["cashback_p_rest_money"]){document.getElementById("cashback_p_rest_money").value	= ptypmst0010[o_id]["cashback_p_rest_money"].toString().split(".")[0];};
+            if(ptypmst0010[o_id]["tax1"]){document.getElementById("tax1").value                                       = ptypmst0010[o_id]["tax1"].toString().split(".")[0];};
+            if(ptypmst0010[o_id]["tax1s_dt"]){document.getElementById("tax1s_dt").value                               = ptypmst0010[o_id]["tax1s_dt"].replace(/(\d{4})(\d{2})(\d{2})/g, '$1/$2/$3');};
+            if(ptypmst0010[o_id]["tax1e_dt"]){document.getElementById("tax1e_dt").value                               = ptypmst0010[o_id]["tax1e_dt"].replace(/(\d{4})(\d{2})(\d{2})/g, '$1/$2/$3');};
+            if(ptypmst0010[o_id]["tax2"]){document.getElementById("tax2").value                                       = ptypmst0010[o_id]["tax2"].toString().split(".")[0];};
+            if(ptypmst0010[o_id]["tax2s_dt"]){document.getElementById("tax2s_dt").value                               = ptypmst0010[o_id]["tax2s_dt"].replace(/(\d{4})(\d{2})(\d{2})/g, '$1/$2/$3');};
+            if(ptypmst0010[o_id]["tax2e_dt"]){document.getElementById("tax2e_dt").value                               = ptypmst0010[o_id]["tax2e_dt"].replace(/(\d{4})(\d{2})(\d{2})/g, '$1/$2/$3');};
+            if(ptypmst0010[o_id]["tax3"]){document.getElementById("tax3").value                                       = ptypmst0010[o_id]["tax3"].toString().split(".")[0];};
+            if(ptypmst0010[o_id]["tax3s_dt"]){document.getElementById("tax3s_dt").value                               = ptypmst0010[o_id]["tax3s_dt"].replace(/(\d{4})(\d{2})(\d{2})/g, '$1/$2/$3');};
+            if(ptypmst0010[o_id]["tax3e_dt"]){document.getElementById("tax3e_dt").value                               = ptypmst0010[o_id]["tax3e_dt"].replace(/(\d{4})(\d{2})(\d{2})/g, '$1/$2/$3');};
+            if(ptypmst0010[o_id]["tax_frac_kbn"]){document.getElementById("tax_frac_kbn").value                       = ptypmst0010[o_id]["tax_frac_kbn"];};
+            if(ptypmst0010[o_id]["c_biko1"]){document.getElementById("c_biko1").value                                 = ptypmst0010[o_id]["c_biko1"];};
+            if(ptypmst0010[o_id]["c_biko2"]){document.getElementById("c_biko2").value                                 = ptypmst0010[o_id]["c_biko2"];};
+            if(ptypmst0010[o_id]["c_biko3"]){document.getElementById("c_biko3").value                                 = ptypmst0010[o_id]["c_biko3"];};
+            if(ptypmst0010[o_id]["c_biko4"]){document.getElementById("c_biko4").value                                 = ptypmst0010[o_id]["c_biko4"];};
+            if(ptypmst0010[o_id]["c_biko5"]){document.getElementById("c_biko5").value                                 = ptypmst0010[o_id]["c_biko5"];};
+            if(ptypmst0010[o_id]["c_biko6"]){document.getElementById("c_biko6").value                                 = ptypmst0010[o_id]["c_biko6"];};
+            if(ptypmst0010[o_id]["c_biko7"]){document.getElementById("c_biko7").value                                 = ptypmst0010[o_id]["c_biko7"];};
+            if(ptypmst0010[o_id]["c_biko8"]){document.getElementById("c_biko8").value                                 = ptypmst0010[o_id]["c_biko8"];};
+            if(ptypmst0010[o_id]["c_biko9"]){document.getElementById("c_biko9").value                                 = ptypmst0010[o_id]["c_biko9"];};
+            if(ptypmst0010[o_id]["c_biko10"]){document.getElementById("c_biko10").value                               = ptypmst0010[o_id]["c_biko10"];};
+            if(ptypmst0010[o_id]["disp_prem_cd"]){document.getElementById("disp_prem_cd").value                       = ptypmst0010[o_id]["disp_prem_cd"];};
+            if(ptypmst0010[o_id]["p_kubun1"]){document.getElementById("p_kubun1").value                               = ptypmst0010[o_id]["p_kubun1"];};
+            if(ptypmst0010[o_id]["p_kubun2"]){document.getElementById("p_kubun2").value                               = ptypmst0010[o_id]["p_kubun2"];};
+            if(ptypmst0010[o_id]["p_kubun3"]){document.getElementById("p_kubun3").value                               = ptypmst0010[o_id]["p_kubun3"];};
+            if(ptypmst0010[o_id]["p_kubun4"]){document.getElementById("p_kubun4").value                               = ptypmst0010[o_id]["p_kubun4"];};
+            if(ptypmst0010[o_id]["p_kubun5"]){document.getElementById("p_kubun5").value                               = ptypmst0010[o_id]["p_kubun5"];};
+            if(ptypmst0010[o_id]["p_kubun6"]){document.getElementById("p_kubun6").value                               = ptypmst0010[o_id]["p_kubun6"];};
+            if(ptypmst0010[o_id]["p_kubun7"]){document.getElementById("p_kubun7").value                               = ptypmst0010[o_id]["p_kubun7"];};
+            if(ptypmst0010[o_id]["p_kubun8"]){document.getElementById("p_kubun8").value                               = ptypmst0010[o_id]["p_kubun8"];};
+            if(ptypmst0010[o_id]["p_kubun9"]){document.getElementById("p_kubun9").value                               = ptypmst0010[o_id]["p_kubun9"];};
+            if(ptypmst0010[o_id]["p_kubun10"]){document.getElementById("p_kubun10").value                             = ptypmst0010[o_id]["p_kubun10"];};
+            if(ptypmst0010[o_id]["disp_plu1"]){document.getElementById("disp_plu1").value                 = ptypmst0010[o_id]["disp_plu1"];};
+            if(ptypmst0010[o_id]["disp_plu2"]){document.getElementById("disp_plu2").value                 = ptypmst0010[o_id]["disp_plu2"];};
+            if(ptypmst0010[o_id]["disp_plu3"]){document.getElementById("disp_plu3").value                 = ptypmst0010[o_id]["disp_plu3"];};
+            if(ptypmst0010[o_id]["disp_plu4"]){document.getElementById("disp_plu4").value                 = ptypmst0010[o_id]["disp_plu4"];};
+            if(ptypmst0010[o_id]["disp_plu5"]){document.getElementById("disp_plu5").value                 = ptypmst0010[o_id]["disp_plu5"];};
+            if(ptypmst0010[o_id]["disp_plu6"]){document.getElementById("disp_plu6").value                 = ptypmst0010[o_id]["disp_plu6"];};
+            if(ptypmst0010[o_id]["disp_plu7"]){document.getElementById("disp_plu7").value                 = ptypmst0010[o_id]["disp_plu7"];};
+            if(ptypmst0010[o_id]["disp_plu8"]){document.getElementById("disp_plu8").value                 = ptypmst0010[o_id]["disp_plu8"];};
+            if(ptypmst0010[o_id]["disp_plu9"]){document.getElementById("disp_plu9").value                 = ptypmst0010[o_id]["disp_plu9"];};
+            if(ptypmst0010[o_id]["disp_plu10"]){document.getElementById("disp_plu10").value               = ptypmst0010[o_id]["disp_plu10"];};
+            if(ptypmst0010[o_id]["empl_cale_kbn"]){document.getElementById("empl_cale_kbn").value                     = ptypmst0010[o_id]["empl_cale_kbn"];};
+            if(ptypmst0010[o_id]["empl_cale_val"]){document.getElementById("empl_cale_val").value                     = ptypmst0010[o_id]["empl_cale_val"].toString().split(".")[0];};
+            if(ptypmst0010[o_id]["den_isscnt"]){document.getElementById("den_isscnt").value                           = ptypmst0010[o_id]["den_isscnt"];};
+            if(ptypmst0010[o_id]["den_title1"]){document.getElementById("den_title1").value                           = ptypmst0010[o_id]["den_title1"];};
+            if(ptypmst0010[o_id]["den_title2"]){document.getElementById("den_title2").value                           = ptypmst0010[o_id]["den_title2"];};
+            if(ptypmst0010[o_id]["den_title3"]){document.getElementById("den_title3").value                           = ptypmst0010[o_id]["den_title3"];};
+            if(ptypmst0010[o_id]["sales_talk_use_kbn"]){document.getElementById("sales_talk_use_kbn").value           = ptypmst0010[o_id]["sales_talk_use_kbn"];};
+            if(ptypmst0010[o_id]["invoice_biko_up"]){document.getElementById("invoice_biko_up").value                 = ptypmst0010[o_id]["invoice_biko"].toString().split("& vbCrLf &")[0];};
+            if(ptypmst0010[o_id]["invoice_biko_down"]){document.getElementById("invoice_biko_down").value             = ptypmst0010[o_id]["invoice_biko"].toString().split("& vbCrLf &")[1];};
+            if(ptypmst0010[o_id]["invoice_logo_path"]){document.getElementById("invoice_logo_path").value             = ptypmst0010[o_id]["invoice_logo_path"];};
+            if(ptypmst0010[o_id]["res_cust_cd_str"]){document.getElementById("res_cust_cd_str").value                 = ptypmst0010[o_id]["res_cust_cd_str"].toString().split(".")[0];};
+            if(ptypmst0010[o_id]["res_cust_cd_end"]){document.getElementById("res_cust_cd_end").value                 = ptypmst0010[o_id]["res_cust_cd_end"].toString().split(".")[0];};
+
+            
+        }
+        
+        function showdata(o_id){
+            if(document.getElementById("shop_cd").value !== ""){
+                alert("※変更されたデータはすべて失われます。");
+                update_data = [];
+            }
+            org_id = o_id;
+            loaddata(org_id);
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+              tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+              tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }            
+        }
+        function check_empty(e){
+            // call on change
+            // case empty
+            
+            ////console.log(e);
+            var fempty_list = "";
+            fempty_list += "shop_cd ";
+            fempty_list += "firm_cust_cd ";
+            fempty_list += "shop_mode_kbn ";
+            fempty_list += "month_repday ";
+            fempty_list += "ht_type ";
+            fempty_list += "mag_card_type ";
+            fempty_list += "bb_date_kbn ";
+            fempty_list += "rounding_kbn ";
+            fempty_list += "bar_read_rule ";
+            fempty_list += "bar_read_rule_staff ";
+            fempty_list += "p_manag_kbn ";
+            fempty_list += "p_frac_kbn ";
+            fempty_list += "p_calc_point ";
+            fempty_list += "p_calc_money ";
+            fempty_list += "p_calc_tax_kbn ";
+            fempty_list += "p_gift_rule ";
+            fempty_list += "p_rest_point ";
+            fempty_list += "p_rest_money ";
+            fempty_list += "p_limit_kbn ";
+            fempty_list += "p_limit_month ";
+            fempty_list += "cashback_flg ";
+            fempty_list += "cashback_point ";
+            fempty_list += "cashback_p_rest_point ";
+            fempty_list += "cashback_p_rest_money ";
+            fempty_list += "tax_frac_kbn ";
+            fempty_list += "empl_cale_kbn ";
+            fempty_list += "den_isscnt ";
+            fempty_list += "sales_talk_use_kbn ";
+            fempty_list += "pos_cn t";
+            fempty_list += "custsize ";
+            fempty_list += "card_str_posi ";
+            fempty_list += "card_read_byte ";
+            fempty_list += "empl_cale_val ";
+            fempty_list += "catch_copy ";
+            fempty_list += "tax1 ";
+            fempty_list += "tax2 ";
+            fempty_list += "tax3 ";
+            fempty_list += "bar_str_posi_staff ";
+            fempty_list += "bar_read_byte_staff ";
+            fempty_list += "bar_str_posi ";
+            fempty_list += "bar_read_byte "; 
+            
+            if(e.target.value === ""){
+                ////console.log(fempty_list);
+                if(fempty_list.indexOf(e.target.id) !== -1){
+                    //document.getElementById("message").innerHTML = "※空白は禁止されています";
+                    alert("※空白は禁止されています");
+                    switch(e.target.id){
+                        case "pos_cnt":
+                            document.getElementById("pos_cnt").value	= 	1;
+                            break;
+                        case "custsize":
+                            document.getElementById("custsize").value	= 	0;
+                            break;
+                        case "card_str_posi":
+                            document.getElementById("card_str_posi").value	= 	1;
+                            break;
+                        case "card_read_byte":
+                            document.getElementById("card_read_byte").value	= 	8;
+                            break;
+                        case "empl_cale_val":
+                            document.getElementById("empl_cale_val").value	= 	0;
+                            break;
+                        case "catch_copy":
+                            document.getElementById("catch_copy").value	= 	0;
+                            break;
+                        case "tax1":
+                            document.getElementById("tax1").value	= 	0;
+                            break;
+                        case "tax2":
+                            document.getElementById("tax2").value	= 	0;
+                            break;
+                        case "tax3":
+                            document.getElementById("tax3").value	= 	0;
+                            break;
+                        case "bar_str_posi_staff":
+                            document.getElementById("bar_str_posi_staff").value	= 	1;
+                            break;
+                        case "bar_read_byte_staff":
+                            document.getElementById("bar_read_byte_staff").value	= 	2;
+                            break;
+                        case "bar_str_posi":
+                            document.getElementById("bar_str_posi").value	= 	1;
+                            break;
+                        case "bar_read_byte":
+                            document.getElementById("bar_read_byte").value	= 	8;
+                            break;
+                        default:
+                            document.getElementById(e.target.id).value = ptypmst0010[org_id][e.target.id];  
+                            break;
+                    }                    
+                }                
+            }            
+        }
+        
+        function check_input(e){
+            elem = document.getElementById(e.target.id);
+            elem_message = document.getElementById("message");
+            var w_val = e.target.value;
+            ////console.log(w_val);
+            ////console.log(e.target.value);
+            if(e.data){
+                if(e.data.indexOf("￥") !== -1 || e.data.indexOf("'") !== -1 || e.data.indexOf('"') !== -1 || e.data.indexOf("\\") !== -1){                   
+                   w_val = w_val.replace(/￥/g, "");
+                   w_val = w_val.replace(/'/g, "");
+                   w_val = w_val.replace(/"/g, "");
+                   w_val = w_val.replace(/\\/g, "");
+                   elem_message.innerHTML = " ※不正な文字列を使用しています。";
+                }
+                else{
+                   elem_message.innerHTML = "";
+                }
+            }
+            
+// list of field with number
+            var list_f_number = "";
+            list_f_number += "res_cust_cd_end ";
+            list_f_number += "res_cust_cd_str ";
+            list_f_number += "empl_cale_val ";
+            list_f_number += "tax1 ";
+            list_f_number += "tax2 ";
+            list_f_number += "tax3 ";
+            list_f_number += "cashback_p_rest_money ";
+            list_f_number += "cashback_p_rest_point ";
+            list_f_number += "cashback_point ";
+            list_f_number += "p_limit_month ";
+            list_f_number += "p_rest_money ";
+            list_f_number += "p_rest_point ";
+            list_f_number += "p_calc_money ";
+            list_f_number += "p_calc_point ";
+            list_f_number += "bar_read_byte_staff ";
+            list_f_number += "bar_str_posi_staff ";
+            list_f_number += "bar_read_byte ";
+            list_f_number += "bar_str_posi ";
+            list_f_number += "card_read_byte ";
+            list_f_number += "card_str_posi ";
+            list_f_number += "month_repday ";
+            list_f_number += "pos_cnt ";
+            list_f_number += "firm_cust_cd ";
+            list_f_number += "shop_cd ";            
+            
+            if(list_f_number.indexOf(e.target.id) !== -1){
+                // case number
+                w_val = w_val.split(".")[0];
+                w_val = w_val.replace(/\s/g, "");
+                w_val = w_val.replace(/\./g, "");
+                w_val = w_val.replace(/-/g, "");
+                if(isNaN(e.data)){                    
+                    w_val = w_val.replace(/\D/g,'');;
+                    elem_message.innerHTML = " ※数値のみ入力できます";
+                }
+                else {
+                    elem_message.innerHTML = ""; 
+                }
+            }else if (e.target.id === "tel" || e.target.id === "fax" || e.target.id === "zip"){
+                w_val = w_val.replace(/\s/g, "");
+                w_val = w_val.replace(/\./g, "");
+                if(isNaN(w_val.replace(/-/g, ""))){
+                    w_val = w_val.replace(/[^\d.-]/g,'');
+                    elem_message.innerHTML = " ※不正な文字列を使用しています。";
+                }
+            }
+            elem.value = w_val;
+        }
+        
+        function f_onchange(e){
+            check_empty(e);
+            // add update value
+            elem = document.getElementById(e.target.id);
+            if(e.target.id.indexOf('s_dt') !== -1){
+               elem.value = elem.value.replace(/\//g, "").replace(/(\d{4})(\d{2})(\d{2})/g, '$1/$2/$3');
+               update_data[e.target.id] = elem.value.replace(/\//g, "");
+               if(e.target.id === "tax2s_dt"){
+                   var Tdate = new Date(elem.value);
+                   Tdate = Tdate.setDate(Tdate.getDate()+-1);
+                   Tdate = new Date(Tdate);
+                   document.getElementById("tax1e_dt").value = Tdate.getFullYear() + "/" +("00"+(Tdate.getMonth()+1)).slice(-2) + "/" + Tdate.getDate() ;
+                    update_data["tax1e_dt"] = document.getElementById("tax1e_dt").value.replace(/\//g, "");                   
+               }
+               else if (e.target.id === "tax3s_dt"){
+                   var Tdate = new Date(elem.value);
+                   Tdate = Tdate.setDate(Tdate.getDate()+-1);
+                   Tdate = new Date(Tdate);
+                   document.getElementById("tax2e_dt").value = Tdate.getFullYear() + "/" +("00"+(Tdate.getMonth()+1)).slice(-2) + "/" + Tdate.getDate() ;
+                    update_data["tax1e_dt"] = document.getElementById("tax2e_dt").value.replace(/\//g, "");   
+               }
+               return;
+            }            
+            update_data[e.target.id] = elem.value;
+        }
+        function f_oninput(e){
+            if(!e.data){
+                e.data=e.target.value.slice(-1);
+            }
+            check_input(e);
+        }
+        
+        function create_listner(){            
+            //input
+            input_list = document.getElementsByTagName("INPUT");
+            for(i=0;i<input_list.length;i++){
+                elem = input_list[i];
+                if(elem.id !== ""){
+                    elem.addEventListener("change", f_onchange);
+                    elem.addEventListener("input", f_oninput);
+                }
+            }
+            //select
+            select_list = document.getElementsByTagName("SELECT");
+            for(i=0;i<select_list.length;i++){
+                elem = select_list[i];
+                if(elem.id !== "" && elem.id !== "comp_nm"){
+                    elem.addEventListener("change", f_onchange);
+                }
+            }            
+        }
+        function uptadedata(){
+            var path = 'index.php?param=DataMaintenance/addInput&home=1';
+            update_data["organization_id"] = org_id;
+            setDataForAjax( update_data, path,'ajaxScreenUpdate' );
+        }
+        function deldata(){
+            spath       = window.location.href;
+            spath       = spath.split('?'); 
+            spath       = spath[0]+'?param=DataMaintenance/del&organization_id='+org_id;
+            window.location.replace(spath);             
+        }
+    window.onload = function() {
+        init_page();
+    }
+ 
+    </script>
+    <style>
+        input {
+            width: 10.5em;
+            font-size: 12pt;
+        }        
+    select {
+        height: 1.5em;
+    }
+    body {
+        
+        background-color: whitesmoke;
+    }
+    label {
+      background-color: #0B0B61;
+      color: white;
+      font-weight: bold;
+      padding: 2px;
+      text-transform: uppercase;
+      font-size: 12pt;
+      margin: 1px;
+    }
+    div{
+      margin: 0px;
+      margin-left: 5px;
+    }
+
+    /* Style the tab */
+    .tab {
+      overflow: hidden;
+      border: 1px solid #ccc;
+      background-color: #f1f1f1;
+      margin: 0;
+      margin-right: 5px;
+    }
+
+    /* Style the buttons inside the tab */
+    .tab button {
+      background-color: inherit;
+      float: left;
+      border: inherit;
+      outline: none;
+      cursor: pointer;
+      padding: 2px 10px;
+      transition: 0.3s;
+      margin : 0;
+      
+    }
+
+    /* Change background color of buttons on hover */
+    .tab button:hover {
+      background-color: #ddd;
+    }
+
+    /* Create an active/current tablink class */
+    .tab button.active {
+      background-color: #ccc;
+    }
+
+    /* Style the tab content */
+    .tabcontent {
+      display: none;
+      padding: 6px 12px;
+      border: 1px solid #ccc;
+      border-top: none;
+      margin-right: 5px;
+    }
+
+    .blocline_left {
+      float : left;
+      padding-left: 1em;
+      vertical-align: middle;
+    }
+    .group_no_float{
+      clear: both;
+      
+    }
+    .parent{
+        overflow: hidden;
+    }
+    .blocline_right{
+       float : right;
+       padding-right: 1em;
+       vertical-align: middle;
+       max-width: 50%;
+    }
+    .test_class{
+        width: 15em;
+        height: 20pt;
+        padding: 0;
+        vertical-align: bottom;
+        border: 1px solid #ccc;
+    }
+    .label_pro{
+        width: 9em;
+    }
+    .lbl_BIRTH1{
+        width: 4em;
+        height: 19pt;
+        padding: 0;
+        vertical-align: bottom;        
+        text-align: -webkit-center;
+    }
+    .label_base{
+        width: 10em;   
+    }
+    .input_long{
+        width: 30em
+    }
+    .input_middle{
+        width: 20em;
+    }
+    .input_middle1{
+        width: 30%;
+    }
+    .input_middle2{
+        width: 20%;
+    }    
+    .input_small{
+        width: 4em;
+    }
+    .input_small2{
+        width: 7em;
+    }     
+    .input_small3{
+        width: 8em;
+    }    
+    .tbl_staff{
+        border: 1px solid #AAA;        
+    }
+    
+    #staff_data th {
+        background-color: #0B0B61;
+        border: 1px solid #AAA;
+        color: white;
+    }
+    #staff_data td{
+        border: 1px solid #0B0B61;
+        
+    }
+    #staff_data th, #staff_data  td {        
+        width: 7em;
+        font-weight: bold;
+        text-align: -webkit-center;        
+    }
+    #staff_data td:nth-child(1){
+        width: 20em;
+    }
+    #tbl_fam th{
+        text-align: -webkit-center;
+    }
+     #tbl_fam td:nth-child(1){
+        width: 2em;
+    }  
+    #tb_jsk4120 th, #tb_jsk4120 td {
+        font-weight: bold;
+        text-align: left;
+    }
+    thead th {
+        background-color: #0B0B61;
+        border: 1px solid #AAA;
+        color: white;
+        text-align: -webkit-center; 
+    }
+    tbody {
+        background-color: #fff;
+    }
+    #tb_jsk4120 td{
+        border: 1px solid #0B0B61;
+        padding: 2px;
+    }
+    #tb_jsk4120   td:nth-child(2), #tb_jsk4120 td:nth-child(5), #tb_jsk4120 td:nth-child(6), #tb_jsk4120  td:nth-child(7), #tb_jsk4120 td:nth-child(8), #tb_jsk4120 td:nth-child(9), #tb_jsk4120 td:nth-child(11){
+        text-align:right;
+    }
+    #table_4110 {
+ 
+    }
+    #tb_jsk4110 td{
+        border: 1px solid #0B0B61;
+        padding: 1px;
+    }
+    #no_pad1{
+        padding-left: unset;
+    }
+    #no_pad2{
+        padding-left: unset;
+    }
+    .label_head{
+        width: 8.5em;
+    }
+    .box_boder{
+        border-style: ridge;
+        border-width: 4px;
+        border-color: #c3c3c3;
+        margin-bottom: 2px;        
+    }
+    </style>
+ 
+    <title>顧客画面</title>
+  </head>
+  <body id="test">
+        <?php
+            if( isset($_GET['home']) ) {
+                if( "1" ==  $_GET['home'] ){
+                include("../home/View/Common/PageHeader.php");
+                }else{
+                    include("Common/PageHeader.php");
+                }
+            }else{
+                include("Common/PageHeader.php");
+            }
+        ?> 
+    <div >    
+        <div> 
+          <br /><br />
+          <h4>システム管理　システムマスタ</h4>
+          <div class="group_no_float" >
+              <label for="comp_nm" class="label_head">店舗名</label><select id="comp_nm" onchange="showdata(this.value)">
+                  <option value="0"></option>
+              </select><br />
+              <label for="comp_kn" class="label_head">店舗カナ</label><input type="text" id="comp_kn" class="input_long"><br />    
+              <label for="zip" class="label_head">郵便番号</label><input type="text" id="zip" maxlength="8"><br />
+              <label for="addr1" class="label_head">住所1</label><input type="text" id="addr1"  class="input_long"><br />
+              <label for="addr2" class="label_head">住所2</label><input type="text" id="addr2"  class="input_long"><br />
+              <label for="tel" class="label_head">TEL</label><input type="text" id="tel" maxlength="14">
+              <label for="fax" class="label_head">FAX</label><input type="text" id="fax" maxlength="14"><br />
+          </div>
+        </div>
+        <div class="group_no_float">
+            <br />
+        <!-- Tab links -->
+          <div class="tab">
+            <button id="button1" onclick="openCity(event, 'tpg_BASE')" disabled > 基本情報 </button>
+            <button id="button2" onclick="openCity(event, 'tpg_POINT')"  disabled > 得点設定 </button>
+            <button id="button3" onclick="openCity(event, 'tpg_TAXINF')"  disabled  >  消費税  </button>
+            <button id="button4" onclick="openCity(event, 'tpg_NAMES')"  disabled > 名称設定 </button>
+            <button id="button5" onclick="openCity(event, 'tpg_SETS')"  disabled > 各種設定 </button>      
+          </div>
+        </div>
+        <!-- Tab content -->
+        <div id="tpg_BASE" class="tabcontent">
+            <div class="parent">
+                <div class="blocline_left">        
+                    <label class="label_base" for="shop_cd"> 自店コード </label>                 
+                    <input type="text" id="shop_cd" maxlength="4"><br />
+                    <label class="label_base" for="firm_cust_cd"> 取引先コード </label>                  
+                    <input type="text"  id="firm_cust_cd" maxlength="6"><br />
+
+                    <label class="label_base" for="shop_mode_kbn"> 本支店区分 </label>      
+                    <select id="shop_mode_kbn">
+                      <option value="0">単独店</option>
+                      <option value="1">本店</option>
+                      <option value="2">支店</option>
+                      <option value="3">本店(店別日計処理あり)</option>
+                    </select> <br /> 
+
+                    <label class="label_base" for="pos_cnt"> POS設置台数 </label>                 
+                    <input type="text"  id="pos_cnt" maxlength="1"><br />
+                    <label class="label_base" for="month_repday"> 月報出力日 </label>                  
+                    <input type="text" id="month_repday" maxlength="2"><br />
+
+                    <label class="label_base" for="ht_type"> ハンディ種別 </label>      
+                    <select id="ht_type">
+                      <option value="0">キーエンス</option>
+                      <option value="1">カシオ</option> 
+                    </select>  <br />
+                    <label class="label_base" for="mag_card_type"> 磁気カード種別 </label>      
+                    <select id="mag_card_type">
+                      <option value="0">使用しない</option>
+                      <option value="1">PET</option>
+                      <option value="2">PET ラ未 印小</option>
+                      <option value="3">PET ラ未 印大 レシートメモNo.6</option>
+                    </select>  <br />        
+                    <label class="label_base" for="rounding_kbn"> 端数切捨て区分 </label>      
+                    <select id="rounding_kbn">
+                      <option value="0">利用する</option>
+                      <option value="1">利用しない</option>
+                    </select>  <br />   
+                    <label class="label_base" for="bb_date_kbn"> 賞味期限利用区分 </label>      
+                    <select id="bb_date_kbn">
+                      <option value="0">利用する</option>
+                      <option value="1">利用しない</option>
+                    </select>
+                </div>
+                <div class="blocline_right">
+                    <div class="box_boder">
+                        <h4>磁気カード設定</h4>
+                        <label class="label_base" for="card_str_posi"> 読取開始位置 </label>                 
+                        <input type="text"  id="card_str_posi" maxlength="3"><br />
+                        <label class="label_base" for="card_read_byte"> 読取バイト数 </label>                  
+                        <input type="text" id="card_read_byte" maxlength="2">                                                           
+                    </div>
+                    <div class="box_boder">
+                        <h4>バーコードカード設定(会員)</h4>
+                        <label class="label_base" for="bar_read_rule"> 読取ルール </label>      
+                        <select id="bar_read_rule">
+                          <option value="0">下8桁</option>
+                          <option value="1">任意設定</option>
+                        </select>  <br />
+                        <label class="label_base" for="bar_str_posi"> 読取開始位置 </label>                 
+                        <input type="text"  id="bar_str_posi" maxlength="3"><br /> 
+                        <label class="label_base" for="bar_read_byte"> 読取バイト数 </label>                 
+                        <input type="text"  id="bar_read_byte" maxlength="1"><br />                    
+                    </div >
+                    <div class="box_boder">
+                        <h4>バーコード設定(担当者)</h4>
+                        <label class="label_base" for="bar_read_rule_staff"> 読取ルール </label>      
+                        <select id="bar_read_rule_staff">
+                          <option value="0">下2桁</option>
+                          <option value="1">任意設定</option>
+                        </select>  <br />
+                        <label class="label_base" for="bar_str_posi_staff"> 読取開始位置 </label>                 
+                        <input type="text"  id="bar_str_posi_staff" maxlength="3"><br /> 
+                        <label class="label_base" for="bar_read_byte_staff"> 読取バイト数 </label>                 
+                        <input type="text"  id="bar_read_byte_staff" maxlength="1"><br />                     
+                    </div>                
+                </div>
+            </div>
+        </div>
+
+
+
+         <div id="tpg_POINT" class="tabcontent">
+            <div class="parent">
+                <div class="blocline_left">          
+                    <label class="label_base" for="p_manag_kbn"> 得点管理区分 </label>        
+                    <select id="p_manag_kbn">
+                      <option value="0">売上で管理する</option>
+                      <option value="1">粗利で管理する</option>
+                      <option value="2">管理しない</option>
+                    </select>                       
+                    <br />
+                    <label class="label_base" for="p_frac_kbn"> 端数処理区分 </label>        
+                    <select id="p_frac_kbn">
+                      <option value="0">切り捨て</option>
+                      <option value="1">四捨五入</option>
+                      <option value="2">切り上げ</option>
+                    </select>                       
+                    <br />                
+
+                    <label class="label_base" for="p_calc_point"> 付与得点 </label>      
+                    <input type="text" id="p_calc_point" maxlength="4"> <br />        
+                    <label class="label_base" for="p_calc_money"> 付与金額 </label>      
+                    <input type="text" class="input_small" id="p_calc_money" maxlength="4">  <br />
+
+                    <label class="label_base" for="p_calc_tax_kbn"> 計算内税抜区分 </label>        
+                    <select id="p_calc_tax_kbn">
+                      <option value="0">内税込・外税抜で計算")</option>
+                      <option value="1">内税抜・外税抜で計算</option>
+                    </select>                       
+                    <br />
+                    <label class="label_base" for="p_gift_rule"> 商品券適用ルール </label>        
+                    <select id="p_gift_rule">
+                      <option value="0">得点倍率が小さい順に差引</option>
+                      <option value="1">得点倍率が大きい順に差引</option>
+                      <option value="9">KICS50ルール(合計後差引)</option>
+                    </select>                       
+                    <br />                
+
+                    <label class="label_base" for="p_rest_point"> 還元得点 </label>      
+                    <input type="text" id="p_rest_point" maxlength="4"> <br />        
+                    <label class="label_base" for="p_rest_money"> 還元金額 </label>      
+                    <input type="text" class="input_small" id="p_rest_money" maxlength="4">  <br />
+
+
+                    <label class="label_base" for="def_cust_rank_cd"> 初期顧客ランク</label>       
+                    <select id="def_cust_rank_cd"> </select>                    <br />         
+                    <label class="label_base" for="p_limit_kbn"> 有効期限区分 </label>      
+                    <select id="p_limit_kbn">
+                      <option value="0">無期限</option>
+                      <option value="1">最終来店日</option> 
+                    </select>                       
+                    <br />
+                    <label class="label_base" for="p_limit_month"> 有効期限月数</label>       
+                    <input type="text" id="p_limit_month" maxlength="3">                     <br />
+                </div>
+                <div class="blocline_right">
+                    <div class="box_boder">
+                        <h4>キャッシュバック設定</h4>
+                        <label class="label_base" for="cashback_flg"> ｷｬｯｼｭﾊﾞｯｸ区分 </label>      
+                        <select id="cashback_flg">
+                          <option value="0">利用する</option>
+                          <option value="1">利用しない</option> 
+                        </select>  <br />                  
+                        <label class="label_base" for="cashback_point"> 発行金額 </label>                 
+                        <input type="text"  id="cashback_point" maxlength="4"><br />
+                        <label class="label_base" for="cashback_p_rest_point"> 還元得点 </label>                 
+                        <input type="text"  id="cashback_p_rest_point" maxlength="4"><br />                    
+                        <label class="label_base" for="cashback_p_rest_money" > 還元金額 </label>                  
+                        <input type="text" id="cashback_p_rest_money" maxlength="4">                                                           
+                    </div>
+                </div> 
+            </div>                                                
+          </div>
+
+          <div id="tpg_TAXINF" class="tabcontent">
+            <label class="label_base" for="tax1"> 消費税1 </label>                 
+            <input type="text"  id="tax1" maxlength="3">
+            <label  for="tax1s_dt"> ％ </label>                 
+            <input type="text"  id="tax1s_dt">
+            <label for="tax1e_dt"> ～ </label>                 
+            <input type="text" id="tax1e_dt" disabled><br />
+            <label class="label_base" for="tax2"> 消費税2 </label>                 
+            <input type="text"  id="tax2" maxlength="3">
+            <label  for="tax2s_dt"> ％ </label>                 
+            <input type="text"  id="tax2s_dt" >
+            <label  for="tax2e_dt"> ～ </label>                 
+            <input type="text"  id="tax2e_dt" disabled><br />
+            <label class="label_base" for="tax3"> 消費税3 </label>                 
+            <input type="text"  id="tax3" maxlength="3">
+            <label  for="tax3s_dt"> ％ </label>                 
+            <input type="text"  id="tax3s_dt">
+            <label  for="tax3e_dt"> ～ </label>                 
+            <input type="text"  id="tax3e_dt" disabled><br />
+            <label class="label_base" for="tax_frac_kbn"> 消費税端数区分 </label>      
+            <select id="tax_frac_kbn">
+              <option value="0">切り捨て</option>
+              <option value="1">四捨五入</option> 
+              <option value="2">切り上げ</option>
+            </select>
+          </div>
+
+          <div id="tpg_NAMES" class="tabcontent">
+              <div class="parent">
+                <div class="blocline_left">
+                  <label class="label_pro" for="c_biko1"> 顧客備考1 </label>      
+                  <input type="text" id="c_biko1"> <br />
+                  <label class="label_pro" for="c_biko2"> 顧客備考2 </label>      
+                  <input type="text" id="c_biko2"> <br /> 
+                  <label class="label_pro" for="c_biko3"> 顧客備考3 </label>      
+                  <input type="text" id="c_biko3"> <br /> 
+                  <label class="label_pro" for="c_biko4"> 顧客備考4 </label>      
+                  <input type="text" id="c_biko4"> <br />               
+                  <label class="label_pro" for="c_biko5"> 顧客備考5 </label>      
+                  <input type="text" id="c_biko5"> <br /> 
+                  <label class="label_pro" for="c_biko6"> 顧客備考6 </label>      
+                  <input type="text" id="c_biko6"> <br /> 
+                  <label class="label_pro" for="c_biko7"> 顧客備考7 </label>      
+                  <input type="text" id="c_biko7"> <br /> 
+                  <label class="label_pro" for="c_biko8"> 顧客備考8 </label>      
+                  <input type="text" id="c_biko8"> <br /> 
+                  <label class="label_pro" for="c_biko9"> 顧客備考9 </label>      
+                  <input type="text" id="c_biko9"> <br /> 
+                  <label class="label_pro" for="c_biko10"> 顧客備考10 </label>      
+                  <input type="text" id="c_biko10"> <br /> 
+                  <label class="label_pro" for="disp_prem_cd"> 予備コード名称 </label>      
+                  <input type="text" id="disp_prem_cd"> <br /> 
+                </div>
+                <div class="blocline_left">
+                  <label class="label_pro" for="p_kubun1"> 商品区分1 </label>      
+                  <input type="text" id="p_kubun1"> <br />
+                  <label class="label_pro" for="p_kubun2"> 商品区分2 </label>      
+                  <input type="text" id="p_kubun2"> <br /> 
+                  <label class="label_pro" for="p_kubun3"> 商品区分3 </label>      
+                  <input type="text" id="p_kubun3"> <br /> 
+                  <label class="label_pro" for="p_kubun4"> 商品区分4 </label>      
+                  <input type="text" id="p_kubun4"> <br />               
+                  <label class="label_pro" for="p_kubun5"> 商品区分5 </label>      
+                  <input type="text" id="p_kubun5"> <br /> 
+                  <label class="label_pro" for="p_kubun6"> 商品区分6 </label>      
+                  <input type="text" id="p_kubun6"> <br /> 
+                  <label class="label_pro" for="p_kubun7"> 商品区分7 </label>      
+                  <input type="text" id="p_kubun7"> <br /> 
+                  <label class="label_pro" for="p_kubun8"> 商品区分8 </label>      
+                  <input type="text" id="p_kubun8"> <br /> 
+                  <label class="label_pro" for="p_kubun9"> 商品区分9 </label>      
+                  <input type="text" id="p_kubun9"> <br /> 
+                  <label class="label_pro" for="p_kubun10"> 商品区分10 </label>      
+                  <input type="text" id="p_kubun10"> <br />  
+                </div>              
+                <div class="blocline_left">
+                  <label class="label_pro" for="disp_plu1"> 画面PLU1 </label>      
+                  <input type="text" id="disp_plu1"> <br />
+                  <label class="label_pro" for="disp_plu2"> 画面PLU2 </label>      
+                  <input type="text" id="disp_plu2"> <br /> 
+                  <label class="label_pro" for="disp_plu3"> 画面PLU3 </label>      
+                  <input type="text" id="disp_plu3"> <br /> 
+                  <label class="label_pro" for="disp_plu4"> 画面PLU4 </label>      
+                  <input type="text" id="disp_plu4"> <br />               
+                  <label class="label_pro" for="disp_plu5"> 画面PLU5 </label>      
+                  <input type="text" id="disp_plu5"> <br /> 
+                  <label class="label_pro" for="disp_plu6"> 画面PLU6 </label>      
+                  <input type="text" id="disp_plu6"> <br /> 
+                  <label class="label_pro" for="disp_plu7"> 画面PLU7 </label>      
+                  <input type="text" id="disp_plu7"> <br /> 
+                  <label class="label_pro" for="disp_plu8"> 画面PLU8 </label>      
+                  <input type="text" id="disp_plu8"> <br /> 
+                  <label class="label_pro" for="disp_plu9"> 画面PLU9 </label>      
+                  <input type="text" id="disp_plu9"> <br /> 
+                  <label class="label_pro" for="disp_plu10"> 画面PLU10 </label>      
+                  <input type="text" id="disp_plu10"> <br />                                                                                  
+                </div>
+            </div>
+          </div>  
+
+          <div id="tpg_SETS" class="tabcontent">
+            <label class="label_pro" for="empl_cale_kbn"> 社販計算区分 </label> 
+            <select id="empl_cale_kbn">
+              <option value="0">未使用</option>
+              <option value="1">原価より</option> 
+              <option value="2">売価より</option>
+              <option value="3">定価より</option>
+            </select>
+            <input type="text" id="empl_cale_val" maxlength="2" class="input_small">
+            <label for="empl_cale_val"> ％引き </label> <br /> 
+            <label class="label_pro" for="den_isscnt"> 伝票発行部数 </label>      
+            <input type="text" id="den_isscnt"> <br />        
+            <label class="label_pro" for="den_title1"> 1枚目見出し </label>      
+            <input type="text" id="den_title1"> <br />
+            <label class="label_pro" for="den_title2"> 2枚目見出し </label>      
+            <input type="text" id="den_title2"> <br />
+            <label class="label_pro" for="den_title3"> 3枚目見出し </label>      
+            <input type="text" id="den_title3"> <br />
+            <label class="label_base" for="sales_talk_use_kbn"> 販売トーク利用区分 </label> 
+            <select id="sales_talk_use_kbn">
+              <option value="0">利用する</option>
+              <option value="1">利用しない</option> 
+            </select><br />
+            <label class="label_pro" for="invoice_biko_up"> 請求書備考(上段) </label>      
+            <input type="text" id="invoice_biko_up"  class="input_long"> <br />
+            <label class="label_pro" for="invoice_biko_down"> 請求書備考(下段) </label>      
+            <input type="text" id="invoice_biko_down"  class="input_long"> <br />
+            <label class="label_pro" for="invoice_logo_path"> 請求書ロゴ保存先 </label>      
+            <input type="text" id="invoice_logo_path"  class="input_long" readonly><br />        
+            <label class="label_pro" for="res_cust_cd_str" > 予約顧客コード </label>      
+            <input type="text" id="res_cust_cd_str" maxlength="13">
+            <label  for="res_cust_cd_end"> ～ </label>      
+            <input type="text" id="res_cust_cd_end" maxlength="13"><br />
+          </div> 
+
+          <div id="bt_function">
+             <br />
+            <H3 id="message"></h3><br />
+            <button type="button" id="bt_update" onclick="uptadedata()">登録</button>
+            <button type="button" id="bt_delete" onclick="deldata()">削除</button>
+          </div>
+    </div>
+    <script type="text/javascript">  
+
+    </script>        
+  </body>
+</html>

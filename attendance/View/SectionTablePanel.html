@@ -1,0 +1,93 @@
+<?php
+    /**
+     * @file      セクションマスタ画面(View)
+     * @author    USE Y.Sakata
+     * @date      2016/04/27
+     * @version   1.00
+     * @note      セクションマスタ画面(一覧部分)
+     */
+?>
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-ajax">
+
+                <!-- PageMoveArea -->
+                <?php include("../FwCommon/View/PagingArea.php"); ?>
+
+                <!-- serchListArea -->
+            <?php if( $isScrollBar ) { ?>
+                <div class="serchListArea" style=" clear:both; width:99%; margin:0px auto !important; overflow-y:auto; height:25px;">
+            <?php } else { ?>
+                <div class="serchListArea" style=" clear:both; width:99%; margin:5px auto !important;">
+            <?php } ?>
+                    <input type="hidden" id="token" name="token" value="<?php hsc($TokenID); ?>">
+                    <table>
+                        <tr>
+                            <th width="38px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?></u><?php hsc($headerArray['sectionNoSortMark']); ?></span></th>
+                            <th width="45px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0849')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0849')); ?></u><?php hsc($headerArray['sectionStateSortMark']); ?></span></th>
+                            <th width="173px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0851')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0851')); ?></u><?php hsc($headerArray['sectionCodeSortMark']); ?></span></th>
+                            <th width="173px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?></u><?php hsc($headerArray['sectionOrganizationSortMark']); ?></span></th>
+                            <th width="165px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0862')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0862')); ?></u><?php hsc($headerArray['sectionNameSortMark']); ?></span></th>
+                            <th width="68px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0852')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0852')); ?></u><?php hsc($headerArray['sectionDispOrderSortMark']); ?></span></th>
+                            <th width="90px"></th>
+                        </tr>
+                    </table>
+            <?php if( $isScrollBar ) { ?>
+                </div>
+                <div class="serchListArea" style="width:99%; margin: 0px auto; overflow-y:auto; height:300px; !important;">
+            <?php } ?>
+                    <table id="nameTable" style="background-color: #ffffff">
+                        <?php if( !empty($sectionList) ) { ?>
+                        <?php foreach($sectionList as $section) { ?>
+                            <?php $section_no++; ?>
+                            <?php if(!$sectionNoSortFlag) { ?>
+                                <?php $display_no++; ?>
+                            <?php } ?>
+                            <tr>
+                                <input type="hidden" id="sectionIdMod<?php hsc($section_no); ?>" name="sectionId<?php hsc($section_no); ?>" value="<?php hsc($section['section_id']); ?>">
+                                <input type="hidden" id="updateTime<?php hsc($section_no); ?>" name="updateTime<?php hsc($section_no); ?>" value="<?php hsc($section['update_time']); ?>">
+                                <td align="right" width="38px" ><?php hsc($display_no); ?></td>
+                                <?php $del_state = ""; ?>
+                                <?php if(!empty($section['is_del'])) { ?>
+                                    <?php $del_state = "削除"; ?>
+                                <?php } ?>
+                                <td align="center" width="45px" ><?php hsc($del_state); ?></td>
+                                <td id="sCode<?php hsc($section_no); ?>" width="173px" ><?php hsc($section['code']); ?></td>
+                                <td id="sCode-edit<?php hsc($section_no); ?>" style="display : none" align="center" width="173px" >
+                                    <input type="text" pattern="^[0-9A-Za-z]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0301')); ?>" id="sectionCodeMod<?php hsc($section_no); ?>" name="sCode<?php hsc($section_no); ?>" size="23" maxlength="20" value="<?php hsc($section['code']); ?>" class="En" required>
+                                </td>
+                                <td id="sOrganization<?php hsc($section_no); ?>" width="173px" ><?php hsc($section['abbreviated_name']); ?></td>
+                                <td id="sOrganization-edit<?php hsc($section_no); ?>" style="display : none" align="center" width="173px" >
+                                    <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="sectionOrganizationMod<?php hsc($section_no); ?>" name="sOrganization<?php hsc($section_no); ?>" style="width: 160px" >
+                                        <?php foreach($abbreviatedList as $abbreviated) { ?>
+                                            <?php $selected = ""; ?>
+                                            <?php if($abbreviated['organization_id'] == $section['organization_id']) { ?>
+                                                <?php $selected = "selected"; ?>
+                                            <?php } ?>
+                                            <option value="<?php hsc($abbreviated['organization_id']); ?>" <?php hsc($selected); ?>><?php hsc($abbreviated['abbreviated_name']); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </td>
+                                <td id="sSection<?php hsc($section_no); ?>" width="165px" ><?php hsc($section['section_name']); ?></td>
+                                <td id="sSection-edit<?php hsc($section_no); ?>" style="display : none"  align="center" width="165px" >
+                                    <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0302')); ?>" id="sectionNameMod<?php hsc($section_no); ?>" name="sSection<?php hsc($section_no); ?>" size="22" maxlength="20" value="<?php hsc($section['section_name']); ?>" class="Em" required>
+                                </td>
+                                <td id="sDisp<?php hsc($section_no); ?>" align="right" width="68px" ><?php hsc($section['disp_order']); ?></td>
+                                <td id="sDisp-edit<?php hsc($section_no); ?>" style="display : none"  align="center" width="68px" >
+                                    <input type="text" pattern="[1-9][0-9]*" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" id="modDispOrder<?php hsc($section_no); ?>" name="sDisp<?php hsc($section_no); ?>" size="5" maxlength="5" value="<?php hsc($section['disp_order']); ?>" class="En" required>
+                                </td>
+                                <td align="center" width="90px" >
+                                    <?php if(empty($section['is_del'])) { ?>
+                                        <input type="button" id="edtBtn<?php hsc($section_no); ?>" value="<?php hsc($Log->getMsgLog('MSG_BASE_0801')); ?>" onclick="editRow(this)" <?php hsc($section['cor_disabled']); ?>  >
+                                        <input type="submit" id="edtBtn-mod<?php hsc($section_no); ?>" name="mod<?php hsc($section_no); ?>" style="display : none;" value="<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>')" <?php hsc($section['mod_disabled']); ?>>
+                                        <input type="button" id="edtBtn-del<?php hsc($section_no); ?>" name="del<?php hsc($section_no); ?>" style="display : none;" value="<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>')" <?php hsc($section['del_disabled']); ?>>
+                                    <?php } ?>
+                                </td>
+                            </tr>
+                            <?php if($sectionNoSortFlag) { ?>
+                                <?php $display_no--; ?>
+                            <?php } ?>
+                        <?php }} ?>
+                    </table>
+                </div><!-- /.serchListArea -->
+            </div><!-- /.jquery-replace-ajax -->

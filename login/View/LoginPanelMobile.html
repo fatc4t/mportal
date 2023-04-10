@@ -1,0 +1,100 @@
+<?php
+    /**
+     * @file      ログイン画面(View)
+     * @author    USE Y.Sakata
+     * @date      2016/04/27
+     * @version   1.00
+     * @note      ログイン画面
+     */
+?>
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <?php
+            $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述 
+            $add = ''; // 
+            include("Common/HtmlHeader.php"); 
+        ?>
+        
+        <!-- ヘッダ -->
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>M-PORTAL</title>
+
+        <!-- スタイルシート -->
+        <link rel="stylesheet" type="text/css" href="../mobile/common/css/reset.css" />
+        <link rel="stylesheet" type="text/css" href="../mobile/common/css/style.css" />
+        <link rel="stylesheet" type="text/css" href="../mobile/common/css/jquery.bxslider.css" />
+
+        <!-- アイコン -->
+	<!-- Favicons -->
+	<link rel="icon" type="image/png" href="../mobile/icons/16.png" sizes="16x16">
+	<link rel="icon" type="image/png" href="../mobile/icons/32.png" sizes="32x32">
+	<link rel="icon" type="image/png" href="../mobile/icons/48.png" sizes="48x48">
+	<link rel="icon" type="image/png" href="../mobile/icons/64.png" sizes="64x64">
+		
+	<!-- Apple Touch Icons -->
+	<link rel="apple-touch-icon" href="../mobile/icons/152.png" sizes="120x120">
+	<link rel="apple-touch-icon" href="../mobile/icons/120.png" sizes="152x152">
+	<link rel="apple-touch-icon" href="../mobile/icons/76.png" sizes="76x76">
+	<link rel="apple-touch-icon" href="../mobile/icons/114.png" sizes="114x114">
+	<link rel="apple-touch-icon" href="../mobile/icons/57.png" sizes="57x57">
+	<link rel="apple-touch-icon" href="../mobile/icons/144.png" sizes="144x144">
+	<link rel="apple-touch-icon" href="../mobile/icons/72.png" sizes="72x72">
+
+        <!-- スクリプト -->
+        <script type="text/javascript" src="../mobile/common/js/jquery.min.js"></script>
+        <script type="text/javascript" src="../mobile/common/js/common.js"></script>
+        <script type="text/javascript" src="../mobile/common/js/script.js"></script>
+        <script type="text/javascript" src="../mobile/common/js/jquery.bxslider.min.js"></script>
+
+    </head>
+    <body>
+    <header id="header" class="clearfix">
+    	<h1 class="logo"><a href="/mobile/menu.php"><img src="/mobile/common/images/logo.png" alt="M-PORTAL"></a></h1>
+    	<div class="util clearfix"><span class="toggleBtn"></span> </div>
+    </header>
+        
+        <!-- Site -->
+        <div>
+            <p id="errMsg" align=center width=500 height=200><?php phsc( $retArray['errMes'] ); ?></p>
+            <p id="headTime" align=center>
+            </p>
+            <form id="loginForm" name="loginForm" method="POST" action="../login/index.php?param=Login/login">
+                <input type="hidden" name="companyID" value="<?php hsc( $retArray['companyID'] ); ?>">
+                <input type="hidden" name="mobile" value="<?php hsc( $retArray['mobile'] ); ?>">
+                <table width=100%>
+                    <tr>
+                        <td align=center valign=middle>
+                            <table>
+                                <tr height=30>
+                                    <br />
+                                    <br />
+                                    <td width=100>ID：</td>
+                                    <td>
+                                        <input type="text" name="login_id" id="login_id" value="<?php hsc( $retArray['login_id'] ); ?>" class="En" maxlength="16" >
+                                    </td>
+                                </tr>
+                                <tr height=30>
+                                    <td>PASSWORD：</td>
+                                    <td>
+                                        <input type="password" name="password" id="password" value"" class="En" maxlength="16">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align=center colspan=2><input type="submit" name="login" id="login" style="height:30;width:100;" value="ログイン" /></td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+                <br />
+            </form>
+        </div><!-- /.sb-site -->
+    <div id="pagetop"> <a href="#winTop">TOP<span></span></a> </div>
+    <footer id="footer" class="clearfix">
+            <p id="cr">Copyright(C) millionet Co.,Ltd.<br> All Rights Reserved.</p>
+    </footer>
+    </body>
+</html>

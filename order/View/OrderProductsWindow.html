@@ -1,0 +1,315 @@
+<?php
+    /**
+     * @file      商品検索画面(View)
+     * @author    USE K.Kanda(media-craft.co.jp)
+     * @date      2018/01/22
+     * @version   1.00
+     * @note      商品検索画面
+     */
+?>
+<script type="text/javascript">
+function prodkbn_change_n(event){
+    if(document.getElementById(event.target.id).value != "no"){
+        if(event.target.id == "prodkcd1_select"){
+            $("#prodkcd2_select").removeAttr("disabled");
+            var prod_kbn_list = [];
+            prod_kbn_list.push($("#prodkcd1_select").val());
+            set_prodkbn_list_n(2, prod_kbn_list);
+            $("#prodkcd3_select").attr("disabled","disabled");
+            $("#prodkcd4_select").attr("disabled","disabled");
+            $("#prodkcd5_select").attr("disabled","disabled");
+            $("#prodkcd3_select").val("no");
+            $("#prodkcd4_select").val("no");
+            $("#prodkcd5_select").val("no"); 
+        }
+        if(event.target.id == "prodkcd2_select"){
+            $("#prodkcd3_select").removeAttr("disabled");
+            var prod_kbn_list = [];
+            prod_kbn_list.push($("#prodkcd1_select").val());
+            prod_kbn_list.push($("#prodkcd2_select").val());
+            set_prodkbn_list_n(3, prod_kbn_list);        
+            $("#prodkcd4_select").attr("disabled","disabled");
+            $("#prodkcd5_select").attr("disabled","disabled");
+            $("#prodkcd4_select").val("no");
+            $("#prodkcd5_select").val("no"); 
+        }
+        if(event.target.id == "prodkcd3_select"){
+            $("#prodkcd4_select").removeAttr("disabled");
+            var prod_kbn_list = [];
+            prod_kbn_list.push($("#prodkcd1_select").val());
+            prod_kbn_list.push($("#prodkcd2_select").val());
+            prod_kbn_list.push($("#prodkcd3_select").val());
+            set_prodkbn_list_n(4, prod_kbn_list);
+            $("#prodkcd5_select").attr("disabled","disabled");
+            $("#prodkcd5_select").val("no"); 
+        }
+        if(event.target.id == "prodkcd4_select"){
+            $("#prodkcd5_select").removeAttr("disabled");
+            var prod_kbn_list = [];
+            prod_kbn_list.push($("#prodkcd1_select").val());
+            prod_kbn_list.push($("#prodkcd2_select").val());
+            prod_kbn_list.push($("#prodkcd3_select").val());
+            prod_kbn_list.push($("#prodkcd4_select").val());
+            set_prodkbn_list_n(5, prod_kbn_list);
+        }
+    }else{
+        if(event.target.id == "prodkcd1_select"){
+            $("#prodkcd2_select").attr("disabled","disabled");
+            $("#prodkcd3_select").attr("disabled","disabled");
+            $("#prodkcd4_select").attr("disabled","disabled");
+            $("#prodkcd5_select").attr("disabled","disabled");
+            $("#prodkcd2_select").val("no");
+            $("#prodkcd3_select").val("no");
+            $("#prodkcd4_select").val("no");
+            $("#prodkcd5_select").val("no"); 
+        }
+        if(event.target.id == "prodkcd2_select"){
+            $("#prodkcd3_select").attr("disabled","disabled");
+            $("#prodkcd4_select").attr("disabled","disabled");
+            $("#prodkcd5_select").attr("disabled","disabled");
+            $("#prodkcd3_select").val("no");
+            $("#prodkcd4_select").val("no");
+            $("#prodkcd5_select").val("no");  
+        }
+        if(event.target.id == "prodkcd3_select"){        
+            $("#prodkcd4_select").attr("disabled","disabled");
+            $("#prodkcd5_select").attr("disabled","disabled");
+            $("#prodkcd4_select").val("no");
+            $("#prodkcd5_select").val("no");  
+        }
+        if(event.target.id == "prodkcd4_select"){
+            $("#prodkcd5_select").attr("disabled","disabled");
+            $("#prodkcd5_select").val("no");  
+        }
+    }
+    
+}
+
+function set_prodkbn_list_n(prod_type, prod_kbn_list){
+         //ajax
+        var path = "./index.php?param=Order/setProdKbn";
+        var ma_cd  = $("#ma_cd_"+tag_no).val();
+        $.ajax({
+            url: path,
+            type: "POST",
+            data: {     prod_type:prod_type,
+                        prod_kbn_list:prod_kbn_list,
+                        ma_cd:ma_cd
+                   },
+            success: function(rtnData) {
+                if(prod_type == 2){
+                    data_prodkcd2         = JSON.parse(rtnData);
+                    var x = document.getElementById("prodkcd2_select");
+                    $('#prodkcd2_select').empty();
+                    var op = document.createElement("option");
+                    op.text = "";
+                    op.value = "no";
+                    x.add(op,1); 
+                    for(var i=0;i<data_prodkcd2.length;i++){
+                        var op = document.createElement("option");
+                        op.text = data_prodkcd2[i]['prod_k_nm'];
+                        op.value = data_prodkcd2[i]['prod_k_cd'];
+                        x.add(op,1); 
+                    };
+                    
+                }
+                if(prod_type == 3){
+                    data_prodkcd3         = JSON.parse(rtnData);
+                    var x = document.getElementById("prodkcd3_select");
+                    $('#prodkcd3_select').empty();
+                    var op = document.createElement("option");
+                    op.text = "";
+                    op.value = "no";
+                    x.add(op,1); 
+                    for(var i=0;i<data_prodkcd3.length;i++){
+                        var op = document.createElement("option");
+                        op.text = data_prodkcd3[i]['prod_k_nm'];
+                        op.value = data_prodkcd3[i]['prod_k_cd'];
+                        x.add(op,1); 
+                    };
+                     
+                }
+                if(prod_type == 4){
+                    data_prodkcd4         = JSON.parse(rtnData);
+                    var x = document.getElementById("prodkcd4_select");
+                    $('#prodkcd4_select').empty();
+                    var op = document.createElement("option");
+                    op.text = "";
+                    op.value = "no";
+                    x.add(op,1); 
+                    for(var i=0;i<data_prodkcd4.length;i++){
+                        var op = document.createElement("option");
+                        op.text = data_prodkcd4[i]['prod_k_nm'];
+                        op.value = data_prodkcd4[i]['prod_k_cd'];
+                        x.add(op,1); 
+                    };
+                     
+                }
+                if(prod_type == 5){
+                    data_prodkcd5         = JSON.parse(rtnData);
+                    var x = document.getElementById("prodkcd5_select");
+                    $('#prodkcd5_select').empty();
+                    var op = document.createElement("option");
+                    op.text = "";
+                    op.value = "no";
+                    x.add(op,1); 
+                     for(var i=0;i<data_prodkcd5.length;i++){
+                        var op = document.createElement("option");
+                        op.text = data_prodkcd5[i]['prod_k_nm'];
+                        op.value = data_prodkcd5[i]['prod_k_cd'];
+                        x.add(op,1); 
+                    };
+                     
+                }
+               
+            },
+            error:function(xhr, textStatus, error) {
+                alert("商品区分取得失敗しました。");
+            }
+        }); 
+}
+
+function open_syosai(prod_cd){
+    
+        $('body').append('<div class="modal-overlay1"></div>');
+        $('.modal-overlay1').fadeIn('slow');
+
+		var modal = '#productSyosaiWindow';
+		modalResize();
+		$(modal).fadeIn('slow');
+		$('.modal-overlay1').off().click(function() {
+			$(modal).css('display','none');
+			$('.modal-overlay1').fadeOut('slow',function() {
+				$('.modal-overlay1').remove();
+
+			});
+		});
+                getProdSyosai(prod_cd);
+                function modalResize() {
+			var w = $(window).width();
+			var x = (w - $(modal).outerWidth(true)) / 2;
+			y = 55;
+			$(modal).css({'left': x + 'px','top': y + 'px'});
+		}
+}
+
+function getProdSyosai(jan_cd){
+    var tag_no = $("#tag_no").val();
+    var ma_cd  = $("#ma_cd_"+tag_no).val();
+    var pha_id = $("#pha_id").val();
+    //ajax
+    var path = "./index.php?param=Order/input";
+	$.ajax({
+		url: path,
+		type: "POST",
+		data: {pha_id:pha_id,ma_cd:ma_cd,jan_cd:jan_cd},
+		success: function(rtnData) {
+                   $(".order_prod").html(rtnData);
+                   $(".add").css("display", "none");
+                   $("#return").css("display", "none");
+                   $("#lbl_file").css("display", "none");
+                   $("#autoNum").css("display", "none");
+                   $(".order_prod .menuNameArea").css("display", "none");
+                   $(".order_prod .container").css("display", "none");
+                   $(".order_prod nav").css("display", "none");
+                   $(".order_prod").css("width", "1180px");
+                   
+                   $(".order_prod").css("overflow", "hidden");
+                   $(".order_prod").css("padding", "0");
+                   $(".order_prod input").attr("readonly", "true");
+                   $(".order_prod textarea").attr("readonly", "true");
+                   $(".order_prod select").attr("disabled", "true");
+                   
+		},
+		error:function(xhr, textStatus, error) {
+			alert("通信エラー");
+		}
+	});
+}
+</script>
+<style>
+    td{
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+    th{
+        background:#FF6928;
+        color:#FFF;
+    }
+    .prod_kbn{
+        width:110px;
+    }
+    .modal-overlay1 {
+    z-index:1;
+    display:none;
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:120%;
+    background-color:rgba(0,0,0,0.75);
+}
+</style>
+<p class="title">商品一覧</p>
+<div id="formArea">
+    <table>
+        <tr>
+            <th>キーワード</th>
+            <td><input type="text" style="width:820px;height:30px;" name="search_keyword" id="search_keyword"><div class="button_search_mini" id="pro_search">　</div></td>
+        </tr>
+    </table>
+    <table>
+        <tr>
+            <th>カテゴリ１</th>
+                <td class="prod_kbn">
+                    <select style="width:100%" id="prodkcd1_select" name="prodkcd1_select" onchange="prodkbn_change_n(event);">
+                        <option value="no">&nbsp;
+                        </option>
+                    </select>
+                </td>
+            <th>カテゴリ２</th>
+                <td class="prod_kbn">
+                    <select style="width:100%" id="prodkcd2_select" name="prodkcd2_select" onchange="prodkbn_change_n(event)" disabled>
+                        <option value="no">&nbsp;
+                        </option>
+                    </select>
+                </td>
+            <th>カテゴリ３</th>
+                <td class="prod_kbn">
+                    <select style="width:100%" id="prodkcd3_select" name="prodkcd3_select" onchange="prodkbn_change_n(event)" disabled>
+                        <option value="no">&nbsp;
+                        </option>
+                    </select>
+                </td>
+            <th>カテゴリ４</th>
+                <td class="prod_kbn">
+                    <select style="width:100%" id="prodkcd4_select" name="prodkcd4_select" onchange="prodkbn_change_n(event)" disabled>
+                        <option value="no">&nbsp;
+                        </option>
+                    </select>
+                </td>
+            <th>カテゴリ５</th>
+                <td class="prod_kbn">
+                    <select style="width:100%" id="prodkcd5_select" name="prodkcd5_select" onchange="prodkbn_change_n(event)" disabled>
+                        <option value="no">&nbsp;
+                        </option>
+                    </select>
+                </td>
+        </tr>
+    </table>
+</div>
+<div id="loading"><img src="../img/gif-load.gif"></div>
+<!--<div style="width:600px;text-align:left;">商品説明にカーソルを合わせると、全文を読むことができます</div>-->
+<div id="listArea" style="height:415px;">
+    <table id="listTable" style="height:380px;">
+
+        </thead>
+        <tbody id="productsList" style="font-size:10px;">
+          <?php print_r($proArr);?>
+        </tbody>
+   </table>
+   <div id="formArea">
+        <div class="button_order" id="proadd">商品追加</div>
+   </div>
+</div>

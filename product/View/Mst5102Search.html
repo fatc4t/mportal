@@ -1,0 +1,280 @@
+<?php header('X-Frame-Options: SAMEORIGIN'); ?>
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>商品検索</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!--<link rel="stylesheet" href="../css/product/jquery-ui.css" >	
+        <link rel="stylesheet" href="../css/product/default.css" >	        -->
+        <style>
+            body {
+                font-family: MS Gothic;
+                background-color: whitesmoke;
+            }
+            label {
+              background-color: #0B0B61;
+              color: white;
+              font-weight: bold;
+              padding: 2px;
+              text-transform: uppercase;
+              font-size: 12pt;
+              margin: 1px;
+              display: inline-block;              
+            } 
+            .input_small2{
+                width: 8em;
+            } 
+            thead th {
+                background-color: #0B0B61;
+                border: 1px solid #AAA;
+                color: white;
+                text-align: -webkit-center; 
+            }
+            tbody {
+                background-color: #fff;
+                border: 1px solid #0B0B61;
+                               
+            }            
+        </style>
+        <script type="text/javascript">
+            var table_size = 30;
+            var pagenb = 0;
+            
+            var keys=[];
+            keys=["abbreviated_name","prod_cd", "prod_nm", "prod_kn"]
+            var result = "";
+            thead_nm            = ["","組織名","商品コード","商品名","商品カナ"];
+            //pmst0201_sd         = '<?php echo json_encode(json_encode($mst0201_searchdata)); ?>';
+            pmst0201_sd         =  <?php $prefix = '';echo '[';foreach($mst0201_searchdata as $row){echo $prefix,json_encode(json_encode($row));$prefix = ',';};echo ']'; ?>;
+            //ptypmst0201_sd      = JSON.parse(pmst0201_sd.slice(1,-1));
+            ptypmst0201_sd      =getJson();
+            working_data        = ptypmst0201_sd;
+            var pagemaxnb = Math.ceil(ptypmst0201_sd.length/table_size)-1 ;
+            //
+            orgn_id = "<?php echo $orgn_id; ?>";
+            line    = "<?php echo $line; ?>";
+            
+            function getJson(){
+                var str = [];
+                for(i = 1; i < pmst0201_sd.length; i++){
+                    str.push(JSON.parse(pmst0201_sd.slice(i,i+1 )));
+                };
+                return str;
+            }
+            
+            function fresult(e){
+                result=e.target.value;
+                //console.log(result);
+                checkboxlst=document.getElementsByName('ckbox_val');
+                //console.log(checkboxlst);
+                for(i=0;i < checkboxlst.length-1; i++){
+                    checkboxlst[i].checked= false;
+                }
+                document.getElementById(e.target.id).checked= true;
+            }
+            function tbodydata(data,start,nbRow){ 
+                tbod = document.getElementById("tbody_id");
+                tbod.innerHTML = '';
+                if(data.length > 0){ 
+                    if(keys.length <= 0){
+                        keys = Object.keys(data[0]);            
+                    }
+                    ilength=data.length;
+                    if(nbRow > ilength-start){
+                        nbRow=ilength-start;                        
+                    }
+                    for(i=0;i < nbRow ; i++ ){ 
+                        var trow         = tbod.insertRow(i);
+                        var ckbox        = trow.insertCell(0);
+                        var newckBox     = document.createElement('input');
+                        newckBox.type    = 'checkbox';
+                        newckBox.name    = 'ckbox_val';
+                        newckBox.id      = 'ckbox_' + i;
+//                        newckBox.value   = data[ilength-start-i-1].prod_cd;
+                        var iIdx = ilength-start-i-1;
+                        newckBox.value   = data[iIdx].organization_id + ':' + data[iIdx].prod_cd;
+                        newckBox.onclick = fresult;
+                        ckbox.appendChild(newckBox);
+                        for(j=0;j < keys.length; j++){
+                            var newcell = trow.insertCell(j+1);
+                            newcell.innerHTML = data[ilength-start-i-1][keys[j]];
+                        }
+                    }
+                }                
+            }
+            function datashowpage(showpage){
+                tbodydata(working_data,showpage*table_size,table_size);
+            }
+            function firstpage(){
+                pagenb=0;
+                document.getElementById("bt_previous").setAttribute("disabled", true);
+                document.getElementById("bt_next").removeAttribute("disabled");
+                datashowpage(pagenb);
+            }
+            function lastpage(){
+                pagenb=pagemaxnb;
+                document.getElementById("bt_previous").removeAttribute("disabled");
+                document.getElementById("bt_next").setAttribute("disabled", true);
+                datashowpage(pagenb);
+            }
+            function previous(){
+                pagenb--;
+                if(pagenb > 0){  
+                    document.getElementById("bt_previous").removeAttribute("disabled");
+                }
+                else {
+                    pagenb = 0;
+                    document.getElementById("bt_previous").setAttribute("disabled", true);
+                }
+                if(pagenb < pagemaxnb){
+                    document.getElementById("bt_next").removeAttribute("disabled");
+                }
+                else {
+                    pagenb = pagemaxnb;                    
+                    document.getElementById("bt_next").setAttribute("disabled", true);
+                }                
+                datashowpage(pagenb);
+            }
+            function next(){ 
+                pagenb++;
+                if(pagenb < pagemaxnb){
+                    document.getElementById("bt_next").removeAttribute("disabled");
+                }
+                else {
+                    pagenb = pagemaxnb;                    
+                    document.getElementById("bt_next").setAttribute("disabled", true);
+                }
+                if(pagenb > 0){  
+                    document.getElementById("bt_previous").removeAttribute("disabled");
+                }
+                else {
+                    pagenb = 0;
+                    document.getElementById("bt_previous").setAttribute("disabled", true);
+                }                
+                datashowpage(pagenb);
+            }
+            function searchdata(event_id){
+                var orgn_id_val = document.getElementById("cmb_ORGANIZATION_ID").value;
+                var prod_nm_val = document.getElementById("txt_PROD_NM").value;
+                var prod_kn_val = document.getElementById("txt_PROD_KN").value;
+                if(!orgn_id_val && !prod_nm_val && !prod_kn_val){
+                    working_data = ptypmst0201_sd;
+                    pagemaxnb = Math.ceil(working_data.length/table_size)-1 ;
+                    firstpage();
+                    return;
+                }
+                working_data = [];
+                for(var i = 0 ; i<ptypmst0201_sd.length;i++){
+                    var j=0;
+                    if(orgn_id_val){
+                        if(!ptypmst0201_sd[i].organization_id){continue;}
+                        if(ptypmst0201_sd[i].organization_id == orgn_id_val){
+                            j=1;
+                        }
+                        else{continue;}
+                    }
+                    if(prod_nm_val){
+                        if(!ptypmst0201_sd[i].prod_nm){continue;}
+                        if(ptypmst0201_sd[i].prod_nm.indexOf(prod_nm_val) !== -1  ){
+                            j=1;
+                        }
+                        else{continue;}
+                    }
+                    if(prod_kn_val){
+                        if(!ptypmst0201_sd[i].prod_kn){continue;}
+                        if(ptypmst0201_sd[i].prod_kn.indexOf(prod_kn_val) !== -1  ){
+                            j=1;
+                        }
+                        else{continue;}
+                    }                    
+                    if(j===1){
+                        working_data.push(ptypmst0201_sd[i]);
+                    }
+                }
+                pagemaxnb = Math.ceil(working_data.length/table_size)-1 ;
+                firstpage();
+            }
+            function send_result(){
+                if (result != ""){
+                    //spath = window.location.href;
+                    //spath = spath.split('?'); 
+                    //spath = spath[0]+'?param=Mst5102/show&setprodcd='+result;
+                    //window.location.replace(spath);
+                    if (line !== ""){
+                        aryRes = result.split(":");
+                        parent.document.getElementById("prod_cd_"+line).value = aryRes[1];
+                        for (i=0;i<working_data.length;i++){
+                            if (working_data[i]["organization_id"] === Number(aryRes[0]) && working_data[i]["prod_cd"] === aryRes[1]){
+                                parent.document.getElementById("prod_kn_rk_"+line).value = working_data[i]["prod_kn_rk"];
+                                parent.document.getElementById("saleprice_"+line).value  = working_data[i]["saleprice"];
+                                parent.document.getElementById("costprice_"+line).value  = working_data[i]["costprice"];
+                                break;
+                            }
+                        }
+                        parent.closeDialog(line);
+                    }
+                    else{
+                        spath = window.location.href;
+                        spath = spath.split('?'); 
+                        spath = spath[0]+'?param=Mst5102/show&search='+result;
+                        window.location.replace(spath);
+                    }
+                }
+            }
+        </script>
+    </head>
+    <body>
+        <div>商品検索</div>
+        <div>
+            <label class="input_small2" for="cmb_ORGANIZATION_ID"> 組織名 </label>
+            <select id="cmb_ORGANIZATION_ID" onchange="searchdata('cmb_ORGANIZATION_ID')">
+                <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+                <?php foreach($abbreviatedNameList as $abbreviated) { ?>
+                    <option value="<?php hsc($abbreviated['organization_id']); ?>" <?php hsc($selected); ?>><?php hsc($abbreviated['abbreviated_name']); ?></option>
+                <?php } ?>
+            </select><br />
+            <label class="input_small2" for="txt_PROD_KN"> 商品名（カナ） </label><input type="text"  id="txt_PROD_KN" onblur="searchdata('txt_PROD_KN')"><br />
+            <label class="input_small2" for="txt_PROD_NM"> 商品名（漢字） </label><input type="text"  id="txt_PROD_NM" onblur="searchdata('txt_PROD_NM')"><br />             
+            <button type="button" id="bt_fisrt" onclick="firstpage()"  >先頭ページ</button><button type="button" id="bt_previous" onclick="previous()" disabled >前ページ</button><button type="button" id="bt_next" onclick="next()">次ページ</button><button type="button" id="bt_last" onclick="lastpage()"  >最終ページ</button>
+        </div>
+        <br />
+        <div>
+            <table>
+                <thead id="thead_id">
+                    <tr>
+                        <th>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="tbody_id">
+                    
+                </tbody>
+            </table>
+        </div>
+        <button type="button" id="send_result" onclick="send_result()"  >決定</button>
+        <script type="text/javascript">
+            thead = document.getElementById("thead_id");
+            thead.innerHTML = '';           
+            for(i=0;i < thead_nm.length ; i++ ){
+                field_nm            = document.createElement('th');
+                field_nm.innerHTML  = "";
+                field_nm.innerHTML  = thead_nm[i];
+                thead.appendChild(field_nm);
+            }
+            tbodydata(ptypmst0201_sd,0,table_size);
+           
+            if (orgn_id){
+                var elem = document.getElementById("cmb_ORGANIZATION_ID");
+                elem.value = orgn_id;
+                elem.setAttribute("disabled", true);
+                searchdata('cmb_ORGANIZATION_ID');
+            }
+        </script>
+    </body>
+</html>

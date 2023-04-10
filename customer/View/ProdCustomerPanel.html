@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>m-portal</title>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8">
+        <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+        <?php include("../home/View/Common/HtmlHeader.php"); ?>        
+        <script type="text/javascript" src="../../FwCommon/js/common.js" ></script>
+        <script type="text/javascript" src="../js/customer/common.js" ></script> 
+        <script type="text/javascript" src="../js/customer/jquery-ui.min.js" ></script>
+        <script type="text/javascript">
+            var link    = document.createElement('link');
+            link.rel    = "stylesheet";
+            link.href   = "../css/customer/prodcustomer.css";
+            document.head.appendChild(link);
+            org_id          = "<?php echo $org_id ; ?>";
+            if(org_id === ''){
+                org_id = 0;
+            }
+            cust_cd          = "<?php echo $cust_cd ; ?>";
+            pagetitle       = "<?php echo $pagetitle ; ?>";
+            addrow          = "<?php echo $addrow ; ?>";
+            save            = "<?php echo $save ; ?>";
+            pr_key_list     = "<?php echo $pr_key_list; ?>";
+            pr_key_id       = '<?php echo json_encode(json_encode($pr_key_id)); ?>';
+            A_pr_key_id     = JSON.parse(pr_key_id.slice(1,-1));
+            key             = '<?php echo json_encode(json_encode($key)); ?>';
+            A_key           = JSON.parse(key.slice(1,-1));
+            title           = '<?php echo json_encode(json_encode($title)); ?>';
+            A_title         = JSON.parse(title.slice(1,-1));
+            data_all        = '<?php echo json_encode(json_encode($data)); ?>';
+            data            = JSON.parse(data_all.slice(1,-1)); 
+            pmst1701        = '<?php echo json_encode(json_encode($mst1701)); ?>';
+            ptypmst1701     = JSON.parse(pmst1701.slice(1,-1));
+            pmst0101        = '<?php echo json_encode(json_encode($mst0101)); ?>';
+            ptypmst0101     = JSON.parse(pmst0101.slice(1,-1));            
+            working_data    = ptypmst1701;
+            porg_id_list        = '<?php echo json_encode(json_encode($org_id_list)); ?>';
+            ptyporg_id_list     = JSON.parse(porg_id_list.slice(1,-1));              
+            mst0101list         = "<?php  echo $mst0101list['list'] ; ?>";
+            mst0201list         = "<?php  echo $mst0201list['list'] ; ?>";
+            cust_size = mst0101list.split(",")[0].length;
+            prod_size = mst0201list.split(",")[0].length;
+            bycust_size = 8;
+            
+            function numberWithCommas(x) {
+                var parts = x.toString().split(".");
+                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                return parts[0];
+            }            
+                         
+            function thead_crea(thead_nm){
+                thead = document.getElementById("thead_template");
+                thead.innerHTML = '';
+                field_nm            = document.createElement('th');                
+                field_nm.innerHTML  = "&nbsp;&nbsp;&nbsp;";
+                thead.appendChild(field_nm); 
+
+                for(i=0;i < thead_nm.length ; i++ ){
+                    field_nm            = document.createElement('th');
+                    field_nm.innerHTML  = "";
+                    field_nm.innerHTML  = thead_nm[i];
+                    thead.appendChild(field_nm);
+                }                
+            }
+            
+            function tbody_crea(arr){
+                tbod = document.getElementById("tbody_template");
+                tbod.innerHTML = '';
+                work_data = arr;
+                //console.log(work_data);
+                for(i=0;i < work_data.length ; i++ ){
+                    var trow         = tbod.insertRow();
+                    var ckbox        = trow.insertCell(0);
+                    var newbutton       = document.createElement('button');
+                    newbutton.name      = 'button_del';
+                    newbutton.id        = 'del_' + i;
+                    newbutton.value     = i;
+                    newbutton.innerHTML = "削除";
+                    newbutton.onclick = del_row;
+                    ckbox.appendChild(newbutton);
+
+                    for(j=0;j < A_key.length; j++){
+                        var newcell     = trow.insertCell(j+1);
+                        var newinput   = document.createElement('input');
+                        newinput.type       = 'text';
+                        newinput.name       = A_key[j];
+                        newinput.id         = A_key[j]+"_"+i;
+                        newinput.onkeydown = f_keydown;
+                        if(A_key[j] !== "bycust_saleprice"){
+                            newinput.disabled = true;
+                        }
+                        if( A_key[j] === "upddatetime"){
+                            if (work_data[i][A_key[j]] === ""){
+                                Tdate = new Date(Tdate);
+                            }else{
+                                Tdate = new Date(work_data[i][A_key[j]]);
+                            }
+                            newinput.value =  Tdate.getFullYear() + "/" +("00"+(Tdate.getMonth()+1)).slice(-2) + "/" + Tdate.getDate() ;
+                        }else{
+                            if(isNaN(work_data[i][A_key[j]]) || A_key[j] === "prod_cd"){
+                                newinput.value      = work_data[i][A_key[j]];
+                            } else{
+                                newinput.value      = numberWithCommas(work_data[i][A_key[j]]);
+                            }
+                        }
+                        newcell.appendChild(newinput);
+                    }
+                }
+                  
+                var trow         = tbod.insertRow();
+                var ckbox        = trow.insertCell(0);
+                var newbutton       = document.createElement('button');
+                newbutton.name      = 'button_add';
+                newbutton.id        = 'add';
+                newbutton.value     = work_data.length;
+                newbutton.innerHTML = "追加";
+                newbutton.onclick = add_row;
+                ckbox.appendChild(newbutton);
+
+                for(j=0;j < A_key.length; j++){
+                    var newcell = trow.insertCell(j+1);
+                    var newinput = document.createElement('input');
+                    newinput.type       = 'text';
+                    newinput.name       = A_key[j];
+                    newinput.id         = A_key[j]+"_"+i;
+                    newinput.value      = "";
+                    
+                    if(A_key[j] === "prod_cd"){
+                        newinput.style = "width: 7em";
+                        //console.log(newinput);
+                        newcell.appendChild(newinput);
+                        var newbutton       = document.createElement('button');
+                        newbutton.name      = 'prodsearch';
+                        newbutton.id        = 'prodsearch';
+                        newbutton.value     = i;
+                        newbutton.innerHTML = "検索";
+                        newbutton.onclick   = search_prod;
+                        newcell.appendChild(newbutton); 
+                    }else{
+                        newcell.appendChild(newinput);
+                    }                    
+                }
+             if(addrow == 0){
+                 list = document.getElementsByName('button_del');
+                 for(i=0;i<list.length;i++){
+                    list[i].setAttribute("disabled", true);
+                 }
+                 document.getElementById("add").setAttribute("disabled", true);
+             }
+             if(save == 0){
+                  document.getElementById('send_result').setAttribute("disabled", true);
+             }
+                
+            }
+            function f_change(e){
+                elem_message = document.getElementById("message");
+                elem = document.getElementById(e.target.id);
+                if(e.target.id === "cust_cd"){
+                    working_data=[];
+                    tbody_crea(working_data);
+                    lock_table();
+                    icust_cd =  e.target.value;
+                    //console.log(e.target.value);
+                    //console.log(icust_cd);
+                    if (icust_cd !== ""){
+                        if(!isNaN(icust_cd)){
+                            icust_cd = parseInt(icust_cd);
+                            icust_cd = ("0".repeat(cust_size) + icust_cd).slice(-cust_size);
+                            String(icust_cd); 
+                            if(mst0101list.indexOf(icust_cd) !== -1){
+                                elem.value = icust_cd;
+                                elem_message.innerHTML = "";
+                                document.getElementById('validate').removeAttribute("disabled");
+                                return;
+                            }
+                            else{
+                                document.getElementById('validate').setAttribute("disabled", true);
+                                elem.value = "";
+                                document.getElementById('cust_nm').innerHTML= "";
+                                alert("※この顧客コードがありません");
+                                elem.focus();
+                                elem_message.innerHTML = " ※この顧客コードがありません";
+                                
+                                return;
+                            }
+                        }
+                    }
+                    document.getElementById('cust_nm').innerHTML= "";
+                    document.getElementById('validate').setAttribute("disabled", true);
+                    elem_message.innerHTML = "";
+                    return;
+                }
+                if(e.target.name === "prod_cd"){
+                    //console.log('here');
+                    iprod_cd =  elem.value;
+                    if (iprod_cd !== ""){
+                        if(!isNaN(iprod_cd)){
+                            iprod_cd = parseInt(iprod_cd);
+                            iprod_cd = ("0".repeat(prod_size) + iprod_cd).slice(-prod_size);
+                            String(iprod_cd);
+                            //console.log(iprod_cd);
+                            if(mst0201list.indexOf(iprod_cd) !== -1){
+                                elem.value = iprod_cd;
+                                elem_message.innerHTML = "";
+                                return;
+                            }
+                            else{
+                                elem.value = "";
+                                elem.focus();
+                                alert("※この商品コードがありません");
+                                elem_message.innerHTML = "※この商品コードがありません";
+                                return;
+                            }                            
+                        }
+                    }
+                    //console.log("clear message");
+                    elem_message.innerHTML = "";
+                }
+                if(e.target.name === "bycust_saleprice"){
+                    elem_tr = elem.parentNode.parentNode;
+                    ref = elem_tr.rowIndex;
+                    prod_cd_id =　"prod_cd_"+ref;
+                    prod_val = document.getElementById(prod_cd_id).value;
+                    if(document.getElementById("add").value !== ref){ 
+                        if( prod_val !== ""){
+                            if(e.target.value !== "" &&  e.target.value > 0){
+                                for(i=0;i<data.length;i++){
+                                    if(data[i].prod_cd === prod_val){
+                                        data[i].bycust_saleprice = e.target.value;
+                                        if(data[i].state !== "new" ){
+                                            data[i].state = "upd";
+                                        }
+                                        elem_message.innerHTML = "";
+                                        break;
+                                    }
+                                }
+                                //console.log("here");
+                                elem.value = numberWithCommas(elem.value);
+                            }else{
+                                elem_message.innerHTML = "※空と'0'ができません";
+                                elem.focus();
+                                for(i=0;i<data.length;i++){
+                                    if(data[i].prod_cd === prod_val){
+                                        elem.value = numberWithCommas(data[i].bycust_saleprice);
+                                    }
+                                }
+                            }
+                        }else{
+                            alert("※商品コードを入れってください。");
+                            elem.value = "";
+                        }
+                    }   
+                    
+                }
+                
+            }
+            function f_blur(e){
+                elem_message = document.getElementById("message");
+                //console.log("blur clear message");
+                elem_message.innerHTML = "";
+            }
+            function f_keydown(e){
+
+            }
+            function f_input(e){
+                if(!e.data){
+                    e.data=e.target.value.slice(-1);
+                }                
+            elem = document.getElementById(e.target.id);
+            var w_val = e.target.value;                
+                w_val = w_val.split(".")[0];
+                w_val = w_val.replace(/\s/g, "");
+                w_val = w_val.replace(/\./g, "");
+                w_val = w_val.replace(/-/g, "");
+                if(isNaN(e.data)){                    
+                   w_val = w_val.replace(/\D/g,'');;
+                   alert(" ※数値のみ入力できます");
+                }
+                elem.value = w_val;
+            }
+            function add_row(e){
+                prod_id = "prod_cd_"+e.target.value;
+                
+                prod_val = document.getElementById(prod_id).value;
+                if(prod_val !== ""){
+                    by_id = "bycust_saleprice_"+e.target.value;
+                    by_val = document.getElementById(by_id).value.replace(',',"");
+                    
+                    if(by_val > 0){
+                        data[data.length] = {
+                            prod_cd           : prod_val,
+                            bycust_saleprice  : by_val,
+                            state             : "new"
+                        }                        
+                        Tdata = {};
+                        data_send = [];
+                        data_send['data'] = '';
+                        for(i=0;i<data.length;i++){
+                            Tdata['"'+i+'"'] = data[i]; 
+                        }
+                        data_send['data'] = JSON.stringify(Tdata);
+                        //console.log(data_send);
+                        spath       = 'index.php?param=ProdCustomer/addRow&org_id='+org_id+'&cust_cd='+cust_cd;
+                        setDataForAjax( data_send, spath ,'ajaxScreenUpdate' );
+                    }
+                }
+            }
+            function del_row(e){
+                elem = document.getElementById(e.target.value);
+                prod_id = 'prod_cd_'+e.target.value;
+                prod_cd_del =  document.getElementById(prod_id).value;
+                
+                for(i=0;i<data.length;i++){
+                    //console.log(prod_cd_del);
+                    //console.log(data[i].prod_cd);
+                    if(prod_cd_del === data[i].prod_cd){
+                        if(data[i].state === 'new'){
+ 
+                            data.splice(i,1);
+                        }else{
+                            data[i].state = 'del';
+                        }
+                    } 
+                }
+                tbod = document.getElementById("tbody_template").deleteRow(e.target.value);
+            }
+            function send_result(){
+                                       
+                Tdata = {};
+                data_send = [];
+                data_send['data'] = '';
+                for(i=0;i<data.length;i++){
+                    if(data[i].prod_cd === "" ){
+                        alert(i+"行目に商品コードが空です。データを保存しません");
+                        return;
+                    }
+                    if(data[i].bycust_saleprice < 1 ){
+                        alert(i+"行目に顧客別売価は"+data[i].bycust_saleprice+"です。データを保存しません");
+                        return;
+                    }                    
+                    Tdata['"'+i+'"'] = data[i]; 
+                }
+                data_send['data'] = JSON.stringify(Tdata);
+                //console.log(data_send);
+                spath       = 'index.php?param=ProdCustomer/addInput&org_id='+org_id+'&cust_cd='+cust_cd;
+                setDataForAjax( data_send, spath ,'ajaxScreenUpdate' );
+                
+            }
+            function showdata(o_id){
+                working_data=[];
+                tbody_crea(working_data);
+                lock_table();
+                document.getElementById("cust_cd").value = "";
+                org_id = o_id;
+                if(org_id != 0){
+                    document.getElementById("cust_cd").removeAttribute("disabled");
+                    document.getElementById("custsearch").removeAttribute("disabled");
+                }else{
+                    document.getElementById("cust_cd").setAttribute("disabled",true);
+                    document.getElementById("custsearch").setAttribute("disabled",true);
+                }
+            }
+            function getdata(){
+                cust_cd = document.getElementById("cust_cd").value;
+                if(org_id !== 0 && cust_cd !== ""){
+                    spath = window.location.href;
+                    spath = spath.split('?'); 
+                    spath = spath[0]+'?param=ProdCustomer/show&org_id='+org_id+'&cust_cd='+cust_cd;            
+                    window.location.replace(spath);                    
+                }
+            }
+            function custsearch(){
+                spath       = window.location.href;
+                spath       = spath.split('?'); 
+                spath       = spath[0]+'?param=ProdCustomer/custsearch';
+                if(org_id !== 0){
+                    spath   = spath +'&org_id='+org_id;
+                }
+                window.location.replace(spath);               
+            }
+            function search_prod(){
+                Tdata = {};
+                data_send = [];
+                data_send['data'] = '';
+                for(i=0;i<data.length;i++){
+                    Tdata['"'+i+'"'] = data[i]; 
+                }
+                data_send['data'] = JSON.stringify(Tdata);
+                //console.log(data_send);
+                spath       = 'index.php?param=ProdCustomer/searchProd&org_id='+org_id+'&cust_cd='+cust_cd;
+                setDataForAjax( data_send, spath ,'ajaxScreenUpdate' );                
+            }
+            function lock_table(){
+                elem_table = document.getElementById("tbody_template");
+                elem_input = elem_table.getElementsByTagName("INPUT");
+                for(i=0;i<elem_input.length;i++){
+                    elem_input[i].setAttribute("disabled",true);
+                }
+                elem_button = elem_table.getElementsByTagName("BUTTON");
+                for(i=0;i<elem_button.length;i++){
+                    elem_button[i].setAttribute("disabled",true);
+                }                
+            }
+        </script>
+            
+        <style type="text/css">
+            .input_small3{
+               width: 8em;
+           }  
+            .input_middle{
+                width: 20em;
+            }  
+            label {
+                background-color: #0B0B61;
+                color: white;
+                font-weight: bold;
+                padding: 2px;
+                font-size: 12pt;
+                margin: 1px;
+                min-height: 23px;
+                vertical-align: middle;              
+            }  
+            div{
+              margin: 0px;
+              margin-left: 5px;
+            }            
+        </style>
+    </head>
+    <body>
+        <?php
+              include("../home/View/Common/PageHeader.php");
+
+        ?> 
+        <div id="sb-site" style="overflow: auto;">
+            <h4 id="pagetitle"></h4>
+            <div>
+                <label for="comp_nm">店舗名</label><select id="comp_nm" onchange="showdata(this.value)">
+                    <option value="0"></option>
+                </select><br />
+                <label  for="cust_cd"> 顧客コード </label>                 
+                <input class = "input_small3" type="text"  id="cust_cd" disabled>
+                <label  class= "input_middle" for="cust_cd" id="cust_nm"></label>
+                <button type="button" id="custsearch" onclick="custsearch()"  disabled>顧客検索</button>
+                <button type="button" id="validate" onclick="getdata()"  disabled>データ入手</button>
+            </div>
+            <div class="table_container">
+                <table id="table_template">
+                     <thead id="thead_template">
+                         <tr>
+                            <th>
+                            </th>                         
+                         </tr>
+                     </thead>
+                     <tbody id="tbody_template">
+
+                     </tbody>
+                </table>        
+            </div>
+            <div>
+                <br />
+                <H3 id="message"></h3><br />            
+                <br />
+                &nbsp;<button type="button" id="send_result" onclick="send_result()"  >決定</button>
+            </div>
+        </div>
+        <script type="text/javascript">
+                thead_crea(A_title);
+                tbody_crea(working_data);
+                compselect=document.getElementById("comp_nm");
+                opt=document.createElement("option");
+                for( var j=0; j < ptyporg_id_list.length; j++){
+                    opt=document.createElement("option");
+                    opt.value   = ptyporg_id_list[j].organization_id;
+                    opt.text    = ptyporg_id_list[j].organization_name;
+                    compselect.options.add(opt,null);
+                } 
+                compselect.value = org_id;
+                if(ptypmst0101){
+                    document.getElementById("cust_cd").value = cust_cd;
+                    if(ptypmst0101.cust_nm){
+                        document.getElementById("cust_nm").innerHTML = ptypmst0101.cust_nm;
+                    }
+                }
+                if(cust_cd != ""){
+                    document.getElementById("cust_cd").removeAttribute("disabled");
+                    document.getElementById("custsearch").removeAttribute("disabled");
+                    document.getElementById("validate").removeAttribute("disabled");
+                    eleminput = document.getElementsByTagName("INPUT");
+                    for(i=0;i<eleminput.length;i++){
+                        elem=eleminput[i];
+                        if(elem.name === "prod_cd" || elem.id === "cust_cd" || elem.name === "bycust_saleprice"){
+                            elem.addEventListener('change',f_change);
+                            elem.addEventListener('input',f_input);
+                            elem.addEventListener('blur',f_blur);
+                            if(elem.name === "bycust_saleprice"){
+                                elem.setAttribute("maxlength", bycust_size);
+                            }else if (elem.name === "prod_cd"){
+                                elem.setAttribute("maxlength", prod_size);
+                            }else if(elem.id === "cust_cd"){
+                                elem.setAttribute("maxlength", cust_size);
+                            }
+                        }
+                        else{
+                            elem.setAttribute("disabled", true);
+                            
+                        }
+                    }
+                }else{
+                    document.getElementById("cust_cd").addEventListener('change',f_change);
+                    document.getElementById("cust_cd").addEventListener('input',f_input);
+                    document.getElementById("cust_cd").addEventListener('blur',f_blur);
+                    lock_table();
+                }
+                
+                document.getElementById('pagetitle').innerHTML = "&nbsp;" + pagetitle;
+                $('H4').css({backgroundColor:'#0B0B61',border:'1px solid #AAA',color:'whitesmoke',padding:'5px'});
+        </script>
+    </body>
+</html>

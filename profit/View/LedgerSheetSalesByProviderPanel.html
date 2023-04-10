@@ -1,0 +1,2530 @@
+<?php
+    /**
+     * @file      部門別実績画面(View)
+     * @author    millionet montagne
+     * @date      2019/05/22
+     * @version   1.00
+     * @note      
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述
+            include("../profit/View/Common/HtmlHeader.php");
+        ?>
+
+        <script src="../js/profit/jquery/jquery.ui.ympicker.js" ></script>
+        <script src="../js/profit/jquery/jquery-migrate-1.0.0.js" ></script>
+        <script src="../js/profit/jquery/datepicker-ja.js" ></script>
+        <script src="../js/autofil_v<?php echo $_SESSION['AUTOFIL_VER'] ?>.js" ></script>
+        <!-- modal script-->
+        <script src="../js/modal/modal.js" ></script>
+        <link rel="stylesheet" href="../css/modal/modal.css" >
+        
+        <script type="text/javascript">
+            Sizelist       = '<?php echo json_encode(json_encode($Sizelist)); ?>';
+            A_Sizelist     = JSON.parse(Sizelist.slice(1,-1));
+            porg_id_list        = '<?php echo json_encode(json_encode($org_id_list)); ?>';
+            data_org            = JSON.parse(porg_id_list.slice(1,-1)); 
+            ptypdata            = '<?php echo json_encode($data); ?>';
+            A_Data              = JSON.parse(ptypdata); 
+            ptypsupp_detail     = '<?php echo json_encode($supp_detail); ?>';
+            data_supp           = JSON.parse(ptypsupp_detail);
+            asc = [];
+            // create data set for day case, month case and year case
+            A_Data_day = []; // day
+            A_Data_month = []; // month
+            A_Data_year = [];  // year
+            // fill month data and year data
+            cumul=[];
+            cumul["month"]=[];
+            cumul["year"]=[];
+            for(i=0;i<A_Data.length;i++){
+                date_day = A_Data[i]["proc_date"];
+                date_month = A_Data[i]["proc_date"].substr(0,6); 
+                date_year = A_Data[i]["proc_date"].substr(0,4);
+                supp_cd=A_Data[i]["supp_cd"];
+                org_id=A_Data[i]["org_id"];
+                // day
+                if(!A_Data_day[date_day]){
+                    A_Data_day[date_day]=[];
+                    A_Data_day[date_day][org_id] = [];
+                    A_Data_day[date_day][org_id][supp_cd]=[];
+                }else if(!A_Data_day[date_day][org_id]){
+                    A_Data_day[date_day][org_id] = [];
+                    A_Data_day[date_day][org_id][supp_cd] = [];
+                }else if(!A_Data_day[date_day][org_id][supp_cd]){
+                    A_Data_day[date_day][org_id][supp_cd] = [];
+                }
+                A_Data_day[date_day][org_id][supp_cd] = JSON.parse(JSON.stringify(A_Data[i]));
+                
+                // month
+                
+                if(!cumul["month"][date_month]){
+                    cumul["month"][date_month]              =[];
+                    cumul["month"][date_month][org_id]      =[];
+                    cumul["month"][date_month][org_id][supp_cd]     =[];
+                    cumul["month"][date_month][org_id][supp_cd]     =JSON.parse(JSON.stringify(A_Data[i]));
+                    cumul["month"][date_month][org_id][supp_cd]["proc_date"] = date_month;
+                    //console.log("init1");
+                    //console.log(A_Data[i]["sale_total"]);
+                    //console.log(cumul["month"][date_month][org_id][supp_cd]["sale_total"]);
+                }else if (!cumul["month"][date_month][org_id]){
+                    cumul["month"][date_month][org_id]      =[];
+                    cumul["month"][date_month][org_id][supp_cd]     =[];
+                    cumul["month"][date_month][org_id][supp_cd]     =JSON.parse(JSON.stringify(A_Data[i]));
+                    cumul["month"][date_month][org_id][supp_cd]["proc_date"] = date_month;
+                    //console.log("init2");
+                    //console.log(A_Data[i]["sale_total"]);
+                    //console.log(cumul["month"][date_month][org_id][supp_cd]["sale_total"]);
+                }else if(!cumul["month"][date_month][org_id][supp_cd]){
+                    cumul["month"][date_month][org_id][supp_cd]     =[];
+                    cumul["month"][date_month][org_id][supp_cd]     =JSON.parse(JSON.stringify(A_Data[i]));
+                    cumul["month"][date_month][org_id][supp_cd]["proc_date"] = date_month; 
+                    //console.log("init3");
+                    //console.log(A_Data[i]["sale_total"]);
+                    //console.log(cumul["month"][date_month][org_id][supp_cd]["sale_total"]);                    
+                }else{
+                        
+                        row_month_loop = cumul["month"][date_month][org_id][supp_cd];
+                        //console.log("init4");
+                        //console.log(A_Data[i]["sale_total"]);
+                        //console.log(cumul["month"][date_month][org_id][supp_cd]["sale_total"]);                         
+                        row_month_loop["proc_date"]      =date_month;
+                        row_month_loop["sale_total"]    = Number(row_month_loop["sale_total"])+Number(A_Data[i]["sale_total"]);
+                        row_month_loop["sale_profit"]   = Number(row_month_loop["sale_profit"])+Number(A_Data[i]["sale_profit"]);
+                        row_month_loop["sale_per"]      = Number(row_month_loop["sale_profit"])/Number(row_month_loop["sale_total"])*100;
+                        row_month_loop["sale_amount"]   = Number(row_month_loop["sale_amount"])+Number(A_Data[i]["sale_amount"]);
+                        row_month_loop["total_cnt"]   = Number(row_month_loop["total_cnt"])+Number(A_Data[i]["total_cnt"]);                    
+                }
+                
+                // year
+                if(!cumul["year"][date_year]){
+                    cumul["year"][date_year]                         =[];
+                    cumul["year"][date_year][org_id] = [];
+                    cumul["year"][date_year][org_id][supp_cd]                = JSON.parse(JSON.stringify(A_Data[i]));
+                    cumul["year"][date_year][org_id][supp_cd]["proc_date"]   = date_year;
+                }else if(!cumul["year"][date_year][org_id]){
+                    cumul["year"][date_year][org_id] = [];
+                    cumul["year"][date_year][org_id][supp_cd]                = JSON.parse(JSON.stringify(A_Data[i]));
+                    cumul["year"][date_year][org_id][supp_cd]["proc_date"]   = date_year;                    
+                }else if(!cumul["year"][date_year][org_id][supp_cd]){
+                    cumul["year"][date_year][org_id][supp_cd]                = JSON.parse(JSON.stringify(A_Data[i]));
+                    cumul["year"][date_year][org_id][supp_cd]["proc_date"]   = date_year;
+                }else{
+                        row_year_loop = cumul["year"][date_year][org_id][supp_cd];
+                        row_year_loop["proc_date"]      =date_year;
+                        //console.log("av calc: "+row_year_loop["sale_total"]);
+                        row_year_loop["sale_total"]    = Number(row_year_loop["sale_total"])+Number(A_Data[i]["sale_total"]);
+                        //console.log("ap calc: "+row_year_loop["sale_total"]);
+                        row_year_loop["sale_profit"]   = Number(row_year_loop["sale_profit"])+Number(A_Data[i]["sale_profit"]);
+                        row_year_loop["sale_per"]      = Number(row_year_loop["sale_profit"])/Number(row_year_loop["sale_total"])*100;
+                        row_year_loop["sale_amount"]   = Number(row_year_loop["sale_amount"])+Number(A_Data[i]["sale_amount"]);
+                        row_year_loop["total_cnt"]   = Number(row_year_loop["total_cnt"])+Number(A_Data[i]["total_cnt"]);                    
+                        //console.log(A_Data[i]["sale_total"]+" "+date_year+" "+org_id+" "+supp_cd+" "+cumul["year"][date_year][org_id][supp_cd]["sale_total"]); 
+                }                   
+            }
+            A_Data_month = cumul["month"]; // month
+            A_Data_year  = cumul["year"];  // year 
+    
+            working_data = [];
+        </script>
+        <script type="text/javascript">
+            var date_mode = "date";
+            var supp_list = "";
+            var org_list = "";
+            
+            function numberWithCommas(x,precision = 0) {
+                // x : value
+                // precision : precision to return default 0 (no decimal: 99) | 1 => 99.9 | 2 => 99.99 ...
+                x = Math.round(Number(x)*Math.pow(10,precision))/Math.pow(10,precision);
+                var parts = x.toString().split(".");
+                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                if(precision){
+                    if(!parts[1]){
+                        parts[1] = 0;
+                    }                    
+                    parts[1]=(parts[1]+"0".repeat(precision)).substr(0,precision);
+                }              
+                return parts.join(".");
+            }
+            
+            /**
+             * DatePickerを設定
+             */
+            $(function()
+            {
+                $( "#start_date, #end_date" ).datepicker({
+                    numberOfMonths: 2,
+                    showCurrentAtPos: 1,
+                    showButtonPanel: true,
+                    dateFormat: 'yy/mm/dd'
+                });
+            });
+
+            $(function() {
+                $("#start_dateM").ympicker({
+                    altField: "#start_dateM" //リターンセットUI IDorCLASS名
+                    ,altFormat: "yy/mm" //リターン日付形式
+                    ,monthNamesShort: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"]  //カレンダー表示月形式
+                    ,showAnim: "slideDown" //表示アニメーション形式
+                    ,yearRange: "c-2:c+3" //プルダウン年範囲
+                });
+            });
+            $(function() {
+                $("#end_dateM").ympicker({
+                    altField: "#end_dateM" //リターンセットUI IDorCLASS名
+                    ,altFormat: "yy/mm" //リターン日付形式
+                    ,monthNamesShort: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"]  //カレンダー表示月形式
+                    ,showAnim: "slideDown" //表示アニメーション形式
+                    ,yearRange: "c-2:c+3" //プルダウン年範囲
+                });
+            });
+            $(function() {
+                $("#end_year, #start_year").datepicker({
+                    dateFormat: "yy",
+                    changeYear: true
+                    ,changeMonth: false
+                    ,showButtonPanel: false
+                    ,onClose: function(dateText, inst) { 
+                        var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
+                        $(this).datepicker('setDate', new Date(year, 1));
+                    }
+                }).focus(function(){
+                    document.getElementsByClassName("ui-datepicker-calendar")[0].style.display="none";
+                    document.getElementsByClassName("ui-datepicker-month")[0].style.display="none";
+                    document.getElementsByClassName("ui-datepicker-prev")[0].style.display="none";
+                    document.getElementsByClassName("ui-datepicker-next")[0].style.display="none";
+                } )                ;
+            });
+            function radio_change_management(){
+                var prev = [];
+                document.getElementById("search_param").addEventListener('change', function(e) {
+                    //console.log('Previous:', prev[e.target.name] ? prev[e.target.name].value : null);
+                    //console.log(e);
+                    if(e.target.name === "period"){
+                        if(!prev[e.target.name]){
+                            old_id_start="start_date";
+                            old_id_end="end_date";                              
+                        }else if(prev[e.target.name].value === "day"){
+                            old_id_start="start_date";
+                            old_id_end="end_date";                            
+                        }else if(prev[e.target.name].value === "month"){
+                            old_id_start="start_dateM";
+                            old_id_end="end_dateM";  
+                        }else if(prev[e.target.name].value === "year"){
+                            old_id_start="start_year";
+                            old_id_end="end_year";
+                        }
+                        document.getElementById(old_id_start).hidden=true;
+                        document.getElementById(old_id_end).hidden=true;
+                        document.getElementById(old_id_start).value="";
+                        document.getElementById(old_id_end).value="";                        
+                        elem_t = document.getElementById("today");
+                        elem_t.disabled=false;
+                        elem_t = document.getElementById("cumul");
+                        elem_t.disabled=false;
+                        elem_t = document.getElementById("prevyear");
+                        elem_t.disabled=false;
+                        elem_t = document.getElementById("percentage");
+                        elem_t.disabled=false;                          
+                        if(e.target.value === "day"){
+                            date_mode = "date";
+                            new_id_start="start_date";
+                            new_id_end="end_date"; 
+                            // checkbox checked
+                            document.getElementById("today_text").innerHTML = "当日";
+                            document.getElementById("today").checked=true;
+                            document.getElementById("cumul").checked=true;
+                            document.getElementById("prevyear").checked=true;
+                            document.getElementById("percentage").checked=true;
+                            today = new Date();
+                            document.getElementById(new_id_end).value = today.toISOString().slice(0,10).replace(/-/g,"\/"); 
+                            today.setMonth(today.getMonth()-1);
+                            document.getElementById(new_id_start).value = today.toISOString().slice(0,10).replace(/-/g,"\/");                            
+                        }else if(e.target.value === "month"){
+                            date_mode = "dateM";
+                            new_id_start="start_dateM";
+                            new_id_end="end_dateM";
+                            document.getElementById("today_text").innerHTML = "当月";
+                            document.getElementById("today").checked=true;
+                            document.getElementById("prevyear").checked=true;
+                            document.getElementById("percentage").checked=true;                            
+                            elem_t = document.getElementById("cumul");
+                            elem_t.checked=false;
+                            elem_t.disabled=true;
+                            today = new Date();
+                            document.getElementById(new_id_end).value = today.toISOString().slice(0,7).replace(/-/g,"\/"); 
+                            today.setMonth(today.getMonth()-1);
+                            document.getElementById(new_id_start).value = today.toISOString().slice(0,7).replace(/-/g,"\/");                                                        
+                        }else if(e.target.value === "year"){
+                            date_mode = "year";
+                            new_id_start="start_year";
+                            new_id_end="end_year";
+                            elem_t = document.getElementById("today");
+                            elem_t.checked=false;
+                            elem_t.disabled=true;
+                            elem_t = document.getElementById("cumul");
+                            elem_t.checked=false;
+                            elem_t.disabled=true;
+                            elem_t = document.getElementById("prevyear");
+                            elem_t.checked=false;
+                            elem_t.disabled=true;
+                            elem_t = document.getElementById("percentage");
+                            elem_t.checked=false;
+                            elem_t.disabled=true;
+                            today = new Date();
+                            document.getElementById(new_id_end).value = today.toISOString().slice(0,4).replace(/-/g,"\/"); 
+                            today.setFullYear(today.getFullYear()-1);
+                            document.getElementById(new_id_start).value = today.toISOString().slice(0,4).replace(/-/g,"\/");                                                                                    
+                        }         
+                        document.getElementById(new_id_start).hidden=false;
+                        document.getElementById(new_id_end).hidden=false;                        
+                    }else if(e.target.name === "org_r"){
+                        if(!prev[e.target.name]){
+                            prev[e.target.name]={value:""};
+                        }
+                        document.getElementById("org_select").disabled=true;
+                        if(e.target.value === "" ){
+                            document.getElementById("org_select").disabled=false;
+                        }  
+                    }else if(e.target.name === "supp_r"){
+                        if(!prev[e.target.name]){
+                            prev[e.target.name]={value:""};
+                        }                        
+                        document.getElementById("supp_select").disabled=true;
+                        if(e.target.value === "" ){
+                            document.getElementById("supp_select").disabled=false;
+                        }
+                    }
+                    prev[e.target.name] = e.target;
+                });
+            }
+            function csv_print(e){
+                data_send = [];
+                var csv_data_o = {};
+                var row_nb = 0;
+                looprow = table_id.tHead.rows[0];
+                csv_data_o['"'+row_nb+'"'] = looprow.innerText.replace(/\t/g,',');
+                elem_table = document.getElementById("table_body");
+                elem_tr_list = elem_table.getElementsByTagName("tr");
+                for(i=0;i<elem_tr_list.length;i++){
+                    looprow = elem_tr_list[i];
+                    if( looprow.childElementCount ===1 ){
+                        continue;
+                    }
+                    row_nb += 1; 
+                    if(looprow.style.backgroundColor){
+                        //console.log(looprow);
+                        continue;
+                    }
+                    csv_data_o['"'+row_nb+'"'] = '"'+looprow.innerText.replace(/\t/g,'","')+'"';
+                    
+                }
+                
+                data_send["csv_data"] = JSON.stringify(csv_data_o);
+                //return false;
+                //console.log(data_send);
+                //data_sendを送ります。
+                spath       = 'index.php?param=LedgerSheetSalesByProvider/csvoutput';
+                //console.log(spath);
+                setDataForAjax( data_send, spath ,'ajaxScreenUpdate' );                
+            }
+            function search_data(){
+                
+                //clear sort
+                asc=[];
+                elem_table_id = document.getElementById("table_id");
+                elem_thead = elem_table_id.getElementsByTagName('THEAD')[0];
+                elem_th = elem_thead.getElementsByTagName('TH');
+                for(i=0;i<elem_th.length;i++){
+                    elem_th[i].innerHTML = elem_th[i].innerHTML.replace(' ▲',"").replace(' ▼',"");
+                }                
+                
+                // check checkbox at list 1 is checked
+                elem_classification = document.getElementById("classification_d");
+                elem_clas_input = elem_classification.getElementsByTagName("input");
+                if(date_mode !== "year"){
+                    for(i=0;i<elem_clas_input.length;i++){
+                        //console.log(elem_clas_input[i].checked);
+                        if(elem_clas_input[i].checked){
+                            break;
+                        }else if( i === elem_clas_input.length-1 ){
+                            alert("内訳が選択されていません。");
+                            elem_clas_input[0].focus();
+                            return;
+                        }
+                    }
+                }
+                date_str_id = "start_"+date_mode;
+                date_end_id = "end_"+date_mode;
+                loop_supp_cd="";
+                loop_date="";
+                loop_org_id="";
+                period_val = document.querySelector('input[name="period"]:checked').value;
+                elem_str_date = document.getElementById(date_str_id).value.replace(/\//g,"");
+                elem_end_date = document.getElementById(date_end_id).value.replace(/\//g,"");
+                org_select_val = document.getElementById("org_select").value;
+                supp_select_val = document.getElementById("supp_select").value;
+                if(elem_str_date === ""){
+                    alert("営業期間を入力してください。");
+                    document.getElementById(date_str_id).focus();
+                    return;                    
+                }else if(elem_end_date === ""){
+                    alert("営業期間を入力してください。");
+                    document.getElementById(date_end_id).focus();
+                    return;
+                }
+                if(elem_str_date > elem_end_date){
+                    alert("期間指定が不正です。開始日が終了日を超えています。");
+                    document.getElementById(date_str_id).value="";
+                    document.getElementById(date_str_id).focus();
+                    return;
+                }
+                if(period_val === "month"){
+                    temp_data =A_Data_month;
+                }else if(period_val === "year"){
+                    temp_data = A_Data_year;
+                }else{
+                    temp_data =A_Data_day;
+                }
+                //console.log(temp_data);
+                elem_supp = document.querySelector('input[name="supp_r"]:checked');
+                if(elem_supp.value === ""){
+                    if(supp_list===""){
+                        alert("仕入先を入力してください。");
+                        return;
+                    }
+                }
+                elem_org = document.querySelector('input[name="org_r"]:checked');
+                if(elem_org.value === ""){
+                    if(org_list===""){
+                        alert("店舗を入力してください。");
+                        return;
+                    }
+                }
+                working_data = [];
+/*                
+                // date
+                temp_data_key = Object.keys(temp_data);
+                for( i=0;i<temp_data_key.length;i++ ){
+                    loop_date = temp_data_key[i];
+                    //console.log("loop_date: "+loop_date+" / elem_str_date: "+elem_str_date );
+                    if( loop_date < elem_str_date ){
+                        continue;
+                    }
+                    if( loop_date > elem_end_date ){
+                        break;
+                    }
+                    // org_id
+                    org_id_key = Object.keys(temp_data[loop_date]);                    
+                    for(k=0;k<org_id_key.length;k++){
+                        loop_org_id = org_id_key[k];
+                        if(elem_org.value === ""){
+                            //console.log(isNaN(org_select_val));
+                            if(isNaN(org_select_val)){
+                                if(org_list.indexOf(loop_org_id) === -1){
+                                    //console.log("exit1");
+                                    continue;
+                                }
+                            }else if(loop_org_id !== org_select_val){
+                                continue;
+                            }
+                        }
+                        supp_key = Object.keys(temp_data[loop_date][loop_org_id]);
+                        for(j=0;j<supp_key.length;j++){
+                            //console.log("start: "+loop_date+" "+ loop_org_id+ " "+loop_supp_cd);
+                            
+                            loop_supp_cd = supp_key[j];
+                            /*
+                            if(elem_dept.value === ""){
+                                //console.log(loop_supp_cd);
+                                if(supp_list.indexOf(loop_supp_cd) === -1){
+                                    //console.log("exit2");
+                                    continue;
+                                }
+                            } */
+/*
+                            if(elem_supp.value === ""){
+                                //console.log(isNaN(supp_select_val));
+                                if(isNaN(supp_select_val)){
+                                    if(supp_list.indexOf(loop_supp_cd) === -1 || !loop_supp_cd){
+                                        //console.log("exit1");
+                                        continue;
+                                    }
+                                }else if(loop_supp_cd !== supp_select_val){
+                                    continue;
+                                }
+                            }                    
+                            //console.log("loop_date:"+loop_date+" loop_org_id:"+loop_org_id+" loop_supp_cd:"+loop_supp_cd);
+
+                            //console.log(temp_data[loop_date][loop_org_id][loop_supp_cd]);
+                            if(!working_data[loop_date]){
+                                working_data[loop_date]=[];
+                                working_data[loop_date][loop_org_id]=[];
+                                working_data[loop_date][loop_org_id][loop_supp_cd]=[];
+                            }else if(!working_data[loop_date][loop_org_id]){
+                                working_data[loop_date][loop_org_id]=[];
+                                working_data[loop_date][loop_org_id][loop_supp_cd]=[];                        
+                            }else if(!working_data[loop_date][loop_org_id][loop_supp_cd]){
+                                working_data[loop_date][loop_org_id][loop_supp_cd]=[];
+                            }
+                            //console.log("end"+loop_date+" "+ loop_org_id+ " "+loop_supp_cd);
+                            working_data[loop_date][loop_org_id][loop_supp_cd] = JSON.parse(JSON.stringify(temp_data[loop_date][loop_org_id][loop_supp_cd]));
+                        }
+                    }
+                }
+*/                
+//pme 2019/11/30               
+                A_all_org_id_lst  = [];
+                A_all_supp_cd_lst = [];
+                // date
+                temp_data_key = Object.keys(temp_data);
+                for( i=0;i<temp_data_key.length;i++ ){
+                    loop_date = temp_data_key[i];
+                    if( loop_date < elem_str_date ){
+                        continue;
+                    }
+                    if( loop_date > elem_end_date ){
+                        break;
+                    }
+                    // org_id
+                    org_id_key = Object.keys(temp_data[loop_date]);                    
+                    for(k=0;k<org_id_key.length;k++){
+                        loop_org_id = org_id_key[k];
+                        if(elem_org.value === ""){
+                            if(isNaN(org_select_val)){
+                                if(org_list.indexOf(','+loop_org_id) === -1){
+                                    continue;
+                                }
+                            }else if(loop_org_id !== org_select_val){
+                                continue;
+                            }
+                        }
+                        supp_key = Object.keys(temp_data[loop_date][loop_org_id]);
+                        for(j=0;j<supp_key.length;j++){
+                            loop_supp_cd = supp_key[j];
+                            if(elem_supp.value === ""){
+                                if(isNaN(supp_select_val)){
+                                    if(loop_supp_cd === ''){
+                                        continue;
+                                    }
+                                    if(supp_list.indexOf(','+loop_supp_cd) === -1){
+                                        continue;
+                                    }
+                                }else if(loop_supp_cd !== supp_select_val){
+                                    continue;
+                                }
+                            }
+                            if(!A_all_org_id_lst[loop_org_id]){
+                                A_all_org_id_lst[loop_org_id]=temp_data[loop_date][loop_org_id][loop_supp_cd]['org_nm'];
+                            }                                  
+
+                            if(!A_all_supp_cd_lst[loop_org_id]){
+                                A_all_supp_cd_lst[loop_org_id]=[];
+                            }
+                            if(!A_all_supp_cd_lst[loop_org_id][loop_supp_cd]){
+                                A_all_supp_cd_lst[loop_org_id][loop_supp_cd]=temp_data[loop_date][loop_org_id][loop_supp_cd]['supp_nm'];
+                            } 
+                                
+                            if(!working_data[loop_date]){
+                                working_data[loop_date]=[];
+                                working_data[loop_date][loop_org_id]=[];
+                                working_data[loop_date][loop_org_id][loop_supp_cd]=[];
+                            }else if(!working_data[loop_date][loop_org_id]){
+                                working_data[loop_date][loop_org_id]=[];
+                                working_data[loop_date][loop_org_id][loop_supp_cd]=[];                        
+                            }else if(!working_data[loop_date][loop_org_id][loop_supp_cd]){
+                                working_data[loop_date][loop_org_id][loop_supp_cd]=[];
+                            }
+                            working_data[loop_date][loop_org_id][loop_supp_cd] = JSON.parse(JSON.stringify(temp_data[loop_date][loop_org_id][loop_supp_cd]));
+                        }
+                    }
+                }
+                //前年のデータ
+                if(date_mode === 'date'){　//日
+                    date_str_id_prev_year = Number(elem_str_date)-10000;
+                    date_end_id_prev_year = Number(elem_end_date)-10000;               
+                }else if(date_mode === 'dateM'){　//月
+                    date_str_id_prev_year = Number(elem_str_date)-100;
+                    date_end_id_prev_year = Number(elem_end_date)-100;                     
+                }else{　//年
+                    date_str_id_prev_year = Number(elem_str_date);
+                    date_end_id_prev_year = Number(elem_end_date);
+                }
+                loop_date_prev_year = date_str_id_prev_year;
+                while(loop_date_prev_year <= date_end_id_prev_year){
+                    if(date_mode === 'date'){　//日
+                        loop_date = loop_date_prev_year +10000;             
+                    }else if(date_mode === 'dateM'){　//月
+                        loop_date=  loop_date_prev_year+100;                    
+                    }else{　//年
+                        loop_date = loop_date_prev_year;
+                    }                    
+                    if(temp_data[loop_date_prev_year]){
+                        // org_id
+                        org_id_key = Object.keys(temp_data[loop_date_prev_year]);                    
+                        for(k=0;k<org_id_key.length;k++){
+                            loop_org_id = org_id_key[k];
+                            if(elem_org.value === ""){
+                                if(isNaN(org_select_val)){
+                                    if(org_list.indexOf(','+loop_org_id) === -1){
+                                        continue;
+                                    }
+                                }else if(loop_org_id !== org_select_val){
+                                    continue;
+                                }
+                            }
+                            supp_key = Object.keys(temp_data[loop_date_prev_year][loop_org_id]);
+                            for(j=0;j<supp_key.length;j++){
+                                loop_supp_cd = supp_key[j];
+                                if(elem_supp.value === ""){
+                                    if(isNaN(supp_select_val)){
+                                        if(loop_supp_cd === ''){
+                                            continue;
+                                        }                                        
+                                        if(supp_list.indexOf(','+loop_supp_cd) === -1){
+                                            continue;
+                                        }
+                                    }else if(loop_supp_cd !== supp_select_val){
+                                        continue;
+                                    }
+                                }
+                                if(!A_all_org_id_lst[loop_org_id]){
+                                    A_all_org_id_lst[loop_org_id]=temp_data[loop_date_prev_year][loop_org_id][loop_supp_cd]['org_nm'];
+                                }                                  
+
+                                if(!A_all_supp_cd_lst[loop_org_id]){
+                                    A_all_supp_cd_lst[loop_org_id]=[];
+                                }
+                                if(!A_all_supp_cd_lst[loop_org_id][loop_supp_cd]){
+                                    A_all_supp_cd_lst[loop_org_id][loop_supp_cd]=temp_data[loop_date_prev_year][loop_org_id][loop_supp_cd]['supp_nm'];
+                                } 
+                                
+                                if(!working_data[loop_date]){
+                                    working_data[loop_date]=[];
+                                }
+                                if(!working_data[loop_date][loop_org_id]){
+                                    working_data[loop_date][loop_org_id]=[];
+                                }                            
+                                if(!working_data[loop_date][loop_org_id][loop_supp_cd]){
+                                    working_data[loop_date][loop_org_id][loop_supp_cd]=[];
+                                    working_data[loop_date][loop_org_id][loop_supp_cd]['org_nm'] = temp_data[loop_date_prev_year][loop_org_id][loop_supp_cd]['org_nm'];
+                                    working_data[loop_date][loop_org_id][loop_supp_cd]['supp_nm'] = temp_data[loop_date_prev_year][loop_org_id][loop_supp_cd]['supp_nm'];
+                                    working_data[loop_date][loop_org_id][loop_supp_cd]['sale_total'] = 0;
+                                    working_data[loop_date][loop_org_id][loop_supp_cd]['sale_profit'] = 0;
+                                    working_data[loop_date][loop_org_id][loop_supp_cd]['sale_per'] = 0;
+                                    working_data[loop_date][loop_org_id][loop_supp_cd]['sale_amount'] = 0;
+                                    working_data[loop_date][loop_org_id][loop_supp_cd]['total_cnt'] = 0;
+
+                                }
+                            }
+                        }
+                    }
+                    //次日付
+                    if(date_mode === 'date'){　//日
+                        loop_date_prev_year = new Date(loop_date_prev_year.toString().replace(/(\d{4})(\d{2})(\d{2})/g, '$1/$2/$3'));
+                        loop_date_prev_year.setDate(loop_date_prev_year.getDate()+2);
+                        loop_date_prev_year = Number(loop_date_prev_year.toISOString().slice(0,10).replace(/-/g,""));
+                    }else if(date_mode === 'dateM'){　//月
+                        loop_date_prev_year = new Date(loop_date_prev_year.toString().replace(/(\d{4})(\d{2})/g, '$1/$2'));
+                        loop_date_prev_year.setMonth(loop_date_prev_year.getMonth()+2);
+                        loop_date_prev_year = Number(loop_date_prev_year.toISOString().slice(0,7).replace(/-/g,""));                    
+                    }else{　//年
+                        loop_date_prev_year = Number(loop_date_prev_year)+1;                   
+                    }                     
+                }
+                
+                //　全て店舗と部門をチェック    
+                loop_date = elem_str_date;
+                while(loop_date <= elem_end_date){
+                    if(date_mode === 'date'){　//日
+                        loop_date_prev_year = Number(loop_date)-10000;             
+                    }else if(date_mode === 'dateM'){　//月
+                        loop_date_prev_year = Number(loop_date)-100;                    
+                    }else{　//年
+                        loop_date_prev_year = Number(loop_date);
+                    } 
+                    //console.log(loop_date+' // '+ loop_date_prev_year );
+                    if(temp_data[loop_date] || temp_data[loop_date_prev_year] ){
+                        // org_id
+                        org_id_key = Object.keys(A_all_org_id_lst);                    
+                        for(k=0;k<org_id_key.length;k++){
+                            loop_org_id = org_id_key[k];
+                            supp_key = Object.keys(A_all_supp_cd_lst[loop_org_id]);
+                            for(j=0;j<supp_key.length;j++){
+                                loop_supp_cd = supp_key[j];
+                                if(!working_data[loop_date]){
+                                    working_data[loop_date]=[];
+                                }
+                                if(!working_data[loop_date][loop_org_id]){
+                                    working_data[loop_date][loop_org_id]=[];
+                                }                            
+                                if(!working_data[loop_date][loop_org_id][loop_supp_cd]){
+                                    working_data[loop_date][loop_org_id][loop_supp_cd]=[];
+                                    working_data[loop_date][loop_org_id][loop_supp_cd]['org_nm'] = A_all_org_id_lst[loop_org_id];
+                                    working_data[loop_date][loop_org_id][loop_supp_cd]['supp_nm'] = A_all_supp_cd_lst[loop_org_id][loop_supp_cd];
+                                    working_data[loop_date][loop_org_id][loop_supp_cd]['sale_total'] = 0;
+                                    working_data[loop_date][loop_org_id][loop_supp_cd]['sale_profit'] = 0;
+                                    working_data[loop_date][loop_org_id][loop_supp_cd]['sale_per'] = 0;
+                                    working_data[loop_date][loop_org_id][loop_supp_cd]['sale_amount'] = 0;
+                                    working_data[loop_date][loop_org_id][loop_supp_cd]['total_cnt'] = 0;
+                                }
+                            }
+                        }
+                    }
+   
+                    //次日付
+                    if(date_mode === 'date'){　//日
+                        loop_date = new Date(loop_date.toString().replace(/(\d{4})(\d{2})(\d{2})/g, '$1/$2/$3'));
+                        loop_date.setDate(loop_date.getDate()+2);
+                        loop_date = Number(loop_date.toISOString().slice(0,10).replace(/-/g,""));
+                    }else if(date_mode === 'dateM'){　//月
+                        loop_date = new Date(loop_date.toString().replace(/(\d{4})(\d{2})/g, '$1/$2'));
+                        loop_date.setMonth(loop_date.getMonth()+2);
+                        loop_date = Number(loop_date.toISOString().slice(0,7).replace(/-/g,""));                    
+                    }else{　//年
+                        loop_date = Number(loop_date)+1;                   
+                    }                    
+                }                
+//pme 2019/11/30 end          
+                //console.log(working_data);
+                if(working_data.length === 0 ){
+                    alert("データがありません。");
+                    document.getElementById("btn_csv").hidden = true;
+                }else{
+                    document.getElementById("btn_csv").hidden = false;
+                }
+                show_data(working_data);
+            };
+            
+                function get_date_cumul(param,data){
+                    //console.log(param);
+                    if(!param["end_date"] || !param["start_date"]){
+                        return false;
+                    }
+                    end_date    = param["end_date"];
+                    start_date  = param["start_date"];
+                    res = [];
+                    res["sale_total"]   = 0;
+                    res["sale_profit"]  = 0;
+                    res["sale_per"]     = 0;
+                    res["sale_amount"]  = 0;
+                    res["total_cnt"]  = 0; 
+                    
+                    // f_loop date
+                    date_key = Object.keys(data);
+                    for(gi=0;gi<date_key.length;gi++){
+                        f_loop_date = date_key[gi];
+                        if(f_loop_date < start_date){
+                            continue;
+                        }
+                        if(f_loop_date > end_date){
+                            break;
+                        }
+                        
+                        if(param["org_id"]){
+                            // case normal day
+                            f_org_id   = param["org_id"];
+                            f_supp_cd  = param["supp_cd"];
+                            if((data[f_loop_date][f_org_id] && data[f_loop_date][f_org_id][f_supp_cd]) !== undefined){
+                                f_loop_row = data[f_loop_date][f_org_id][f_supp_cd];
+                                res["sale_total"]   += Number(f_loop_row["sale_total"]);
+                                res["sale_profit"]  += Number(f_loop_row["sale_profit"]);
+                                res["sale_per"]     += Number(f_loop_row["sale_per"]);
+                                res["sale_amount"]  += Number(f_loop_row["sale_amount"]);
+                                res["total_cnt"]  += Number(f_loop_row["total_cnt"]); 
+                            }
+                        }else{
+                            // f_loop org_id
+                            proc_dates = Object.keys(data[f_loop_date]);
+                            for(gj=0;gj<proc_dates.length;gj++){
+                                f_loop_org_id   = proc_dates[gj];
+                                if(param["supp_cd"]){
+                                    // cumul day
+                                    f_supp_cd  = param["supp_cd"];
+                                    if((data[f_loop_date][f_loop_org_id][f_supp_cd]) !== undefined){
+                                        f_loop_row = data[f_loop_date][f_loop_org_id][f_supp_cd];
+                                        res["sale_total"]   += Number(f_loop_row["sale_total"]);
+                                        res["sale_profit"]  += Number(f_loop_row["sale_profit"]);
+                                        res["sale_per"]     += Number(f_loop_row["sale_per"]);
+                                        res["sale_amount"]  += Number(f_loop_row["sale_amount"]);
+                                        res["total_cnt"]  += Number(f_loop_row["total_cnt"]);   
+                                    }
+                                }else{
+                                    // total case
+                                    // 
+                                    //  f_loop supp _cd
+                                    f_supp_key = Object.keys(data[f_loop_date][f_loop_org_id]);
+                                    for(gk=0;gk<f_supp_key.length;gk++){
+                                        f_loop_supp_cd = f_supp_key[gk];
+                                        f_loop_row = data[f_loop_date][f_loop_org_id][f_loop_supp_cd];
+                                        res["sale_total"]   += Number(f_loop_row["sale_total"]);
+                                        res["sale_profit"]  += Number(f_loop_row["sale_profit"]);
+                                        res["sale_per"]     += Number(f_loop_row["sale_per"]);
+                                        res["sale_amount"]  += Number(f_loop_row["sale_amount"]);
+                                        res["total_cnt"]  += Number(f_loop_row["total_cnt"]);                                         
+                                    } // end f_loop supp_cd
+                                }
+                            } // end f_loop org_id
+                        }
+                    } // end loop date
+                    if(res["sale_total"] === 0){
+                        res["sale_per"] = 0;
+                    }else{
+                        res["sale_per"] = res["sale_profit"]/res["sale_total"]*100;
+                    }
+                    return res;
+                }            
+            
+            // add　org_id
+            function show_data(t_data){
+                //console.log(t_data);
+                elem_tbody=document.getElementById("table_body");
+                elem_tbody.innerHTML="";
+                period_val = document.querySelector('input[name="period"]:checked').value;
+                org_r_val = document.querySelector('input[name="org_r"]:checked').value;
+                // checkbox val
+                today_checkbox = document.getElementById("today").checked;
+                cumul_checkbox = document.getElementById("cumul").checked;
+                prevyear_checkbox = document.getElementById("prevyear").checked;
+                percentage_checkbox = document.getElementById("percentage").checked;
+
+                function insert_row(row){
+                    //console.log("row to print");
+                    //console.log(row);
+                    // a finir round a faire, format des donnees (proc_date,sale_total,sale_profit,sale_amount,total_cnt)
+                    trow     = elem_tbody.insertRow();
+                    if(row["background"]){
+                        //console.log(row);
+                        trow.style.backgroundColor = row["background"];
+                    }
+                    date_val = trow.insertCell(0);
+                    org_val  = trow.insertCell(1);
+                    supp_val = trow.insertCell(2);
+                    mode_val = trow.insertCell(3);
+                    sale_total_val  = trow.insertCell(4);
+                    sale_profit_val = trow.insertCell(5);
+                    sale_per_val    = trow.insertCell(6);
+                    sale_amount_val = trow.insertCell(7);
+                    total_cnt_val 　= trow.insertCell(8);   
+                    
+                    if(period_val=== "day"){
+                        date_val.innerHTML = row["proc_date"].replace(/(\d{4})(\d{2})(\d{2})/g, '$1/$2/$3');
+                    }else if (period_val=== "month"){
+                        date_val.innerHTML = row["proc_date"].replace(/(\d{4})(\d{2})/g, '$1/$2');
+                    }else if(period_val=== "year"){
+                        date_val.innerHTML = row["proc_date"];
+                    }
+                    org_val.innerHTML  = row["org_id"];
+                    supp_val.innerHTML = row["supp_cd"];
+                    mode_val.innerHTML = row["mode"];
+                    sale_total_val.innerHTML  = numberWithCommas(row["sale_total"]);
+                    sale_profit_val.innerHTML = numberWithCommas(row["sale_profit"]);
+                    sale_per_val.innerHTML    = numberWithCommas(Number(row["sale_profit"])/Number(row["sale_total"])*100,2);
+                    if(isNaN(sale_per_val.innerHTML)||sale_per_val.innerHTML === "Infinity"){
+                        sale_per_val.innerHTML=0;
+                    }                    
+                    sale_amount_val.innerHTML = numberWithCommas(row["sale_amount"]);
+                    total_cnt_val.innerHTML = numberWithCommas(row["total_cnt"]);    
+                }
+                function insert_footer(){
+                    elem_tfoot=document.getElementById("table_foot");
+                    elem_tfoot.innerHTML="";
+                    elem_tfoot.innerHTML="<tr><th></th></tr>";
+                    foot_date_key = Object.keys(t_data);
+                    //console.log(foot_date_key);
+                    if(period_val=== "year"){
+                        // 1 row only
+                        trow     = elem_tfoot.insertRow();
+                        date_val = trow.insertCell(0);
+                        org_val  = trow.insertCell(1);
+                        supp_val = trow.insertCell(2);
+                        mode_val = trow.insertCell(3);
+                        sale_total_val  = trow.insertCell(4);
+                        sale_profit_val = trow.insertCell(5);
+                        sale_per_val    = trow.insertCell(6);
+                        sale_amount_val = trow.insertCell(7);
+                        total_cnt_val = trow.insertCell(8);   
+                        date_val.innerHTML = "";
+                        org_val.innerHTML  = "総合計";
+                        supp_val.innerHTML = "";
+                        mode_val.innerHTML = "";
+                        sale_total_val.innerHTML  = numberWithCommas(t_cumul_data["total"]["当日"]["sale_total"]);
+                        sale_profit_val.innerHTML = numberWithCommas(t_cumul_data["total"]["当日"]["sale_profit"]);
+                        sale_per_val.innerHTML    = numberWithCommas(Number(t_cumul_data["total"]["当日"]["sale_profit"])/Number(t_cumul_data["total"]["当日"]["sale_total"])*100,2);
+                        if(isNaN(sale_per_val.innerHTML)||sale_per_val.innerHTML === "Infinity"){
+                            sale_per_val.innerHTML=0;
+                        }                        
+                        sale_amount_val.innerHTML = numberWithCommas(t_cumul_data["total"]["当日"]["sale_amount"]);
+                        total_cnt_val.innerHTML = numberWithCommas(t_cumul_data["total"]["当日"]["total_cnt"]);                        
+                    }else{
+                        org_id = "総合計";
+                        if(today_checkbox){
+                            trow     = elem_tfoot.insertRow();
+                            date_val = trow.insertCell(0);
+                            org_val  = trow.insertCell(1);
+                            supp_val = trow.insertCell(2);
+                            mode_val = trow.insertCell(3);
+                            sale_total_val  = trow.insertCell(4);
+                            sale_profit_val = trow.insertCell(5);
+                            sale_per_val    = trow.insertCell(6);
+                            sale_amount_val = trow.insertCell(7);
+                            total_cnt_val = trow.insertCell(8);   
+                            date_val.innerHTML = "";
+                            org_val.innerHTML  = org_id;
+                            supp_val.innerHTML = "";
+                            mode_val.innerHTML = "当日";
+                            if(period_val=== "month"){
+                                mode_val.innerHTML = "当月";
+                            }else if(period_val === "year"){
+                                mode_val.innerHTML = "";
+                            }
+                            loop_row = t_cumul_data["total"]["当日"];
+                            sale_total_val.innerHTML  = numberWithCommas(loop_row["sale_total"]);
+                            sale_profit_val.innerHTML = numberWithCommas(loop_row["sale_profit"]);
+                            loop_row["sale_per"]    = numberWithCommas(Number(loop_row["sale_profit"])/Number(loop_row["sale_total"])*100,2);
+                            if(isNaN(loop_row["sale_per"])||loop_row["sale_per"] === "Infinity"){
+                                loop_row["sale_per"] = 0;
+                            }
+                            sale_per_val.innerHTML = loop_row["sale_per"]; 
+                            sale_amount_val.innerHTML = numberWithCommas(loop_row["sale_amount"]);
+                            total_cnt_val.innerHTML = numberWithCommas(loop_row["total_cnt"]);  
+                            org_id="";
+                        }
+                        //if(cumul_checkbox){ pme 2019/11/30 
+                        if(false){
+                            trow     = elem_tfoot.insertRow();
+                            date_val = trow.insertCell(0);
+                            org_val  = trow.insertCell(1);
+                            supp_val = trow.insertCell(2);
+                            mode_val = trow.insertCell(3);
+                            sale_total_val  = trow.insertCell(4);
+                            sale_profit_val = trow.insertCell(5);
+                            sale_per_val    = trow.insertCell(6);
+                            sale_amount_val = trow.insertCell(7);
+                            total_cnt_val = trow.insertCell(8);
+                            loop_row = t_cumul_data["total"]["累計"];                           
+                            date_val.innerHTML = "";
+                            org_val.innerHTML  = org_id;
+                            supp_val.innerHTML = "";
+                            mode_val.innerHTML = "累計";
+                            sale_total_val.innerHTML  = numberWithCommas(loop_row["sale_total"]);
+                            sale_profit_val.innerHTML = numberWithCommas(loop_row["sale_profit"]);
+                            loop_row["sale_per"]    = numberWithCommas(Number(loop_row["sale_profit"])/Number(loop_row["sale_total"])*100,2);
+                            if(isNaN(loop_row["sale_per"])||loop_row["sale_per"] === "Infinity"){
+                                loop_row["sale_per"] = 0;
+                            }
+                            sale_per_val.innerHTML = loop_row["sale_per"]; 
+                            sale_amount_val.innerHTML = numberWithCommas(loop_row["sale_amount"]);
+                            total_cnt_val.innerHTML = numberWithCommas(loop_row["total_cnt"]);  
+                            org_id="";
+                        }
+                        //if(prevyear_checkbox){ pme 2019/11/30 
+                        if(false){
+
+                            loop_row_t = t_cumul_data["total"]["前年"];
+                                                       
+                            trow     = elem_tfoot.insertRow();
+                            date_val = trow.insertCell(0);
+                            org_val  = trow.insertCell(1);
+                            supp_val = trow.insertCell(2);
+                            mode_val = trow.insertCell(3);
+                            sale_total_val  = trow.insertCell(4);
+                            sale_profit_val = trow.insertCell(5);
+                            sale_per_val    = trow.insertCell(6);
+                            sale_amount_val = trow.insertCell(7);
+                            total_cnt_val = trow.insertCell(8);   
+                            date_val.innerHTML = "";
+                            org_val.innerHTML  = org_id;
+                            supp_val.innerHTML = "";
+                            mode_val.innerHTML = "前年";
+                            sale_total_val.innerHTML  = numberWithCommas(loop_row_t["sale_total"]);
+                            sale_profit_val.innerHTML = numberWithCommas(loop_row_t["sale_profit"]);
+                            loop_row_t["sale_per"]    = numberWithCommas(Number(loop_row_t["sale_profit"])/Number(loop_row_t["sale_total"])*100,2);
+                            if(isNaN(loop_row_t["sale_per"])||loop_row_t["sale_per"] === "Infinity"){
+                                loop_row_t["sale_per"] = 0;
+                            }
+                            sale_per_val.innerHTML    = loop_row_t["sale_per"]; 
+                            sale_amount_val.innerHTML = numberWithCommas(loop_row_t["sale_amount"]);
+                            total_cnt_val.innerHTML = numberWithCommas(loop_row_t["total_cnt"]); 
+                            org_id="";                         
+                        }
+                        //if(percentage_checkbox){ pme 2019/11/30 
+                        if(false){
+                            trow     = elem_tfoot.insertRow();
+                            date_val = trow.insertCell(0);
+                            org_val  = trow.insertCell(1);
+                            supp_val = trow.insertCell(2);
+                            mode_val = trow.insertCell(3);
+                            sale_total_val  = trow.insertCell(4);
+                            sale_profit_val = trow.insertCell(5);
+                            sale_per_val    = trow.insertCell(6);
+                            sale_amount_val = trow.insertCell(7);
+                            total_cnt_val = trow.insertCell(8);   
+                            date_val.innerHTML = "";
+                            org_val.innerHTML  = org_id;
+                            supp_val.innerHTML = "";
+                            mode_val.innerHTML = "前年比";
+                            if(period_val=== "day"){
+                                sale_total_val.innerHTML  = numberWithCommas(Number(loop_row["sale_total"])/Number(loop_row_t["sale_total"])*100);
+                                if(!loop_row_t["sale_total"]){
+                                    sale_total_val.innerHTML=0;
+                                }
+                                sale_profit_val.innerHTML = numberWithCommas(Number(loop_row["sale_profit"])/Number(loop_row_t["sale_profit"])*100);
+                                if(!loop_row_t["sale_profit"]){
+                                    sale_profit_val.innerHTML=0;
+                                }                                
+                                sale_per_val.innerHTML    = numberWithCommas(Number(loop_row["sale_per"])/Number(loop_row_t["sale_per"])*100,2);
+                                if(!loop_row_t["sale_per"]){
+                                    sale_per_val.innerHTML=0;
+                                }
+                                sale_amount_val.innerHTML = numberWithCommas(Number(loop_row["sale_amount"])/Number(loop_row_t["sale_amount"])*100);
+                                if(!loop_row_t["sale_amount"]){
+                                    sale_amount_val.innerHTML=0;
+                                }
+                                total_cnt_val.innerHTML = numberWithCommas(Number(loop_row["total_cnt"])/Number(loop_row_t["total_cnt"])*100);
+                                if(!loop_row_t["total_cnt"]){
+                                    total_cnt_val.innerHTML=0;
+                                }                                
+                            }else if(period_val=== "month"){
+                                sale_total_val.innerHTML  = numberWithCommas(Number(loop_row["sale_total"])/Number(loop_row_t["sale_total"])*100);
+                                if(!loop_row_t["sale_total"]){
+                                    sale_total_val.innerHTML=0;
+                                }
+                                sale_profit_val.innerHTML = numberWithCommas(Number(loop_row["sale_profit"])/Number(loop_row_t["sale_profit"])*100);
+                                if(!loop_row_t["sale_profit"]){
+                                    sale_profit_val.innerHTML=0;
+                                }
+                                sale_per_val.innerHTML    = numberWithCommas(Number(loop_row["sale_per"])/Number(loop_row_t["sale_per"])*100,2);
+                                if(!loop_row_t["sale_per"]){
+                                    sale_per_val.innerHTML=0;
+                                }
+                                sale_amount_val.innerHTML = numberWithCommas(Number(loop_row["sale_amount"])/Number(loop_row_t["sale_amount"])*100);
+                                if(!loop_row_t["sale_amount"]){
+                                    sale_amount_val.innerHTML=0;
+                                }
+                                total_cnt_val.innerHTML = numberWithCommas(Number(loop_row["total_cnt"])/Number(loop_row_t["total_cnt"])*100);                                
+                                if(!loop_row_t["total_cnt"]){
+                                    total_cnt_val.innerHTML=0;
+                                }                                
+                            }
+                            org_id="";                         
+                        }                        
+                    }
+                }
+                t_cumul_data = [];
+                t_cumul_data["total"]=[];
+                t_cumul_data["total"]["当日"]=[];
+                t_cumul_data["total"]["当日"]["sale_total"]=0;
+                t_cumul_data["total"]["当日"]["sale_profit"]=0;
+                t_cumul_data["total"]["当日"]["sale_per"]=0;
+                t_cumul_data["total"]["当日"]["sale_amount"]=0;
+                t_cumul_data["total"]["当日"]["total_cnt"]=0;
+                t_cumul_data["total"]["累計"]=[];
+                t_cumul_data["total"]["累計"]["sale_total"]=0;
+                t_cumul_data["total"]["累計"]["sale_profit"]=0;
+                t_cumul_data["total"]["累計"]["sale_per"]=0;
+                t_cumul_data["total"]["累計"]["sale_amount"]=0;
+                t_cumul_data["total"]["累計"]["total_cnt"]=0;
+                t_cumul_data["total"]["前年"]=[];
+                t_cumul_data["total"]["前年"]["sale_total"]=0;
+                t_cumul_data["total"]["前年"]["sale_profit"]=0;
+                t_cumul_data["total"]["前年"]["sale_per"]=0;
+                t_cumul_data["total"]["前年"]["sale_amount"]=0;
+                t_cumul_data["total"]["前年"]["total_cnt"]=0;
+                t_cumul_data["total"]["前年比"]=[];
+                t_cumul_data["total"]["前年比"]["sale_total"]=0;
+                t_cumul_data["total"]["前年比"]["sale_profit"]=0;
+                t_cumul_data["total"]["前年比"]["sale_per"]=0;
+                t_cumul_data["total"]["前年比"]["sale_amount"]=0;
+                t_cumul_data["total"]["前年比"]["total_cnt"]=0;
+                t_cumul_data["now"]=[];
+                t_cumul_data["now"]["当日"] = [];
+                t_cumul_data["now"]["累計"] = [];
+                t_cumul_data["now"]["前年"] = [];
+                t_cumul_data["now"]["前年比"] = [];
+                t_cumul_data["compile"]=[];
+                t_cumul_data["compile"]["当日"]=[];
+                t_cumul_data["compile"]["累計"]=[];
+                t_cumul_data["compile"]["前年"]=[];
+                t_cumul_data["compile"]["前年比"]=[];
+                t_cumul_data["calc"]=[];
+                t_cumul_data["prev_year_calc"]=[];
+                function reinit_t_cumul_data(type,f_supp_cd){
+                    if(type === "calc"){
+                        t_cumul_data["calc"][f_supp_cd]=[];
+                        t_cumul_data["calc"][f_supp_cd]["sale_total"]=0;
+                        t_cumul_data["calc"][f_supp_cd]["sale_profit"]=0;
+                        t_cumul_data["calc"][f_supp_cd]["sale_per"]=0;
+                        t_cumul_data["calc"][f_supp_cd]["sale_amount"]=0;
+                        t_cumul_data["calc"][f_supp_cd]["total_cnt"]=0;
+                        t_cumul_data["prev_year_calc"][f_supp_cd]=[];
+                        t_cumul_data["prev_year_calc"][f_supp_cd]["sale_total"]=0;
+                        t_cumul_data["prev_year_calc"][f_supp_cd]["sale_profit"]=0;
+                        t_cumul_data["prev_year_calc"][f_supp_cd]["sale_per"]=0;
+                        t_cumul_data["prev_year_calc"][f_supp_cd]["sale_amount"]=0;
+                        t_cumul_data["prev_year_calc"][f_supp_cd]["total_cnt"]=0;
+                    }else if(type === "prev_year_calc"){
+                        t_cumul_data["prev_year_calc"][f_supp_cd]=[];
+                        t_cumul_data["prev_year_calc"][f_supp_cd]["sale_total"]=0;
+                        t_cumul_data["prev_year_calc"][f_supp_cd]["sale_profit"]=0;
+                        t_cumul_data["prev_year_calc"][f_supp_cd]["sale_per"]=0;
+                        t_cumul_data["prev_year_calc"][f_supp_cd]["sale_amount"]=0;
+                        t_cumul_data["prev_year_calc"][f_supp_cd]["total_cnt"]=0;
+                    }else if(type === "now"){
+                        //console.log("reinit now "+ f_supp_cd);
+                        t_cumul_data["now"]["当日"]=[];
+                        t_cumul_data["now"]["当日"]["sale_total"]=0;
+                        t_cumul_data["now"]["当日"]["sale_profit"]=0;
+                        t_cumul_data["now"]["当日"]["sale_per"]=0;
+                        t_cumul_data["now"]["当日"]["sale_amount"]=0;
+                        t_cumul_data["now"]["当日"]["total_cnt"]=0;
+                        t_cumul_data["now"]["累計"]=[];
+                        t_cumul_data["now"]["累計"]["sale_total"]=0;
+                        t_cumul_data["now"]["累計"]["sale_profit"]=0;
+                        t_cumul_data["now"]["累計"]["sale_per"]=0;
+                        t_cumul_data["now"]["累計"]["sale_amount"]=0;
+                        t_cumul_data["now"]["累計"]["total_cnt"]=0;
+                        t_cumul_data["now"]["前年"]=[];
+                        t_cumul_data["now"]["前年"]["sale_total"]=0;
+                        t_cumul_data["now"]["前年"]["sale_profit"]=0;
+                        t_cumul_data["now"]["前年"]["sale_per"]=0;
+                        t_cumul_data["now"]["前年"]["sale_amount"]=0;
+                        t_cumul_data["now"]["前年"]["total_cnt"]=0;
+                        //.log(t_cumul_data["now"]["当日"][f_supp_cd]);
+                    }else if(type === "compile"){
+                        t_cumul_data["compile"]["当日"][f_supp_cd]=[];
+                        t_cumul_data["compile"]["当日"][f_supp_cd]["sale_total"]=0;
+                        t_cumul_data["compile"]["当日"][f_supp_cd]["sale_profit"]=0;
+                        t_cumul_data["compile"]["当日"][f_supp_cd]["sale_per"]=0;
+                        t_cumul_data["compile"]["当日"][f_supp_cd]["sale_amount"]=0;
+                        t_cumul_data["compile"]["当日"][f_supp_cd]["total_cnt"]=0;
+                        t_cumul_data["compile"]["累計"][f_supp_cd]=[];
+                        t_cumul_data["compile"]["累計"][f_supp_cd]["sale_total"]=0;
+                        t_cumul_data["compile"]["累計"][f_supp_cd]["sale_profit"]=0;
+                        t_cumul_data["compile"]["累計"][f_supp_cd]["sale_per"]=0;
+                        t_cumul_data["compile"]["累計"][f_supp_cd]["sale_amount"]=0;
+                        t_cumul_data["compile"]["累計"][f_supp_cd]["total_cnt"]=0;
+                        t_cumul_data["compile"]["前年"][f_supp_cd]=[];
+                        t_cumul_data["compile"]["前年"][f_supp_cd]["sale_total"]=0;
+                        t_cumul_data["compile"]["前年"][f_supp_cd]["sale_profit"]=0;
+                        t_cumul_data["compile"]["前年"][f_supp_cd]["sale_per"]=0;
+                        t_cumul_data["compile"]["前年"][f_supp_cd]["sale_amount"]=0;
+                        t_cumul_data["compile"]["前年"][f_supp_cd]["total_cnt"]=0;                        
+                    }
+                }
+                reinit_t_cumul_data("now","");
+                
+                // year
+                if(period_val=== "year"){
+                    if(org_r_val === "compile"){      
+                    // compile 
+                        //console.log("compile year");
+                        date_ym = "";
+                        prev_date= "";
+                        pev_supp_cd = "";
+                        prev_org_id = "";
+                        new_month = true;
+                        prev_year_date_str = "";
+                        loop_date="";
+                        supp_cd_t = "";
+                        supp_cd = "";
+                        org_id = "";                    
+
+                        // ################ loop date
+                        t_data_key=Object.keys(t_data);
+                        // sort by date
+                        if(asc["proc_date"]){
+                            if(asc["proc_date"] === -1){
+                                // Desc
+                                t_data_key.reverse();
+                            }
+                        }                        
+                        for(i=0;i<t_data_key.length;i++){
+                            loop_date = t_data_key[i];
+                            t_cumul_data["calc"]=[];
+                            //console.log("here");
+                            // ################ loop org_id
+                            org_id_key = Object.keys(t_data[loop_date]);
+                            // sort by org_id
+                            if(asc["org_id"]){
+                                if(asc["org_id"] === -1){
+                                    // Desc
+                                    org_id_key.reverse();
+                                }
+                            }                            
+                            for(j=0;j<org_id_key.length;j++){
+                                org_id=org_id_key[j];
+                                // ################ loop supp_cd
+                                supp_key=Object.keys(t_data[loop_date][org_id]).sort();
+                                // sort by supp_cd
+                                if(asc["supp_cd"]){
+                                    if(asc["supp_cd"] === -1){
+                                        // Desc
+                                        supp_key.reverse();
+                                    }
+                                }                                 
+                                for(k=0;k<supp_key.length;k++){ 
+                                    supp_cd  = supp_key[k];
+                                    loop_row = t_data[loop_date][org_id][supp_cd];  
+                                    //console.log(Object.keys(t_cumul_data["calc"]));
+                                    if(!t_cumul_data["calc"][supp_cd]){
+                                        //console.log("reinit " + supp_cd);
+                                        reinit_t_cumul_data("calc",supp_cd);
+                                    }
+                                    t_cumul_data["calc"][supp_cd]["sale_total"]  += Number(loop_row["sale_total"]) ;
+                                    t_cumul_data["calc"][supp_cd]["sale_profit"] += Number(loop_row["sale_profit"]) ;
+                                    t_cumul_data["calc"][supp_cd]["sale_per"]    += Number(loop_row["sale_per"]) ;
+                                    t_cumul_data["calc"][supp_cd]["sale_amount"] += Number(loop_row["sale_amount"]) ;
+                                    t_cumul_data["calc"][supp_cd]["total_cnt"] += Number(loop_row["total_cnt"]) ;                                    
+                                    t_cumul_data["calc"][supp_cd]["supp_nm"] = loop_row["supp_nm"];
+                                    //console.log("supp_cd: "+supp_cd+' sale total: '+t_cumul_data["calc"][supp_cd]["sale_total"]);
+                                    pev_supp_cd = supp_cd;
+                                    prev_org_id = org_id;
+                                    prev_date = loop_date;
+                                } // end loop supp_cd
+                                
+                            } // end loop org_id
+                            
+                            // print data
+                            supp_key=Object.keys(t_cumul_data["calc"]).sort();
+                            org_id = "企業計";
+                            date = loop_date;
+                            for(k=0;k<supp_key.length;k++){ 
+                                supp_cd  = supp_key[k];                                 
+                                loop_row = t_cumul_data["calc"][supp_cd];
+                                supp_nm = loop_row["supp_nm"];
+                                i_row=[];
+                                i_row["proc_date"] = date;
+                                i_row["org_id"]  = org_id;                                    
+                                i_row["supp_cd"] = supp_nm;
+                                i_row["mode"] = "";
+                                i_row["sale_total"]  = loop_row["sale_total"];
+                                i_row["sale_profit"] = loop_row["sale_profit"];
+                                i_row["sale_per"]    = loop_row["sale_per"];
+                                i_row["sale_amount"] = loop_row["sale_amount"];
+                                i_row["total_cnt"] = loop_row["total_cnt"];
+                                t_cumul_data["total"]["当日"]["sale_total"] += Number(i_row["sale_total"]);
+                                t_cumul_data["total"]["当日"]["sale_profit"]+= Number(i_row["sale_profit"]);
+                                t_cumul_data["total"]["当日"]["sale_per"]   += Number(i_row["sale_per"]);
+                                t_cumul_data["total"]["当日"]["sale_amount"]+= Number(i_row["sale_amount"]);
+                                t_cumul_data["total"]["当日"]["total_cnt"]+= Number(i_row["total_cnt"]);
+                                if(true){ // checked
+                                    insert_row(i_row);
+                                    org_id = "";
+                                    date = "";
+                                }                                 
+                            }
+                        }// end loop date
+                        // call footer function;
+                        insert_footer();
+                    }else{
+                    // normal
+                        //console.log("year_normal");
+                        date_ym = "";
+                        prev_date= "";
+                        pev_supp_cd = "";
+                        prev_org_id = "";
+                        new_month = true;
+                        prev_year_date_str = "";
+                        loop_date="";
+                        supp_cd_t = "";
+                        supp_cd = "";
+                        org_id = "";                    
+
+                        // ################ loop date
+                        t_data_key=Object.keys(t_data);
+                        if(asc["proc_date"]){
+                            if(asc["proc_date"] === -1){
+                                // Desc
+                                t_data_key.reverse();
+                            }
+                        }                        
+                        for(i=0;i<t_data_key.length;i++){
+                            loop_date = t_data_key[i];
+                            t_cumul_data["calc"]=[];
+                            t_cumul_data["prev_year_calc"]=[];
+                            // ################ loop org_id
+                            org_id_key = Object.keys(t_data[loop_date]);
+                            // sort by org_id
+                            if(asc["org_id"]){
+                                if(asc["org_id"] === -1){
+                                    // Desc
+                                    org_id_key.reverse();
+                                }
+                            }                             
+                            date = loop_date;
+                            reinit_t_cumul_data("now","");
+                            for(j=0;j<org_id_key.length;j++){
+                                org_id=org_id_key[j];
+                                // ################ loop supp_cd
+                                supp_key=Object.keys(t_data[loop_date][org_id]).sort();
+                                // sort by supp_cd
+                                if(asc["supp_cd"]){
+                                    if(asc["supp_cd"] === -1){
+                                        // Desc
+                                        supp_key.reverse();
+                                    }
+                                }                                
+                                org_id_t = "empty";
+
+                                for(k=0;k<supp_key.length;k++){ 
+                                    supp_cd  = supp_key[k];
+                                    loop_row = t_data[loop_date][org_id][supp_cd];  
+                                    supp_nm = loop_row["supp_nm"];
+                                    if(org_id_t === "empty" ){
+                                        org_id_t = loop_row["org_nm"];
+                                    }else{
+                                        org_id_t="";
+                                    }
+                                    i_row=[];
+                                    i_row["proc_date"]        = date;
+                                    i_row["org_id"]  = org_id_t;                                    
+                                    i_row["supp_cd"]          = supp_nm;
+                                    i_row["mode"]        = "";
+                                    i_row["sale_total"]  = loop_row["sale_total"];
+                                    i_row["sale_profit"] = loop_row["sale_profit"];
+                                    i_row["sale_per"]    = loop_row["sale_per"];
+                                    i_row["sale_amount"] = loop_row["sale_amount"];
+                                    i_row["total_cnt"] = loop_row["total_cnt"]; 
+                                    if(true){ 
+                                        insert_row(i_row);
+                                        org_id_t = "";
+                                        date = "";
+                                    }                                      
+                                    t_cumul_data["now"]["当日"]["sale_total"]  += Number(loop_row["sale_total"]) ;
+                                    t_cumul_data["now"]["当日"]["sale_profit"] += Number(loop_row["sale_profit"]) ;
+                                    t_cumul_data["now"]["当日"]["sale_per"]    += Number(loop_row["sale_per"]) ;
+                                    t_cumul_data["now"]["当日"]["sale_amount"] += Number(loop_row["sale_amount"]) ;
+                                    t_cumul_data["now"]["当日"]["total_cnt"] += Number(loop_row["total_cnt"]) ;                                    
+
+                                    pev_supp_cd = supp_cd;
+                                    prev_org_id = org_id;
+                                    prev_date = loop_date;
+                                } // end loop supp_cd
+                                
+                            } // end loop org_id
+                            
+                            // print data
+                            org_id_t = "合計";
+                            date = "";                                 
+                            loop_row = t_cumul_data["now"]["当日"];
+                            supp_nm = "";
+                            i_row=[];
+                            i_row["background"] = "lightgrey" ;
+                            i_row["proc_date"] = date;
+                            i_row["org_id"]  = org_id_t;                                    
+                            i_row["supp_cd"] = supp_nm;
+                            i_row["mode"] = "";
+                            i_row["sale_total"]  = loop_row["sale_total"];
+                            i_row["sale_profit"] = loop_row["sale_profit"];
+                            i_row["sale_per"]    = loop_row["sale_per"];
+                            i_row["sale_amount"] = loop_row["sale_amount"];
+                            i_row["total_cnt"] = loop_row["total_cnt"];
+                            t_cumul_data["total"]["当日"]["sale_total"] +=i_row["sale_total"];
+                            t_cumul_data["total"]["当日"]["sale_profit"]+=i_row["sale_profit"];
+                            t_cumul_data["total"]["当日"]["sale_per"]   +=i_row["sale_per"];
+                            t_cumul_data["total"]["当日"]["sale_amount"]+=i_row["sale_amount"];
+                            t_cumul_data["total"]["当日"]["total_cnt"]+=i_row["total_cnt"];
+                            if(true){ 
+                                insert_row(i_row);
+                                org_id_t = "";
+                                date = "";
+                            }                                 
+                            
+                            
+                            // call footer function　t_cumul_data["total"]
+                            insert_footer();
+                            
+                        }// end loop date  
+                        // call footer function;
+                    }
+                    return;
+                }
+                // day and month
+                if(org_r_val === "compile"){
+                    
+                    date_ym = "";
+                    prev_date= "";
+                    pev_supp_cd = "";
+                    prev_org_id = "";
+                    new_month = true;
+                    prev_year_date_str = "";
+                    loop_date="";
+                    supp_cd_t = "";
+                    supp_cd = "";
+                    org_id = "";                    
+                    
+                    // ################ loop date
+                    t_data_key=Object.keys(t_data);
+                    if(asc["proc_date"]){
+                        if(asc["proc_date"] === -1){
+                            // Desc
+                            t_data_key.reverse();
+                        }
+                    }                    
+                    for(i=0;i<t_data_key.length;i++){
+                        loop_date = t_data_key[i];
+                        date = loop_date;
+                        // check new month
+                        if(period_val === "day" && prev_date.slice(0,-2) === loop_date.slice(0,-2)){
+                            new_month = false;
+                        }else{
+                            new_month = true;
+                        } 
+                        t_cumul_data["calc"]=[];
+                        t_cumul_data["prev_year_calc"]=[];
+                        t_cumul_data["compile"]["当日"]=[];
+                        // ################ loop org_id
+                        org_id_key = Object.keys(t_data[loop_date]);
+                        // sort by org_id
+                        if(asc["org_id"]){
+                            if(asc["org_id"] === -1){
+                                // Desc
+                                org_id_key.reverse();
+                            }
+                        }                         
+                        for(j=0;j<org_id_key.length;j++){
+                            org_id=org_id_key[j];
+                            
+                            
+                            // ################ loop supp_cd
+                            //console.log(t_data);
+                            supp_key=Object.keys(t_data[loop_date][org_id]).sort();
+                            // sort by supp_cd
+                            if(asc["supp_cd"]){
+                                if(asc["supp_cd"] === -1){
+                                    // Desc
+                                    supp_key.reverse();
+                                }
+                            }                            
+                            //console.log("supp_key: " + supp_key);
+                            for(k=0;k<supp_key.length;k++){ 
+                                supp_cd  = supp_key[k];
+                                loop_row = t_data[loop_date][org_id][supp_cd];
+                                supp_nm = loop_row["supp_nm"];
+                                //console.log(prev_org_id + " " + org_id);
+                                if(prev_org_id !== org_id){
+                                    org_id_t= loop_row["org_nm"];
+                                }else{
+                                    org_id_t="";
+                                }
+                                if(!t_cumul_data["compile"]["当日"][supp_cd]){
+                                    reinit_t_cumul_data("compile",supp_cd);
+                                }
+
+                                // 当日
+                                i_row = t_cumul_data["compile"]["当日"][supp_cd];
+                                i_row["sale_total"]  += Number(loop_row["sale_total"]);
+                                i_row["sale_profit"] += Number(loop_row["sale_profit"]);
+                                i_row["sale_per"]    += Number(loop_row["sale_per"]);
+                                i_row["sale_amount"] += Number(loop_row["sale_amount"]);
+                                i_row["total_cnt"] += Number(loop_row["total_cnt"]);
+                                i_row["supp_nm"]      = loop_row["supp_nm"];
+                                 
+                                t_cumul_data["now"]["当日"]["sale_total"] += Number(i_row["sale_total"]);
+                                t_cumul_data["now"]["当日"]["sale_profit"]+= Number(i_row["sale_profit"]);
+                                t_cumul_data["now"]["当日"]["sale_per"]   += Number(i_row["sale_per"]);
+                                t_cumul_data["now"]["当日"]["sale_amount"]+= Number(i_row["sale_amount"]);
+                                t_cumul_data["now"]["当日"]["total_cnt"]+= Number(i_row["total_cnt"]); 
+                                
+                                if(period_val === "day"){
+
+                                    //累計
+                                    param = [];
+                                    param["end_date"]   = Number(loop_date);
+                                    param["start_date"] = Number(loop_date.substr(0,6) + "00");
+                                    param["supp_cd"]    = supp_cd;
+                                    temp_row = get_date_cumul(param,A_Data_day); 
+                                    t_cumul_data["compile"]["累計"][supp_cd]["sale_total"] = Number(temp_row["sale_total"]);
+                                    t_cumul_data["compile"]["累計"][supp_cd]["sale_profit"]= Number(temp_row["sale_profit"]);
+                                    t_cumul_data["compile"]["累計"][supp_cd]["sale_per"]   = Number(temp_row["sale_per"]);
+                                    t_cumul_data["compile"]["累計"][supp_cd]["sale_amount"]= Number(temp_row["sale_amount"]);
+                                    t_cumul_data["compile"]["累計"][supp_cd]["total_cnt"]= Number(temp_row["total_cnt"]); 
+                                    // 前年
+                                    param = [];
+                                    param["end_date"]   = Number(loop_date)-10000;
+                                    param["start_date"] = Number(loop_date.substr(0,6) + "00")-10000;
+                                    param["supp_cd"]    = supp_cd;
+                                    //console.log("前年 cumul_day");
+                                    //console.log("loop_date:" +  loop_date);
+                                    //console.log(param);
+                                    temp_row = get_date_cumul(param,A_Data_day); 
+                                    t_cumul_data["compile"]["前年"][supp_cd]["sale_total"] = Number(temp_row["sale_total"]);
+                                    t_cumul_data["compile"]["前年"][supp_cd]["sale_profit"]= Number(temp_row["sale_profit"]);
+                                    t_cumul_data["compile"]["前年"][supp_cd]["sale_per"]   = Number(temp_row["sale_per"]);
+                                    t_cumul_data["compile"]["前年"][supp_cd]["sale_amount"]= Number(temp_row["sale_amount"]);
+                                    t_cumul_data["compile"]["前年"][supp_cd]["total_cnt"]= Number(temp_row["total_cnt"]);                                     
+                                    
+                                }
+                                
+                                
+                               // 前年
+                                if(period_val === "month"){                                   
+                                    prev_year_date = Number(loop_date) - 100;
+                                    if((A_Data_month[prev_year_date] && A_Data_month[prev_year_date][supp_cd]) === undefined ){  
+                                        reinit_t_cumul_data("prev_year_calc",supp_cd);
+                                    }
+                                    if((A_Data_month[prev_year_date] && A_Data_month[prev_year_date][org_id] && A_Data_month[prev_year_date][org_id][supp_cd]) !== undefined){
+                                        t_cumul_data["prev_year_calc"][supp_cd]["sale_total"]  += Number(A_Data_month[prev_year_date][org_id][supp_cd]["sale_total"]);
+                                        t_cumul_data["prev_year_calc"][supp_cd]["sale_profit"] += Number(A_Data_month[prev_year_date][org_id][supp_cd]["sale_profit"]);
+                                        t_cumul_data["prev_year_calc"][supp_cd]["sale_per"]    += Number(A_Data_month[prev_year_date][org_id][supp_cd]["sale_per"]);
+                                        t_cumul_data["prev_year_calc"][supp_cd]["sale_amount"] += Number(A_Data_month[prev_year_date][org_id][supp_cd]["sale_amount"]);
+                                        t_cumul_data["prev_year_calc"][supp_cd]["total_cnt"] += Number(A_Data_month[prev_year_date][org_id][supp_cd]["total_cnt"]);
+                                        t_cumul_data["prev_year_calc"][supp_cd]["supp_nm"]     = A_Data_month[prev_year_date][org_id][supp_cd]["supp_nm"];
+                                    }
+                               
+                                    loop_row_t=t_cumul_data["prev_year_calc"][supp_cd];
+                                    i_row_t = t_cumul_data["compile"]["前年"][supp_cd];
+                                    //console.log("before supp_cd: "+supp_cd+" / i_row_t['sale_total']: "+i_row_t["sale_total"]);
+                                    i_row_t["sale_total"]  += loop_row_t["sale_total"];
+                                    i_row_t["sale_profit"] += loop_row_t["sale_profit"];
+                                    i_row_t["sale_per"]    += loop_row_t["sale_per"];
+                                    i_row_t["sale_amount"] += loop_row_t["sale_amount"];
+                                    i_row_t["total_cnt"] += loop_row_t["total_cnt"];
+                                    //console.log("after supp_cd: "+supp_cd+" / i_row_t['sale_total']: "+i_row_t["sale_total"]);
+                                    t_cumul_data["now"]["前年"]["sale_total"] += Number(i_row_t["sale_total"]);
+                                    t_cumul_data["now"]["前年"]["sale_profit"]+= Number(i_row_t["sale_profit"]);
+                                    t_cumul_data["now"]["前年"]["sale_per"]   += Number(i_row_t["sale_per"]);
+                                    t_cumul_data["now"]["前年"]["sale_amount"]+= Number(i_row_t["sale_amount"]);
+                                    t_cumul_data["now"]["前年"]["total_cnt"]+= Number(i_row_t["total_cnt"]); 
+                                    t_cumul_data["now"]["前年"]["supp_nm"]     = Number(i_row_t["supp_nm"]);
+                                }                                    
+   
+                            } // end loop supp_cd
+                            
+                        } // end loop org_id
+                        // print supp data
+                        reinit_t_cumul_data("now","");
+                        //当日
+                        date_p=loop_date;
+                        org_id_t="企業計";
+                        supp_cd_key=Object.keys(t_cumul_data["compile"]["当日"]).sort();
+                        for(m=0;m<supp_cd_key.length;m++){
+                            supp_cd  = supp_cd_key[m];
+                            supp_nm = t_cumul_data["compile"]["当日"][supp_cd]["supp_nm"];
+                            
+                            loop_row = t_cumul_data["compile"]["当日"][supp_cd];
+                            i_row=[];
+                            i_row["proc_date"] = date_p;
+                            i_row["org_id"]  = org_id_t;                                    
+                            i_row["supp_cd"] = supp_nm;
+                            i_row["mode"] = "当日";
+                            if(period_val === "month"){
+                                i_row["mode"] = "当月";
+                            }
+                            i_row["sale_total"]  = loop_row["sale_total"];
+                            i_row["sale_profit"] = loop_row["sale_profit"];
+                            i_row["sale_per"]    = loop_row["sale_per"];
+                            i_row["sale_amount"] = loop_row["sale_amount"];
+                            i_row["total_cnt"] = loop_row["total_cnt"];
+                            t_cumul_data["now"]["当日"]["sale_total"] += Number(i_row["sale_total"]);
+                            t_cumul_data["now"]["当日"]["sale_profit"]+= Number(i_row["sale_profit"]);
+                            t_cumul_data["now"]["当日"]["sale_per"]   += Number(i_row["sale_per"]);
+                            t_cumul_data["now"]["当日"]["sale_amount"]+= Number(i_row["sale_amount"]);
+                            t_cumul_data["now"]["当日"]["total_cnt"]+= Number(i_row["total_cnt"]);                             
+                            if(today_checkbox){
+                                insert_row(i_row);
+                                org_id_t = "";
+                                date_p = "";
+                                supp_nm = ""; 
+                            }
+                            //累計
+                            if(period_val === "day"){
+                                loop_row = t_cumul_data["compile"]["累計"][supp_cd];                             
+                                i_row=[];
+                                i_row["proc_date"] = date_p;
+                                i_row["org_id"]  = org_id_t;                                    
+                                i_row["supp_cd"] = supp_nm;
+                                i_row["mode"] = "累計";
+                                i_row["sale_total"]  = loop_row["sale_total"];
+                                i_row["sale_profit"] = loop_row["sale_profit"];
+                                i_row["sale_per"]    = loop_row["sale_per"];
+                                i_row["sale_amount"] = loop_row["sale_amount"];
+                                i_row["total_cnt"] = loop_row["total_cnt"];
+                                t_cumul_data["now"]["累計"]["sale_total"] = Number(i_row["sale_total"]);
+                                t_cumul_data["now"]["累計"]["sale_profit"]= Number(i_row["sale_profit"]);
+                                t_cumul_data["now"]["累計"]["sale_per"]   = Number(i_row["sale_per"]);
+                                t_cumul_data["now"]["累計"]["sale_amount"]= Number(i_row["sale_amount"]);
+                                t_cumul_data["now"]["累計"]["total_cnt"]= Number(i_row["total_cnt"]);                             
+                                if(cumul_checkbox){
+                                    insert_row(i_row);
+                                    org_id_t = "";
+                                    date_p = "";
+                                    supp_nm = "";                              
+                                }
+                            }
+                            //前年
+   
+                            loop_row = t_cumul_data["compile"]["前年"][supp_cd];   
+                            i_row_t=[];
+                            i_row_t["proc_date"] = date_p;
+                            i_row_t["org_id"]  = org_id_t;                                    
+                            i_row_t["supp_cd"] = supp_nm;
+                            i_row_t["mode"] = "前年";
+                            i_row_t["sale_total"]  = loop_row["sale_total"];
+                            i_row_t["sale_profit"] = loop_row["sale_profit"];
+                            i_row_t["sale_per"]    = loop_row["sale_per"];
+                            i_row_t["sale_amount"] = loop_row["sale_amount"];
+                            i_row_t["total_cnt"] = loop_row["total_cnt"];
+                            if(period_val === "day"){
+                                t_cumul_data["now"]["前年"]["sale_total"] = Number(i_row_t["sale_total"]);
+                                t_cumul_data["now"]["前年"]["sale_profit"]= Number(i_row_t["sale_profit"]);
+                                t_cumul_data["now"]["前年"]["sale_per"]   = Number(i_row_t["sale_per"]);
+                                t_cumul_data["now"]["前年"]["sale_amount"]= Number(i_row_t["sale_amount"]);
+                                t_cumul_data["now"]["前年"]["total_cnt"]= Number(i_row_t["total_cnt"]);
+                            }else{
+                                t_cumul_data["now"]["前年"]["sale_total"] += Number(i_row_t["sale_total"]);
+                                t_cumul_data["now"]["前年"]["sale_profit"]+= Number(i_row_t["sale_profit"]);
+                                t_cumul_data["now"]["前年"]["sale_per"]   += Number(i_row_t["sale_per"]);
+                                t_cumul_data["now"]["前年"]["sale_amount"]+= Number(i_row_t["sale_amount"]);
+                                t_cumul_data["now"]["前年"]["total_cnt"]+= Number(i_row_t["total_cnt"]);                                
+                            }  
+                            if(prevyear_checkbox){
+                                insert_row(i_row_t);
+                                org_id_t = "";
+                                date_p = "";
+                                supp_nm = "";                              
+                            } 
+                            //前年比
+                            if(percentage_checkbox){
+                                i_row["proc_date"] = date_p;
+                                i_row["org_id"]  = org_id_t;                                    
+                                i_row["supp_cd"] = supp_nm;
+                                i_row["mode"] = "前年比";
+                                i_row["sale_total"]  = Number(i_row["sale_total"])/Number(i_row_t["sale_total"])*100;
+                                if(isNaN(i_row["sale_total"])||i_row_t["sale_total"] === 0){
+                                    i_row["sale_total"]=0;
+                                }
+                                i_row["sale_profit"] = Number(i_row["sale_profit"])/Number(i_row_t["sale_profit"])*100;
+                                if(isNaN(i_row["sale_profit"])||i_row_t["sale_profit"] === 0){
+                                    i_row["sale_profit"]=0;
+                                }                        
+                                i_row["sale_per"]    = Number(i_row["sale_per"])/Number(i_row_t["sale_per"])*100;
+                                if(isNaN(i_row["sale_per"])||i_row_t["sale_per"] === 0){
+                                    i_row["sale_per"]=0;
+                                }                        
+                                i_row["sale_amount"] = Number(i_row["sale_amount"])/Number(i_row_t["sale_amount"])*100;
+                                if(isNaN(i_row["sale_amount"])||i_row_t["sale_amount"] === 0){
+                                    i_row["sale_amount"]=0;
+                                }                        
+                                i_row["total_cnt"] = Number(i_row["total_cnt"])/Number(i_row_t["total_cnt"])*100;
+                                if(isNaN(i_row["total_cnt"])||i_row_t["total_cnt"] === 0){
+                                    i_row["total_cnt"]=0;
+                                }  
+                                insert_row(i_row);
+                                org_id_t = "";
+                                date_p = "";
+                                supp_nm = "";                           
+                            }                              
+                            
+                        } // end loop supp_cd
+                        // print data 合計
+                        org_id_t = "合計";
+                        date_p = "";
+                        i_row=[];
+                        i_row["background"] = "lightgrey" ;
+                        i_row["proc_date"] = "";
+                        i_row["org_id"]  = org_id_t;                                    
+                        i_row["supp_cd"] = "";
+                        i_row["mode"] = "当日";
+                        if(period_val === "month"){
+                            i_row["mode"] = "当月";
+                        }
+                        i_row["sale_total"]  = t_cumul_data["now"]["当日"]["sale_total"];
+                        i_row["sale_profit"] = t_cumul_data["now"]["当日"]["sale_profit"];
+                        i_row["sale_per"]    = t_cumul_data["now"]["当日"]["sale_per"];
+                        i_row["sale_amount"] = t_cumul_data["now"]["当日"]["sale_amount"];
+                        i_row["total_cnt"] = t_cumul_data["now"]["当日"]["total_cnt"];
+                        t_cumul_data["total"]["当日"]["sale_total"] +=Number(i_row["sale_total"]);
+                        t_cumul_data["total"]["当日"]["sale_profit"]+=Number(i_row["sale_profit"]);
+                        t_cumul_data["total"]["当日"]["sale_per"]   +=Number(i_row["sale_per"]);
+                        t_cumul_data["total"]["当日"]["sale_amount"]+=Number(i_row["sale_amount"]);
+                        t_cumul_data["total"]["当日"]["total_cnt"]+=Number(i_row["total_cnt"]); 
+                        if(today_checkbox){ // checked
+                            insert_row(i_row);
+                            org_id_t = "";
+                            date_p = "";
+                            supp_nm = "";
+                        }
+
+                        // 累計
+                        if(period_val === "day"){
+                            i_row=[];
+                            param = [];
+                            param["end_date"]   = Number(loop_date);
+                            param["start_date"] = Number(loop_date.substr(0,6) + "00");
+                                //console.log(t_cumul_data["now"]);
+                                //console.log("loop_date:" +  loop_date);
+                                //console.log(param);
+                            i_row["background"] = "lightgrey" ;
+                            i_row["proc_date"] = "";
+                            i_row["org_id"]  = org_id_t;                                    
+                            i_row["supp_cd"] = "";
+                            i_row["mode"] = "累計";
+                            // pme 2019/11/30
+                            i_row["sale_total"]  = 0;
+                            i_row["sale_profit"] = 0;
+                            i_row["sale_per"]    = 0;
+                            i_row["sale_amount"] = 0;
+                            i_row["total_cnt"]   = 0;
+                            A_supp_list = supp_list.replace(/^,/,'').split(',');
+                            console.log(A_supp_list);
+                            for(iss=0;iss<A_supp_list.length;iss++){
+                                param["supp_cd"]=A_supp_list[iss];
+                                console.log(param["supp_cd"]);
+                                loop_row = get_date_cumul(param,A_Data_day); 
+                                i_row["sale_total"]  += Number(loop_row["sale_total"]);
+                                i_row["sale_profit"] += Number(loop_row["sale_profit"]);
+                                i_row["sale_per"]    += Number(loop_row["sale_per"]);
+                                i_row["sale_amount"] += Number(loop_row["sale_amount"]);
+                                i_row["total_cnt"]   += Number(loop_row["total_cnt"]);
+                            }
+                            // pme 2019/11/30 end
+                            t_cumul_data["total"]["累計"]["sale_total"] +=Number(i_row["sale_total"]);
+                            t_cumul_data["total"]["累計"]["sale_profit"]+=Number(i_row["sale_profit"]);
+                            t_cumul_data["total"]["累計"]["sale_per"]   +=Number(i_row["sale_per"]);
+                            t_cumul_data["total"]["累計"]["sale_amount"]+=Number(i_row["sale_amount"]);
+                            t_cumul_data["total"]["累計"]["total_cnt"]+=Number(i_row["total_cnt"]);                              
+
+                            if(cumul_checkbox){ // checked
+                                insert_row(i_row);
+                                org_id_t = "";
+                                date_p = "";
+                                supp_nm = "";
+                            } 
+                        }
+                        
+                        // 前年
+                        // pme 2019/11/30
+                        i_row_t=[];
+                        if(period_val === "day"){
+                            param = [];
+                            param["end_date"]   = Number(loop_date)-10000;
+                            param["start_date"] = Number(loop_date.substr(0,6) + "00")-10000;
+                            i_row_t["sale_total"]  = 0;
+                            i_row_t["sale_profit"] = 0;
+                            i_row_t["sale_per"]    = 0;
+                            i_row_t["sale_amount"] = 0;
+                            i_row_t["total_cnt"]   = 0;                            
+                            A_supp_list = supp_list.replace(/^,/,'').split(',');
+                            for(iss=0;iss<A_supp_list.length;iss++){
+                                param["supp_cd"]=A_supp_list[iss];
+                                loop_row = get_date_cumul(param,A_Data_day); 
+                                i_row_t["sale_total"]  += Number(loop_row["sale_total"]);
+                                i_row_t["sale_profit"] += Number(loop_row["sale_profit"]);
+                                i_row_t["sale_per"]    += Number(loop_row["sale_per"]);
+                                i_row_t["sale_amount"] += Number(loop_row["sale_amount"]);
+                                i_row_t["total_cnt"]   += Number(loop_row["total_cnt"]);
+                            }                                
+                            loop_row = get_date_cumul(param,A_Data_day); 
+                        }else{ 
+                            loop_row = t_cumul_data["now"]["前年"];
+                            i_row_t["sale_total"]  = loop_row["sale_total"];
+                            i_row_t["sale_profit"] = loop_row["sale_profit"];
+                            i_row_t["sale_per"]    = loop_row["sale_per"];
+                            i_row_t["sale_amount"] = loop_row["sale_amount"];
+                            i_row_t["total_cnt"]   = loop_row["total_cnt"];                            
+                        }
+                        i_row_t["background"] = "lightgrey" ;
+                        i_row_t["proc_date"] = date_p;
+                        i_row_t["org_id"]  = org_id_t;                                    
+                        i_row_t["supp_cd"] = "";
+                        i_row_t["mode"] = "前年"; 
+                        //pme 2019/11/30 end
+                        t_cumul_data["total"]["前年"]["sale_total"] +=Number(i_row_t["sale_total"]);
+                        t_cumul_data["total"]["前年"]["sale_profit"]+=Number(i_row_t["sale_profit"]);
+                        t_cumul_data["total"]["前年"]["sale_per"]   +=Number(i_row_t["sale_per"]);
+                        t_cumul_data["total"]["前年"]["sale_amount"]+=Number(i_row_t["sale_amount"]);
+                        t_cumul_data["total"]["前年"]["total_cnt"]+=Number(i_row_t["total_cnt"]); 
+                        if(prevyear_checkbox){ // checked
+                            insert_row(i_row_t);
+                            org_id_t = "";
+                            date_p = "";
+                            supp_nm = "";
+                        }
+                        // 前年比
+                        i_row["background"] = "lightgrey" ;
+                        i_row["proc_date"] = date_p;
+                        i_row["org_id"]  = org_id_t;                                    
+                        i_row["supp_cd"] = "";
+                        i_row["supp_cd"] = "";
+                        i_row["mode"] = "前年比";
+                        i_row["sale_total"]  = Number(i_row["sale_total"])/Number(i_row_t["sale_total"])*100;
+                        if(isNaN(i_row["sale_total"])||i_row_t["sale_total"] === 0){
+                            i_row["sale_total"]=0;
+                        }
+                        i_row["sale_profit"] = Number(i_row["sale_profit"])/Number(i_row_t["sale_profit"])*100;
+                        if(isNaN(i_row["sale_profit"])||i_row_t["sale_profit"] === 0){
+                            i_row["sale_profit"]=0;
+                        }                        
+                        i_row["sale_per"]    = Number(i_row["sale_per"])/Number(i_row_t["sale_per"])*100;
+                        if(isNaN(i_row["sale_per"])||i_row_t["sale_per"] === 0){
+                            i_row["sale_per"]=0;
+                        }                        
+                        i_row["sale_amount"] = Number(i_row["sale_amount"])/Number(i_row_t["sale_amount"])*100;
+                        if(isNaN(i_row["sale_amount"])||i_row_t["sale_amount"] === 0){
+                            i_row["sale_amount"]=0;
+                        }                        
+                        i_row["total_cnt"] = Number(i_row["total_cnt"])/Number(i_row_t["total_cnt"])*100;
+                        if(isNaN(i_row["total_cnt"])||i_row_t["total_cnt"] === 0){
+                            i_row["total_cnt"]=0;
+                        }                        
+                        if(percentage_checkbox){ // checked
+                            insert_row(i_row);
+                            org_id_t = "";
+                            date_p = "";
+                            supp_nm = "";
+                        }                        
+                        reinit_t_cumul_data("now","");                     
+                        
+                    } // end loop date
+                    // call footer function;        
+                    insert_footer();
+                }else{
+                // normal
+                    date_ym = "";
+                    prev_date= "";
+                    pev_supp_cd = "";
+                    prev_org_id = "";
+                    new_month = true;
+                    prev_year_date_str = "";
+                    loop_date="";
+                    supp_cd_t = "";
+                    supp_cd = "";
+                    org_id = "";                    
+                    
+                    // ################ loop date
+                    t_data_key=Object.keys(t_data);
+                    if(asc["proc_date"]){
+                        if(asc["proc_date"] === -1){
+                            // Desc
+                            t_data_key.reverse();
+                        }
+                    }                    
+                    for(i=0;i<t_data_key.length;i++){
+                        loop_date = t_data_key[i];
+                        date = loop_date;
+                        // check new month
+                        if(period_val === "day" && prev_date.slice(0,-2) === loop_date.slice(0,-2)){
+                            new_month = false;
+                        }else{
+                            new_month = true;
+                        } 
+                        //t_cumul_data["calc"]=[];
+                        
+                        // ################ loop org_id
+                        org_id_key = Object.keys(t_data[loop_date]);
+                        // sort by org_id
+                        if(asc["org_id"]){
+                            if(asc["org_id"] === -1){
+                                // Desc
+                                org_id_key.reverse();
+                            }
+                        }                         
+                        for(j=0;j<org_id_key.length;j++){
+                            org_id=org_id_key[j];
+                            
+                            prev_org_id = "";
+                            // ################ loop supp_cd
+                            //console.log(t_data);
+                            supp_key=Object.keys(t_data[loop_date][org_id]).sort();
+                            // sort by supp_cd
+                            if(asc["supp_cd"]){
+                                if(asc["supp_cd"] === -1){
+                                    // Desc
+                                    supp_key.reverse();
+                                }
+                            }                            
+                            //console.log("supp_key" + supp_key);
+                            for(k=0;k<supp_key.length;k++){ 
+                                supp_cd  = supp_key[k];
+                                loop_row = t_data[loop_date][org_id][supp_cd];
+                                supp_nm = loop_row["supp_nm"];
+                                //console.log(prev_org_id + " " + org_id);
+                                
+                                if(prev_org_id !== org_id){
+                                    org_id_t= loop_row["org_nm"];
+                                }else{
+                                    org_id_t="";
+                                }
+                                //if(!t_cumul_data["calc"][supp_cd]){
+                                 //   reinit_t_cumul_data("calc",supp_cd);
+                                //}
+                                
+                                // 当日
+                                i_row=[];
+                                i_row["proc_date"]        = date;
+                                i_row["org_id"]           = org_id_t;                                    
+                                i_row["supp_cd"]          = supp_nm;
+                                i_row["mode"]        = "当日";
+                                if(period_val === "month"){
+                                    i_row["mode"] = "当月";
+                                }                                
+                                i_row["sale_total"]  = loop_row["sale_total"];
+                                i_row["sale_profit"] = loop_row["sale_profit"];
+                                i_row["sale_per"]    = loop_row["sale_per"];
+                                i_row["sale_amount"] = loop_row["sale_amount"];
+                                i_row["total_cnt"] = loop_row["total_cnt"]; 
+                                if(today_checkbox){ 
+                                    insert_row(i_row);
+                                    org_id_t = "";
+                                    date = "";
+                                    supp_nm="";
+                                    //console.log("print 当月");
+                                    //console.log(i_row);
+                                }                                 
+                                t_cumul_data["now"]["当日"]["sale_total"] += Number(i_row["sale_total"]);
+                                t_cumul_data["now"]["当日"]["sale_profit"]+= Number(i_row["sale_profit"]);
+                                t_cumul_data["now"]["当日"]["sale_per"]   += Number(i_row["sale_per"]);
+                                t_cumul_data["now"]["当日"]["sale_amount"]+= Number(i_row["sale_amount"]);
+                                t_cumul_data["now"]["当日"]["total_cnt"]+= Number(i_row["total_cnt"]); 
+                                t_cumul_data["now"]["当日"]["supp_nm"]     = Number(i_row["supp_nm"]);
+                                
+                                // 累計
+                                t_cumul_data["calc"]=[];
+                                t_cumul_data["prev_year_calc"]=[];
+                                reinit_t_cumul_data("calc",supp_cd);                                
+                                if(period_val === "day"){
+                                    param = [];
+                                    param["end_date"]   = Number(loop_date);
+                                    param["start_date"] = Number(loop_date.substr(0,6) + "00");
+                                    param["org_id"] = org_id;
+                                    param["supp_cd"] = supp_cd;
+                                        //console.log("累計 tot day");
+                                        //console.log("loop_date:" +  loop_date);
+                                        //console.log(param);
+                                    loop_row = get_date_cumul(param,A_Data_day);                                    
+                                    i_row=[];
+                                    i_row["proc_date"]        = date;
+                                    i_row["org_id"]           = org_id_t;                                    
+                                    i_row["supp_cd"]          = supp_nm;
+                                    i_row["mode"]        = "累計";
+                                    i_row["sale_total"]  = loop_row["sale_total"];
+                                    i_row["sale_profit"] = loop_row["sale_profit"];
+                                    i_row["sale_per"]    = loop_row["sale_per"];
+                                    i_row["sale_amount"] = loop_row["sale_amount"];
+                                    i_row["total_cnt"] = loop_row["total_cnt"]; 
+                                    if(cumul_checkbox){ 
+                                        insert_row(i_row);
+                                        org_id_t = "";
+                                        date = "";
+                                        supp_nm="";
+                                        //console.log("print 累計");
+                                        //console.log(i_row);
+                                    }
+                                    t_cumul_data["now"]["累計"]["sale_total"] += Number(i_row["sale_total"]);
+                                    t_cumul_data["now"]["累計"]["sale_profit"]+= Number(i_row["sale_profit"]);
+                                    t_cumul_data["now"]["累計"]["sale_per"]   += Number(i_row["sale_per"]);
+                                    t_cumul_data["now"]["累計"]["sale_amount"]+= Number(i_row["sale_amount"]);
+                                    t_cumul_data["now"]["累計"]["total_cnt"]+= Number(i_row["total_cnt"]); 
+                                    t_cumul_data["now"]["累計"]["supp_nm"]     = Number(i_row["supp_nm"]);                                    
+                                }
+                                // 前年
+                                if(period_val === "day"){
+                                    param = [];
+                                    param["end_date"]   = Number(loop_date) - 10000;
+                                    param["start_date"] = Number(loop_date.substr(0,6) + "00") -10000;
+                                    param["org_id"]  = org_id;
+                                    param["supp_cd"] = supp_cd;
+                                        //console.log("累計 tot day");
+                                        //console.log("loop_date:" +  loop_date);
+                                        //console.log(param);
+                                    loop_row = get_date_cumul(param,A_Data_day);                                     
+                                    
+                                }else if(period_val === "month"){
+                                    prev_year_date = Number(loop_date) - 100;
+                                    //console.log("prev_year_date: "+prev_year_date);
+//EDITSTR kanderu 20200914 
+                                     //if( A_Data_month[prev_year_date] && A_Data_month[prev_year_date][org_id][supp_cd] !== undefined && A_Data_month[prev_year_date][org_id][supp_cd] !== null ){
+                                    if((A_Data_month[prev_year_date] && A_Data_month[prev_year_date][org_id] && A_Data_month[prev_year_date][org_id][supp_cd]) !== undefined){
+//EDITEND kanderu 20200914                                      
+                                        //console.log("0: "+Number(A_Data_month[prev_year_date][org_id][supp_cd]["sale_total"]));
+                                        t_cumul_data["prev_year_calc"][supp_cd]["sale_total"]  = Number(A_Data_month[prev_year_date][org_id][supp_cd]["sale_total"]);
+                                        t_cumul_data["prev_year_calc"][supp_cd]["sale_profit"] = Number(A_Data_month[prev_year_date][org_id][supp_cd]["sale_profit"]);
+                                        t_cumul_data["prev_year_calc"][supp_cd]["sale_per"]    = Number(A_Data_month[prev_year_date][org_id][supp_cd]["sale_per"]);
+                                        t_cumul_data["prev_year_calc"][supp_cd]["sale_amount"] = Number(A_Data_month[prev_year_date][org_id][supp_cd]["sale_amount"]);
+                                        t_cumul_data["prev_year_calc"][supp_cd]["total_cnt"] = Number(A_Data_month[prev_year_date][org_id][supp_cd]["total_cnt"]);
+                                        t_cumul_data["prev_year_calc"][supp_cd]["supp_nm"]     = A_Data_month[prev_year_date][org_id][supp_cd]["supp_nm"];
+                                        //console.log("1: "+t_cumul_data["prev_year_calc"][supp_cd]["sale_total"]);
+                                    }
+                                    loop_row=t_cumul_data["prev_year_calc"][supp_cd];
+                                }
+                                //console.log("2: "+t_cumul_data["prev_year_calc"][supp_cd]["sale_total"]);
+                                
+                                i_row_t=[];
+                                i_row_t["proc_date"]        = date;
+                                i_row_t["org_id"]  = org_id_t;                                    
+                                i_row_t["supp_cd"]          = supp_nm;
+                                i_row_t["mode"]        = "前年";
+                                i_row_t["sale_total"]  = loop_row["sale_total"];
+                                i_row_t["sale_profit"] = loop_row["sale_profit"];
+                                i_row_t["sale_per"]    = loop_row["sale_per"];
+                                i_row_t["sale_amount"] = loop_row["sale_amount"];
+                                i_row_t["total_cnt"] = loop_row["total_cnt"]; 
+                                if(prevyear_checkbox){ // checked
+                                    insert_row(i_row_t);
+                                    org_id_t = "";
+                                    date = "";
+                                    supp_nm="";
+                                    //console.log("print 前年");
+                                    //console.log(i_row_t);
+                                }    
+                                t_cumul_data["now"]["前年"]["sale_total"] += Number(i_row_t["sale_total"]);
+                                t_cumul_data["now"]["前年"]["sale_profit"]+= Number(i_row_t["sale_profit"]);
+                                t_cumul_data["now"]["前年"]["sale_per"]   += Number(i_row_t["sale_per"]);
+                                t_cumul_data["now"]["前年"]["sale_amount"]+= Number(i_row_t["sale_amount"]);
+                                t_cumul_data["now"]["前年"]["total_cnt"]+= Number(i_row_t["total_cnt"]); 
+                                t_cumul_data["now"]["前年"]["supp_nm"]     = Number(i_row_t["supp_nm"]);                                 
+                                // 前年比
+                                
+                                i_row["proc_date"] = date;
+                                i_row["org_id"]  = org_id_t;                                    
+                                i_row["supp_cd"] = supp_nm;
+                                i_row["supp_cd"] = "";
+                                i_row["mode"] = "前年比";
+                                i_row["sale_total"]  = Number(i_row["sale_total"])/Number(i_row_t["sale_total"])*100;
+                                if(isNaN(i_row["sale_total"])||i_row_t["sale_total"] === 0){
+                                    i_row["sale_total"]=0;
+                                }
+                                i_row["sale_profit"] = Number(i_row["sale_profit"])/Number(i_row_t["sale_profit"])*100;
+                                if(isNaN(i_row["sale_profit"])||i_row_t["sale_profit"] === 0){
+                                    i_row["sale_profit"]=0;
+                                }                        
+                                i_row["sale_per"]    = Number(i_row["sale_per"])/Number(i_row_t["sale_per"])*100;
+                                if(isNaN(i_row["sale_per"])||i_row_t["sale_per"] === 0){
+                                    i_row["sale_per"]=0;
+                                }                        
+                                i_row["sale_amount"] = Number(i_row["sale_amount"])/Number(i_row_t["sale_amount"])*100;
+                                if(isNaN(i_row["sale_amount"])||i_row_t["sale_amount"] === 0){
+                                    i_row["sale_amount"]=0;
+                                }                        
+                                i_row["total_cnt"] = Number(i_row["total_cnt"])/Number(i_row_t["total_cnt"])*100;
+                                if(isNaN(i_row["total_cnt"])||i_row_t["total_cnt"] === 0){
+                                    i_row["total_cnt"]=0;
+                                }                                  
+                                if(percentage_checkbox){ // checked
+                                    insert_row(i_row);
+                                    org_id_t = "";
+                                    date = "";
+                                    supp_nm="";
+                                    //console.log("print 前年比");
+                                    //console.log(i_row);
+                                }
+                                
+                                pev_supp_cd = supp_cd;
+                                prev_org_id = org_id;
+                                prev_date = loop_date;
+                            } // end loop supp_cd
+ 
+                            
+                            
+                        } // end loop org_id
+                           
+                        // print data
+                        org_id_t = "合計";
+                        i_row=[];
+                        i_row["background"] = "lightgrey" ;
+                        i_row["proc_date"] = "";
+                        i_row["org_id"]  = org_id_t;                                    
+                        i_row["supp_cd"] = "";
+                        i_row["mode"] = "当日";
+                        if(period_val === "month"){
+                            i_row["mode"] = "当月";
+                        }
+                        i_row["sale_total"]  = t_cumul_data["now"]["当日"]["sale_total"];
+                        i_row["sale_profit"] = t_cumul_data["now"]["当日"]["sale_profit"];
+                        i_row["sale_per"]    = t_cumul_data["now"]["当日"]["sale_per"];
+                        i_row["sale_amount"] = t_cumul_data["now"]["当日"]["sale_amount"];
+                        i_row["total_cnt"] = t_cumul_data["now"]["当日"]["total_cnt"];
+                        t_cumul_data["total"]["当日"]["sale_total"] +=Number(i_row["sale_total"]);
+                        t_cumul_data["total"]["当日"]["sale_profit"]+=Number(i_row["sale_profit"]);
+                        t_cumul_data["total"]["当日"]["sale_per"]   +=Number(i_row["sale_per"]);
+                        t_cumul_data["total"]["当日"]["sale_amount"]+=Number(i_row["sale_amount"]);
+                        t_cumul_data["total"]["当日"]["total_cnt"]+=Number(i_row["total_cnt"]); 
+                        if(today_checkbox){ // checked
+                            insert_row(i_row);
+                            org_id_t = "";
+                            date_p = "";
+                            supp_nm = "";
+                        } 
+                        
+                        // 累計
+                        if(period_val === "day"){
+                            loop_row = t_cumul_data["now"]["累計"];                           
+                            i_row=[];
+                            i_row["background"] = "lightgrey" ;
+                            i_row["proc_date"] = "";
+                            i_row["org_id"]  = org_id_t;                                    
+                            i_row["supp_cd"] = "";
+                            i_row["mode"] = "累計";
+                            i_row["sale_total"]  = loop_row["sale_total"];
+                            i_row["sale_profit"] = loop_row["sale_profit"];
+                            i_row["sale_per"]    = loop_row["sale_per"];
+                            i_row["sale_amount"] = loop_row["sale_amount"];
+                            i_row["total_cnt"] = loop_row["total_cnt"];
+                            t_cumul_data["total"]["累計"]["sale_total"] +=Number(i_row["sale_total"]);
+                            t_cumul_data["total"]["累計"]["sale_profit"]+=Number(i_row["sale_profit"]);
+                            t_cumul_data["total"]["累計"]["sale_per"]   +=Number(i_row["sale_per"]);
+                            t_cumul_data["total"]["累計"]["sale_amount"]+=Number(i_row["sale_amount"]);
+                            t_cumul_data["total"]["累計"]["total_cnt"]+=Number(i_row["total_cnt"]);                             
+                            if(cumul_checkbox){ // checked
+                                insert_row(i_row);
+                                org_id_t = "";
+                                date_p = "";
+                                supp_nm = "";
+                            } 
+                        }
+                        
+                        // 前年
+                        loop_row = t_cumul_data["now"]["前年"];
+                            
+                        
+                        i_row_t=[];
+                        i_row_t["background"] = "lightgrey" ;
+                        i_row_t["proc_date"] = date_p;
+                        i_row_t["org_id"]  = org_id_t;                                    
+                        i_row_t["supp_cd"] = "";
+                        i_row_t["mode"] = "前年";
+                        i_row_t["sale_total"]  = loop_row["sale_total"];
+                        i_row_t["sale_profit"] = loop_row["sale_profit"];
+                        i_row_t["sale_per"]    = loop_row["sale_per"];
+                        i_row_t["sale_amount"] = loop_row["sale_amount"];
+                        i_row_t["total_cnt"] = loop_row["total_cnt"];
+                        t_cumul_data["total"]["前年"]["sale_total"] +=Number(i_row_t["sale_total"]);
+                        t_cumul_data["total"]["前年"]["sale_profit"]+=Number(i_row_t["sale_profit"]);
+                        t_cumul_data["total"]["前年"]["sale_per"]   +=Number(i_row_t["sale_per"]);
+                        t_cumul_data["total"]["前年"]["sale_amount"]+=Number(i_row_t["sale_amount"]);
+                        t_cumul_data["total"]["前年"]["total_cnt"]+=Number(i_row_t["total_cnt"]); 
+                        if(prevyear_checkbox){ // checked
+                            insert_row(i_row_t);
+                            org_id_t = "";
+                            date_p = "";
+                            supp_nm = "";
+                        }
+                        // 前年比
+                        i_row["background"] = "lightgrey" ;
+                        i_row["proc_date"] = date_p;
+                        i_row["org_id"]  = org_id_t;                                    
+                        i_row["supp_cd"] = "";
+                        i_row["supp_cd"] = "";
+                        i_row["mode"] = "前年比";
+                        i_row["sale_total"]  = Number(i_row["sale_total"])/Number(i_row_t["sale_total"])*100;
+                        if(isNaN(i_row["sale_total"])||i_row_t["sale_total"] === 0){
+                            i_row["sale_total"]=0;
+                        }
+                        i_row["sale_profit"] = Number(i_row["sale_profit"])/Number(i_row_t["sale_profit"])*100;
+                        if(isNaN(i_row["sale_profit"])||i_row_t["sale_profit"] === 0){
+                            i_row["sale_profit"]=0;
+                        }                        
+                        i_row["sale_per"]    = Number(i_row["sale_per"])/Number(i_row_t["sale_per"])*100;
+                        if(isNaN(i_row["sale_per"])||i_row_t["sale_per"] === 0){
+                            i_row["sale_per"]=0;
+                        }                        
+                        i_row["sale_amount"] = Number(i_row["sale_amount"])/Number(i_row_t["sale_amount"])*100;
+                        if(isNaN(i_row["sale_amount"])||i_row_t["sale_amount"] === 0){
+                            i_row["sale_amount"]=0;
+                        }                        
+                        i_row["total_cnt"] = Number(i_row["total_cnt"])/Number(i_row_t["total_cnt"])*100;
+                        if(isNaN(i_row["total_cnt"])||i_row_t["total_cnt"] === 0){
+                            i_row["total_cnt"]=0;
+                        }                        
+                        if(percentage_checkbox){ // checked
+                            insert_row(i_row);
+                            org_id_t = "";
+                            date_p = "";
+                            supp_nm = "";
+                        }                        
+                        reinit_t_cumul_data("now","");                     
+                        
+                    } // end loop date
+                    // call footer function;        の
+                    insert_footer();
+                }
+                
+            }
+            function sort_data(data_to_sort,sort_type, sort_data){
+                // sort_type: 1  : asc
+                //            -1 : desc
+                //console.log(sort_data);
+                A_sort_data = [];
+                if( sort_data === "proc_date" || sort_data === "org_id"){
+                    A_sort_data = data_to_sort ;                   
+                }else if( sort_data === "supp_cd" ){
+                    A_sort_data = data_to_sort ;
+                    //console.log("here");
+                    /*
+                    proc_date_key =  Object.keys(data_to_sort);
+                    for(i=0;i<proc_date_key.length;i++){
+                        loop_date = proc_date_key[i];
+                        if(!A_sort_data[loop_date]){
+                            A_sort_data[loop_date] = [];
+                        }                        
+                        org_id_key = Object.keys(data_to_sort[loop_date]);                        
+                        for(j=0;j<org_id_key.length;j++){
+                            loop_org_id = org_id_key[i];
+                            if(!A_sort_data[loop_date][loop_org_id]){
+                                A_sort_data[loop_date][loop_org_id] = [];
+                            }  
+                            loop_row = data_to_sort[loop_date][loop_org_id];
+                            sort_key = Object.keys(loop_row).sort();
+                            if( sort_type === -1 ){
+                                sort_key.reverse();
+                            }
+                            for(k=0;k<sort_key.length;k++){
+                                A_sort_data[loop_date][loop_org_id][sort_key[k]] = data_to_sort[loop_date][loop_org_id][sort_key[k]];
+                            }                      
+                        }
+                    }*/
+                }else{
+                    A_sort_data = data_to_sort ;
+                }
+                return A_sort_data; 
+            }            
+            function sort_tbody(col_to_sort){
+                col_sort_type = "";
+                if( !asc[col_to_sort] || asc[col_to_sort] === 0 ){
+                    col_sort_type = 1;
+                }else{
+                    col_sort_type = asc[col_to_sort] * -1;
+                }
+                //console.log(col_to_sort + ": "+asc[col_to_sort]);
+                elem_table_id = document.getElementById("table_id");
+                elem_thead = elem_table_id.getElementsByTagName('THEAD')[0];
+                elem_th = elem_thead.getElementsByTagName('TH');
+                for(i=0;i<elem_th.length;i++){
+                    //console.log("i: "+i);
+                    //console.log(elem_th[i]);
+                    elem_th[i].innerHTML = elem_th[i].innerHTML.replace(' ▲',"").replace(' ▼',"");
+                    if( elem_th[i].outerHTML.indexOf("'"+col_to_sort+"'") !== -1 ){
+                        if( col_sort_type === 1 ){
+                            elem_th[i].innerHTML = elem_th[i].innerHTML + ' ▲';
+                        }else{
+                            elem_th[i].innerHTML = elem_th[i].innerHTML + ' ▼';
+                        }
+                    }
+                }
+                asc = [];
+                asc[col_to_sort] = col_sort_type;                
+                working_data = sort_data(working_data,col_sort_type, col_to_sort);
+                show_data(working_data);
+            }            
+            window.onload = function () {
+                creat_listener();
+                radio_change_management();
+                today = new Date();
+                document.getElementById("end_date").value = today.toISOString().slice(0,10).replace(/-/g,"\/"); 
+                today.setMonth(today.getMonth()-1);
+                document.getElementById("start_date").value = today.toISOString().slice(0,10).replace(/-/g,"\/"); 
+                var empty_array = [];
+                modal_create_select("supp_select",empty_array);
+                modal_create_select("org_select",empty_array);
+            };
+
+        </script>
+
+        <STYLE type="text/css">
+            select{
+                min-width: 10em;
+            }
+            #sb-site{
+                padding-left: 5px;
+            }
+            table th {
+              color: #fff;
+              background: #0D0D70;
+              border-left:1px solid #000000;
+              border-right:1px solid #000000;
+              border-top:1px solid #000000;
+              border-bottom:1px solid #000000;
+              line-height: 120%;
+              text-align: center;
+              text-shadow:0 -1px 0 rgba(34,85,136,0.9);
+              box-shadow: 0px 1px 1px rgba(255,255,255,0.3) inset;
+              height:25px;
+            }
+            #search_param{
+                overflow: hidden;
+                
+            }
+            .no_overflow{
+                float: left; 
+            }            
+            .field_title {
+                float: left;
+                display:flex;
+                align-items:center;
+                background: #0D0D70;
+                height: 7em;
+                color: white;
+                text-align: center;
+                padding: 5px;
+                border: 1px solid black;
+            }
+            .field_data {
+                padding: 5px 20px 5px 20px;
+                float : left;
+                height: 7em;
+                border: 1px solid black;
+            }
+
+            #screen_name_d{
+                display:flex;
+                align-items:center;
+ 
+            }
+            .hasDatepicker, .hasYmpicker{
+                margin-top: 3px;
+            }             
+            #period_d{
+                padding-top: 10px;
+            }
+            #org_d{
+                padding-top: 15px;
+            }
+            #action_d{
+                padding-top: 12px;
+            }
+/* TABLE CSS*/ 
+            .table_container {
+                overflow: hidden;                
+                padding: 0;
+            }           
+            #table_id  {
+                max-height: 45em;
+                display: flex;
+                flex-flow: column;
+                height: 100%;
+                width: 100%;
+                padding: 0;
+                border-spacing: 0;  
+            }
+            #table_id  thead,
+            #table_id  tfoot{
+                /* head takes the height it requires, 
+                and it's not scaled when table is resized */
+                flex: 0 0 auto;
+                width: calc(100% - 19px);
+            }
+            #table_id  tbody {
+                /* body takes all the remaining available space */
+                /*flex: 1 1 auto;*/
+                display: block;
+                overflow-y: scroll;
+                padding: 0;
+            }
+            #table_id  tbody tr,
+            #table_id  tfoot tr {
+                width: 100%;
+            }
+            #table_id thead,
+            #table_id tbody tr,
+            #table_id  tfoot tr{
+                display: table;
+                table-layout: fixed;
+                padding: 0;
+                background-color: #fff;
+            }
+
+            #table_id thead th {
+                background: #0D0D70;                
+                border: 1px solid #AAA;
+                color: white;
+                text-align: center;
+                padding: 0;
+                border-collapse: collapse;
+            }
+            #table_id tbody td,
+            #table_id tfoot td{
+                
+                border: 1px solid #444;
+                padding: 0;
+                text-align: center; 
+                border-collapse: collapse;
+            } 
+            #table_id thead th:first-child,
+            #table_id tbody tr td:first-child,
+            #table_id tfoot tr td:first-child {
+              width: 6em;
+            }
+            #table_id thead th:nth-child(2),
+            #table_id tbody tr td:nth-child(2),
+            #table_id tfoot tr td:nth-child(2){
+                width: 15em;
+            }
+            #table_id thead th:nth-child(3),
+            #table_id tbody tr td:nth-child(3),
+            #table_id tfoot tr td:nth-child(3){
+                width: 15em;
+            }
+            #table_id thead th:nth-child(4),
+            #table_id tbody tr td:nth-child(4),
+            #table_id tfoot tr td:nth-child(4){
+                width: 5em;
+            }
+            #table_id thead th:nth-child(5),
+            #table_id tbody tr td:nth-child(5),
+            #table_id tfoot tr td:nth-child(5){
+                width: 10em;
+            } 
+            #table_id thead th:nth-child(6),
+            #table_id tbody tr td:nth-child(6),
+            #table_id tfoot tr td:nth-child(6){
+                width: 10em;
+            }
+            #table_id thead th:nth-child(7),
+            #table_id tbody tr td:nth-child(7),
+            #table_id tfoot tr td:nth-child(7){
+                width: 7em;
+            }
+            #table_id tbody tr td,
+            #table_id tfoot tr td{
+                text-align: right;
+            }
+            #table_id tbody tr td:first-child,
+            #table_id tfoot tr td:first-child ,
+            #table_id tbody tr td:nth-child(2),
+            #table_id tfoot tr td:nth-child(2),
+            #table_id tbody tr td:nth-child(3),
+            #table_id tfoot tr td:nth-child(3),
+            #table_id tbody tr td:nth-child(4),
+            #table_id tfoot tr td:nth-child(4){
+                text-align: left;
+            }
+           
+        </STYLE>
+
+    </head>
+    <body>
+        <?php
+        if( isset($_GET['home']) ) {
+            if( "1" ==  $_GET['home'] ){
+                include("../home/View/Common/PageHeader.php");
+            }else{
+                include("Common/PageHeader.php");
+            }
+        }else{
+                include("Common/PageHeader.php");
+        }
+        ?>
+
+        <!-- Site -->
+        <div id="sb-site">
+            <div id="search_param">
+                <div id="screen_name_t" class="field_title">
+                    帳票			
+                </div>
+                <div id="screen_name_d" class="field_data">
+                    仕入先別実績
+                </div>                   
+                <div id="period_t" class="field_title">
+                    期間配分			
+                </div>  
+                <div id="period_d" class="field_data">
+                    <input type="radio" name="period" id="day" value="day" checked > 日別<br>
+                    <input type="radio" name="period" id="month" value="month"> 月別&nbsp;&nbsp;
+                    <!-- day -->
+                    <input type="text" title="開始" id="start_date" name="start_date" size="10" >
+                    <input type="text" title="終了" id="end_date" name="end_date" size="10" >
+                    <!-- month -->
+                    <input type="text" title="開始" id="start_dateM" name="start_dateM" size="10" hidden>
+                    <input type="text" title="終了" id="end_dateM" name="end_dateM" size="10" hidden>                    
+                    <!-- year -->
+                    <input type="text" title="開始" id="start_year" name="start_year" size="10" hidden>
+                    <input type="text" title="終了" id="end_year" name="end_year" size="10" hidden>                     
+                    <br>
+                    <input type="radio" name="period" id="year" value="year"> 年別
+                </div>
+                <div class="no_overflow">
+                    <div id="org_t" class="field_title">
+                        グループ<br />選択			
+                    </div>
+                    <div id="org_d" class="field_data">
+                        <input type="radio" name="org_r" value="compile"> 企業計<br>
+                        <input type="radio" name="org_r" value="all" checked> 全店<br>
+                        <input type="radio" name="org_r" value=""> 店舗指定&nbsp;&nbsp;
+                        <select id="org_select" name="org_select" disabled onchange="modal_select_mgt(event)"><option value="no">&nbsp;</option></select>
+                    </div>
+                </div>
+                <div class="no_overflow">
+                    <div id="classification_t" class="field_title">
+                        内訳			
+                    </div>
+                    <div id="classification_d" class="field_data">
+                        <input type="checkbox" id="today" value="today"           checked> <span id="today_text">当日</span><br>
+                        <input type="checkbox" id="cumul" value="cumul"           checked> 累計<br>
+                        <input type="checkbox" id="prevyear" value="prevyear"     checked> 前年<br>
+                        <input type="checkbox" id="percentage" value="percentage" checked> 前年比
+                    </div>
+                </div>
+                <div class="no_overflow">
+                    <div id="department_t" class="field_title">
+                        仕入先	<br />選択		
+                    </div>
+                    <div id="department_t_d" class="field_data">
+                        <br />
+                        <input type="radio" name="supp_r" value="all" checked> 全仕入先<br>
+                        <input type="radio" name="supp_r" value=""> 仕入先指定&nbsp;&nbsp;
+                        <select id="supp_select" name="supp_select" disabled onchange="modal_select_mgt(event)"><option value="no">&nbsp;</option></select>
+                    </div>
+                </div>
+                <div id="action_d" class="field_data">
+                    <button type="button" onclick="search_data(event)" >検索</button><br /><br />
+                    <button type="button" id="btn_csv" onclick="csv_print(event)" hidden>CSV出力</button>
+                </div> 
+            </div>
+            <!-- The Modal -->
+            <div id="modal_supp" class="modal">
+                <!-- Modal content -->
+                <div class="modal-content">
+                    <?php include("../modal/View/Modalsupplier.html"); ?>
+                </div>
+            </div>
+            
+            <div id="modal_org" class="modal">
+                <!-- Modal content -->
+                <div class="modal-content">
+                    <?php include("../modal/View/Modalorganization.html"); ?>
+                </div>
+            </div>            
+            
+            <br />
+            <div id="data_show"  class="table_container">
+                <table id="table_id">
+                    <thead>
+                        <tr>
+                            <th onclick="sort_tbody('proc_date')"><u>日付</u></th>
+                            <th onclick="sort_tbody('org_id')"><u>店舗名</u></th>
+                            <th onclick="sort_tbody('supp_cd')"><u>仕入先名</u></th>
+                            <th>内訳</th>
+                            <th>売上金額</th>
+                            <th>粗利金額</th>
+                            <th>粗利率</th>
+                            <th>数量</th>
+                            <th>客数</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table_body">
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>                        
+                    </tbody>
+                    <tfoot id="table_foot">
+                    </tfoot>
+                </table>
+            </div>
+            
+        </div>
+</body>
+</html>

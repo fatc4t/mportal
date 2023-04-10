@@ -1,0 +1,1634 @@
+<?php
+/**
+* @file      帳票- 店舗日別売上動向表画面(View)
+* @author    millionet oota
+* @date      2018/06/04
+* @version   1.00
+* @note      帳票 - 店舗日別売上動向表画面
+*/
+
+//*----------------------------------------------------------------------------
+//*   修正履歴
+//*   修正日      :
+//
+//  @m1 2019/03/15  モンターニュ　税込売上金額は’sale_total’の列を使います。
+//*****************************************************************************     
+
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+        $fileNames = array('default.css','datepicker-ja.js'); // cssまたはｊｓファイルを拡張子付きで配列に記述
+        include("../profit/View/Common/HtmlHeader.php");
+        ?>
+        
+        <script src="../js/profit/jquery/jquery.ui.ympicker.js" ></script>
+        <script src="../js/profit/jquery/jquery-migrate-1.0.0.js" ></script>
+        <script src="../js/profit/jquery/datepicker-ja.js" ></script>
+        <script src="../js/autofil_v<?php echo $_SESSION['AUTOFIL_VER'] ?>.js" ></script>
+        <script src='../js/PDF/print.min.js'></script>
+        <link rel="stylesheet" type="text/css" href="../js/PDF/print.min.css">
+        <!-- modal script-->
+        <script src="../js/modal/modal.js" ></script>
+        <link rel="stylesheet" href="../css/modal/modal.css" >      
+        <script type="text/javascript">
+            Sizelist       = '<?php echo json_encode(json_encode($Sizelist)); ?>';
+            A_Sizelist     = JSON.parse(Sizelist.slice(1,-1));
+            //modal
+            porg_id_list        = '<?php echo json_encode(json_encode($org_id_list)); ?>';
+            data_org            = JSON.parse(porg_id_list.slice(1,-1));  
+            searchArray         = '<?php echo json_encode($searchArray); ?>';
+            A_searchArray       = JSON.parse(searchArray);
+            param               = '<?php echo json_encode($param); ?>';
+            A_param             = JSON.parse(param);
+        
+            var org_list = A_searchArray["org_id"].replace('false',''); 
+            if(org_list){
+                org_list = ","+org_list;
+                data_select['org'] = org_list;
+            }        
+        </script>  
+        <script type="text/javascript">
+            // modal        
+            function radio_change_management(){
+                var prev = [];
+                document.getElementById("serchTable").addEventListener('change', function(e) {
+                    //console.log('Previous:', prev[e.target.name] ? prev[e.target.name].value : null);
+                    //console.log(e);
+                    if(e.target.name === "period"){
+                        if(!prev[e.target.name]){
+                            old_id_start="start_date";
+                            old_id_end="end_date";                              
+                        }else if(prev[e.target.name].value === "day"){
+                            old_id_start="start_date";
+                            old_id_end="end_date";                            
+                        }else if(prev[e.target.name].value === "month"){
+                            old_id_start="start_dateM";
+                            old_id_end="end_dateM";  
+                        }else if(prev[e.target.name].value === "year"){
+                            old_id_start="start_year";
+                            old_id_end="end_year";
+                        }
+                        document.getElementById(old_id_start).hidden=true;
+                        document.getElementById(old_id_end).hidden=true;
+                        document.getElementById(old_id_start).value="";
+                        document.getElementById(old_id_end).value="";                                                
+                        if(e.target.value === "day"){
+                            date_mode = "date";
+                            new_id_start="start_date";
+                            new_id_end="end_date"; 
+                            // checkbox checked
+                            today = new Date();
+                            document.getElementById(new_id_end).value = today.toISOString().slice(0,10).replace(/-/g,"\/"); 
+                            today.setMonth(today.getMonth()-1);
+                            document.getElementById(new_id_start).value = today.toISOString().slice(0,10).replace(/-/g,"\/");                            
+                        }else if(e.target.value === "month"){
+                            date_mode = "dateM";
+                            new_id_start="start_dateM";
+                            new_id_end="end_dateM";
+                            today = new Date();
+                            document.getElementById(new_id_end).value = today.toISOString().slice(0,7).replace(/-/g,"\/"); 
+                            today.setMonth(today.getMonth()-1);
+                            document.getElementById(new_id_start).value = today.toISOString().slice(0,7).replace(/-/g,"\/");                                                        
+                        }else if(e.target.value === "year"){
+                            date_mode = "year";
+                            new_id_start="start_year";
+                            new_id_end="end_year";
+                            today = new Date();
+                            document.getElementById(new_id_end).value = today.toISOString().slice(0,4).replace(/-/g,"\/"); 
+                            today.setFullYear(today.getFullYear()-1);
+                            document.getElementById(new_id_start).value = today.toISOString().slice(0,4).replace(/-/g,"\/");                                                                                    
+                        }         
+                        document.getElementById(new_id_start).hidden=false;
+                        document.getElementById(new_id_end).hidden=false;                        
+                    }else if(e.target.name === "org_r"){
+                        document.getElementById("tenpo").checked = false;
+                        if(!prev[e.target.name]){
+                            prev[e.target.name]={value:""};
+                        }
+                        document.getElementById("org_select").disabled=true;
+                        if(e.target.value === "" ){
+                            document.getElementById("org_select").disabled=false;
+                        }else if(e.target.value === "compile"){
+                            document.getElementById("tenpo").checked = true;
+                        }  
+                    }else if(e.target.name === "supp_r"){
+                        if(!prev[e.target.name]){
+                            prev[e.target.name]={value:""};
+                        }                        
+                        document.getElementById("supp_select").disabled=true;
+                        if(e.target.value === "" ){
+                            document.getElementById("supp_select").disabled=false;
+                        }
+                    }else if(e.target.name === "prod_r"){
+                        if(!prev[e.target.name]){
+                            prev[e.target.name]={value:""};
+                        }                        
+                        document.getElementById("prod_select").disabled=true;
+                        if(e.target.value === "" ){
+                            document.getElementById("prod_select").disabled=false;
+                        }
+                    }
+                    prev[e.target.name] = e.target;
+                });
+            }      
+            function chf(frm){
+                if( 1 < window.location.search.length )
+                {
+				
+                    start_date_id = "start_date";
+                    end_date_id   = 'end_date';
+                    elem_str_date = document.getElementById(start_date_id).value.replace(/\//g,"");
+                    elem_end_date = document.getElementById(end_date_id).value.replace(/\//g,"");
+                    if(elem_str_date === ""){
+                        alert("※売上日付を入力してください。");
+                        document.getElementById(start_date_id).focus();
+                        return false;
+                    }else if(elem_end_date === ""){
+                        alert("※売上日付を入力してください。");
+                        document.getElementById(end_date_id).focus();
+                        return false;
+                    }
+                    if(elem_str_date > elem_end_date){
+                        alert("※期間指定が不正です。開始日が終了日を超えています。");
+                        document.getElementById(start_date_id).value="";
+                        document.getElementById(start_date_id).focus();
+                        return false;
+                    }				
+                    // modal data
+                    // org_id
+                    if(org_r_selected.checked){
+                        // list org name
+                        org_nm_lst.value = ''; //20200217 montagne add 
+                        //console.log('here');
+                        for(i=0;i<org_select.options.length;i++){
+                            if( !isNaN(org_select.options[i].value) ){
+                                org_nm_lst.value = org_nm_lst.value + ','+org_select.options[i].innerText;
+                            }
+                            org_nm_lst.value = org_nm_lst.value.replace(/^,/,"");
+                        }   
+                        org_id.value = org_list.replace(/^,/,"'").replace(/,/g,"','").replace(/$/,"'");
+                        if(!org_list){
+                            alert("店舗を選択してください。");
+                            return false;
+                        }
+                    }else{
+                        org_id.value = false;
+                    }
+                    
+                    // 最初の1文字 (?記号) を除いた文字列を取得する
+                    var query = window.location.search.substring( 1 );
+                    var action = frm.action.split( '?' );
+
+                    // 検索以外の機能実行後だった場合、パラメータを補正する
+                    if(1 < action.length){
+                        frm.action = action[0];
+                    }
+
+                    // クエリの区切り記号 (&) で文字列を配列に分割する
+                    var parameters = query.split( '&' );
+
+                    if (frm.onbtn.value == 'serch') {
+                        frm.target='_self';
+                        if(1 < parameters.length){
+                            frm.action += '?param=' +frm.elements["codeName"].value + '&home=1';
+                        }else{
+                            frm.action += '?param=' +frm.elements["codeName"].value;
+                        }
+                        console.log(frm);
+                        
+                    }else if (frm.onbtn.value == 'csvoutput'){
+                        if(1 < parameters.length){
+                            frm.action += '?param=LedgerSheetRegiAll/csvoutput&home=1';
+                        }else{
+                            frm.action += '?param=LedgerSheetRegiAll/csvoutput';
+                        }
+                    }else{
+                        return false;
+                    }
+                    
+                    //return false;
+                    if(frm.search.value === 'sort'){
+                        frm.submit();
+                    }                    
+                }
+            }
+
+            $(function() {
+                $("#start_date,#end_date").datepicker({
+                    numberOfMonths: 2,
+                    showCurrentAtPos: 1,
+                    showButtonPanel: true,
+                    dateFormat: 'yy/mm/dd'
+                });
+            });
+    
+            /**
+             *  イベント制御用
+             *
+             */
+            function set_value(s_val){
+                document.serchForm.onbtn.value = s_val;
+            }
+    
+            //pme end 2019.03.11
+            /**
+             *
+             * スクロール制御
+             *
+             */
+            function SyncScroll(/* elem1, elem2, ... */) {
+                this._elements = [];
+                this._elementOnscroll = this._elementOnscroll.bind(this);
+                this.addElement.apply(this, arguments);
+            }
+            SyncScroll.prototype = {
+                enableHorizontal: true,
+                enableVertical: true,
+                addElement: function (/* elem1, elem2, ... */) {
+                    var elem, i;
+                    for (i = 0; i < arguments.length; i += 1) {
+                        elem = arguments[i];
+                        elem.addEventListener('scroll', this._elementOnscroll, false);
+                        this._elements.push(elem);
+                    }
+                },
+                removeElement: function (/* elem1, elem2, ... */) {
+                    var elem, i, j;
+                    for (i = 0; i < arguments.length; i += 1) {
+                        elem = arguments[i];
+                        elem.removeEventListener('scroll', this._elementOnscroll, false);
+                        j = this._elements.indexOf(elem);
+                        if (j >= 0) {
+                            this._elements.splice(j, 1);
+                        }
+                    }
+                },
+                _elementOnscroll: function (event) {
+                    var i,
+                            elems = this._elements,
+                            elem = event.target,
+                            x = elem.scrollLeft,
+                            y = elem.scrollTop;
+                    if (this.enableHorizontal) {
+                        for (i = 0; i < elems.length; i += 1) {
+                            elem = elems[i];
+                            if (elem === event.target || elem.scrollLeft === x) {
+                                continue;
+                            }
+                            elem.scrollLeft = x;
+                            if (elem.scrollLeft !== x) {
+                                elem.scrollLeft = x + x - elem.scrollLeft;
+                            }
+                        }
+                    }
+                    if (this.enableVertical) {
+                        for (i = 0; i < elems.length; i += 1) {
+                            elem = elems[i];
+                            if (elem === event.target || elem.scrollTop === y) {
+                                continue;
+                            }
+                            elem.scrollTop = y;
+                            if (elem.scrollTop !== y) {
+                                elem.scrollTop = y + y - elem.scrollTop;
+                            }
+                        }
+                    }
+                },
+                destroy: function () {
+                    this.removeElement.apply(this, this._elements);
+                }
+            };
+
+            function printPDF(){
+                pdf_header.innerHTML = '日付：'+start_date.value+' ～ '+end_date.value+'　　　　　　店舗： ';
+                if(org_r_all.checked){
+                    pdf_header.innerHTML += '全店舗';
+                }else if(org_select.value !== 'empty'){
+                    pdf_header.innerHTML += org_select.selectedOptions[0].innerText;
+                }else{
+                    A_org_list = org_list.replace(/^,/,'').split(',');
+                    for(i=0;i<A_org_list.length;i++){
+                        if(data_org[A_org_list[i]]['org_id']){
+                            pdf_header.innerHTML += data_org[A_org_list[i]]['org_nm']+'　　';
+                        }
+                    }            
+                }
+
+                style = 'td { border: 1px solid #d9d9d9 !important;} .column{float:left;}';
+                style += " table {font-family: 'Open Sans',sans-serif;font-size:10px;}";
+                style += ' table{border-collapse: collapse;}';
+                style += ' .first_col_group_1{width:2px;}';
+                style += ' .data_col_1,.data_col_2{text-align: right;padding-right: 1px;padding-left: 1px;min-width: 30px;}';
+                style += ' .data_col_title{background-color : grey;text-align: center;}'; 
+                style += ' #table_2{margin-left:5px;margin-right:5px;}';
+                style += ' #pdf_header{margin-left:20px;}';
+                style += ' #data{display: flex;justify-content: center;}';
+                printJS({
+                    header:'レジ精算書',
+                    headerStyle:'font-size:14px;',
+                    printable:'PDF_data',
+                    type: 'html',
+                    scanStyles: false,
+                    honorMarginPadding:false,
+                    style: style,
+               
+                });
+                pdf_header.innerHTML = '';
+                setTimeout(remove_iframe, 10000);
+                //document.getElementById('printJS').parentNode.removeChild(document.getElementById('printJS'));
+            }
+            function remove_iframe(){
+                if(document.getElementById('printJS')){
+                    document.getElementById('printJS').parentNode.removeChild(document.getElementById('printJS'));
+                }
+            }
+        
+            window.onload = function () {
+                creat_listener();
+                // modal
+                radio_change_management();
+            
+                org_array = [];
+                if(A_param["org_r"] === ""){
+                    code_list = org_list.replace(/^,/,'').split(',').sort();
+                    name_list = A_param["org_nm_lst"].split(',');
+                    for(i=0;i<name_list.length;i++){
+                        org_array[code_list[i]] = name_list[i];
+                    }          
+                }
+                modal_create_select("org_select",org_array);
+                if(org_list){
+                    org_r_selected.checked = true;
+                    org_select.disabled = false;
+                }
+                if(A_param["org_select"] && A_param["org_select"] !== 'empty'){
+                    org_select.value = A_param["org_select"];
+                } 
+            
+                if(A_searchArray['tenpo']){
+                    document.getElementById("tenpo").checked = true;
+                    org_r_compile.checked = true;
+                } 
+                start_date.value = A_searchArray['start_date'];
+                end_date.value   = A_searchArray['end_date'];
+            };
+            //const style = '@media print {#data{display: flex;justify-content: center;overflow : auto;color : black;} table{border-collapse: collapse;margin-right:20px;} .column{display:inline-block;} .first_col_group_1{width:10px;background-color : lightgreen;} .subgroup_1{width:70px;background-color : lightsalmon;} .row_title{background-color : lightgrey;} .data_col_title{background-color : grey;text-align: center;} .total{background-color : lightcoral;} .data_col_1{text-align: right;padding-right: 5px;padding-left: 5px;min-width: 50px;} .data_col_2{text-align: right;padding-right: 5px;padding-left: 5px;min-width: 50px;}}';
+        </script>
+        
+        <STYLE type="text/css">
+            
+            #serchForm{
+                width:1070px;            
+                margin-left: auto;
+                margin-right: auto;
+            }
+            #sb-site{
+                font-size: 12px;
+            }
+            #data{
+                display: flex;
+                justify-content: center;
+                overflow : auto;
+                color : black;
+                max-height:710px; 
+            }        
+            #data table{
+                border-collapse: collapse;
+                border: 1px solid black;
+                /*枠線追加（黒）　2019/11/30 柴田*/
+            }
+            .column{
+                display:inline-block;
+            }        
+            .first_col_group_1{
+                width:5px;
+                background-color : gray;
+                /*バックグラウンド（色）変更　2019/11/30 柴田*/
+                border: 1px solid black;
+                /*枠線追加（黒）　2019/11/30 柴田*/
+            }
+            .subgroup_1{
+                width:30px;
+                background-color : #0D0D70;
+                /*バックグラウンド（色）変更　2019/11/30 柴田*/
+                color : white;
+                /*売上、税、値引、返品などのグループの文字色変更（白）　2019/11/30 柴田*/
+                border: 1px solid black;
+                /*枠線追加（黒）　2019/11/30 柴田*/
+            }
+            .row_title{
+                background-color : lightgrey;
+                /*バックグラウンド（色）変更　2019/11/30 柴田*/
+                border: 1px solid black;
+                /*枠線追加（黒）　2019/11/30 柴田*/
+            }
+            .data_col_title{
+                background-color : gray;
+                /*バックグラウンド（色）変更　2019/11/30 柴田*/
+                text-align: center;
+                border: 1px solid black;
+                /*枠線追加（黒）　2019/11/30 柴田*/
+            } 
+            .total{
+                background-color : darkgray;
+                /*バックグラウンド（色）変更　2019/11/30 柴田*/
+                border: 1px solid black;
+                /*枠線追加（黒）　2019/11/30 柴田*/
+            } 
+            .data_col_1{
+                text-align: right;
+                padding-right: 5px;
+                padding-left: 5px;
+                min-width: 50px;
+                border: 1px solid black;
+                /*枠線追加（黒）　2019/11/30 柴田*/
+            }
+            .data_col_2{
+                text-align: right;
+                padding-right: 5px;
+                padding-left: 5px;
+                min-width: 50px;
+                border: 1px solid black;
+                /*枠線追加（黒）　2019/11/30 柴田*/
+            }
+            #table_2{
+                margin-left:5px;
+                margin-right:5px;
+                border: 1px solid black;
+                /*枠線追加（黒）　2019/11/30 柴田*/
+            }
+            #sb-site{
+                padding-top: 50px;
+            }
+        </STYLE>
+        
+    </head>
+    <body>
+        <?php
+        if( isset($_GET['home']) ) {
+        if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+        }else{
+        include("Common/PageHeader.php");
+        }
+        }else{
+        include("Common/PageHeader.php");
+        }
+        ?>
+        
+        <!-- Site -->
+        <div id="sb-site">
+            <form name="serchForm" id="serchForm" action="/profit/index.php" method="post" onsubmit="return chf(this)">
+                <div class="serchListArea">
+                    <table align="center">
+                        <tr>
+                            <td>
+                                <table id="serchTable">
+                                    <tr>
+                                        <th id="serchTableTitle" align="center" width="65">帳票</th>
+                                        <td id="serchTableItem" width=120>
+                                            レジ精算書
+                                            <input type="hidden" name="codeName" id="codeName" value="LedgerSheetRegiAll/show">
+                                        </td>
+                                        <!-- pme 2019.03.11 -->
+                                        <th id="serchTableTitle" align="center" width="65">期間指定</th><!--文字修正　2019/12/01　柴田-->
+                                        <td id="serchTableItem" width="200"><!--文字修正　2019/12/01　柴田-->
+                                            <!--文字追加（日付）2019/11/30 柴田 -->
+                                            <input type="text" pattern="\d{4}/\d{2}/\d{2}" title="西暦/月の形式で入力してください。" id="start_date" name="start_date" size="10" >
+                                            <input type="text" pattern="\d{4}/\d{2}/\d{2}" title="西暦/月の形式で入力してください。" id="end_date" name="end_date" size="10" >
+                                        </td>
+                                        <th id="serchTableTitle" align="center" width="65">グループ<br />選択</th>
+                                        <td align="left" width=120>
+                                            <input type="radio" name="org_r" id="org_r_all" value="all" checked> 全店<br />
+                                            <input type="radio" name="org_r" id="org_r_selected" value=""> 店舗指定&nbsp;&nbsp;
+                                            <select id="org_select" name="org_select" disabled onchange="modal_select_mgt(event)"><option value="no">&nbsp;</option></select>
+                                            <input type="checkbox" name="tenpo" value="Yes" id="tenpo" hidden>
+                                            <input type="text" name="org_id" value="" id="org_id" hidden>
+                                            <input type="text" name="org_nm_lst" value="" id="org_nm_lst" hidden> 
+                                        </td>
+                                        <td width="120">
+                                            <input class="submit" type="submit" name="search" id="search" value="検索" onClick="set_value('serch')">
+                                            <?php if($_POST) { ?>
+                                            <button type="button" name="pdfoutput" id="pdfoutput" onClick="printPDF()">PDF出力</button>
+                                            <?php } ?>
+                                            <input type="hidden" name="onbtn">
+                                        </td>
+                                    </tr>
+                                </table>
+                                <!-- The Modal -->
+                                
+                                <div id="modal_org" class="modal">
+                                    <!-- Modal content -->
+                                    <div class="modal-content">
+                                        <?php include("../modal/View/Modalorganization.html"); ?>
+                                    </div>
+                                </div>     
+                                
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </form>
+            <?php 
+            if($_POST){
+            ?>
+            <div id="PDF_data">
+                <div id='pdf_header'>
+                    
+                </div>
+                <div id="data">
+                    <div class="column" id="main_col_1">
+                        <table id="table_1">
+                            <tbody>
+                                <tr>
+                                    <td class="first_col_group_1" rowspan="18">
+                                    </td>
+                                    <td class="subgroup_1" rowspan="5">
+                                        売上
+                                    </td>
+                                    <td class="data_col_title">
+                                    </td>           
+                                    <td class="data_col_title">
+                                        件数
+                                    </td>           
+                                    <td class="data_col_title">
+                                        金額
+                                    </td>                       
+                                </tr>
+                                <tr>           
+                                    <td class="row_title">
+                                        現金売上計
+                                    </td>           
+                                    <td class="data_col_1">
+                                        <?php
+                                        /*if(!$credit_data){
+                                        $subtot_cnt = $jsk1010_data['total_cnt'];
+                                        }else{
+                                        $subtot_cnt = $jsk1010_data['total_cnt']-$credit_data[count($credit_data)-1]['kake_cust_cnt_cumul'];
+                                        }*/ // 20200207 montagne edt
+                                        $subtot_cnt = $tax['genkin_cnt'];
+                                        echo number_format($subtot_cnt);
+                                        ?>
+                                    </td>           
+                                    <td class="data_col_2">
+                                        <?php 
+                                        $subtot_tot = $jsk1010_data['cash_total'];
+                                        echo number_format($subtot_tot); 
+                                        ?>
+                                    </td>                      
+                                </tr>
+                                <tr>
+                                    <td class="row_title">
+                                        ポイント利用
+                                    </td>
+                                    <td class="data_col_1">
+                                        <?php
+                                        //$subtot_cnt += $jsk1010_data['point_cnt']; // 20200207 montagne edt
+                                        //echo number_format($jsk1010_data['point_cnt']); // 20200207 montagne edt
+                                        $subtot_cnt += $tax['point_cnt'];
+                                        echo number_format($tax['point_cnt']);
+                                        ?>
+                                    </td>
+                                    <td class="data_col_2">
+                                        <?php
+                                        $subtot_tot += $jsk1010_data['point_total'];
+                                        echo number_format($jsk1010_data['point_total']);
+                                        ?>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="row_title">
+                                        売掛売上計
+                                    </td>           
+                                    <td class="data_col_1">
+                                        <?php
+                                        if(!$credit_data){
+                                        echo number_format($jsk1010_data['kake_cnt']);
+                                        $subtot_cnt += $jsk1010_data['kake_cnt'];
+                                        }else{
+                                        /* 売掛の取得方法変更に伴い表示方法を調性 20200126 oota
+                                        echo number_format($jsk1010_data['kake_cnt'] + $credit_data[count($credit_data)-1]['kake_cust_cnt_cumul']);
+                                        $subtot_cnt += $jsk1010_data['kake_cnt'] + $credit_data[count($credit_data)-1]['kake_cust_cnt_cumul'];
+                                        */
+                                        echo number_format($credit_data[count($credit_data)-1]['kake_cust_cnt_cumul']);
+                                        $subtot_cnt += $credit_data[count($credit_data)-1]['kake_cust_cnt_cumul'];
+                                        }
+                                        ?>
+                                    </td>           
+                                    <td class="data_col_2">
+                                        <?php
+                                        if(!$credit_data){
+                                        echo number_format($jsk1010_data['kake_total']);
+                                        $subtot_tot += $jsk1010_data['kake_total'];
+                                        }else{
+                                        /* 売掛の取得方法変更に伴い表示方法を調性 20200126 oota
+                                        echo number_format($jsk1010_data['kake_total']  + $credit_data[count($credit_data)-1]['kake_total_cumul']);
+                                        $subtot_tot += $jsk1010_data['kake_total']  + $credit_data[count($credit_data)-1]['kake_total_cumul'];
+                                        */
+                                        echo number_format($credit_data[count($credit_data)-1]['kake_total_cumul']);
+                                        $subtot_tot += $credit_data[count($credit_data)-1]['kake_total_cumul'];
+                                        }
+                                        ?>
+                                    </td>                       
+                                </tr>   
+                                <tr>
+                                    <td class="row_title total">
+                                        売上合計（税込）
+                                    </td>           
+                                    <td class="data_col_1 total">
+                                        <?php
+                                        echo number_format($subtot_cnt);
+                                        ?>
+                                    </td>           
+                                    <td class="data_col_2 total">
+                                        <?php
+                                        echo number_format($subtot_tot);
+                                        //$tot_total = $subtot_tot;
+                                        ?>
+                                    </td>                       
+                                </tr> 
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class="subgroup_1" rowspan="10">
+                                        税
+                                    </td>
+                                    <td class="data_col_title">
+                                        現金
+                                    </td>           
+                                    <td class="data_col_title">
+                                        対象金額
+                                    </td>           
+                                    <td class="data_col_title">
+                                        税額
+                                    </td>                       
+                                </tr>
+                                <tr>           
+                                    <td class="row_title">
+                                        現金外税
+                                    </td>           
+                                    <td class="data_col_1">
+                                        <?php 
+                                        //$subtot_cnt = $jsk1010_data['total_uitem'];
+                                        //$subtot_cnt = $tax['cash_uitem']; // 20200207 montagne edt
+                                        $subtot_cnt = $tax['genkin_uitem_calc'];
+                                        echo number_format($subtot_cnt); 
+                                        ?>
+                                    </td>           
+                                    <td class="data_col_2">
+                                        <?php 
+                                        //$subtot_tot = $jsk1010_data['total_utax'];
+                                        //$subtot_tot = $tax['cash_utax']; // 20200207 montagne edt
+                                        $subtot_tot = $tax['genkin_utax_calc'];
+                                        echo number_format($subtot_tot); 
+                                        ?>
+                                    </td>                       
+                                </tr>
+                                <tr>
+                                    <td class="row_title">
+                                        現金内税
+                                    </td>           
+                                    <td class="data_col_1">
+                                        <?php
+                                        //echo number_format($jsk1010_data['total_iitem']);
+                                        //$subtot_cnt += $jsk1010_data['total_iitem'];
+                                        //echo number_format($tax['cash_iitem']-$tax['cash_itax']); // 20200207 montagne edt
+                                        //$subtot_cnt += $tax['cash_iitem']-$tax['cash_itax'];   // 20200207 montagne edt 
+                                        echo number_format($tax['genkin_iitem_calc']);
+                                        $subtot_cnt += $tax['genkin_iitem_calc'];
+                                        ?>
+                                    </td>           
+                                    <td class="data_col_2">
+                                        <?php
+                                        //echo number_format($jsk1010_data['total_itax']);
+                                        //$subtot_tot += $jsk1010_data['total_itax'];
+                                        //echo number_format($tax['cash_itax']); // 20200207 montagne edt
+                                        //$subtot_tot += $tax['cash_itax'] // 20200207 montagne edt
+                                        echo number_format($tax['genkin_itax_calc']);
+                                        $subtot_tot += $tax['genkin_itax_calc'];
+                                        ?>
+                                    </td>                       
+                                </tr>
+                                <tr>
+                                    <td class="row_title">
+                                        現金非課税
+                                    </td>           
+                                    <td class="data_col_1">
+                                        <?php
+                                        //echo number_format($jsk1010_data['total_hitem']);
+                                        //$subtot_cnt += $jsk1010_data['total_hitem'];
+                                        //echo number_format($tax['cash_hitem']); // 20200207 montagne edt
+                                        //$subtot_cnt += $tax['cash_hitem'];           // 20200207 montagne edt                                      
+                                        echo number_format($tax['genkin_hitem_calc']);
+                                        $subtot_cnt += $tax['genkin_hitem_calc'];
+                                        ?>
+                                    </td>           
+                                    <td class="data_col_2">
+                                    </td>                       
+                                </tr>        
+                                <tr>
+                                    <td class="row_title total">
+                                        合計
+                                    </td>           
+                                    <td class="data_col_1 total">
+                                        <?php
+                                        echo number_format($subtot_cnt);
+                                        $tot_total = $subtot_cnt;
+                                        ?>
+                                    </td>           
+                                    <td class="data_col_2 total">
+                                        <?php
+                                        echo number_format($subtot_tot);
+                                        
+                                        //総合計に税額を含まないように対応 20200127 oota
+                                        //$tot_total += $subtot_tot;
+                                        ?>
+                                    </td>                       
+                                </tr> 
+                                <tr>
+                                    <td class="data_col_title">
+                                        売掛
+                                    </td>           
+                                    <td class="data_col_title">
+                                        対象金額
+                                    </td>           
+                                    <td class="data_col_title">
+                                        税額
+                                    </td>                       
+                                </tr>
+                                <tr>           
+                                    <td class="row_title">
+                                        売掛外税
+                                    </td>           
+                                    <td class="data_col_1">
+                                        <?php
+                                        $subtot_cnt = 0;
+                                        //echo number_format(/*$taxt_kake_data['den_pure_total_0'] + */$tax['kake_uitem']); // 20200207 montagne edt
+                                        //$subtot_cnt += /*$taxt_kake_data['den_pure_total_0'] + */$tax['kake_uitem']; // 20200207 montagne edt
+                                        echo number_format($tax['kake_uitem_calc']);
+                                        $subtot_cnt += $tax['kake_uitem_calc'];
+                                        ?>
+                                    </td>           
+                                    <td class="data_col_2">
+                                        <?php
+                                        $subtot_tot = 0;
+                                        //echo number_format(/*$taxt_kake_data['den_tax_0'] + */$tax['kake_utax']); // 20200207 montagne edt
+                                        //$subtot_tot += /*$taxt_kake_data['den_tax_0'] + */$tax['kake_utax']; // 20200207 montagne edt
+                                        echo number_format($tax['kake_utax_calc']);
+                                        $subtot_tot += $tax['kake_utax_calc'];
+                                        ?>
+                                    </td>                       
+                                </tr>
+                                <tr>
+                                    <td class="row_title">
+                                        売掛内税
+                                    </td>           
+                                    <td class="data_col_1">
+                                        <?php
+                                        //echo number_format(/*$taxt_kake_data['den_pure_total_1'] + */$tax['kake_iitem']-/*$taxt_kake_data['den_tax_1'] + */$tax['kake_itax']); // 20200207 montagne edt
+                                        //$subtot_cnt += /*$taxt_kake_data['den_pure_total_1']+ */$tax['kake_iitem']-/*$taxt_kake_data['den_tax_1'] + */$tax['kake_itax']; // 20200207 montagne edt
+                                        echo number_format($tax['kake_iitem_calc']);
+                                        $subtot_cnt += $tax['kake_iitem_calc'];												
+                                        ?>
+                                    </td>           
+                                    <td class="data_col_2">
+                                        <?php
+                                        //echo number_format(/*$taxt_kake_data['den_tax_1'] + */$tax['kake_itax']); // 20200207 montagne edt
+                                        //$subtot_tot += /*$taxt_kake_data['den_tax_1'] + */$tax['kake_itax']; // 20200207 montagne edt
+                                        echo number_format($tax['kake_itax_calc']);
+                                        $subtot_tot += $tax['kake_itax_calc'];												
+                                        ?>
+                                    </td>                       
+                                </tr>
+                                <tr>
+                                    <td class="row_title">
+                                        売掛非課税
+                                    </td>                                     
+                                    <td class="data_col_1">
+                                        <?php
+                                        //echo number_format(/*$taxt_kake_data['den_tax_1'] + */$tax['kake_itax']); // 20200207 montagne edt
+                                        //$subtot_cnt +=/* $taxt_kake_data['den_pure_total_9']+ */$tax['kake_hitem']; // 20200207 montagne edt
+                                        echo number_format($tax['kake_hitem_calc']);
+                                        $subtot_cnt += $tax['kake_hitem_calc'];													
+                                        ?>
+                                    </td>           
+                                    <td class="data_col_2">
+                                        <?php
+                                        //echo number_format($taxt_kake_data['den_tax_9']); // 20200207 montagne edt
+                                        //$subtot_tot += $taxt_kake_data['den_tax_9']; // 20200207 montagne edt
+                                        //echo number_format($tax['kake_htax_calc']);
+                                        //$subtot_tot += $tax['kake_htax_calc'];												
+                                        ?>
+                                    </td>                     
+                                </tr>        
+                                <tr>
+                                    <td class="row_title total">
+                                        合計
+                                    </td>           
+                                    <td class="data_col_1 total">
+                                        <?php
+                                        echo number_format($subtot_cnt);
+                                        $tot_total += $subtot_cnt;
+                                        ?>
+                                    </td>           
+                                    <td class="data_col_2 total">
+                                        <?php
+                                        echo number_format($subtot_tot);
+                                        //総合計に税額を含まないように対応 20200127 oota
+                                        //$tot_total += $subtot_tot;
+                                        ?>
+                                    </td>                       
+                                </tr>
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>        
+                                <tr>
+                                    <td class="total" colspan='2'>
+                                        総合計
+                                    </td>           
+                                    <td class="data_col_1 total">
+                                        
+                                    </td>           
+                                    <td class="data_col_2 total">
+                                        <?php
+                                        echo number_format($tot_total);
+                                        ?>
+                                    </td>                       
+                                </tr>  
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class="first_col_group_1" rowspan="4">
+                                    </td>
+                                    <td class="subgroup_1" rowspan="2">
+                                        値引
+                                    </td>
+                                    <td class="data_col_title">
+                                    </td>           
+                                    <td class="data_col_title">
+                                        件数
+                                    </td>           
+                                    <td class="data_col_title">
+                                        金額
+                                    </td>                       
+                                </tr>
+                                <tr>           
+                                    <td class="row_title">
+                                        値引金額
+                                    </td>           
+                                    <td class="data_col_1">
+                                        <?php
+                                        $subtot_cnt = 0;
+                                        /* edtstr montagne 2020/02/08 
+                                        echo number_format($jsk1010_data['disc_cnt']);
+                                        $subtot_cnt += $jsk1010_data['disc_cnt'];												
+                                        */
+                                        /*if(($jsk1010_data['disc_item_amount']+$jsk1010_data['perc_item_amount']+$jsk1010_data['disc_item_amount_e']+$jsk1010_data['disc_total']+$jsk1010_data['perc_total']+$jsk1010_data['adjust_total']) == 0){  //edtstr montagne 2020/03/13
+                                        echo 0;
+                                        }else{
+                                        echo number_format($jsk1010_data['disc_item_amount']+$jsk1010_data['perc_item_amount']+$jsk1010_data['disc_item_amount_e']+$jsk1010_data['disc_cnt']+$jsk1010_data['perc_cnt']+$jsk1010_data['adjust_cnt']);//edtstr montagne 2020/03/13
+                                        $subtot_cnt += $jsk1010_data['disc_item_amount']+$jsk1010_data['perc_item_amount']+$jsk1010_data['disc_item_amount_e']+$jsk1010_data['disc_cnt']+$jsk1010_data['perc_cnt']+$jsk1010_data['adjust_cnt'];//edtstr montagne 2020/03/13
+                                        }
+                                        //edtend montagne 2020/02/08
+                                        */
+                                        echo number_format($cnt_disc_data['count_discount']);
+                                        $subtot_cnt += $cnt_disc_data['count_discount'];
+                                        ?>
+                                    </td>           
+                                    <td class="data_col_2">
+                                        <?php
+                                        $subtot_tot = 0;
+                                        echo number_format($jsk1010_data['disc_item_total']+$jsk1010_data['perc_item_total']+$jsk1010_data['disc_item_total_e']+$jsk1010_data['disc_total']+$jsk1010_data['perc_total']+$jsk1010_data['adjust_total']);//edtstr montagne 2020/03/13
+                                        $subtot_tot += $jsk1010_data['disc_item_total']+$jsk1010_data['perc_item_total']+$jsk1010_data['disc_item_total_e']+$jsk1010_data['disc_total']+$jsk1010_data['perc_total']+$jsk1010_data['adjust_total'];//edtstr montagne 2020/03/13
+                                        ?>
+                                    </td>                       
+                                </tr>
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>                                    
+                                <tr>
+                                    <td class="row_title total" colspan="2">
+                                        値引合計
+                                    </td>           
+                                    <td class="data_col_1 total">
+                                        <?php
+                                        echo number_format($subtot_cnt);
+                                        ?>
+                                    </td>           
+                                    <td class="data_col_2 total">
+                                        <?php
+                                        echo number_format($subtot_tot);
+                                        ?>
+                                    </td>                      
+                                </tr> 
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class="first_col_group_1" rowspan="4">
+                                    </td>
+                                    <td class="subgroup_1" rowspan="2">
+                                        返品 <!--<br />.<br />訂正 -->
+                                    </td>
+                                    <td class="data_col_title">
+                                    </td>           
+                                    <td class="data_col_title">
+                                        件数
+                                    </td>           
+                                    <td class="data_col_title">
+                                        金額
+                                    </td>                       
+                                </tr>
+                                <tr>           
+                                    <td class="row_title">
+                                        返品
+                                    </td>           
+                                    <td class="data_col_1">
+                                        <?php
+                                        $subtot_cnt = 0;
+                                        // モンターニュ　20191219
+                                        //echo number_format($jsk1010_data['return_amount']);
+                                        //$subtot_cnt += $jsk1010_data['return_amount'];
+                                        echo number_format($ret_cnt_data['count']);
+                                        $subtot_cnt += $ret_cnt_data['count'];                                                
+                                        // モンターニュ　20191219                                                
+                                        
+                                        ?>
+                                    </td>           
+                                    <td class="data_col_2">
+                                        <?php
+                                        $subtot_tot = 0;
+                                        /*
+                                        echo number_format($jsk1010_data['return_total']);
+                                        $subtot_tot += $jsk1010_data['return_total'];
+                                        */
+                                        echo number_format($ret_cnt_data['return_total']);
+                                        $subtot_tot += $ret_cnt_data['return_total'];												
+                                        ?>
+                                    </td>                       
+                                </tr>
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>                                    
+                                <tr>
+                                    <td class="row_title total" colspan="2">
+                                        返品合計
+                                    </td>           
+                                    <td class="data_col_1 total">
+                                        <?php
+                                        echo number_format($subtot_cnt);
+                                        ?>
+                                    </td>           
+                                    <td class="data_col_2 total">
+                                        <?php
+                                        echo number_format($subtot_tot);
+                                        ?>
+                                    </td>                      
+                                </tr>                                
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="column" id="main_col_2">
+                        <table id="table_2">
+                            <tbody>
+                                <tr>
+                                    <td class="first_col_group_1" rowspan="<?php  echo 7+count($credit_data);?>">
+                                    </td>
+                                    <td class="subgroup_1" rowspan="<?php  echo 4+count($credit_data);?>">
+                                        支払<br />種別
+                                    </td>
+                                    <td class="data_col_title"　rowspan="<?php  echo 4+count($credit_data);?>">
+                                    </td>
+                                    <td class="data_col_title" colspan="2">
+                                        現金
+                                    </td>
+                                    <td class="data_col_title" colspan="2">
+                                        掛
+                                    </td> 
+                                    <td class="data_col_title" colspan="2">
+                                        合計
+                                    </td>                                         
+                                    
+                                </tr>
+                                <tr>
+                                    <td class="data_col_title">
+                                        
+                                    </td>                                    
+                                    <td class="data_col_title">
+                                        件数
+                                    </td>           
+                                    <td class="data_col_title">
+                                        金額
+                                    </td>
+                                    <td class="data_col_title">
+                                        件数
+                                    </td>           
+                                    <td class="data_col_title">
+                                        金額
+                                    </td>
+                                    <td class="data_col_title">
+                                        件数
+                                    </td>           
+                                    <td class="data_col_title">
+                                        金額
+                                    </td>
+                                </tr>
+                                <tr>           
+                                    <td class="row_title">
+                                        現金
+                                    </td>           
+                                    <td class="data_col_1">
+                                        <?php
+                                        /*if(!$credit_data){
+                                        echo number_format($jsk1010_data['total_cnt']);
+                                        $subtot_cnt = $jsk1010_data['total_cnt']; 
+                                        }else{
+                                        $subtot_cnt = $jsk1010_data['total_cnt']-$credit_data[count($credit_data)-1]['kake_cust_cnt_cumul'];
+                                        echo number_format($subtot_cnt);                                            
+                                        }*/ //edtstr montagne 2020/02/08 
+                                        $subtot_cnt = $tax['genkin_cnt'];
+                                        echo number_format($subtot_cnt); 
+                                        //edtend montagne 2020/02/08 
+                                        $res_0_cnt = $subtot_cnt;
+                                        ?>
+                                    </td>           
+                                    <td class="data_col_2">
+                                        <?php 
+                                        $subtot_total = $jsk1010_data['cash_total'];
+                                        echo number_format($jsk1010_data['cash_total']);
+                                        $res_0_tot = $subtot_total;
+                                        ?>
+                                    </td>
+                                    <td class="data_col_1">
+                                        0	
+                                        <?php $subtot_kake_cnt = 0; ?>
+                                    </td>           
+                                    <td class="data_col_2">
+                                        0
+                                        <?php 
+                                        $subtot_kake_total = 0; 
+                                        ?>
+                                    </td>
+                                    <td class="data_col_1">
+                                        <?php
+                                        echo number_format($subtot_cnt);
+                                        $subtot_tot_cnt = $subtot_cnt; 
+                                        ?>
+                                    </td>           
+                                    <td class="data_col_2">
+                                        <?php 
+                                        $subtot_tot_total = $jsk1010_data['cash_total'];
+                                        echo number_format($jsk1010_data['cash_total']);
+                                        ?>
+                                    </td>                                        
+                                </tr>
+                                <!-- 20200217 montagne add start -->
+                                <tr>           
+                                    <td class="row_title">
+                                        ポイント利用
+                                    </td>           
+                                    <td class="data_col_1">
+                                        <?php
+                                        $subtot_cnt += $tax['point_cnt'];
+                                        echo number_format($tax['point_cnt']); 
+                                        $res_0_cnt += $tax['point_cnt'];
+                                        ?>
+                                    </td>           
+                                    <td class="data_col_2">
+                                        <?php 
+                                        $subtot_total += $jsk1010_data['point_total'];
+                                        echo number_format($jsk1010_data['point_total']);
+                                        $res_0_tot += $jsk1010_data['point_total'];
+                                        ?>
+                                    </td>
+                                    <td class="data_col_1">
+                                        0	
+                                        <?php $subtot_kake_cnt = 0; ?>
+                                    </td>           
+                                    <td class="data_col_2">
+                                        0
+                                        <?php 
+                                        $subtot_kake_total = 0; 
+                                        ?>
+                                    </td>
+                                    <td class="data_col_1">
+                                        <?php
+                                        echo number_format($tax['point_cnt']);
+                                        $subtot_tot_cnt += $tax['point_cnt']; 
+                                        ?>
+                                    </td>           
+                                    <td class="data_col_2">
+                                        <?php 
+                                        $subtot_tot_total += $jsk1010_data['point_total'];
+                                        echo number_format($jsk1010_data['point_total']);
+                                        ?>
+                                    </td>                                        
+                                </tr>	
+                                <!-- 20200217 montagne add end -->									
+                                <?php
+                                foreach ($credit_data as $rows){
+                                echo '<tr>';
+                                echo '  <td class="row_title">';
+                                echo $rows['credit_nm_f'];
+                                echo '  </td>';
+                                echo '  <td class="data_col_1">';
+                                echo number_format($rows['sale_cust_cnt_f']);
+                                echo '  </td>';
+                                echo '  <td class="data_col_2">';
+                                echo number_format($rows['sale_total_f']);
+                                echo '  </td>';
+                                echo '  <td class="data_col_1">';
+                                echo number_format($rows['kake_cust_cnt_f']);
+                                echo '  </td>';
+                                echo '  <td class="data_col_2">';
+                                echo number_format($rows['kake_total_f']);
+                                echo '  </td>';
+                                echo '  <td class="data_col_1">';
+                                echo number_format($rows['total_cust_cnt_f']);
+                                echo '  </td>';
+                                echo '  <td class="data_col_2">';
+                                echo number_format($rows['total_total_f']);
+                                echo '  </td>';
+                                echo '</tr>';
+                                $subtot_cnt         += $rows['sale_cust_cnt_f'];
+                                $subtot_total       += $rows['sale_total_f'];
+                                $subtot_kake_cnt    += $rows['kake_cust_cnt_f'];
+                                $subtot_kake_total  += $rows['kake_total_f'];
+                                $subtot_tot_cnt     += $rows['total_cust_cnt_f'];
+                                $subtot_tot_total   += $rows['total_total_f']; 
+                                if($rows['credit_nm_f'] == '頭金・一部現金'){
+                                $res_1_cnt = $rows['total_cust_cnt_f'];
+                                $res_1_tot = $rows['total_total_f'];
+                                }
+                                }
+                                ?>
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>                                            
+                                </tr>                                    
+                                <tr>
+                                    <td class="row_title total" colspan="2">
+                                        合計
+                                    </td>           
+                                    <td class="data_col_1 total">
+                                        <?php   echo number_format($subtot_cnt); ?>
+                                    </td>           
+                                    <td class="data_col_2 total">
+                                        <?php    echo number_format($subtot_total); ?>
+                                    </td> 
+                                    <td class="data_col_1 total">
+                                        <?php   echo number_format($subtot_kake_cnt); ?>
+                                    </td>           
+                                    <td class="data_col_2 total">
+                                        <?php    echo number_format($subtot_kake_total); ?>
+                                    </td> 
+                                    <td class="data_col_1 total">
+                                        <?php   echo number_format($subtot_tot_cnt); ?>
+                                    </td>           
+                                    <td class="data_col_2 total">
+                                        <?php    echo number_format($subtot_tot_total); ?>
+                                    </td>                                         
+                                </tr>     
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="column" id="main_col_3">
+                        <table id="table_3">
+                            <tbody>
+                                <tr>
+                                    <td class="first_col_group_1" rowspan="12">
+                                    </td>
+                                    <td class="subgroup_1" rowspan="10">
+                                        入金
+                                    </td>
+                                    <td class="data_col_title">
+                                        売掛
+                                    </td>           
+                                    <td class="data_col_title">
+                                        件数
+                                    </td>           
+                                    <td class="data_col_title">
+                                        金額
+                                    </td>                       
+                                </tr>
+                                <tr>           
+                                    <td class="row_title">
+                                        現金
+                                    </td>           
+                                    <td class="data_col_1">
+                                        <?php
+                                        $subtot_cnt = 0;
+                                        /*echo number_format($jsk1010_data['kake_r_cash_cnt']);
+                                        $subtot_cnt += $jsk1010_data['kake_r_cash_cnt'];
+                                        $res_2_cnt =  $subtot_cnt; //20200217 montagne add
+                                        */
+                                        echo number_format($trn0301_data[0]['rece_cnt']);
+                                        $subtot_cnt += $trn0301_data[0]['rece_cnt'];
+                                        $res_2_cnt =  $subtot_cnt;												
+                                        ?>
+                                    </td>           
+                                    <td class="data_col_2">
+                                        <?php
+                                        $subtot_total = 0;
+                                        /*echo number_format($jsk1010_data['kake_r_cash_total']);
+                                        $subtot_total += $jsk1010_data['kake_r_cash_total'];
+                                        $res_2_tot = $subtot_total;//20200217 montagne add*/
+                                        echo number_format($trn0301_data[0]['rece_total']);
+                                        $subtot_total += $trn0301_data[0]['rece_total'];
+                                        $res_2_tot = $subtot_total;
+                                        ?>
+                                    </td>                       
+                                </tr>
+                                <tr>
+                                    <td class="row_title">
+                                        小切手
+                                    </td>           
+                                    <td class="data_col_1">
+                                        <?php
+                                        echo number_format($trn0301_data[2]['rece_cnt']);
+                                        $subtot_cnt += $trn0301_data[2]['rece_cnt'];
+                                        ?>
+                                    </td>           
+                                    <td class="data_col_2">
+                                        <?php
+                                        echo number_format($trn0301_data[2]['rece_total']);
+                                        $subtot_total += $trn0301_data[2]['rece_total'];
+                                        ?>
+                                    </td>                       
+                                </tr>
+                                <tr>
+                                    <td class="row_title">
+                                        振込
+                                    </td>           
+                                    <td class="data_col_1">
+                                        <?php
+                                        echo number_format($trn0301_data[1]['rece_cnt']);
+                                        $subtot_cnt += $trn0301_data[1]['rece_cnt'];
+                                        ?>
+                                    </td>           
+                                    <td class="data_col_2">
+                                        <?php
+                                        echo number_format($trn0301_data[1]['rece_total']);
+                                        $subtot_total += $trn0301_data[1]['rece_total'];
+                                        ?>
+                                    </td>                       
+                                </tr> 
+                                <!-- montagne 20200312 addstr -->
+                                <tr>
+                                    <td class="row_title">
+                                        相殺
+                                    </td>           
+                                    <td class="data_col_1">
+                                        <?php
+                                        echo number_format($trn0301_data[5]['rece_cnt']);
+                                        $subtot_cnt += $trn0301_data[5]['rece_cnt'];
+                                        ?>
+                                    </td>           
+                                   <td class="data_col_2">
+                                        <?php
+                                        echo number_format($trn0301_data[5]['rece_total']);
+                                        $subtot_total += $trn0301_data[5]['rece_total'];
+                                        ?>
+                                    </td>                       
+                                </tr>
+                                <!-- montagne 20200312 addend -->
+                                <tr>
+                                    <td class="row_title">
+                                        値引
+                                    </td>           
+                                    <td class="data_col_1">
+                                        <?php
+                                        echo number_format($trn0301_data[8]['rece_cnt']);
+                                        $subtot_cnt += $trn0301_data[8]['rece_cnt'];
+                                        ?>
+                                    </td>           
+                                    <td class="data_col_2">
+                                        <?php
+                                        echo number_format($trn0301_data[8]['rece_total']);
+                                        $subtot_total += $trn0301_data[8]['rece_total'];
+                                        ?>
+                                    </td>                       
+                                </tr>									
+                                <tr>
+                                    <td class="row_title">
+                                        その他
+                                    </td>           
+                                    <td class="data_col_1">
+                                        <?php
+                                        echo number_format($trn0301_data[9]['rece_cnt']+$trn0301_data[3]['rece_cnt']);
+                                        $subtot_cnt += $trn0301_data[9]['rece_cnt']+$trn0301_data[3]['rece_cnt'];
+                                        //$res_2_cnt =  $subtot_cnt; //20200217 montagne del
+                                        ?>
+                                    </td>           
+                                    <td class="data_col_2">
+                                        <?php
+                                        echo number_format($trn0301_data[9]['rece_total']+$trn0301_data[3]['rece_total']);
+                                        $subtot_total += $trn0301_data[9]['rece_total']+$trn0301_data[3]['rece_total'];
+                                        //$res_2_tot = $subtot_total; //20200217 montagne del
+                                        ?>
+                                    </td>                       
+                                </tr>
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr> 
+                                <tr>
+                                    <td class="data_col_title">
+                                        雑入金
+                                    </td>           
+                                    <td class="data_col_title">
+                                        件数
+                                    </td>           
+                                    <td class="data_col_title">
+                                        金額
+                                    </td>                       
+                                </tr>
+                                <tr>           
+                                    <td class="row_title">
+                                        現金
+                                    </td>           
+                                    <td class="data_col_1">
+                                        <?php
+                                        //$subtot_cnt = 0;
+                                        echo number_format($trn0221_data['in_cnt_0']+$trn0221_data['in_cnt_1']); //montagne 20200312 EDT 全ては金額。その他がありません。
+                                        $subtot_cnt += $trn0221_data['in_cnt_0']+$trn0221_data['in_cnt_1']; //montagne 20200312 EDT 全ては金額。その他がありません。
+                                        $res_3_cnt = $trn0221_data['in_cnt_0']+$trn0221_data['in_cnt_1']; //montagne 20200312 EDT 全ては金額。その他がありません。
+                                        ?>
+                                    </td>           
+                                    <td class="data_col_2">
+                                        <?php
+                                        //$subtot_total = 0;
+                                        echo number_format($trn0221_data['in_tot_0']+$trn0221_data['in_tot_1']); //montagne 20200312 EDT 全ては金額。その他がありません。
+                                        $subtot_total += $trn0221_data['in_tot_0']+$trn0221_data['in_tot_1']; //montagne 20200312 EDT 全ては金額。その他がありません。
+                                        $res_3_tot = $trn0221_data['in_tot_0']+$trn0221_data['in_tot_1']; //montagne 20200312 EDT 全ては金額。その他がありません。
+                                        ?>
+                                    </td>                       
+                                </tr> 
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>                                 
+                                <tr>
+                                    <td class="row_title total" colspan='2'>
+                                        入金合計
+                                    </td>           
+                                    <td class="data_col_1 total">
+                                        <?php   echo number_format($subtot_cnt); ?>
+                                    </td>           
+                                    <td class="data_col_2 total">
+                                        <?php    echo number_format($subtot_total); ?>
+                                    </td>                       
+                                </tr> 
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class="first_col_group_1" rowspan="4">
+                                    </td>
+                                    <td class="subgroup_1" rowspan="2">
+                                        出金
+                                    </td>
+                                    <td class="data_col_title">
+                                        雑出金
+                                    </td>           
+                                    <td class="data_col_title">
+                                        件数
+                                    </td>           
+                                    <td class="data_col_title">
+                                        金額
+                                    </td>                       
+                                </tr>
+                                <tr>           
+                                    <td class="row_title">
+                                        現金
+                                    </td>           
+                                    <td class="data_col_1">
+                                        <?php
+                                        $subtot_cnt = 0;
+                                        echo number_format($trn0221_data['out_cnt_0']+$trn0221_data['out_cnt_1']); //montagne 20200312 EDT 全ては金額。その他がありません。
+                                        $subtot_cnt += $trn0221_data['out_cnt_0']+$trn0221_data['out_cnt_1']; //montagne 20200312 EDT 全ては金額。その他がありません。
+                                        ?>
+                                    </td>           
+                                    <td class="data_col_2">
+                                        <?php
+                                        $subtot_total = 0;
+                                        echo number_format($trn0221_data['out_tot_0']+$trn0221_data['out_tot_1']); //montagne 20200312 EDT 全ては金額。その他がありません。
+                                        $subtot_total += $trn0221_data['out_tot_0']+$trn0221_data['out_tot_1']; //montagne 20200312 EDT 全ては金額。その他がありません。
+                                        ?>
+                                    </td>                       
+                                </tr>
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>                                     
+                                <tr>
+                                    <td class="row_title total" colspan="2">
+                                        出金合計
+                                    </td>           
+                                    <td class="data_col_1 total">
+                                        <?php   
+                                        echo number_format($subtot_cnt); 
+                                        $res_4_cnt = $subtot_cnt;
+                                        ?>
+                                    </td>           
+                                    <td class="data_col_2 total">
+                                        <?php
+                                        echo number_format($subtot_total);
+                                        $res_4_tot = $subtot_total;
+                                        ?>
+                                    </td>                       
+                                </tr> 
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class="first_col_group_1" rowspan="11">
+                                    </td>        
+                                    <td class="subgroup_1" rowspan="11">
+                                        現金<br />在高
+                                    </td>
+                                    <td class="data_col_title">
+                                    </td>           
+                                    <td class="data_col_title">
+                                        件数
+                                    </td>           
+                                    <td class="data_col_title">
+                                        金額
+                                    </td>                       
+                                </tr>
+                                <tr>           
+                                    <td class="row_title">
+                                        現金売上
+                                    </td>           
+                                    <td class="data_col_1">
+                                        <?php   echo number_format($tax['genkin_cnt']); ?>
+                                    </td>           
+                                    <td class="data_col_2">
+                                        <?php   echo number_format($jsk1010_data['cash_total']); ?>
+                                    </td>                       
+                                </tr>        
+                                <tr <?php if(!$res_1_cnt){ echo 'hidden';} ?>>           
+                                    <td class="row_title" >
+                                        頭金・一部現金
+                                    </td>           
+                                    <td class="data_col_1">
+                                        <?php   echo number_format($res_1_cnt); ?>
+                                    </td>           
+                                    <td class="data_col_2">
+                                        <?php   echo number_format($res_1_tot); ?>
+                                    </td>                       
+                                </tr>
+                                <tr>
+  <!--                                    STR 2020/08/24 kanderu 小切手入金は現金在高の掛入金ところ表示-->
+                                    <td class="row_title">
+                                        掛入金
+                                    </td>           
+                                    <td class="data_col_1">
+                                        <?php   echo number_format($res_2_cnt + $trn0301_data[2]['rece_cnt']); ?> 
+                                      
+                                       
+                                    </td>           
+                                    <td class="data_col_2">
+                                        <?php   echo number_format($res_2_tot + $trn0301_data[2]['rece_total']); ?>
+                                    </td>  
+<!--                                    END 2020/08/24 kanderu-->
+                                </tr>
+                                <tr>
+                                    <td class="row_title">
+                                        雑入金
+                                    </td>           
+                                    <td class="data_col_1">
+                                        <?php   echo number_format($res_3_cnt); ?>
+                                    </td>           
+                                    <td class="data_col_2">
+                                        <?php   echo number_format($res_3_tot); ?>
+                                    </td>                       
+                                </tr>   
+                                <tr>
+                                    <td class="row_title">
+                                        雑出金
+                                    </td>           
+                                    <td class="data_col_1">
+                                        <?php   echo number_format($trn0221_data['out_cnt_0']+$trn0221_data['out_cnt_1']); //montagne 20200312 EDT 全ては金額。その他がありません。?>
+                                    </td>           
+                                    <td class="data_col_2">
+                                        <?php   echo number_format($trn0221_data['out_tot_0']+$trn0221_data['out_tot_1']); //montagne 20200312 EDT 全ては金額。その他がありません。?>
+                                    </td>                       
+                                </tr>
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>                
+                                
+                                <tr>
+                                    <td class="row_title">
+                                        現金在高
+                                    </td>           
+                                    <td class="data_col_1">
+                                        
+                                    </td> 
+<!--                                    STR 2020/08/24 kanderu 小切手入金は現金在高の掛入金ところ表示-->
+                                    <td class="data_col_2">
+                                        <?php 
+                                        echo number_format($jsk1010_data['calcul_total'] - $jsk1010_data['change_prepa'] + $trn0301_data[2]['rece_total']);
+                                        ?>
+<!--                                        END 2020/08/24 kanderu -->
+                                    </td>                       
+                                </tr>          
+                                <tr>
+                                    <td class="row_title">
+                                        釣銭元金
+                                    </td>           
+                                    <td class="data_col_1">
+                                        
+                                    </td> 
+                                    <td class="data_col_2">
+                                        <?php 
+                                        echo number_format($jsk1010_data['change_prepa']);
+                                        ?>
+ 
+                                    </td>                       
+                                </tr>  
+                                <tr>
+ <!--                                    STR 2020/08/24 kanderu 小切手入金は現金在高の掛入金ところ表示-->
+                                    <td class="row_title">
+                                        実現金在高
+                                    </td>           
+                                    <td class="data_col_1">
+                                        
+                                    </td>           
+                                    <td class="data_col_2">
+                                        <?php 
+                                        echo number_format($jsk1010_data['regist_total'] + $trn0301_data[2]['rece_total']);
+                                        ?>
+  <!--                                        END 2020/08/24 kanderu -->
+                                    </td>                       
+                                </tr>  
+                                <tr>
+                                    <td class="row_title">
+                                        過不足
+                                    </td>           
+                                    <td class="data_col_1">
+                                        
+                                    </td>           
+                                    <td class="data_col_2">
+                                        <?php 
+                                        echo number_format($jsk1010_data['err_total']);
+                                        ?>
+                                    </td>                       
+                                </tr>                 
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <?php 
+            }
+            ?>
+        </div><!-- /#sb-site -->
+        
+    </body>
+</html>

@@ -1,0 +1,546 @@
+<?php
+    /**
+     * @file      TOP画面(View)
+     * @author    oota
+     * @date      2016/06/24
+     * @version   1.00
+     * @note      TOP画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述 
+            include("Common/HtmlHeader.php"); 
+        ?>
+<style type="text/css">
+.tdb {
+background: -webkit-gradient(linear, left top, left bottom, color-stop(0.00, #c3d9ff), color-stop(1.00, #97b0d9));
+background: -webkit-linear-gradient(#c3d9ff, #97b0d9);
+background: -moz-linear-gradient(#c3d9ff, #97b0d9);
+background: -o-linear-gradient(#c3d9ff, #97b0d9);
+background: -ms-linear-gradient(#c3d9ff, #97b0d9);
+background: linear-gradient(#c3d9ff, #97b0d9);
+}
+.tdo {
+background: -webkit-gradient(linear, left top, left bottom, color-stop(0.00, #fee4c8), color-stop(0.98, #ff7400));
+background: -webkit-linear-gradient(top, #fee4c8 0%, #ff7400 98%);
+background: -moz-linear-gradient(top, #fee4c8 0%, #ff7400 98%);
+background: -o-linear-gradient(top, #fee4c8 0%, #ff7400 98%);
+background: -ms-linear-gradient(top, #fee4c8 0%, #ff7400 98%);
+background: linear-gradient(to bottom, #fee4c8 0%, #ff7400 98%);
+}
+.tdm {
+background: -webkit-gradient(linear, left top, left bottom, color-stop(0.00, #bcffbe), color-stop(0.50, #69ff6d), color-stop(0.50, #34f438), color-stop(1.00, #34f438));
+background: -webkit-linear-gradient(top, #bcffbe 0%, #69ff6d 50%, #34f438 50%, #34f438 100%);
+background: -moz-linear-gradient(top, #bcffbe 0%, #69ff6d 50%, #34f438 50%, #34f438 100%);
+background: -o-linear-gradient(top, #bcffbe 0%, #69ff6d 50%, #34f438 50%, #34f438 100%);
+background: -ms-linear-gradient(top, #bcffbe 0%, #69ff6d 50%, #34f438 50%, #34f438 100%);
+background: linear-gradient(to bottom, #bcffbe 0%, #69ff6d 50%, #34f438 50%, #34f438 100%);
+}
+.tdy {
+background: -webkit-gradient(linear, left top, left bottom, color-stop(0.00, #eaf2b1), color-stop(0.50, #d1e637), color-stop(0.50, #c3d825), color-stop(1.00, #def246));
+background: -webkit-linear-gradient(top, #eaf2b1 0%, #d1e637 50%, #c3d825 50%, #def246 100%);
+background: -moz-linear-gradient(top, #eaf2b1 0%, #d1e637 50%, #c3d825 50%, #def246 100%);
+background: -o-linear-gradient(top, #eaf2b1 0%, #d1e637 50%, #c3d825 50%, #def246 100%);
+background: -ms-linear-gradient(top, #eaf2b1 0%, #d1e637 50%, #c3d825 50%, #def246 100%);
+background: linear-gradient(to bottom, #eaf2b1 0%, #d1e637 50%, #c3d825 50%, #def246 100%);
+}
+
+#dir_tree ul {
+	list-style-type: none;
+	padding-left: 15px;
+	font-size:12px;
+}
+#dir_tree a, #dir_tree li {
+	text-decoration: none;
+	margin-bottom: 3px;
+	font-size:12px;
+}
+#dir_tree a {
+	font-size:12px;
+	background-color:#f7f7f7;
+	border-bottom:1px solid #f1f1f1;
+	margin-left: 15px;
+}
+
+</style>
+
+<script type="text/javascript" src="../js/profit/jquery/Chart__back.js"></script>
+<script type="text/javascript">
+
+$(function() {
+	$("span.dir").css("cursor", "pointer").prepend("+ ").click(function() {
+		$(this).next().toggle("fast");
+		
+		var v = $(this).html().substring( 0, 1 );
+		if ( v == "+" )
+			$(this).html( "-" + $(this).html().substring( 1 ) );
+		else if ( v == "-" )
+			$(this).html( "+" + $(this).html().substring( 1 ) );
+	}).next().hide();
+	
+    $("#dir_tree a, #dir_tree span.dir").hover(function() {
+        $(this).css("font-weight", "bold");
+    }, function() {
+        $(this).css("font-weight", "normal");
+    });
+});
+</script>
+
+    </head>
+    <body id="top">
+        <?php include("Common/PageHeader_demo.php"); ?>
+
+<div id="sb-site">
+            <!-- menuNameArea -->
+<table class="list_table_bk" width=100%>
+<tr><td align=center>
+	<table class="top-menu-list_table"><tr valign=top><td width=100% colspan=3><table width=100%>
+<tr>
+<td class="caption" width=130><img src="../img/group/db.png" width=20 height=20 align=top>　テロップ</td>
+<td class="telop"><marquee><font size=2>★<?php $today = date("n月 "); echo $today;?>は販売強化月間です★</font></marquee></td>
+</tr>
+</table>
+<table class="list_table_bk" width=100%>
+<tr><td align=center>
+	<table class="top-menu-list_table">
+<tr valign=top>
+<td width=400>
+	<table class="top-menu-list_table" width=100%>
+		<tr>
+		<td width=100%>
+<table width=100%>
+<tr>
+<td class="caption"><img src="../img/group/new.png" width=20 height=20 align=top>　打刻漏れ</td>
+</tr>
+<tr>
+<td class="telop">
+<table class="top-menu-list_table" width="100%">
+<tr style='border-bottom:1px solid #ccc;'>
+<td align=left><font color=black>2016-06-20</font></td>
+<td align=left><font color=black>指原莉乃</font></td>
+<td align=left><font color=black>出勤 18:00</font></td>
+<td align=left><font color=red><a href="#">退勤　 - </a></font></td>
+</tr>
+<tr style='border-bottom:1px solid #ccc;'>
+<td align=left><font color=black>2016-06-20</font></td>
+<td align=left><font color=black>AKIRA</font></td>
+<td align=left><font color=red><a href="#">出勤　 - </a></font></td>
+<td align=left><font color=black>退勤 23:30</font></td>
+</tr>
+<tr style='border-bottom:1px solid #ccc;'>
+<td align=left><font color=black>2016-07-01</font></td>
+<td align=left><font color=black>くまモン</font></td>
+<td align=left><font color=red><a href="#">出勤　 - </a></font></td>
+<td align=left><font color=red><a href="#">退勤　 - </a></font></td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+<table width=100%>
+<tr>
+<td class="caption"><img src="../img/group/new.png" width=20 height=20 align=top>　ワークフロー承認・参照</td>
+</tr>
+<tr>
+<td class="telop">
+<table class="top-menu-list_table" width="100%">
+<tr style='border-bottom:1px solid #ccc;'>
+<td align=left><font color=black>2016-06-20</font></td>
+<td align=left><font color=black>太田雄也</font></td>
+<td align=left><font color=black>消耗品購入</font></td>
+<td align=left><font color=red><a href="#"><?php hsc( $_SESSION["USER_NAME"] ); ?>さん　承認待ち</a></font></td>
+</tr>
+<tr style='border-bottom:1px solid #ccc;'>
+<td align=left><font color=black>2016-06-20</font></td>
+<td align=left><font color=black>末武章</font></td>
+<td align=left><font color=black>出張申請の件</font></td>
+<td align=left><font color=red><a href="#"><?php hsc( $_SESSION["USER_NAME"] ); ?>さん　参照待ち</a></font></td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+<table width=100%>
+<tr height=25>
+<td class="caption"><img src="../img/group/todo.png" width=20 height=20 align=top>　通知</td>
+</tr>
+<tr>
+<td class="telop">
+<table class="top-menu-list_table" width="100%">
+<tr height=20>
+<td align=left width=100>2016-05-05 17:30</td>
+<td align=left width=70>本部</td>
+<td align=left><a href='#'>iphone9の仕様</a></td>
+<td align=left width=70><font color=red>未読</font></td>
+</tr>
+<tr style='border-bottom:1px solid #ccc;'>
+<td colspan=4>
+<table width="100%">
+<tr height=50>
+<td valign=top><img src='../img/public/sample.png' height=50></td>
+<td style='word-break: break-all;' valign=top><font size=2>iphone9を購入すると外科手術が必要になります。とても痛い命懸けの手術ですが、ガマンしなければいけません。</font></td>
+</tr>
+</table>
+</td>
+</tr>
+<tr height=20>
+<td align=left width=100>2016-05-04 12:00</td>
+<td align=left width=70>本部</td>
+<td align=left><a href='#'>全社会議</a></td>
+<td align=left width=70><font color=red>未読</font></td>
+</tr>
+<tr style='border-bottom:1px solid #ccc;'>
+<td colspan=4>
+<table width="100%">
+<tr height=50>
+<td valign=top><img src='../img/public/sample2.jpg' height=50></td>
+<td style='word-break: break-all;' valign=top><font size=2>全社会議では、みなさん積極的に意見を述べて頂きました。議事録を添付していますので、皆さん参照ください。</font></td>
+</tr>
+</table>
+</td>
+</tr>
+<tr height=20>
+<td align=left width=100>2016-05-04 12:00</td>
+<td align=left width=70>店舗管理部</td>
+<td align=left><a href='#'>新店のお知らせ</a></td>
+<td align=left width=70><font color=blue>既読</font></td>
+</tr>
+<tr style='border-bottom:1px solid #ccc;'>
+<td colspan=4>
+<table width="100%">
+<tr height=50>
+<td valign=top><img src='../img/public/shop.jpg' height=50></td>
+<td style='word-break: break-all;' valign=top><font size=2>横浜の桜木町に新店がオープンします！新しい仲間が頑張っていますので、応援よろしくお願いします！</font></td>
+</tr>
+</table>
+</td>
+</tr>
+<tr style='border-bottom:1px solid #ccc;'>
+<td align=left>2016-06-11 10:30</td>
+<td align=left>管理部</td>
+<td align=left><a href='#'>勤怠締め</a></td>
+<td align=left><font color=blue>既読</font></td>
+</tr>
+<tr style='border-bottom:1px solid #ccc;'>
+<td align=left>2016-06-10 09:00</td>
+<td align=left>本部</td>
+<td align=left><a href='#'>アルバイト時給の件</a></td>
+<td align=left><font color=blue>既読</font></td>
+</tr>
+<tr style='border-bottom:1px solid #ccc;'>
+<td align=left>2016-04-02 11:20</td>
+<td align=left>営業部</td>
+<td align=left><a href='#'>店長会議の件</a></td>
+<td align=left><font color=blue>既読</font></td>
+</tr>
+<tr style='border-bottom:1px solid #ccc;'>
+<td align=left>2016-02-28 18:00</td>
+<td align=left>本部</td>
+<td align=left><a href='#'>小口現金の件</a></td>
+<td align=left><font color=blue>既読</font></td>
+</tr>
+<tr style='border-bottom:1px solid #ccc;'>
+<td align=left>2016-01-12 17:00</td>
+<td align=left>管理部</td>
+<td align=left><a href='#'>システムの入れ替え</a></td>
+<td align=left><font color=blue>既読</font></td>
+</tr>
+<tr style='border-bottom:1px solid #ccc;'>
+<td align=left>2015-12-20 17:20</td>
+<td align=left>管理部</td>
+<td align=left><a href='#'>年末年始の件</a></td>
+<td align=left><font color=blue>既読</font></td>
+</tr>
+<tr>
+<td align=left>2015-12-10 12:13</td>
+<td align=left>管理部</td>
+<td align=left><a href='#'>年末調整の件</a></td>
+<td align=left><font color=blue>既読</font></td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+		</td>
+		</tr>
+	</table>
+</td>
+<td width=800>
+	<table class="top-menu-list_table" width=100%>
+		<tr>
+		<td colspan=2>
+<table width=100%>
+<tr height=25>
+<td class="caption"><img src="../img/group/calendar.png" width=20 height=20 align=top>　スケジュール</td>
+</tr>
+<tr>
+<td class="telop">
+<table class="top-menu-list_table" width="100%">
+<tr height=20 style='border-bottom:1px solid #ccc;'>
+<td align=left width=85>日付</td>
+<td align=left width=55>8</td>
+<td align=left width=55>9</td>
+<td align=left width=55>10</td>
+<td align=left width=55>11</td>
+<td align=left width=55>12</td>
+<td align=left width=55>13</td>
+<td align=left width=55>14</td>
+<td align=left width=55>15</td>
+<td align=left width=55>16</td>
+<td align=left width=55>17</td>
+<td align=left width=55>18</td>
+<td align=left width=55>19</td>
+<td align=left width=55>20</td>
+</tr>
+<tr height=20 style='border-bottom:1px solid #ccc;'>
+<td align=left width=85>07-05 (火)</td>
+<td align=left width=55>　</td>
+<td class="tdb" align=left width=55 colspan=5>(株)ミリオネア</td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+</tr>
+<tr height=20 style='border-bottom:1px solid #ccc;'>
+<td align=left width=85>07-06 (水)</td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td class="tdb" align=left width=55 colspan=3>営業会議</td>
+<td align=left width=55> </td>
+<td class="tdb" align=left width=55 colspan=2>日本銀行(有)</td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+</tr>
+<tr height=20 style='border-bottom:1px solid #ccc;'>
+<td align=left width=85>07-07 (木)</td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td class="tdo" align=left width=55>外出</td>
+<td align=left width=55> </td>
+<td class="tdb" align=left colspan=2>(株)末田家</td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+</tr>
+<tr height=20 style='border-bottom:1px solid #ccc;'>
+<td align=left width=85>07-08 (金)</td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+</tr>
+<tr height=20 style='border-bottom:1px solid #ccc;'>
+<td align=left width=85>07-09 (<font color=blue>土</font>)</td>
+<td class="tdy" align=left width=55 colspan=13>有給</td>
+</tr>
+<tr height=20 style='border-bottom:1px solid #ccc;'>
+<td align=left width=85>07-10 (<font color=red>日</font>)</td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td class="tdb" align=left colspan=2>(株)井野商事</td>
+<td align=left width=55> </td>
+<td class="tdb" align=left colspan=2>(株)ラングライズ</td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+</tr>
+<tr height=20>
+<td align=left width=85>07-11 (月)</td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td class="tdm" align=left colspan=2>パンフレビュー</td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td class="tdb" align=left colspan=3>(株)藤原組</td>
+<td align=left width=55> </td>
+<td align=left width=55> </td>
+<td class="tdm" align=left width=55>TV会議</td>
+<td align=left width=55> </td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+		</td>
+		</tr>
+		<tr>
+		<td width=400 valign=top>
+	<table class="top-menu-list_table" width=100%>
+		<tr>
+		<td>
+<table width=100%>
+<tr>
+<td class="caption"><img src="../img/group/jyuchu.png" width=20 height=20 align=top>　受注状況</td>
+</tr>
+<tr>
+<td class="telop">
+<table class="top-menu-list_table" width="100%">
+<tr style='border-bottom:1px solid #ccc;'>
+<td align=left width=60>07月01日</td>
+<td align=left width=20>A</td>
+<td align=left><a class="black" href="#" target="_blank">ミリオネット</a></td>
+<td align=left><a class="black" href="./project/project_view.php?code=2015000416" target="_blank">太田雄也</a></td>
+</tr>
+<tr style='border-bottom:1px solid #ccc;'>
+<td align=left width=60>06月30日</td>
+<td align=left width=20>S</td>
+<td align=left><a class="black" href="#" target="_blank">レジ開発プロジェクト</a></td>
+<td align=left><a class="black" href="#" target="_blank">柏原芳恵</a></td>
+</tr>
+<tr style='border-bottom:1px solid #ccc;'>
+<td align=left width=60>06月10日</td>
+<td align=left width=20>S</td>
+<td align=left><a class="black" href="#" target="_blank">弁当600</a></td>
+<td align=left><a class="black" href="#" target="_blank">郷ひろみ</a></td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+		</td>
+		</tr>
+<tr>
+<td>
+<table width=100%>
+<tr>
+<td class="caption"><img src="../img/group/coco.png" width=20 height=20 align=top>　本日の出勤状況</td>
+</tr>
+<tr>
+<td class="telop">
+<table class="top-menu-list_table" width="100%">
+<tr style='border-bottom:1px solid #ccc;' height=20>
+<td align=left><img src="../img/group/coco16.png" width=15 height=15 align=top>&nbsp;&nbsp;<?php $today = date("Y年n月j日 "); echo $today;?> 12:00～15:00</td>
+<td align=left><font color=black>伊藤つかさ</font></td>
+<td align=left><font color=black>退勤済み</font></td>
+</tr>
+<tr style='border-bottom:1px solid #ccc;' height=20>
+<td align=left><img src="../img/group/coco16.png" width=15 height=15 align=top>&nbsp;&nbsp;<?php $today = date("Y年n月j日 "); echo $today;?> 12:00～</td>
+<td align=left><font color=black>堀ちえみ</font></td>
+<td align=left><font color=red>遅刻</font></td>
+</tr>
+<tr style='border-bottom:1px solid #ccc;' height=20>
+<td align=left><img src="../img/group/coco16.png" width=15 height=15 align=top>&nbsp;&nbsp;<?php $today = date("Y年n月j日 "); echo $today;?> 15:00～</td>
+<td align=left><font color=black>柏原芳恵</font></td>
+<td align=left><font color=blue>出勤中</font></td>
+</tr>
+<tr style='border-bottom:1px solid #ccc;' height=20>
+<td align=left><img src="../img/group/coco16.png" width=15 height=15 align=top>&nbsp;&nbsp;<?php $today = date("Y年n月j日 "); echo $today;?> 17:00～</td>
+<td align=left><font color=black>早見優</font></td>
+<td align=left><font color=blue>出勤中</font></td>
+</tr>
+<tr height=20>
+<td align=left><img src="../img/group/coco16.png" width=15 height=15 align=top>&nbsp;&nbsp;<?php $today = date("Y年n月j日 "); echo $today;?> 17:00～</td>
+<td align=left><font color=black>ビルゲイツ</font></td>
+<td align=left><font color=blue>出勤中</font></td>
+</tr>
+<tr>
+<td>
+</table>
+</td>
+</tr>
+<table width=100%>
+<tr>
+<td class="caption"><img src="../img/group/message.png" width=20 height=20 align=top>　メッセージ</td>
+</tr>
+<tr>
+<td class="telop">
+<table class="top-menu-list_table" width="100%">
+<tr style='border-bottom:1px solid #ccc;'>
+<td align=left><img src="../img/group/mail16.png" width=15 height=15 align=top>&nbsp;&nbsp;<font color=black>松田聖子</font></td>
+<td align=left><font color=black>さんから<a href='#'>メッセージ</a>が届いています</font></td>
+</tr>
+<tr>
+<td align=left><img src="../img/group/mail16.png" width=15 height=15 align=top>&nbsp;&nbsp;<font color=black>郷ひろみ</font></td>
+<td align=left><font color=black>さんから<a href='#'>メッセージ</a>が届いています</font></td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+		</td>
+		</tr>
+		</td>
+	</table>
+		<td width=400 valign=top>
+	<table class="top-menu-list_table" width=100%>
+		<tr>
+		<td>
+<table width=100%>
+<tr>
+<td class="caption"><img src="../img/group/graph.png" width=20 height=20 align=top>　売上推移</td>
+</tr>
+<tr>
+<td class="telop">
+<table class="top-menu-list_table" width="100%">
+<tr style='border-bottom:1px solid #ccc;'>
+<td align=center>
+<canvas id="canvas" height="350" width="400"></canvas>
+</td>
+</tr>
+</table>
+<script>
+var lineChartData = {
+labels : ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"],
+datasets : [
+{
+fillColor : "rgba(241,196,15,0.5)",
+strokeColor : "rgba(220,220,220,1)",
+pointColor : "rgba(220,220,220,1)",
+pointStrokeColor : "#fff",
+data : [100,400,450,600,500,1200,1050,1200,1350,1000,1650,2400]
+}
+]
+}
+var myLine = new Chart(document.getElementById("canvas").getContext("2d")).Line(lineChartData);
+</script>
+</td>
+</tr>
+</table>
+		</td>
+		</tr>
+		<tr>
+		<td>
+		</td>
+		</tr>
+	</table>
+		</td>
+		</tr>
+	</table>
+</td>
+</tr>
+</table>
+</td></tr>
+</table>
+</div><!-- /#sb-site -->
+<script type="text/javascript" src="jquery/js/scrolltopcontrol.js"></script> <!--スクロールしながらページのトップに戻る-->
+
+        <script src="../js/home/slidebars/slidebars.min.js"></script>
+        <script src="../js/home/slidebars/mp_silde.js"></script>
+
+    </body>
+</html>

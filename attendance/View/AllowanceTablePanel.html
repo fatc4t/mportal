@@ -1,0 +1,155 @@
+<?php
+    /**
+     * @file      手当マスタ画面(View)
+     * @author    USE S.Kasai
+     * @date      2016/06/15
+     * @version   1.00
+     * @note      手当マスタ画面
+     */
+?>
+        <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+        <!-- ajax差し替えエリア -->
+        <div id="jquery-replace-ajax">
+
+            <!-- PageMoveArea -->
+            <?php include("../FwCommon/View/PagingArea.php"); ?>
+            
+            <!-- serchListArea -->
+            <?php if( $isScrollBar ) { ?>
+                <div class="serchListArea" style=" clear:both; width:99%; margin:0px auto !important; overflow-y:auto; height:25px;">
+            <?php } else { ?>
+                <div class="serchListArea" style=" clear:both; width:99%; margin:5px auto !important;">
+            <?php } ?>
+            <!-- ---------------------- -->
+                <input type="hidden" id="token" name="token" value="<?php hsc($TokenID); ?>">
+                <table>
+                    <tr>
+                        <th width="37px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?></u><?php hsc($headerArray['allowanceNoSortMark']); ?></span></th>                          <!--No-->
+                        <th width="37px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0849')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0849')); ?></u><?php hsc($headerArray['allowanceStateSortMark']); ?></span></th>                       <!--状態-->
+                        <th width="148px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0851')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0851')); ?></u><?php hsc($headerArray['allowanceCodeSortMark']); ?></span></th>                        <!--コード-->
+                        <th width="173px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?></u><?php hsc($headerArray['allowanceOrganizationSortMark']); ?></span></th>               <!--組織名-->
+                        <th width="148px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0867')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0867')); ?></u><?php hsc($headerArray['allowanceNameSortMark']); ?></span></th>                       <!--手当名-->
+                        <th width="123px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0868')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0868')); ?></u><?php hsc($headerArray['allowanceWageFormTypeSortMark']); ?></span></th>               <!--支給単位-->
+                        <th width="87px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0869')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0869')); ?></u><?php hsc($headerArray['allowancePaymentConditionsSortMark']); ?></span></th>          <!--支給条件-->
+                        <th width="123px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0870')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0870')); ?></u><?php hsc($headerArray['allowancePaymentConditionsDetailSortMark']); ?></span></th>    <!--支給条件詳細-->
+                        <th width="197px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0892')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0892')); ?></u><?php hsc($headerArray['allowanceCommentSortMark']); ?></span></th>                    <!--コメント-->
+                        <th width="62px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0852')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0852')); ?></u><?php hsc($headerArray['allowanceDispOrderSortMark']); ?></span></th>                   <!--表示順-->
+                        <th width="99px"></th>
+                    </tr>
+                </table>
+            <?php if( $isScrollBar ) { ?>
+                </div>
+                <div class="serchListArea" style="width:99%; margin: 0px auto; overflow-y:auto; height:300px; !important;">
+            <?php } ?>
+                <table id="nameTable" style="background-color: #ffffff">
+                    <?php foreach($allowanceList as $allowance) { ?>
+                        <?php $allowance_no++; ?>
+                        <?php if(!$allowanceNoSortFlag) { ?>
+                            <?php $display_no++; ?>
+                        <?php } ?>
+                        <tr>
+                            <input type="hidden" id="allowanceIdMod<?php hsc($allowance_no); ?>" name="allowanceId<?php hsc($allowance_no); ?>" value="<?php hsc($allowance['allowance_id']); ?>">
+                            <input type="hidden" id="updateTime<?php hsc($allowance_no); ?>" name="updateTime<?php hsc($allowance_no); ?>" value="<?php hsc($allowance['update_time']); ?>">
+                            <td align="right" style="width:37px;"><?php hsc($display_no); ?></td>
+                            <?php $del_state = ""; ?>
+                            <?php if(!empty($allowance['is_del'])) { ?>
+                                <?php $del_state = "削除"; ?>
+                            <?php } ?>
+                            <td align="center" style="width:37px;"><?php hsc($del_state); ?></td>
+                            <td id="sCode<?php hsc($allowance_no); ?>" style="width:148px;"><?php hsc($allowance['code']); ?></td>
+                            <td id="sCode-edit<?php hsc($allowance_no); ?>" style="display : none;width:148px;" align="center">
+                                <input type="text" pattern="^[0-9A-Za-z]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0301')); ?>" id="allowanceCodeMod<?php hsc($allowance_no); ?>" name="sCode<?php hsc($allowance_no); ?>" size="20" maxlength="20" value="<?php hsc($allowance['code']); ?>" class="En" required>
+                            </td>
+                            <td id="sOrganization<?php hsc($allowance_no); ?>" style="width:173px;"><?php hsc($allowance['abbreviated_name']); ?></td>
+                            <td id="sOrganization-edit<?php hsc($allowance_no); ?>" style="display : none;width:173px;" align="center">
+                                <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="allowanceOrganizationMod<?php hsc($allowance_no); ?>" name="sOrganization<?php hsc($allowance_no); ?>" style="width: 160px" >
+                                    <?php foreach($abbreviatedList as $abbreviated) { ?>
+                                        <?php $selected = ""; ?>
+                                        <?php if($abbreviated['organization_id'] == $allowance['organization_id']) { ?>
+                                            <?php $selected = "selected"; ?>
+                                        <?php } ?>
+                                        <option value="<?php hsc($abbreviated['organization_id']); ?>" <?php hsc($selected); ?>><?php hsc($abbreviated['abbreviated_name']); ?></option>
+                                    <?php } ?>
+                                </select>
+                            </td>
+                            <td id="sAllowanceName<?php hsc($allowance_no); ?>" style="width:148px;"><?php hsc($allowance['allowance_name']); ?></td>
+                            <td id="sAllowanceName-edit<?php hsc($allowance_no); ?>" style="display : none;width:148px;" align="center">
+                                <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0302')); ?>" id="allowanceNameMod<?php hsc($allowance_no); ?>" name="sAllowanceName<?php hsc($allowance_no); ?>" size="20" maxlength="20" value="<?php hsc($allowance['allowance_name']); ?>" class="Em" required>
+                            </td>
+                            <td id="sWageFormType<?php hsc($allowance_no); ?>" style="width:123px;"><?php hsc($allowance['payment_unit_name']); ?></td>
+                            <td id="sWageFormType-edit<?php hsc($allowance_no); ?>" style="display : none;width:123px;" align="center">
+                                <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="allowanceWageFormTypeMod<?php hsc($allowance_no); ?>" name="sWageFormType<?php hsc($allowance_no); ?>" style="width: 100px" onChange="setSearchPaymentConditionsModNameEdit(<?php hsc($allowance_no); ?>)" required>
+                                    <?php foreach($wageTypeList as $wageFormType) { ?>
+                                        <?php $selected = ""; ?>
+                                        <?php if($wageFormType['payment_unit_id'] == $allowance['wage_form_type_id']) { ?>
+                                            <?php $selected = "selected"; ?>
+                                        <?php } ?>
+                                        <option value="<?php hsc($wageFormType['payment_unit_id']); ?>" <?php hsc($selected); ?>><?php hsc($wageFormType['payment_unit_name']); ?></option>
+                                    <?php } ?>
+                                </select>
+                            </td>
+                            <td id="sPaymentConditions<?php hsc($allowance_no); ?>" style="width:87px;"><?php hsc($allowance['payment_conditions_name']); ?></td>
+                            <td id="sPaymentConditions-edit<?php hsc($allowance_no); ?>" style="display : none;width:87px;" align="center">
+                                <?php include("Common/SearchPaymentConditionsModNameEdit.php"); ?>
+                            </td>
+                            <td id="sPaymentConditionsDetail<?php hsc($allowance_no); ?>" style="width:123px;">
+                                <?php
+                                    $workingValue = "";
+                                    $workingViewValue = "";
+                                    $workingLabel = "";
+                                    if( $allowance['payment_conditions_id'] == 1 )
+                                    {
+                                        $workingLabel = "-";
+                                    }
+                                    else if( $allowance['payment_conditions_id'] == 2 )
+                                    {
+                                        $workingValue = $allowance['working_hours'];
+                                        $workingViewValue = $this->changeTimeFromMinute( $allowance['working_hours'] );
+                                        $workingLabel = " 時間以上";
+                                    }
+                                    else if( $allowance['payment_conditions_id'] == 3 )
+                                    {
+                                        $workingValue = $allowance['working_days'];
+                                        $workingViewValue = $allowance['working_days'];
+                                        $workingLabel = " 日以上";
+                                    }
+                                    else if( $allowance['payment_conditions_id'] == 4 )
+                                    {
+                                        $workingLabel = "管理者の手動付与";
+                                    }
+                                    else if( $allowance['payment_conditions_id'] == 5 )
+                                    {
+                                        $workingLabel = "カレンダー指定";
+                                    }
+                                    hsc($workingViewValue . $workingLabel);
+                                ?>
+                            </td>
+                            <td id="sPaymentConditionsDetail-edit<?php hsc($allowance_no); ?>" style="display : none; width:123px;" align="center">
+                                <input type="text" pattern="^(\d{1,4})(\.\d{1,2})?$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0310')); ?>" id="allowancePaymentConditionsDetailMod<?php hsc($allowance_no); ?>" name="allowancePaymentConditionsDetailMod<?php hsc($allowance_no); ?>" size="5" maxlength="7" value="<?php hsc($workingValue); ?>" class="En" style="display : none">
+                                <input type="text" pattern="(0[0-9]|[1-9][0-9]|[1-9][0-9][0-9]|[1-9][0-9][0-9][0-9])(:[0-5][0-9])" title="<?php hsc($Log->getMsgLog('MSG_BASE_0311')); ?>" id="allowancePaymentConditionsDetailTimeMod<?php hsc($allowance_no); ?>" name="allowancePaymentConditionsDetailTimeMod<?php hsc($allowance_no); ?>" size="5" maxlength="7" value="<?php hsc($this->changeTimeFromMinute($workingValue)); ?>" class="En" style="display : none">
+                                <label id="modLabel<?php hsc($allowance_no); ?>"></label>
+                            </td>
+                            <td id="sComment<?php hsc($allowance_no); ?>" style="width:197px;"><?php hsc($allowance['comment']); ?></td>
+                            <td id="sComment-edit<?php hsc($allowance_no); ?>" style="display : none;width:197px;" align="center">
+                                <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0308')); ?>" id="commentMod<?php hsc($allowance_no); ?>" name="sComment<?php hsc($allowance_no); ?>" size="27" maxlength="30" value="<?php hsc($allowance['comment']); ?>" class="Em" >
+                            </td>
+                            <td id="sDisp<?php hsc($allowance_no); ?>" align="right" style="width:62px;"><?php hsc($allowance['disp_order']); ?></td>
+                            <td id="sDisp-edit<?php hsc($allowance_no); ?>" style="display : none; width:62px;" align="center">
+                                <input type="text" pattern="[1-9][0-9]*" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" id="modDispOrder<?php hsc($allowance_no); ?>" name="sDisp<?php hsc($allowance_no); ?>" size="4" maxlength="5" value="<?php hsc($allowance['disp_order']); ?>" class="En" required>
+                            </td>
+                            <td align="center" style="width:99px;">
+                                <?php if(empty($allowance['is_del'])) { ?>
+                                    <input type="button" id="edtBtn<?php hsc($allowance_no); ?>" value="<?php hsc($Log->getMsgLog('MSG_BASE_0801')); ?>" onclick="editRow(this)" <?php hsc($allowance['cor_disabled']); ?>>
+                                    <input type="submit" id="edtBtn-mod<?php hsc($allowance_no); ?>" name="mod<?php hsc($allowance_no); ?>" style="display : none" value="<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>')" <?php hsc($allowance['mod_disabled']); ?>>
+                                    <input type="button" id="edtBtn-del<?php hsc($allowance_no); ?>" name="del<?php hsc($allowance_no); ?>" style="display : none" value="<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>')" <?php hsc($allowance['del_disabled']); ?>>
+                                <?php } ?>
+                            </td>
+                        </tr>
+                        <?php if($allowanceNoSortFlag) { ?>
+                            <?php $display_no--; ?>
+                        <?php } ?>
+                    <?php } ?>
+                </table>
+            </div><!-- /.serchListArea -->
+
+        </div><!-- /.ajax差し替えエリア -->

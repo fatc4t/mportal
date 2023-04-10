@@ -1,0 +1,340 @@
+<?php
+    /**
+     * @file      入出金記録 [V]
+     * @author    vergara miguel
+     * @date      2019/03/05
+     * @version   1.00
+     * @note      帳票
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述
+            include("../profit/View/Common/HtmlHeader.php");
+        ?>
+
+    <script src="../js/profit/jquery/jquery.ui.ympicker.js" /></script>
+    <script src="../js/profit/jquery/jquery-migrate-1.0.0.js" /></script>
+    <script src="../js/profit/jquery/datepicker-ja.js" /></script>
+
+    <script type="text/javascript">
+        function chf(frm){
+            if( 1 < window.location.search.length )
+                {
+                    // 最初の1文字 (?記号) を除いた文字列を取得する
+                    var query = window.location.search.substring( 1 );
+                    var action = 
+                    frm.action.split( '?' );
+
+                    // 検索以外の機能実行後だった場合、パラメータを補正する
+                    if(1 < action.length){
+                        frm.action = action[0];
+                    }
+
+                    // クエリの区切り記号 (&) で文字列を配列に分割する
+                    var parameters = query.split( '&' );
+
+                    if (frm.onbtn.value == 'serch') {
+                      frm.target='_self';
+                        if(1 < parameters.length){
+                             frm.action += '?param=' +frm.elements["codeName"].value + '&home=1';
+                         }else{
+                             frm.action += '?param=' +frm.elements["codeName"].value;
+                        }
+                    }else if (frm.onbtn.value == 'pdfoutput'){
+                      frm.target='_blank';
+                        if(1 < parameters.length){
+                             frm.action += '?param=LedgerSheetDetails/pdfoutput&home=1'
+                         }else{
+                             frm.action += '?param=LedgerSheetDetails/pdfoutput'
+                        }
+                    }
+                }
+       }
+
+    /**
+     *  イベント制御用
+     *
+     */
+    function set_value(s_val){
+        document.serchForm.onbtn.value = s_val;
+    }
+
+    /**
+     * DatePickerを設定
+     */
+    $(function()
+    {
+        $( "#start_date, #end_date" ).datepicker({
+            numberOfMonths: 2,
+            showCurrentAtPos: 1,
+            showButtonPanel: true,
+            dateFormat: 'yy/mm/dd'
+        });
+    });
+
+    /**
+     *
+     * スクロール制御
+     *
+     */
+        function SyncScroll(/* elem1, elem2, ... */) {
+            this._elements = [];
+            this._elementOnscroll = this._elementOnscroll.bind(this);
+            this.addElement.apply(this, arguments);
+        }
+        SyncScroll.prototype = {
+            enableHorizontal: true,
+            enableVertical: true,
+            addElement: function (/* elem1, elem2, ... */) {
+                var elem, i;
+                for (i = 0; i < arguments.length; i += 1) {
+                    elem = arguments[i];
+                    elem.addEventListener('scroll', this._elementOnscroll, false);
+                    this._elements.push(elem);
+                }
+            },
+            removeElement: function (/* elem1, elem2, ... */) {
+                var elem, i, j;
+                for (i = 0; i < arguments.length; i += 1) {
+                    elem = arguments[i];
+                    elem.removeEventListener('scroll', this._elementOnscroll, false);
+                    j = this._elements.indexOf(elem);
+                    if (j >= 0) {
+                        this._elements.splice(j, 1);
+                    }
+                }
+            },
+            _elementOnscroll: function (event) {
+                var i,
+                    elems = this._elements,
+                    elem = event.target,
+                    x = elem.scrollLeft,
+                    y = elem.scrollTop;
+                if (this.enableHorizontal) {
+                    for (i = 0; i < elems.length; i += 1) {
+                        elem = elems[i];
+                        if (elem === event.target || elem.scrollLeft === x) {
+                            continue;
+                        }
+                        elem.scrollLeft = x;
+                        if (elem.scrollLeft !== x) {
+                            elem.scrollLeft = x + x - elem.scrollLeft;
+                        }
+                    }
+                }
+                if (this.enableVertical) {
+                    for (i = 0; i < elems.length; i += 1) {
+                        elem = elems[i];
+                        if (elem === event.target || elem.scrollTop === y) {
+                            continue;
+                        }
+                        elem.scrollTop = y;
+                        if (elem.scrollTop !== y) {
+                            elem.scrollTop = y + y - elem.scrollTop;
+                        }
+                    }
+                }
+            },
+            destroy: function () {
+                this.removeElement.apply(this, this._elements);
+            }
+        };
+
+        window.onload = function () {
+            // 縦方向のみ
+            var sample2_1 = document.getElementById('header_h');
+            var sample2_2 = document.getElementById('data');
+            var syncScroll2 = new SyncScroll(sample2_1, sample2_2);
+            syncScroll2.enableHorizontal = true;
+
+            // 横方向のみ
+            var sample3_1 = document.getElementById('header_h');
+            var sample3_2 = document.getElementById('data');
+            var syncScroll3 = new SyncScroll(sample3_1, sample3_2);
+            syncScroll3.enableVertical = false;
+        };
+
+    </script>
+
+    <STYLE type="text/css">
+#header_h {
+   width:98%;
+   overflow-x:hidden;overflow-y:hidden;
+   }
+#header_v {
+   width:90px;height:650px;
+   overflow-x:scroll;overflow-y:hidden;
+   text-align: left;
+   }
+#data {
+   width:99%;height:650px;
+   overflow-x:scroll;overflow-y:scroll;
+   table-layout: fixed;
+   }
+
+    </STYLE>
+
+    </head>
+    <body>
+<?php
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+
+<!-- Site -->
+<div id="sb-site">
+    <!-- menuNameArea -->
+    <!-- /.menuNameArea -->
+<form name="serchForm" id="serchForm" action="/profit/index.php" method="post" onsubmit="return chf(this)">
+<div class="serchListArea">
+<table align="center">
+    <tr>
+        <td>
+            <table id="serchTable">
+                <tr>
+                    <th id="serchTableTitle" align="center" width="65">帳票種別</th>
+                    <td id="serchTableItem" width=220>
+                        <select name="codeName" id="codeName">
+                          <option value="LedgerSheetShopMonth/show">01.店舗別売上月報</option>
+                          <option value="LedgerSheetShopDay/show">02.店舗日別売上動向表</option>
+                          <option value="LedgerSheetPurchaseDay/show">03.仕入単品分析</option>
+                          <option value="LedgerSheetSuppliersPayment/show">04.仕入先・店舗別支払一覧</option>
+                          <option value="LedgerSheetPurchaseLedger/show">05.仕入先・店舗別仕入元帳</option>
+                          <option value="LedgerSheetStockpile/show">06.在庫調査表</option>
+                          <option value="LedgerSheetAbnormality/show">07.売上原価異常明細</option>
+                          <option value="LedgerSheetOrder/show">08.注文書</option>
+                          <option value="LedgerSheetDetails/show">09.顧客別売上明細</option>
+                          <option value="LedgerSheetSaled/show">10.当日販売商品一覧</option>
+                          <option value="LedgerSheetUnpopular/show">11.死に筋商品リスト</option>
+                          <option value="LedgerSheetProduct/show">12.商品検索一覧</option>
+                          <option value="LedgerSheetClient/show">13.顧客検索一覧</option>
+                          <option value="LedgerSheetRank/show">14.商品実績順位表</option>
+                          <option value="LedgerSheetStocklist/show">15.在庫明細一覧表(明細一覧表)</option>
+                          <option value="LedgerSheetStockTotal/show">16.在庫合計表(合計表)</option>
+                          <option value="LedgerSheetDepartmentalGrossProfit/show">17.部門別粗利速報</option>
+                          <option value="LedgerSheetBySalesStaffSelectedItem/show">18.販売員別選定品(税込)</option>
+                          <option value="LedgerSheetBySalesStaffSpreadSheet/show">19.販売員別売上集計表</option>
+                          <option value="LedgerSheetCustomer/show">20.顧客台帳</option>
+                          <option value="LedgerSheetSupplierTotal/show">21.仕入実績</option>
+                          <option value="LedgerSheetTimedSale/show">22.特売一覧</option>
+                          <option value="LedgerSheetTimedSaleRecord/show">23.特売実績</option>
+                          <option value="LedgerSheetHourlySales/show">28.時間帯別実績</option>
+                          <option value="LedgerSheetTotalSalesRecord/show">29.売上実績</option>
+                          <option value="LedgerSheetCreditSalesRecord/show">31.信販実績</option>
+                          <option value="LedgerSheetUnpaidTransactions/show">32.掛売明細一覧</option>
+                          <option value="LedgerSheetDepositsAndWithdrawals/show" selected>33.入出金記録</option>
+                        </select>
+                    </td>
+                    <th id="serchTableTitle" align="center" width="65">営業期間</th>
+                    <td id="serchTableItem" width="230">
+                        <input type="text" pattern="\d{4}/\d{2}/\d{2}" title="西暦/月の形式で入力してください。" id="start_date" name="start_date" size="7" value=<?php hsc($startDate); ?>>
+                        <input type="text" pattern="\d{4}/\d{2}/\d{2}" title="西暦/月の形式で入力してください。" id="end_date" name="end_date" size="7" value=<?php hsc($endDate); ?>>
+                    </td>
+
+                    <th id="serchTableTitle" align="center" width="65">店舗</th>
+                    <td>
+                        <?php include("../FwCommon/View/SearchOrganizationName.php"); ?>
+                    </td>
+                    <td>
+                      <input class="submit" type="submit" name="search" id="search" value="検索" onClick="set_value('serch')">
+<!--                      <input class="submit" type="submit" name="pdfoutput"  id="pdfoutput" value="PDF出力" onClick="set_value('pdfoutput')">-->
+                      <input type="hidden" name="onbtn">
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+<!-- 固定ヘッダ -->
+<table>
+    <tr>
+        <td>
+            <!-- 水平ヘッダ -->
+            <div id="header_h">
+            <table>
+              <tr>
+                <th width=50>No</th>  
+                <th width=50>店舗</th>
+                <th width=76>日付</th>
+                <th width=50>レジ番号</th>
+                <th width=50>取引番号</th>
+                <th width=50>区分</th>
+                <th width=50>入出金<br>コード</th>
+                <th width=50>数量</th>
+                <th width=80>金額</th>
+              </tr>
+            </table>
+            </div>
+        </td>
+    </tr> 
+       <td>
+            <!-- データ部分  -->
+            <div id="data">
+            <table>
+                <?php if(!empty($ledgerSheetDepositsAndWithdrawals) ) { 
+                    $row_cnt = 1;?>
+                <?php foreach ($ledgerSheetDepositsAndWithdrawals as $rows) { ?>
+     <tr>
+                <!-- 番号 -->
+                <th width=50><?php hsc($row_cnt++);?></th>
+
+                <!-- 店舗 -->
+                <td align=center width=50><?php hsc($rows['abbreviated_name']);?></td>
+
+                <!-- 日時 -->
+                <td align=center width=76><?php 
+                hsc(str_replace('-','/',$rows['trndate']));?>
+                </td>
+
+                <!-- レジ番号 -->
+                <td align="right" width="50"><?php hsc($rows['reji_no']);?></td>
+
+                <!-- 取引番号 -->
+                <td align="right" width="50"><?php hsc($rows['account_no']);?></td>
+               
+                <!-- 区分 -->
+                <td align="center" width="102"><?php 
+                    if($rows['acct_in_out_kbn'] == '1')
+                    {echo '入金';}
+                    elseif($rows['acct_in_out_kbn'] == '2')
+                    {echo '出金';}
+                    elseif($rows['acct_in_out_kbn'] == '3')
+                    {echo '回収';}
+                    ?>
+                    </td>
+                 
+                <!-- 入出金コード -->
+                <td align="left" width="120"><?php hsc($rows['acct_in_out_cd']);?></td>
+
+                <!-- 現金 -->
+                <td align="center" width="102"><?php hsc($rows['acct_in_out_money']);?></td>
+                
+
+              
+                <?php }?>
+                <?php }?>
+
+            </table>
+            </div>
+            
+        </td>
+    </tr>
+</table>
+</div>
+</form>
+<script type="text/javascript" src="../jquery/js/scrolltopcontrol2.js"></script>
+<!--スクロールしながらページのトップに戻る-->
+</div><!-- /#sb-site -->
+
+</body>
+</html>

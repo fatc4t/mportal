@@ -1,0 +1,96 @@
+<?php
+    /**
+    * @file        アラートマスタ画面(View)
+    * @author      USE R.dendo
+    * @date        2016/06/24
+    * @version     1.00
+    * @note        アラートマスタ画面(一覧部分)
+    */
+?>
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-ajax">
+
+                <!-- serchListArea -->
+                <div class="serchListArea screenSize" style=" clear:both; width:99%; margin:5px auto !important;">
+                    <input type="hidden" id="token" name="token" value="<?php hsc($TokenID); ?>">
+                    <table id="nameTable">
+                        <tr>
+                            <th width="5%"><?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?></th>
+                            <th width="30%"><?php hsc($Log->getMsgLog('MSG_BASE_0900')); ?></th>
+                            <th width="30%"><?php hsc($Log->getMsgLog('MSG_BASE_0901')); ?></span></th>
+                            <th width="30%"><?php hsc($Log->getMsgLog('MSG_BASE_0902')); ?></span></th>
+                            <th width="10%"></th>
+                        </tr>
+
+                        <?php foreach($alertList as $alert) { ?>
+                            <?php $alert_no++; ?>
+                            <tr>
+                                <input type="hidden" id="alertIdMod<?php hsc($alert_no); ?>" name="alertId<?php hsc($alert_no); ?>" value="<?php hsc($alert['alert_id']); ?>">
+                                <input type="hidden" id="updateTime<?php hsc($alert_no); ?>" name="updateTime<?php hsc($alert_no); ?>" value="<?php hsc($alert['update_time']); ?>">
+                                <td align="right">1</td>
+                                <td input type="hidden" id="sIs_labor_standards_act<?php hsc($alert_no); ?>">
+                                <?php
+                                    if ($alert['is_labor_standards_act']==0) {
+                                        echo "行う";
+                                    } else{
+                                        echo "行わない";
+                                    }
+                                ?>
+                                </td>
+                                <td id="sIs_labor_standards_act-edit<?php hsc($alert_no); ?>" style="display : none">
+                                    <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="sIs_labor_standards_act_select<?php hsc($alert_no); ?>" name="sIs_labor_standards_act-edit<?php hsc($alert_no); ?>" style="width: 150px" required>
+                                        <?php
+                                            if ($alert['is_labor_standards_act']==0) {
+                                        ?>
+                                        <option value="0" selected>行う</option>
+                                        <option value="1">行わない</option>
+                                        <?php
+                                            }else{
+                                        ?>
+                                        <option value="0">行う</option>
+                                        <option value="1" selected>行わない</option>
+                                        <?php
+                                        }
+                                        ?>
+                                    </select>
+                                </td>
+                                <td id="sIs_labor_standards_act_warning<?php hsc($alert_no); ?>">
+                                    <?php
+                                        if ($alert['is_labor_standards_act_warning']==0) {
+                                            echo "行う";
+                                        } else {
+                                            echo "行わない";
+                                        }
+                                    ?>   
+                                </td>
+                                <td id="sIs_labor_standards_act_warning-edit<?php hsc($alert_no); ?>" style="display : none">
+                                    <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="sIs_labor_standards_act_warning_select<?php hsc($alert_no); ?>" name="sIs_labor_standards_act_warning-edit<?php hsc($alert_no); ?>" style="width: 150px" required>
+                                        <?php
+                                            if ($alert['is_labor_standards_act_warning']==0) {
+                                        ?>
+                                        <option value="0" selected>行う</option>
+                                        <option value="1">行わない</option>
+                                        <?php
+                                            }else{
+                                        ?>
+                                        <option value="0">行う</option>
+                                        <option value="1" selected>行わない</option>
+                                        <?php
+                                        }
+                                        ?>
+                                    </select>
+                                </td>
+                                <td id="sWarning_value<?php hsc($alert_no); ?>"><?php hsc($alert['warning_value']); ?>%</td>
+                                <td id="sWarning_value-edit<?php hsc($alert_no); ?>" style="display : none">
+                                    <input type="text" pattern="[1-9][0-9]*" title="<?php hsc($Log->getMsgLog('MSG_BASE_0309')); ?>" id="sWarning_value-edit_input<?php hsc($alert_no); ?>" name="sWarning_value<?php hsc($alert_no); ?>" size="20" maxlength="3" value="<?php hsc($alert['warning_value']); ?>" class="En" required>%
+                                </td>
+                                <td align="center">
+                                    <input type="button" id="edtBtn<?php hsc($alert_no); ?>" value="<?php hsc($Log->getMsgLog('MSG_BASE_0801')); ?>" onclick="editRow(this)" <?php hsc($alert['cor_disabled']); ?>>
+                                    <input type="submit" id="edtBtn-mod<?php hsc($alert_no); ?>" name="mod<?php hsc($alert_no); ?>" style="display : none" value="更新" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>')" <?php hsc($alert['mod_disabled']); ?>>
+                                </td>
+                            </tr>
+                        <?php } ?>
+                    </table>
+                </div><!-- /.serchListArea -->
+            </div><!-- /.jquery-replace-ajax -->

@@ -1,0 +1,88 @@
+<?php
+    /**
+     * @file      在庫調査表帳票画面(View)
+     * @author    media craft
+     * @date      2018/03/22
+     * @version   1.00
+     * @note      在庫調査表帳票画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>在庫調査表</title>
+
+    <STYLE type="text/css">
+        html,body{width:100%;height:100%;}
+        header{width:100%;height:45px;}
+        main{width:100%;height:910px;}
+        footer{width:100%;height:35px;position:absolute;bottom:0;}
+        .barcode {
+            padding: 1.5mm;
+            margin: 0;
+            vertical-align: top;
+            color: #000044;
+        }
+        .barcodecell {
+            text-align: center;
+            vertical-align: middle;
+        }
+    </STYLE>
+</head>
+<body>
+    <!--<div style="page-break-before: always;">-->
+    <div>
+    <header>
+        <div align="left" style="font-style:oblique; line-height: 5px;">
+            <h1><span>在庫調査表</span></h1>
+        </div>
+        <table style="border-bottom:solid 3px #000000;line-height:5px;font-size:28px;">
+            <tr>
+                <th align="left" style="width:260px;font-style:oblique;">　商品コード</th>
+                <th align="left" style="width:260px;font-style:oblique;">商品名</th>
+                <th align="left" style="width:90px;font-style:oblique;">容量</th>
+                <th align="left" style="width:100px;font-style:oblique;">売価</th>
+                <th align="left" style="width:150px;font-style:oblique;">分類CD</th>
+                <th align="left" style="width:120px;font-style:oblique;">分類名</th>
+                <th align="left" style="width:120px;font-style:oblique;">現在庫</th>
+                <th align="left" style="width:120px;font-style:oblique;">死に筋</th>
+                <th align="left" style="width:140px;font-style:oblique;">実在庫数</th>
+            </tr>
+        </table>
+    </header>
+    <main>
+        <?php if( !empty($list) ) { ?>
+            <?php foreach ($list as $trows ) { ?>
+        <table style="border-bottom:solid 1px #000000;line-height:5px;font-size:22px;">
+            <tr>
+                <td align="left" style="width:280px;"><?php echo $trows['prod_cd']; ?></td>
+                <td align="left" style="width:260px;"><?php echo $trows['prod_kn']; ?></td>
+                <td align="left" style="width:80px;"><?php echo $trows['prod_capa_kn']; ?></td>
+                <td align="left" style="width:90px;"><?php echo number_format($trows['saleprice']); ?></td>
+                <td align="left" style="width:150px;"><?php echo $trows['jicfs_class_cd']; ?></td>
+                <td align="left" style="width:120px;"><?php echo $trows['jicfs_class_nm']; ?></td>
+                <td align="center" style="width:120px;"><?php echo $trows['total_stock_amount']; ?></td>
+                <td align="center" style="width:120px;"><?php echo $trows['dead_months']; ?></td>
+                <td align="left" style="width:140px;"></td>
+            </tr>
+            <tr>
+                <td colspan="9">
+                    <barcode code="<?php echo($trows['prod_cd']); ?>" type="EAN13"/>
+                </td>
+            </tr>
+        </table>
+            <?php } ?>
+        <?php } ?>
+    </main>
+    <footer>
+        <table style="border-top: solid 3px #434359;width:100%; font-size: 20px;">
+            <tr>
+                <td style="width:800px; font-style:oblique;">2018年3月12日</td>
+                <td style="width:300px; font-style:oblique;">1/1ページ</td>
+            <tr>
+        </table>
+    </footer>
+</div>
+</body>
+</html>

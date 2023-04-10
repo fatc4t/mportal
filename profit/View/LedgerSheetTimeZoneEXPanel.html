@@ -1,0 +1,172 @@
+<?php
+    /**
+     * @file      時間帯別帳票画面(View)
+     * @author    millionet oota
+     * @date      2016/06/30
+     * @version   1.00
+     * @note      時間帯別帳票画面
+     */
+?>
+<?php
+    header('Content-Type: application/vnd.ms-excel');
+    header('Content-Disposition: attachment; filename="時間帯別帳票.xls"');
+ ?>
+<!DOCTYPE html>
+<html>
+    <head>
+<?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- Stylesheets -->
+    <STYLE type="text/css">
+#sb-site .serchListArea {
+	margin:10px 10px;
+}
+
+.serchListArea table th {
+  color: #fff;
+  padding: 2px 2px;
+  background: #0D0D70;
+  border-left:1px solid #000000;
+  border-right:1px solid #000000;
+  border-top:1px solid #000000;
+  border-bottom:1px solid #000000;
+  line-height: 120%;
+  text-align: center;
+  text-shadow:0 -1px 0 rgba(34,85,136,0.9);
+  box-shadow: 0px 1px 1px rgba(255,255,255,0.3) inset;
+  height:25px;
+}
+.serchListArea table th:first-child {
+  border-radius: 5px 0 0 0;	
+}
+.serchListArea table th:last-child {
+  border-radius:0 5px 0 0;
+  border-right:1px solid #258;
+  box-shadow: 2px 2px 1px rgba(0,0,0,0.1),0px 1px 1px rgba(255,255,255,0.3) inset;
+}
+.serchListArea table tr td {
+  padding: 2px 2px;
+  border-top: 1px solid #000000;
+  border-bottom: 1px solid #000000;
+  border-left: 1px solid #000000;
+  border-right: 1px solid #000000;
+  vertical-align: middle;
+  height: 25px;
+}
+.serchListArea tr:nth-child(even) td {  
+  background-color: #EFEFEF;  
+}
+    </STYLE>
+    </head>
+    <body>
+<!-- Site -->
+<div id="sb-site">
+<form name="serchForm">
+<div class="serchListArea">
+<table>
+    <tr>
+        <td>
+            <table id="serchTable">
+                <tr>
+                    <th align="center" width="65">帳票種別</th>
+                    <td>時間帯別帳票</td>
+                    <th align="center" width="65">集計期間</th>
+                    <td><?php hsc($startDate); ?> ～ <?php hsc($endDate); ?></td>
+                    <th align="center" width="65">店舗</th>
+                    <td>
+                        <?php foreach($abbreviatedNameList as $abbreviated) { ?>
+                            <?php if($abbreviated['organization_id'] == $searchArray['organizationID']) { ?>
+                                <?php hsc($abbreviated['abbreviated_name']); ?>
+                            <?php } ?>
+                        <?php } ?>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+<br/>
+<!-- ヘッダ部分 -->
+<table>
+    <tr>
+        <th width="90" align="center"></th>
+        <td>
+            <!-- 水平ヘッダ 現在は固定 -->
+            <div id="header_h">                                      
+            <table>
+                <tr>
+                    <th align='center' width=50>売上(税抜)</th>
+                    <th align='center' width=50>売上(税込)</th>
+                    <th align='center' width=50>客数</th>
+                    <th align='center' width=50>組数</th>
+                    <th align='center' width=50>販売点数</th>
+                    <th align='center' width=50>クーポン(税込)</th>
+                    <th align='center' width=50>クーポン(内税)</th>
+                    <th align='center' width=50>クーポン枚数</th>
+                </tr>
+            </table>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <!-- 垂直ヘッダ -->
+            <div id="header_v">
+                <table style="width: 90px;">
+                <!-- タイトル部  -->
+                <?php if( !empty($ledgerSheetTimeZoneList) ) { ?>
+                    <?php foreach ($ledgerSheetTimeZoneList as $rows ) { ?>
+                        <tr>
+                            <th align='left' width=50><?php hsc($rows['time_zone_name']); ?></th>
+                        </tr>
+                    <?php } ?>
+                <?php } ?>
+                <tr>
+                    <th align='left' width=50>合計</th>
+                </tr>
+            </table>
+            </div>
+        </td>
+        <td>
+            <!-- データ部分  -->
+            <div id="data">
+            <table>
+                <?php if( !empty($timeDataList) ) { ?>
+                    <?php foreach ($timeDataList as $trows ) { ?>
+                <tr>
+                    <td align='right' width=50><?php hsc(number_format($trows['sales'])); ?></td>
+                    <td align='right' width=50><?php hsc(number_format($trows['sales_tax'])); ?></td>
+                    <td align='right' width=50><?php hsc(number_format($trows['guest_count'])); ?></td>
+                    <td align='right' width=50><?php hsc(number_format($trows['group_count'])); ?></td>
+                    <td align='right' width=50><?php hsc(number_format($trows['count'])); ?></td>
+                    <td align='right' width=50><?php hsc(number_format($trows['coupon'])); ?></td>
+                    <td align='right' width=50><?php hsc(number_format($trows['coupon_tax'])); ?></td>
+                    <td align='right' width=50><?php hsc(number_format($trows['coupon_count'])); ?></td>
+                </tr>
+                    <?php } ?>
+                <?php } ?>
+            <!-- 合計部  -->
+                <?php if( !empty($sumDataList) ) { ?>
+                    <?php foreach ($sumDataList as $trows ) { ?>
+                <tr>
+                    <td align='right' width=50><?php hsc(number_format($trows['sales'])); ?></td>
+                    <td align='right' width=50><?php hsc(number_format($trows['sales_tax'])); ?></td>
+                    <td align='right' width=50><?php hsc(number_format($trows['guest_count'])); ?></td>
+                    <td align='right' width=50><?php hsc(number_format($trows['group_count'])); ?></td>
+                    <td align='right' width=50><?php hsc(number_format($trows['count'])); ?></td>
+                    <td align='right' width=50><?php hsc(number_format($trows['coupon'])); ?></td>
+                    <td align='right' width=50><?php hsc(number_format($trows['coupon_tax'])); ?></td>
+                    <td align='right' width=50><?php hsc(number_format($trows['coupon_count'])); ?></td>
+                </tr>
+                    <?php } ?>
+                <?php } ?>
+            </table>
+            </div>
+        </td>
+    </tr>
+</table>
+</div>
+</form>
+</div><!-- /#sb-site -->
+</body>
+</html>

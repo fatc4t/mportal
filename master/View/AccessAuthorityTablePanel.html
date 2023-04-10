@@ -1,0 +1,309 @@
+<?php
+    /**
+     * @file      アクセス権限マスタ(View)
+     * @author    USE Y.Sakata
+     * @date      2016/07/02
+     * @version   1.00
+     * @note      アクセス権限マスタ画面(一覧部分)
+     */
+?>
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-ajax">
+
+                <!-- PageMoveArea -->
+                <?php include("../FwCommon/View/PagingArea.php"); ?>
+
+                <!-- serchListArea -->
+                <?php if( $isScrollBar ) { ?>
+                    <div class="serchListArea" style=" clear:both; width:99%; margin:0px auto; overflow-y:auto; height:25px; !important;">
+                <?php } else { ?>
+                    <div class="serchListArea" style=" clear:both; width:99%; margin:5px auto !important;">
+                <?php } ?>
+                    <input type="hidden" id="token" name="token" value="<?php hsc($TokenID); ?>">
+                    <table style="background-color: #ffffff">
+                        <tr>
+                            <th width="37px">
+                                <span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?>');">
+                                    <u><?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?><?php hsc($headerArray['noSortMark']); ?></u>
+                                </span>
+                            </th>
+                            <th width="62px">
+                                <span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0849')); ?>');">
+                                    <u><?php hsc($Log->getMsgLog('MSG_BASE_0849')); ?><?php hsc($headerArray['stateSortMark']); ?></u>
+                                </span>
+                            </th>
+                            <th width="74px">
+                                <span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0920')); ?>');">
+                                    <u><?php hsc($Log->getMsgLog('MSG_BASE_0920')); ?><?php hsc($headerArray['accessAuthoritySortMark']); ?></u>
+                                </span>
+                            </th>
+                            <th width="111px">
+                                <span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0921')); ?>');">
+                                    <u><?php hsc($Log->getMsgLog('MSG_BASE_0921')); ?><?php hsc($headerArray['functionSortMark']); ?></u>
+                                </span>
+                            </th>
+                            <th width="185px">
+                                <span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0922')); ?>');">
+                                    <u><?php hsc($Log->getMsgLog('MSG_BASE_0922')); ?><?php hsc($headerArray['screenNameSortMark']); ?></u>
+                                </span>
+                            </th>
+                            <th width="185px">
+                                <span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0923')); ?>');">
+                                    <u><?php hsc($Log->getMsgLog('MSG_BASE_0923')); ?><?php hsc($headerArray['urlSortMark']); ?></u>
+                                </span>
+                            </th>
+                            <th width="185px">
+                                <span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0892')); ?>');">
+                                    <u><?php hsc($Log->getMsgLog('MSG_BASE_0892')); ?><?php hsc($headerArray['commentSortMark']); ?></u>
+                                </span>
+                            </th>
+                            <th width="37px">
+                                <span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0886')); ?>');">
+                                    <u><?php hsc($Log->getMsgLog('MSG_BASE_0886')); ?><?php hsc($headerArray['referenceSortMark']); ?></u>
+                                </span>
+                            </th>
+                            <th width="37px">
+                                <span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0887')); ?>');">
+                                    <u><?php hsc($Log->getMsgLog('MSG_BASE_0887')); ?><?php hsc($headerArray['registrationSortMark']); ?></u>
+                                </span>
+                            </th>
+                            <th width="37px">
+                                <span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0888')); ?>');">
+                                    <u><?php hsc($Log->getMsgLog('MSG_BASE_0888')); ?><?php hsc($headerArray['deleteSortMark']); ?></u>
+                                </span>
+                            </th>
+                            <th width="37px">
+                                <span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0889')); ?>');">
+                                    <u><?php hsc($Log->getMsgLog('MSG_BASE_0889')); ?><?php hsc($headerArray['approvalSortMark']); ?></u>
+                                </span>
+                            </th>
+                            <th width="37px">
+                                <span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0890')); ?>');">
+                                    <u><?php hsc($Log->getMsgLog('MSG_BASE_0890')); ?><?php hsc($headerArray['printingSortMark']); ?></u>
+                                </span>
+                            </th>
+                            <th width="37px">
+                                <span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0891')); ?>');">
+                                    <u><?php hsc($Log->getMsgLog('MSG_BASE_0891')); ?><?php hsc($headerArray['outputSortMark']); ?></u>
+                                </span>
+                            </th>
+                            <th width="62px">
+                                <span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0899')); ?>');">
+                                    <u><?php hsc($Log->getMsgLog('MSG_BASE_0852')); ?><?php hsc($headerArray['dispOrderSortMark']); ?></u>
+                                </span>
+                            </th>
+                            <th width="111px"></th>
+                        </tr>
+                    </table>
+                <?php if( $isScrollBar ) { ?>
+                    </div>
+                    <div class="serchListArea" style="width:99%; margin: 0px auto; overflow-y:auto; height:300px; !important;">
+                <?php } ?>
+                    <table id="nameTable" style="background-color: #ffffff">
+                        <?php 
+                            if( !empty($accessAuthorityList) ) 
+                            {
+                                $rowNo=0;
+                                foreach($accessAuthorityList as $accessAuthority)
+                                {
+                                    $rowNo++;
+                                    if(!$sectionNoSortFlag)
+                                    {
+                                        $display_no++;
+                                    }
+                        ?>
+                                    <tr>
+                                        <input type="hidden" id="updateTime<?php hsc($rowNo); ?>" name="updateTime<?php hsc($rowNo); ?>" value="<?php hsc($accessAuthority['update_time']); ?>">
+                                        <td align="right" width="37px">
+                                            <?php
+                                                hsc($display_no);
+                                             ?>
+                                        </td>
+                                        <td align="center" width="62px">
+                                            <?php
+                                                $del_state = "";
+                                                if( !empty( $accessAuthority['is_del'] ) )
+                                                {
+                                                    $del_state = "削除";
+                                                }
+                                                hsc($del_state);
+                                            ?>
+                                        </td>
+                                        <td id="sAccessAuthority<?php hsc($rowNo); ?>" align="right" width="74px">
+                                            <?php hsc($accessAuthority['access_authority_id']); ?>
+                                            <input type="hidden" id="accessAuthorityIDMod<?php hsc($rowNo); ?>" name="sAccessAuthority<?php hsc($rowNo); ?>" value="<?php hsc($accessAuthority['access_authority_id']); ?>">
+                                        </td>
+                                        <td id="sFunction<?php hsc($rowNo); ?>"  width="111px"><?php hsc($accessAuthority['function_name']); ?></td>
+                                        <td id="sFunction-edit<?php hsc($rowNo); ?>" style="display : none" align="center" width="111px">
+                                            <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0921')); ?>" id="functionIDMod<?php hsc($rowNo); ?>" name="sFunction<?php hsc($rowNo); ?>" style="width: 100px" required>
+                                                <?php
+                                                    foreach($functionIdList as $functionId)
+                                                    {
+                                                        $selected = "";
+                                                        if($accessAuthority['function_id'] == $functionId['function_id'])
+                                                        {
+                                                            $selected = "selected";
+                                                        }
+                                                ?>
+                                                        <option value="<?php hsc($functionId['function_id']); ?>" <?php hsc($selected); ?>><?php hsc($functionId['function_name']); ?></option>
+                                                <?php 
+                                                    }
+                                                ?>
+                                            </select>
+                                        </td>
+                                        <td id="sScreenName<?php hsc($rowNo); ?>"  width="185px"><?php hsc($accessAuthority['screen_name']); ?></td>
+                                        <td id="sScreenName-edit<?php hsc($rowNo); ?>" style="display : none" align="center" width="185px">
+                                            <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" id="screenNameMod<?php hsc($rowNo); ?>" name="sScreenName<?php hsc($rowNo); ?>" size="25" maxlength="30" value="<?php hsc($accessAuthority['screen_name']); ?>" class="Em" required>
+                                        </td>
+                                        <td id="sUrl<?php hsc($rowNo); ?>" width="185px"><?php hsc($accessAuthority['url']); ?></td>
+                                        <td id="sUrl-edit<?php hsc($rowNo); ?>" style="display : none" align="center" width="185px">
+                                            <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0923')); ?>" id="urlMod<?php hsc($rowNo); ?>" name="sUrl<?php hsc($rowNo); ?>" size="25" maxlength="128" value="<?php hsc($accessAuthority['url']); ?>" class="En" required>
+                                        </td>
+                                        <td id="sComment<?php hsc($rowNo); ?>" width="185px"><?php hsc($accessAuthority['comment']); ?></td>
+                                        <td id="sComment-edit<?php hsc($rowNo); ?>" style="display : none" align="center" width="185px">
+                                            <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0892')); ?>" id="commentMod<?php hsc($rowNo); ?>" name="sComment<?php hsc($rowNo); ?>" size="25" maxlength="50" value="<?php hsc($accessAuthority['comment']); ?>" class="Em" required>
+                                        </td>
+                                        <td id="sReference<?php hsc($rowNo); ?>" align="center" width="37px">
+                                            <?php
+                                                $outName = "";
+                                                if( 1 == $accessAuthority['reference'] )
+                                                {
+                                                    $outName = "有";
+                                                }
+                                                hsc( $outName );
+                                            ?>
+                                        </td>
+                                        <td id="sReference-edit<?php hsc($rowNo); ?>" style="display : none" align="center" width="37px">
+                                            <?php
+                                                $checked = "";
+                                                if( 1 == $accessAuthority['reference'] )
+                                                {
+                                                    $checked = "checked";
+                                                }
+                                            ?>
+                                            <input type="checkbox" title="<?php hsc($Log->getMsgLog('MSG_BASE_0886')); ?>" id="referenceMod<?php hsc($rowNo); ?>" name="sReference<?php hsc($rowNo); ?>" <?php hsc($checked); ?> >
+                                        </td>
+                                        <td id="sRegistration<?php hsc($rowNo); ?>" align="center" width="37px">
+                                            <?php
+                                                $outName = "";
+                                                if( 1 == $accessAuthority['registration'] )
+                                                {
+                                                    $outName = "有";
+                                                }
+                                                hsc( $outName );
+                                            ?>
+                                        </td>
+                                        <td id="sRegistration-edit<?php hsc($rowNo); ?>" style="display : none" align="center" width="37px">
+                                            <?php
+                                                $checked = "";
+                                                if( 1 == $accessAuthority['registration'] )
+                                                {
+                                                    $checked = "checked";
+                                                }
+                                            ?>
+                                            <input type="checkbox" title="<?php hsc($Log->getMsgLog('MSG_BASE_0887')); ?>" id="registrationMod<?php hsc($rowNo); ?>" name="sRegistration<?php hsc($rowNo); ?>" <?php hsc($checked); ?> >
+                                        </td>
+                                        <td id="sDelete<?php hsc($rowNo); ?>" align="center" width="37px">
+                                            <?php
+                                                $outName = "";
+                                                if( 1 == $accessAuthority['delete'] )
+                                                {
+                                                    $outName = "有";
+                                                }
+                                                hsc( $outName );
+                                            ?>
+                                        </td>
+                                        <td id="sDelete-edit<?php hsc($rowNo); ?>" style="display : none" align="center" width="37px">
+                                            <?php
+                                                $checked = "";
+                                                if( 1 == $accessAuthority['delete'] )
+                                                {
+                                                    $checked = "checked";
+                                                }
+                                            ?>
+                                            <input type="checkbox" title="<?php hsc($Log->getMsgLog('MSG_BASE_0888')); ?>" id="deleteMod<?php hsc($rowNo); ?>" name="sDelete<?php hsc($rowNo); ?>" <?php hsc($checked); ?> >
+                                        </td>
+                                        <td id="sApproval<?php hsc($rowNo); ?>" align="center" width="37px">
+                                            <?php
+                                                $outName = "";
+                                                if( 1 == $accessAuthority['approval'] )
+                                                {
+                                                    $outName = "有";
+                                                }
+                                                hsc( $outName );
+                                            ?>
+                                        </td>
+                                        <td id="sApproval-edit<?php hsc($rowNo); ?>" style="display : none" align="center" width="37px">
+                                            <?php
+                                                $checked = "";
+                                                if( 1 == $accessAuthority['approval'] )
+                                                {
+                                                    $checked = "checked";
+                                                }
+                                            ?>
+                                            <input type="checkbox" title="<?php hsc($Log->getMsgLog('MSG_BASE_0889')); ?>" id="approvalMod<?php hsc($rowNo); ?>" name="sApproval<?php hsc($rowNo); ?>" <?php hsc($checked); ?> >
+                                        </td>
+                                        <td id="sPrinting<?php hsc($rowNo); ?>" align="center" width="37px">
+                                            <?php
+                                                $outName = "";
+                                                if( 1 == $accessAuthority['printing'] )
+                                                {
+                                                    $outName = "有";
+                                                }
+                                                hsc( $outName );
+                                            ?>
+                                        </td>
+                                        <td id="sPrinting-edit<?php hsc($rowNo); ?>" style="display : none" align="center" width="37px">
+                                            <?php
+                                                $checked = "";
+                                                if( 1 == $accessAuthority['printing'] )
+                                                {
+                                                    $checked = "checked";
+                                                }
+                                            ?>
+                                            <input type="checkbox" title="<?php hsc($Log->getMsgLog('MSG_BASE_0890')); ?>" id="printingMod<?php hsc($rowNo); ?>" name="sPrinting<?php hsc($rowNo); ?>" <?php hsc($checked); ?> >
+                                        </td>
+                                        <td id="sOutput<?php hsc($rowNo); ?>" align="center" width="37px">
+                                            <?php
+                                                $outName = "";
+                                                if( 1 == $accessAuthority['output'] )
+                                                {
+                                                    $outName = "有";
+                                                }
+                                                hsc( $outName );
+                                            ?>
+                                        </td>
+                                        <td id="sOutput-edit<?php hsc($rowNo); ?>" style="display : none" align="center" width="37px">
+                                            <?php
+                                                $checked = "";
+                                                if( 1 == $accessAuthority['output'] )
+                                                {
+                                                    $checked = "checked";
+                                                }
+                                            ?>
+                                            <input type="checkbox" title="<?php hsc($Log->getMsgLog('MSG_BASE_0891')); ?>" id="outputMod<?php hsc($rowNo); ?>" name="sOutput<?php hsc($rowNo); ?>" <?php hsc($checked); ?> >
+                                        </td>
+                                        <td id="sDisp<?php hsc($rowNo); ?>" align="right" width="62px"><?php hsc($accessAuthority['disp_order']); ?></td>
+                                        <td id="sDisp-edit<?php hsc($rowNo); ?>" style="display : none" align="center" width="62px">
+                                            <input type="text" pattern="[1-9][0-9]*" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" id="modDispOrder<?php hsc($rowNo); ?>" name="sDisp<?php hsc($rowNo); ?>" size="4" maxlength="5" value="<?php hsc($accessAuthority['disp_order']); ?>" class="En" required>
+                                        </td>
+                                        <td align="center" width="111px">
+                                            <?php if(empty($accessAuthority['is_del'])) { ?>
+                                                <input type="button" id="edtBtn<?php hsc($rowNo); ?>" value="<?php hsc($Log->getMsgLog('MSG_BASE_0801')); ?>" onclick="editRow(this)" <?php hsc($accessAuthority['cor_disabled']); ?> >
+                                                <input type="submit" id="edtBtn-mod<?php hsc($rowNo); ?>" name="mod<?php hsc($rowNo); ?>" style="display : none;" value="<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>')" <?php hsc($accessAuthority['mod_disabled']); ?> >
+                                                <input type="submit" id="edtBtn-del<?php hsc($rowNo); ?>" name="del<?php hsc($rowNo); ?>" style="display : none;" value="<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>')" <?php hsc($accessAuthority['del_disabled']); ?> >
+                                            <?php } ?>
+                                        </td>
+                                    </tr>
+                                <?php
+                                    if($sectionNoSortFlag)
+                                    {
+                                        $display_no--;
+                                    }
+                                }
+                            }
+                        ?>
+                    </table>
+                </div><!-- /.serchListArea -->
+            </div><!-- /.jquery-replace-ajax -->

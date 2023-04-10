@@ -1,0 +1,682 @@
+<?php
+    /**
+     * @file      勤怠修正マスタ画面(View)
+     * @author    USE R.dendo
+     * @date      2016/07/14
+     * @version   1.00
+     * @note      勤怠修正マスタ画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array( 'default.css',
+                                'common.js', 
+                                'jquery-ui.min.js', 
+                                'jquery-ui.css' );    // cssまたはｊｓファイルを拡張子付きで配列に記述 
+
+            include("Common/HtmlHeader.php");
+        ?>
+        <script src="../js/attendance/jquery/jquery.ui.ympicker.js" /></script>
+        <script src="../js/attendance/jquery/jquery-migrate-1.0.0.js" /></script>
+        <script src="../js/attendance/jquery/datepicker-ja.js" /></script>
+        <script type="text/javascript">
+            var attendanceCnt = null;
+            var btnInfo  = null;
+            $(document).ready(function()
+            {
+                /**
+                 * 検索ボタンクリック
+                 */
+                $('#searchForm').submit(function(event)
+                {
+                    event.preventDefault();
+
+                    var isScreen = 2; // 個人の一ヶ月分の勤怠修正
+                    var date = $('#datetextYm').val();
+                    var targetDayBulk = 0;
+                    // 検索用データの設定
+                    if($("[name=dateTimeUnit]:checked").val() === "日")
+                    {
+                        date = $('#datetext').val();
+                        if($("[name=targetUnit]:checked").val() === "個人")
+                        {
+                            // 個人の日単位の勤怠修正
+                            isScreen = 1;
+                        }
+                        else
+                        {
+                            // 対象日一括修正
+                            isScreen = 3;
+                            targetDayBulk = 3;
+                        }
+                    }
+
+                    // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                    var data = {
+                                    date : date,
+                                    userId : $('#searchUser').val(),
+                                    searchOrganizatioID : $('#organizationName').val(),
+                                    dateTimeUnit : $("[name=dateTimeUnit]:checked").val(),
+                                    targetDayBulk : targetDayBulk,
+                                    isScreen : isScreen,
+                               }
+                    var path = 'index.php?param=AttendanceCorrection/search&home=1';
+
+                    // データ更新
+                    setDataForAjax( data, path );
+                    setNewDataClear( data );
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+                /**
+                 * 追加ボタンクリック
+                 */
+                $('#addForm').submit(function(event)
+                {
+                    event.preventDefault();
+
+                    document.getElementById("dialog_add").textContent='<?php hsc(SystemParameters::$NEW_DIALOG_MSG); ?>';
+
+                    $("#dialog_add").dialog('open');
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+                /**
+                 * 更新/削除ボタンクリック
+                 */
+                $('#modForm').submit(function(event)
+                {
+                    event.preventDefault();
+
+                    if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>' )
+                    {
+                        document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$UPDATE_DIALOG_MSG); ?>';
+                    }
+                    else if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0803")); ?>' )
+                    {
+                        document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$DELETE_DIALOG_MSG); ?>';
+                    }
+                    else
+                    {
+                        document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$SHELF_REGIST_MSG); ?>';
+                    }
+                    
+                    $("#dialog_mod").dialog('open');
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+                
+                /**
+                 * 日・月のラジオボタン変更イベント
+                 */
+                $("input:radio[name=dateTimeUnit]").change(function()
+                {
+                    if($("[name=dateTimeUnit]:checked").val() === "日")
+                    {
+                        $('#datetextYm').css('display' , 'none');
+                        $('#datetext').css('display' , '');
+                        $('#targetUnit_o').prop('disabled', false);
+                    }
+                    else
+                    {
+                        $('#datetextYm').css('display' , '');
+                        $('#datetext').css('display' , 'none');
+                        // 組織は、選択不可
+                        $('#targetUnit_o').prop('disabled', true);
+                        document.getElementsByName("targetUnit")[0].checked = true;
+                    }
+                });
+                
+                // ラジオボタンの初期設定
+                if( <?php hsc($isScreen); ?> == 2 )
+                {
+                    document.getElementsByName("dateTimeUnit")[1].checked = true;
+                    $('#datetextYm').css('display' , '');
+                    $('#datetext').css('display' , 'none');
+                }
+                else
+                {
+                    $('#datetextYm').css('display' , 'none');
+                    $('#datetext').css('display' , '');
+                }
+                
+            });
+            
+            /**
+             * 更新キャンセル
+             */
+            function cancel()
+            {
+                var date   = $('#date_' + attendanceCnt).val();
+                var userId = $('#userID_' + attendanceCnt).val();
+
+                // 値が取得できているか
+                if( undefined === date )
+                {
+                    // できていない場合、検索条件の内容を取得する
+                    date   = $('#datetextYm').val();
+                    if($("[name=dateTimeUnit]:checked").val() === "日")
+                    {
+                        date = $('#datetext').val();
+                    }
+                    
+                    userId = $('#searchUser').val();
+                }
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                                date: date,
+                                userId: userId,
+                                searchOrganizatioID: $('#organizationName').val(),
+                                dateTimeUnit: $('#dateTimeUnitView').val(),
+                                targetDayBulk : $('#targetDayBulk').val(),
+                                isScreen : $('#isScreen').val(),
+                           }
+                var path = 'index.php?param=AttendanceCorrection/search&home=1';
+
+                // データ更新
+                setDataForAjax( data, path );
+            }
+
+            /**
+             * 新規作成データの設定
+             */
+            function setAddData()
+            {
+                attendanceCnt = 0;
+                var path = 'index.php?param=AttendanceCorrection/add&home=1';
+                
+                // データ更新の実行
+                exeModData(path);
+            }
+
+            /**
+             * 更新用データの設定
+             */
+            function setModData()
+            {
+                var path = '';
+                if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>' )
+                {
+                    path = 'index.php?param=AttendanceCorrection/mod&home=1';
+                }
+                else if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0803")); ?>' )
+                {
+                    path = 'index.php?param=AttendanceCorrection/del&home=1';
+                }
+                else
+                {
+                    // 一括登録
+                    bulkRegistration();
+                    return;
+                }
+
+                // データ更新の実行
+                exeModData(path);
+            }
+
+            /**
+             * データ更新の実行
+             */
+            function exeModData( path )
+            {
+                // 打刻組織が指定されていない場合、エラーとする
+                if( $('#organizationName_' + attendanceCnt).val() == "" )
+                {
+                    alert("打刻する組織名を指定してください。");
+                    return;
+                }
+                
+                var searchdate = $('#datetextYm').val();
+                // 検索用データの設定
+                if($("[name=dateTimeUnit]:checked").val() === "日")
+                {
+                    searchdate = $('#datetext').val();
+                }
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                            attendanceId : $('#attendanceID_' + attendanceCnt ).val(),
+                            searchdate: searchdate,
+                            date: $('#date_' + attendanceCnt).val(),
+                            attendance_time : addColon($('#attendanceTimeMod_' + attendanceCnt).val()),
+                            organizationId : $('#organizationName_' + attendanceCnt).val(),
+                            searchOrganizatioID : $('#organizationName').val(),
+                            clock_out_time : addColon($('#clockOutTimeMod_' + attendanceCnt).val()),
+                            s_break_time_1 : addColon($('#sBreakTimeMod1_' + attendanceCnt).val()),
+                            e_break_time_1 : addColon($('#eBreakTimeMod1_' + attendanceCnt).val()),
+                            s_break_time_2 : addColon($('#sBreakTimeMod2_' + attendanceCnt).val()),
+                            e_break_time_2 : addColon($('#eBreakTimeMod2_' + attendanceCnt).val()),
+                            s_break_time_3 : addColon($('#sBreakTimeMod3_' + attendanceCnt).val()),
+                            e_break_time_3 : addColon($('#eBreakTimeMod3_' + attendanceCnt).val()),
+                            isholiday      : $('#holidayName_' + attendanceCnt).val(),
+                            updateTime : $('#updateTime_' + attendanceCnt).val(),
+                            userId : $('#userID_' + attendanceCnt).val(),
+                            approval : $('#approval_' + attendanceCnt).val(),
+                            token : $('#token').val(),
+                            dateTimeUnit : $('#dateTimeUnitView').val(),
+                            targetDayBulk : $('#targetDayBulk').val(),
+                            isScreen : $('#isScreen').val(),
+                            <?php
+                            foreach( $manualAllowanceList as $manualAllowance )
+                            {
+                            ?>
+                                allowanceId_<?php hsc($manualAllowance['allowance_id']); ?> : document.getElementById("allowanceId_<?php hsc($manualAllowance['allowance_id']); ?>_" + attendanceCnt).checked,
+                            <?php
+                            }
+                            ?>
+                        };
+
+                // データ更新
+                setDataForAjax( data, path, 'jquery-replace-ajax', false );
+            }
+
+            /**
+             * 行情報を設定
+             */
+            function setLineInfo(localAttendance, thisBtnInfo)
+            {
+                attendanceCnt = localAttendance;
+                btnInfo  = thisBtnInfo;
+                return false;
+            }
+            
+            /**
+             * 前日/翌日　前月/翌月データの設定
+             */
+            function dateMoved(userID, dateCheck)
+            {
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var dateTarget = $('#target_date_next').val();
+                if(dateCheck == 0)
+                {
+                    dateTarget = $('#target_date_prev').val();
+                }
+                var data = {
+                                date   : dateTarget,
+                                userId : userID,
+                                dateTimeUnit : $('#dateTimeUnitView').val(),
+                                targetDayBulk : $('#targetDayBulk').val(),
+                                searchOrganizatioID : $('#organizationName').val(),
+                                isScreen : $('#isScreen').val(),
+                           };
+                var path = 'index.php?param=AttendanceCorrection/search&home=1';
+                // データ更新
+                setDataForAjax( data, path );
+                setNewDataClear( data );
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+            
+            /**
+             * 戻るボタン押下時処理
+             */
+            function returnScreen()
+            {
+                location.href='index.php?param=AttendanceRecord/show&home=1';
+            }
+            
+            /**
+             * 一括更新ボタン押下時処理
+             */
+            function pushBulkRegistration( localAttendance, thisBtnInfo )
+            {
+                // 初期設定
+                setLineInfo(localAttendance, thisBtnInfo);
+                $('#modForm').submit();
+            }
+            
+            /**
+             * 一括更新処理
+             */
+            function bulkRegistration()
+            {
+                // 打刻場所
+                var outputItemNameArray = $(".organizationName").map(function()
+                {
+                    return $(this).val();
+                }).get();
+                
+                // 勤務状況
+                var holidayNameArray = $(".holidayName").map(function()
+                {
+                    return $(this).val();
+                }).get();
+                
+                // 日付
+                var dateArray = $(".date").map(function()
+                {
+                    return $(this).val();
+                }).get();
+                
+                // 打刻ID
+                var attendanceIDArray = $(".attendanceID").map(function()
+                {
+                    return $(this).val();
+                }).get();
+                
+                // 更新時間
+                var updateTimeArray = $(".updateTime").map(function()
+                {
+                    return $(this).val();
+                }).get();
+                
+                // ユーザID
+                var userIDArray = $(".userID").map(function()
+                {
+                    return $(this).val();
+                }).get();
+                
+                // 出勤時間
+                var attendanceTimeModArray = $(".attendanceTimeMod").map(function()
+                {
+                    return addColon($(this).val());
+                }).get();
+
+                // 休憩開始1
+                var sBreakTimeMod1Array = $(".sBreakTimeMod1").map(function()
+                {
+                    return addColon($(this).val());
+                }).get();
+
+                // 休憩終了1
+                var eBreakTimeMod1Array = $(".eBreakTimeMod1").map(function()
+                {
+                    return addColon($(this).val());
+                }).get();
+
+                // 休憩開始2
+                var sBreakTimeMod2Array = $(".sBreakTimeMod2").map(function()
+                {
+                    return addColon($(this).val());
+                }).get();
+
+                // 休憩終了2
+                var eBreakTimeMod2Array = $(".eBreakTimeMod2").map(function()
+                {
+                    return addColon($(this).val());
+                }).get();
+
+                // 休憩開始3
+                var sBreakTimeMod3Array = $(".sBreakTimeMod3").map(function()
+                {
+                    return addColon($(this).val());
+                }).get();
+
+                // 休憩終了3
+                var eBreakTimeMod3Array = $(".eBreakTimeMod3").map(function()
+                {
+                    return addColon($(this).val());
+                }).get();
+
+                // 退勤時間
+                var clockOutTimeModArray = $(".clockOutTimeMod").map(function()
+                {
+                    return addColon($(this).val());
+                }).get();
+
+                // 承認リスト
+                var approvalModArray = $(".approval").map(function()
+                {
+                    return $(this).val();
+                }).get();
+
+                // 各手当のリスト
+                <?php
+                    foreach( $manualAllowanceList as $manualAllowance )
+                    {
+                 ?>
+                        var allowanceId_<?php hsc($manualAllowance['allowance_id']); ?>Array = $(".allowanceId_<?php hsc($manualAllowance['allowance_id']); ?>").map(function()
+                                                                                               {
+                                                                                                    return $(this).prop('checked');
+                                                                                               }).get();
+                 <?php
+                    }
+                 ?>
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                            attendanceId : attendanceIDArray,
+                            date: dateArray,
+                            attendance_time : attendanceTimeModArray,
+                            organizationId : outputItemNameArray,
+                            isholiday      : holidayNameArray,
+                            clock_out_time : clockOutTimeModArray,
+                            s_break_time_1 : sBreakTimeMod1Array,
+                            e_break_time_1 : eBreakTimeMod1Array,
+                            s_break_time_2 : sBreakTimeMod2Array,
+                            e_break_time_2 : eBreakTimeMod2Array,
+                            s_break_time_3 : sBreakTimeMod3Array,
+                            e_break_time_3 : eBreakTimeMod3Array,
+                            updateTime : updateTimeArray,
+                            userId : userIDArray,
+                            approval : approvalModArray,
+                            token : $('#token').val(),
+                            dateTimeUnit : $('#dateTimeUnitView').val(),
+                            targetDayBulk : $('#targetDayBulk').val(),
+                            isScreen : $('#isScreen').val(),
+                            searchOrganizatioID : $('#organizationName').val(),
+                            <?php
+                            foreach( $manualAllowanceList as $manualAllowance )
+                            {
+                            ?>
+                                allowanceId_<?php hsc($manualAllowance['allowance_id']); ?> : allowanceId_<?php hsc($manualAllowance['allowance_id']); ?>Array,
+                            <?php
+                            }
+                            ?>
+                        };
+
+                var path = 'index.php?param=AttendanceCorrection/addBulk&home=1';
+
+                // データ更新
+                setDataForAjax( data, path );
+            }
+            
+            //====================
+            // 下記メソッドに必要な変数
+            //====================
+            var rtnVal;
+            var befVal;
+            var aftVal;
+            /**
+             * 4桁数値を2桁ずつ切り分け「:」を挿入する
+             * @author 2016/08/26 Y.Sugou
+             * @param cnvVal 変換を行う数値
+             * @return 「:」を挿入した文字列
+             */
+            function addColon(cnvVal) {
+                //処理に必要な変数の初期化
+                rtnVal = "";
+                befVal = "";
+                aftVal = "";
+                //取得したValue値が0じゃなければ処理継続
+                if (cnvVal != "") {
+                    rtnVal = cnvVal;
+                    //文字を切り分ける
+                    befVal = cnvVal.substring(0, 2);  //時
+                    aftVal = cnvVal.substring(2, 4);  //分
+                    //切り分けた文字列に「:」を付与して結合
+                    rtnVal = befVal + ":" + aftVal;
+                }
+                return rtnVal;
+            }
+            
+            /**
+             * 日付のデイトピッカーを設定
+             */
+            $(function()
+            {
+                $( "#datetext" ).datepicker({
+                    numberOfMonths: 2,
+                    showButtonPanel: true,
+                    dateFormat: 'yy/mm/dd'
+                });
+            });
+            
+            /**
+              * 画面生成時自動読み込み
+              */
+            $(function() {
+                /*
+                 * DatePickerInisilizer
+                 * @author 2016/06/30 Y.Sugou
+                 */
+                $("#datetextYm").ympicker({
+                    altField: "#datetextYm" //リターンセットUI IDorCLASS名
+                    ,altFormat: "yy/mm" //リターン日付形式
+                    ,monthNamesShort: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"]  //カレンダー表示月形式
+                    ,showAnim: "slideDown" //表示アニメーション形式
+                    ,yearRange: "c-2:c+3" //プルダウン年範囲
+                });
+            });
+            
+            /**
+             * 検索用従業員リスト更新
+             */
+            function setSearchUserList()
+            {
+                // 検索用従業員リスト更新用パス
+                var path = 'index.php?param=AttendanceCorrection/searchUserList&home=1';
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              searchOrgID : $('#organizationName').val(),
+                           };
+
+                // データ更新
+                setDataForAjax( data, path, "jquery-replace-SearchUserName-ajax" );
+            }
+            
+            /**
+             * 新規入力エリアのクリア
+             */
+            function setNewDataClear( data )
+            {
+                // 検索用セクションリスト更新用パス
+                var path = 'index.php?param=AttendanceCorrection/inputArea&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, "jquery-replace-input-ajax" );
+                
+            }
+            
+            /**
+             * テーブル（divBottom）の横スクロールに位置を取得
+             */
+            function mzScroll()
+            {
+                var x = document.getElementById( "divBottom" ).scrollLeft;
+                newXY(x);
+            }
+
+            /**
+             * テーブル（divHeader）の横スクロールの位置を上記で取得したテーブル（divBottom）と同じ位置にする。  
+             */
+            function newXY(x)
+            {
+                document.getElementById('divHeader').scrollLeft = x;
+                document.getElementById('divFooter').scrollLeft = x;
+            }
+            
+        </script>
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site" style="overflow: auto;">
+            <!-- パンくずリスト -->
+            <?php 
+                include("Common/Breadcrumb.php");
+
+                $titleDate   = $sendingDate;
+                $titleDateYm = substr($sendingDate,0,7);
+                // -を/に置換
+                $titleDate   = str_replace( "-", "/", $titleDate );
+                $titleDateYm = str_replace( "-", "/", $titleDateYm );
+            ?>
+            <form id="searchForm" name="searchForm" >
+                <div class="serchBoardArea" style="width:99%; margin: 5px auto; !important; background-color: #ffffff">
+                    <div class="searchElement">
+                        <table>
+                            <tr>
+                                <th style="width:110px">表示単位</th>
+                                <td style="width:110px" align="center">
+                                    　<input type="radio" id="dateTimeUnit" name="dateTimeUnit" value="<?php hsc($Log->getMsgLog('MSG_CUMULATIVE_DAY')); ?>" <?php hsc( $dateTimeUnitDay ); ?> ><?php hsc($Log->getMsgLog('MSG_CUMULATIVE_DAY')); ?> <!-- 日 -->
+                                    　<input type="radio" id="dateTimeUnit" name="dateTimeUnit" value="<?php hsc($Log->getMsgLog('MSG_CUMULATIVE_MONTH')); ?>" <?php hsc( $dateTimeUnitMonth ); ?> ><?php hsc($Log->getMsgLog('MSG_CUMULATIVE_MONTH')); ?> <!-- 月 -->
+                                </td>
+                                <th style="width:110px">検索対象</th>
+                                <td style="width:110px" align="center">
+                                    　<input type="radio" id="targetUnit_p" name="targetUnit" value="<?php hsc($Log->getMsgLog('MSG_CUMULATIVE_INDIVIDUAL')); ?>" <?php hsc( $targetUnitInd ); ?> ><?php hsc($Log->getMsgLog('MSG_CUMULATIVE_INDIVIDUAL')); ?> <!-- 個人 -->
+                                    　<input type="radio" id="targetUnit_o" name="targetUnit" value="<?php hsc($Log->getMsgLog('MSG_CUMULATIVE_ORGANIZATION')); ?>" <?php hsc( $targetUnitOrg ); ?> ><?php hsc($Log->getMsgLog('MSG_CUMULATIVE_ORGANIZATION')); ?> <!-- 組織 -->
+                                </td>
+                                <th style="width:110px">対象年月日</th>
+                                <td style="width:110px" align="center">
+                                    <input type="text" id="datetext"  name="datetext" value="<?php echo $titleDate; ?>" style="width:90px" />
+                                    <input type="text" id="datetextYm"  name="datetextYm" value="<?php echo $titleDateYm; ?>" style="width:90px" />
+                                </td>
+                                <th style="width:110px">所属店舗</th>
+                                <td style="width:220px">
+                                    <select name="organizationName" id="organizationName" style="width:200px" onChange="setSearchUserList()" >
+                                        <?php foreach($abbreviatedNameList as $abbreviated) { ?>
+                                            <?php $selected = ""; ?>
+                                            <?php if($abbreviated['organization_id'] == $searchArray['organizationID']) { ?>
+                                                <?php $selected = "selected"; ?>
+                                            <?php } ?>
+                                            <option value="<?php hsc($abbreviated['organization_id']); ?>" <?php hsc($selected); ?>><?php hsc($abbreviated['abbreviated_name']); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </td>
+                                <th style="width:110px">従業員</th>
+                                <td style="width:110px">
+                                    <?php include("../FwCommon/View/SearchUserName.php"); ?>
+                                </td>
+                            </tr>
+                        </table>
+                    </div><!-- /.searchElement -->
+                </div><!-- /.serchBoardArea -->
+                <div class="screenSize" style="text-align: center; white-space: nowrap;">
+                    <!-- logicButtonArea -->
+                    <div style="display: inline-block;" class="logicButtonArea">
+                        <input type="button" id="back" name="back" value="戻る" class="return" onclick="returnScreen()" >
+                    </div><!-- /.logicButtonArea -->
+                    <div style="display: inline-block;" class="serchButtonArea">
+                        <input type="submit" id="search" name="search" href="#" value="検索" class="serch" />
+                    </div><!-- /.serchButtonArea -->
+                </div><!-- /.screenSize -->
+            </form>
+
+            <form id="modForm" name="modForm" >
+                <?php include("AttendanceCorrectionTablePanel.html"); ?>
+            </form>
+
+            <form id="addForm" name="addForm" >
+                <?php include("AttendanceCorrectionInputPanel.html"); ?>
+            </form>
+
+            <div class="screenSize" style="text-align: center; white-space: nowrap;">
+                <div style="display: inline-block;" class="logicButtonArea">
+                    <input type="button" id="shelfRegistration" name="shelfRegistration" value="　 <?php hsc($Log->getMsgLog('MSG_BASE_0925')); ?>" class="update" onclick="pushBulkRegistration(0, '<?php hsc($Log->getMsgLog('MSG_BASE_0925')); ?>')" >
+                </div><!-- /.logicButtonArea -->
+            </div><!-- /.screenSize -->
+        </div><!-- /.sb-site -->
+        <?php include("../FwCommon/View/Dialog.php"); ?>
+    </body>
+</html>

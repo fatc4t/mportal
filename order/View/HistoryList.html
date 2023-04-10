@@ -1,0 +1,42 @@
+<?php
+require_once( SystemParameters::$SANITIZE_SETTING_FILE );
+if(!empty($historyArr))
+{
+?>
+<table id="listTable" style="height:550px;width:1100px;">
+    <thead class="meisai">
+        <tr>
+            <th style="width:80px;">
+            <th style="width:80px;">
+            <th style="width:75px;">状態
+            <th style="width:180px;">発注日時
+            <th style="width:280px;">発注先
+            <th style="width:80px;">点数
+            <th style="width:80px;">小計
+            <th style="width:80px;">送料
+            <th style="width:80px;">金額
+        </tr>
+    </thead>
+    <tbody class="meisai">
+        <?php
+        foreach($historyArr as $key => $value) {
+       	?>
+        <tr>
+            <td style="width:80px;"><div class="button_select" data-ordno="<?php hsc($value['ord_no']);?>">選択</div>
+            <td style="width:80px;"><div class="button_copy" data-ordno="<?php hsc($value['ord_no']);?>">コピー</div>
+            <td style="width:75px;text-align:center;"><?php hsc($kbnArr[$value['kbn']]);?>
+            <td style="width:180px;text-align:center;"><?php hsc($value['order_time']);?>
+            <td style="width:280px;"><?php hsc($value['ma_name']);?>
+            <td style="width:80px;text-align:right;"><?php hsc($value['suu']+$value['hakosuu']);?>
+            <td style="width:80px;text-align:right;"><?php hsc(number_format($value['syokei']));?>
+            <td style="width:80px;text-align:right;"><?php hsc(number_format($value['souryo']));?>
+            <td style="width:80px;text-align:right;"><?php hsc(number_format($value['syokei']+$value['souryo']));?>
+        </tr>
+        <?php
+        }
+        ?>
+    </tbody>
+</table>
+<?php
+}
+?>

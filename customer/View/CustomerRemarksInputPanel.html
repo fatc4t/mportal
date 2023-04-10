@@ -1,0 +1,34 @@
+<?php
+    /**
+     * @file      顧客分類マスタ画面(View)
+     * @author    K.Sakamoto
+     * @date      2017/07/25
+     * @version   1.00
+     * @note      顧客分類マスタ画面(新規登録部分)
+     */
+?>
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-input-ajax">
+            <?php if( $isScrollBar ) { ?>
+                <div class="serchListArea" style=" float:right; width:69%; height:305px; margin:5px 5px 0px 5px; auto !important;">
+            <?php } else { ?>
+                <div class="serchListArea" style=" float:right; width:69%; margin:5px 5px 0px 5px; auto !important;">
+            <?php } ?>
+                    <table id="addTable">
+                        <tr>
+                            <td style="width:20%" align="center">
+                                <input type="text" pattern="^[0-9A-Za-z]+$" title="4<?php hsc($Log->getMsgLog('MSG_BASE_0312')); ?>" id="customerRemarksNewCode" name="customerRemarksNewCode" size="10" maxlength="4" value="" class="En" required>
+                            </td>
+                            <td style="width:50%" align="center">
+                                <input type="text" title="10<?php hsc($Log->getMsgLog('MSG_BASE_0310')); ?>" id="customerRemarksNewName" name="customerRemarksNewName" size="22" maxlength="10" value="" class="Em" required>
+                            </td>
+                            <td style="width:30%" align="center">
+                                <?php $add_disabled = ""; ?>
+                                <input type="submit" id="add" name="add" value="<?php hsc($Log->getMsgLog('MSG_BASE_0800')); ?>" class="add" <?php hsc($add_disabled); ?>>
+                            </td>
+                        </tr>
+                    </table>
+                </div><!-- /.serchListArea -->
+            </div><!-- /.jquery-replace-input-ajax -->
+

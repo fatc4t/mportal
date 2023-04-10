@@ -1,0 +1,181 @@
+<?php
+    /**
+     * @file        POS予約商品マスタ画面(View)
+     * @author      川橋
+     * @date        2019/01/21
+     * @version     1.00
+     * @note        POS予約商品マスタ画面
+     */
+?>
+
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ); ?>
+ <style>
+    #header_h {
+       width:98%;
+          overflow-x:hidden;overflow-y:hidden;
+       }
+    #data {
+       width:99%;
+       max-height:580px;
+       overflow-x:scroll;overflow-y:scroll;
+       table-l
+</style>
+<script>
+                /**
+*
+* スクロール制御
+*
+*/
+function SyncScroll(/* elem1, elem2, ... */) {
+       this._elements = [];
+       this._elementOnscroll = this._elementOnscroll.bind(this);
+       this.addElement.apply(this, arguments);
+   }
+   SyncScroll.prototype = {
+       enableHorizontal: true,
+       enableVertical: true,
+       addElement: function (/* elem1, elem2, ... */) {
+           var elem, i;
+           for (i = 0; i < arguments.length; i += 1) {
+               elem = arguments[i];
+               elem.addEventListener('scroll', this._elementOnscroll, false);
+               this._elements.push(elem);
+           }
+       },
+       removeElement: function (/* elem1, elem2, ... */) {
+           var elem, i, j;
+           for (i = 0; i < arguments.length; i += 1) {
+               elem = arguments[i];
+               elem.removeEventListener('scroll', this._elementOnscroll, false);
+               j = this._elements.indexOf(elem);
+               if (j >= 0) {
+                   this._elements.splice(j, 1);
+               }
+           }
+       },
+       _elementOnscroll: function (event) {
+           var i,
+               elems = this._elements,
+               elem = event.target,
+               x = elem.scrollLeft,
+               y = elem.scrollTop;
+           if (this.enableHorizontal) {
+               for (i = 0; i < elems.length; i += 1) {
+                   elem = elems[i];
+                   if (elem === event.target || elem.scrollLeft === x) {
+                       continue;
+                   }
+                   elem.scrollLeft = x;
+                   if (elem.scrollLeft !== x) {
+                       elem.scrollLeft = x + x - elem.scrollLeft;
+                   }
+               }
+           }/*
+           if (this.enableVertical) {
+               for (i = 0; i < elems.length; i += 1) {
+                   elem = elems[i];
+                   if (elem === event.target || elem.scrollTop === y) {
+                       continue;
+                   }
+                   elem.scrollTop = y;
+                   if (elem.scrollTop !== y) {
+                       elem.scrollTop = y + y - elem.scrollTop;
+                   }
+               }
+           }*/
+       },
+       destroy: function () {
+           this.removeElement.apply(this, this._elements);
+       }
+   }; 
+window.onload = function () {
+// 縦方向のみ
+var sample2_1 = document.getElementById('header_h');
+var sample2_2 = document.getElementById('data');
+var syncScroll2 = new SyncScroll(sample2_1,sample2_2);
+syncScroll2.enableHorizontal = true;
+// 横方向のみ
+var sample3_1 = document.getElementById('header_h');
+var sample3_2 = document.getElementById('data');  
+var syncScroll3 = new SyncScroll(sample3_1,sample3_2);
+syncScroll3.enableVertical = true;
+}
+ </script>
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-ajax">
+
+            <!-- PageMoveArea -->
+         <?php include("../FwCommon/View/PagingArea.php"); ?>
+
+            <?php if( $isScrollBar ) { ?>
+                <div class="serchListArea" style="clear:both; width:1200px; margin:5px auto 0px auto !important; height:25px;">
+            <?php } else { ?>
+                <div class="serchListArea" style="clear:both; width:1200px; margin:5px auto 0px auto !important;">
+            <?php } ?>
+                <table style="margin-top:0px; margin-bottom:0px;">
+                    <tbody>
+                        <tr>
+                            <th style="width:50px;"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0810')); ?></u><?php hsc($headerArray['mst0211NoSortMark']); ?></span></th>
+                            <th style="width:120px;"><span onClick="setColumnInfo('組織');"><u>組織</u><?php hsc($headerArray['prodOrganizationSortMark']); ?></span></th>
+                            <th style="width:110px;"><span onClick="setColumnInfo('商品コード');"><u>商品コード</u><?php hsc($headerArray['prodCodeSortMark']); ?></span></th>
+                            <th style="width:420px;"><span onClick="setColumnInfo('商品名');"><u>商品名</u><?php hsc($headerArray['prodNameSortMark']); ?></span></th>
+                            <th style="width:200px;"><span onClick="setColumnInfo('商品名カナ');"><u>商品名カナ</u><?php hsc($headerArray['prodKanaSortMark']); ?></span></th>
+                            <th style="width:200px;"><span onClick="setColumnInfo('規格容量');"><u>規格容量</u><?php hsc($headerArray['capaNameSortMark']); ?></span></th>
+                            <th><span onClick="setColumnInfo('変更実施日');"><u>変更実施日</u><?php hsc($headerArray['changeDTSortMark']); ?></span></th>
+                        </tr>
+                    </tbody>
+                </table>
+
+            <?php if( $isScrollBar ) { ?>
+                </div>
+                <div class="serchListArea" style="width:1200px; margin:0px auto; overflow-y:auto; height:400px; !important;">
+            <?php } ?>
+                <table id="nameTable" style="background-color: #ffffff">
+                            <?php foreach($mst0211List as $mst0211) { ?>
+                                <?php $mst0211_no++; ?>
+                                <?php if(!$mst0211NoSortFlag) { ?>
+                                    <?php $display_no++; ?>
+                                <?php } ?>
+                                <tr>
+                                    <?php
+                                        /*
+                                    <td align="right" style="width:20px;"><?php hsc($display_no); ?></td>
+                                        */
+                                    ?>
+                                    <?php
+                                        $mst0211_pk = strval($mst0211['organization_id']).':'.strval($mst0211['prod_cd']).':'.strval($mst0211['change_dt']);
+                                    ?>
+                                    <?php 
+                                        if(!empty($mst0211['updateDisabled'])){
+                                            $isUpdateDisabled = 1;
+                                        }else{
+                                            $isUpdateDisabled = 0;
+                                        }
+                                    ?>
+                                    <td style="text-align:right;  width:50px;"><?php hsc($display_no); ?></td>
+                                    <td style="text-align:center; width:120px;"><?php hsc($mst0211['abbreviated_name']); ?></td>
+                                    <td style="text-align:left;   width:110px;">
+                                        <span onClick="editPanelTransition('<?php hsc($mst0211_pk); ?>', '<?php hsc($isUpdateDisabled); ?>')">
+                                            <a href="#"><?php hsc($mst0211['prod_cd']); ?></a>
+                                        </span>
+                                    </td>
+                                    <td style="text-align:left;   width:420px;"><?php hsc(mb_strimwidth($mst0211['prod_nm'],0,90,'...')); ?></td>
+                                    <td style="text-align:left;   width:200px;"><?php hsc($mst0211['prod_kn']); ?></td>
+                                    <td style="text-align:left;   width:200px;"><?php hsc($mst0211['prod_capa_nm']); ?></td>
+                                    <?php
+                                        $strChangeDT = '';
+                                        if ($mst0211['change_dt'] !== ''){
+                                            // YYYYMMDD → YYYY/MM/DD
+                                            $strChangeDT = substr($mst0211['change_dt'],0,4).'/'.substr($mst0211['change_dt'],4,2).'/'.substr($mst0211['change_dt'],6,2);
+                                        }
+                                    ?>
+                                    <td style="text-align:left;"><?php hsc($strChangeDT); ?></td>
+                                </tr>
+                                <?php if($mst0211NoSortFlag) { ?>
+                                      <?php $display_no--; ?>
+                                <?php } ?>
+                            <?php } ?>
+                        </tbody>
+                    </table>
+                </div><!-- /.serchListArea -->
+           </div><!-- /.jquery-replace-ajax -->

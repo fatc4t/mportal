@@ -1,0 +1,155 @@
+@charset "UTF-8";
+/*========== ID Object ==========*/
+/*
+割増手当リストDiv
+*/
+#warimashiContentsDiv
+{
+    margin: 100px 15px 0 0;
+    text-align: right;
+}
+/*
+『編集』ボタンDiv
+*/
+#editButtonDiv
+{
+    text-align:right;
+}
+/*
+組織名プルダウン
+*/
+#organizationName 
+{
+    width:170px;
+}
+/*
+検索項目UIテーブル
+*/
+#searchTbl
+{
+    width:630px;
+}
+/*
+検索項目UIテーブル線消去
+*/
+#searchTbl  tr td 
+{
+    border:none;
+}
+/*
+各色説明テーブル
+*/
+#clrDicriptionTbl
+{
+    width:200px;
+}
+/*
+『検索』ボタン
+*/
+#search
+{
+    font-size:14px;
+    width:80px;
+}
+/*
+『法定休日』セル
+*/
+#hoteiKyujitsuCell
+{
+    background-color:#FCF;
+    border:solid 2px #000!important;
+}
+/*
+『公休日』セル
+*/
+#kokyuBiCell
+{
+    background-color:#CFF;
+    border:solid 2px #000!important;
+}
+/*
+『割増手当』セル
+*/
+#warimashiTeateCell
+{
+    background-color:#FFC;
+    border:solid 2px #000!important;
+}
+/*
+空白セル
+*/
+#BlankCell
+{
+    background-color:#FFF;
+}
+/*
+『対象』テキストボックス
+*/
+#datetext
+{
+    width:170px;
+    margin-left:4px;
+}
+/*
+『編集』ボタン
+*/
+#editButton
+{
+    font-size:14px;
+    width:80px;
+}
+/*
+カレンダーヘッダー『日』セル
+*/
+#calHeaderCellSunDay
+{
+    background-color:#FCF;
+    text-align:center;
+}
+/*
+カレンダーヘッダー『土』セル
+*/
+#calHeaderCellSatDay
+{
+    background-color:#CFF;
+    text-align:center;
+}
+/*========== CLASS Object ==========*/
+/*
+マージン全削除&テキストセンター
+*/
+.noMarginCenterText
+{
+    margin:0;
+    text-align:center;
+}
+/*
+チェックボックス間マージン
+*/
+.chkBoxMargin
+{
+    margin-right:50px;
+}
+/*
+カレンダーヘッダーセル
+*/
+.calHeaderCell
+{
+    text-align:center;
+}
+/*
+各日ヘッダーセル
+*/
+.calDetailHeaderCell
+{
+    border-bottom:none!important;
+    text-align:right;
+}
+/*
+各日セル
+*/
+.calendarTblCell
+{
+    border-top:none!important;
+    height:50px!important;
+}

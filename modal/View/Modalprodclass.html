@@ -1,0 +1,83 @@
+<div>
+    <h2>商品分類</h2>
+    <div class="modal_prodclass_search">
+        <div class="modal_prodclass_left" id="modal_prodclass_param">
+            <label class="modal_prodclass_label" for="modal_prodclass_prod_t_cd1"> 商品大分類コード  ：　</label><input type="text"  id="modal_prodclass_prod_t_cd1" class="modal_prodclass_code">
+            <label class="modal_prodclass_label" for="modal_prodclass_prod_t_nm1" > 商品大分類名 ：　</label><input type="text"  id="modal_prodclass_prod_t_nm1" class="modal_prodclass_name"><br />
+            <label class="modal_prodclass_label" for="modal_prodclass_prod_t_cd2"> 商品中分類コード  ：　</label><input type="text"  id="modal_prodclass_prod_t_cd2" class="modal_prodclass_code">
+            <label class="modal_prodclass_label" for="modal_prodclass_prod_t_nm2" > 商品中分類名 ：　</label><input type="text"  id="modal_prodclass_prod_t_nm2" class="modal_prodclass_name">            
+        </div>
+        <button type="button" id="modal_prodclass_search_prodclass" onclick="prodclass_modal_search(event)"  class="modal_prodclass_left search_btn">表示</button>
+    </div>
+    <br />
+    <div>
+        <table id="modal_prodclass_table_id" class="modal_prodclass_table">
+            <thead>
+                <tr>
+                    <th>選択</th>
+                    <th>checkval</th>
+                    <th>商品大分類<br />コード</th>
+                    <th>商品大分類名</th>
+                    <th>商品中分類<br />コード</th>
+                    <th>商品中分類名</th>                    
+                </tr>
+            </thead>
+            <tbody id="modal_prodclass_table_body">
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>                        
+            </tbody>
+        </table>
+    </div>
+    <br />
+    <div>
+        <div class="modal_div_btn">
+            <button type="button" id="modal_prodclass_unselect" onclick="modal_unselect(event)"  >一括解除</button>
+            <button type="button" id="modal_prodclass_select" onclick="modal_select(event)"  >一括選択</button>        
+            <button type="button" id="modal_prodclass_befpage" onclick="prodclass_modal_befpage(event)"  >前ページ</button>        
+            <button type="button" id="modal_prodclass_nextpage" onclick="prodclass_modal_nextpage(event)"  >次ページ</button>        
+            <button type="button" id="modal_prodclass_validate" onclick="modal_validate(event)"  >決定</button>        
+            <button type="button" id="modal_prodclass_close" onclick="modal_close(event)"  >終了</button>        
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+   
+    if(!pagenb){
+        pagenb=[];
+    }       
+    pagenb["prodclass"] = 0;
+    if(!table_keys){
+        table_keys=[];
+    }    
+    table_keys["prodclass"]=[];
+    table_keys["prodclass"]=["prodclass_cd","prod_t_cd1","prod_t_nm1","prod_t_cd2","prod_t_nm2"];
+    if(document.getElementById("modal_prodclass_prodclass_cd")){
+        document.getElementById("modal_prodclass_prodclass_cd").addEventListener("input", modal_input_check);
+        document.getElementById("modal_prodclass_prodclass_cd").maxLength = A_Sizelist["prodclasssize"];
+    }
+    function prodclass_hide_col(){
+        console.log('hide col');
+        console.log(modal_prodclass_table_body);
+        $(".modal_prodclass_table tbody td:nth-child(2)").hide();
+        $(".modal_prodclass_table thead th:nth-child(2)").hide();
+    }
+    function prodclass_modal_nextpage(e){
+        modal_nextpage(e);
+        prodclass_hide_col();
+    }
+    function prodclass_modal_befpage(e){
+        modal_befpage(e);
+        prodclass_hide_col();
+    }
+    function prodclass_modal_search(e){
+        modal_search(e);
+        prodclass_hide_col();
+    }
+    prodclass_hide_col();
+</script>

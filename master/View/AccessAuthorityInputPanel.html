@@ -1,0 +1,78 @@
+<?php
+    /**
+     * @file      アクセス権限マスタ画面(View)
+     * @author    USE Y.Sakata
+     * @date      2016/07/03
+     * @version   1.00
+     * @note      アクセス権限マスタ画面(新規登録部分)
+     */
+?>
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-input-ajax">
+                <?php if( $isScrollBar ) { ?>
+                    <div class="serchListArea" style=" clear:both; width:99%; margin:5px auto; overflow-y:auto; height:28px; !important;">
+                <?php } else { ?>
+                    <div class="serchListArea" style=" clear:both; width:99%; margin:5px auto !important;">
+                <?php } ?>
+                    <table id="addTable" style="background-color: #ffffff">
+                        <tr>
+                            <td width="37px" align = "center">-</td>
+                            <td width="62px" align = "center">-</td>
+                            <td width="74px" align="center">
+                                <input type="text" pattern="[1-9][0-9]*" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" id="accessAuthorityIDMod0" name="sAccessAuthority0" size="5" maxlength="5" value="" class="En" required>
+                            </td>
+                            <td width="111px" align="center">
+                                <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0921')); ?>" id="functionIDMod0" name="sFunction0" style="width: 100px" required>
+                                    <?php
+                                        foreach($functionIdList as $functionId)
+                                        {
+                                    ?>
+                                            <option value="<?php hsc($functionId['function_id']); ?>"><?php hsc($functionId['function_name']); ?></option>
+                                    <?php 
+                                        }
+                                    ?>
+                                </select>
+                            </td>
+                            <td width="185px" align="center">
+                                <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0922')); ?>" id="screenNameMod0" name="sScreenName0" size="25" maxlength="30" value="" class="Em" required>
+                            </td>
+                            <td width="185px" align="center">
+                                <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0923')); ?>" id="urlMod0" name="sUrl0" size="25" maxlength="128" value="" class="En" required>
+                            </td>
+                            <td width="185px" align="center">
+                                <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0892')); ?>" id="commentMod0" name="sComment0" size="25" maxlength="50" value="" class="Em" required>
+                            </td>
+                            <td width="37px" align="center">
+                                <input type="checkbox" title="<?php hsc($Log->getMsgLog('MSG_BASE_0886')); ?>" id="referenceMod0" name="sReference0">
+                            </td>
+                            <td width="37px" align="center">
+                                <input type="checkbox" title="<?php hsc($Log->getMsgLog('MSG_BASE_0887')); ?>" id="registrationMod0" name="sRegistration0" >
+                            </td>
+                            <td width="37px" align="center">
+                                <input type="checkbox" title="<?php hsc($Log->getMsgLog('MSG_BASE_0888')); ?>" id="deleteMod0" name="sDelete0">
+                            </td>
+                            <td width="37px" align="center">
+                                <input type="checkbox" title="<?php hsc($Log->getMsgLog('MSG_BASE_0889')); ?>" id="approvalMod0" name="sApproval0">
+                            </td>
+                            <td width="37px" align="center">
+                                <input type="checkbox" title="<?php hsc($Log->getMsgLog('MSG_BASE_0890')); ?>" id="printingMod0" name="sPrinting0">
+                            </td>
+                            <td width="37px" align="center">
+                                <input type="checkbox" title="<?php hsc($Log->getMsgLog('MSG_BASE_0891')); ?>" id="outputMod0" name="sOutput0">
+                            </td>
+                            <td width="62px" align="center">
+                                <input type="text" pattern="[1-9][0-9]*" title="<?php hsc($Log->getMsgLog('MSG_BASE_0300')); ?>" id="modDispOrder0" name="sDisp0" size="4" maxlength="5" value="" class="En" required>
+                            </td>
+                            <td width="111px" align="center">
+                                <?php $add_disabled = ""; ?>
+                                <?php if(empty($regFlag)) { ?>
+                                    <?php $add_disabled = "disabled"; ?>
+                                <?php } ?>
+                                <input type="submit" id="add" name="add" value="<?php hsc($Log->getMsgLog('MSG_BASE_0800')); ?>" <?php hsc($add_disabled); ?> >
+                            </td>
+                        </tr>
+                    </table>
+                </div><!-- /.serchListArea -->
+            </div><!-- /.jquery-replace-input-ajax -->
+

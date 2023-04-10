@@ -1,0 +1,1226 @@
+<?php
+    /**
+     * @file      棚卸一覧表 画面(View)
+     * @author    millionet oota
+     * @date      2020/05/18
+     * @version   1.00
+     * @note      棚卸一覧表 帳票画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述
+            include("../profit/View/Common/HtmlHeader.php");
+        ?>
+        
+    <script src="../js/profit/jquery/jquery.ui.ympicker.js" /></script>
+    <script src="../js/profit/jquery/jquery-migrate-1.0.0.js" /></script>
+    <script src="../js/profit/jquery/datepicker-ja.js" /></script>
+    <script src="../js/autofil_v<?php echo $_SESSION['AUTOFIL_VER'] ?>.js" ></script>
+    <script src="../FwCommon/js/common.js" ></script>
+
+    <!-- modal script-->
+    <script src="../js/modal/modal.js" ></script>
+    <link rel="stylesheet" href="../css/modal/modal.css" >    
+    <script type="text/javascript">
+        Sizelist       = '<?php echo json_encode(json_encode($Sizelist)); ?>';
+        A_Sizelist     = JSON.parse(Sizelist.slice(1,-1));
+       
+        // 店舗リスト
+        porg_id_list        = '<?php echo json_encode(json_encode($org_id_list)); ?>';
+        data_org            = JSON.parse(porg_id_list.slice(1,-1)); 
+        
+        // 商品リスト
+        data_prod           = [];  
+        var prod_list = "";
+
+        // 部門リスト
+        ptypsect_detail     = '<?php echo json_encode($sect_detail); ?>';
+        data_sect           = JSON.parse(ptypsect_detail);  
+
+        // 分類リスト
+        ptypprodclass_detail= '<?php echo json_encode($prodclass_detail); ?>';
+        A_ptypprodclass_detail= JSON.parse(ptypprodclass_detail);
+        data_prodclass      = A_ptypprodclass_detail['ooki'];      
+
+        // 仕入先リスト
+        ptypsupp_detail     = '<?php echo json_encode($supp_detail); ?>';
+        data_supp           = JSON.parse(ptypsupp_detail);  
+
+        // 画面パラメータ
+        searchArray         = '<?php echo json_encode($searchArray); ?>';
+        A_searchArray       = JSON.parse(searchArray);
+        param               = '<?php echo json_encode($param); ?>';
+        A_param             = JSON.parse(param);
+
+        // インジケーター
+        lording_default_message = '検索しています。。。。';
+        //    = 'データを取得しています。。。。';
+
+        // 店舗リスト展開
+        var org_list = A_searchArray["org_id"].replace('false',''); 
+        if(org_list){
+            org_list = ","+org_list;
+            data_select['org'] = org_list;
+        }
+
+        // 商品リスト展開
+        var prod_list = A_searchArray["prod_cd"].replace('false','');
+        if(prod_list){
+            prod_list = ","+prod_list;
+            data_select['sect'] = prod_list;
+        }
+        
+        // 部門リスト展開
+        var sect_list = A_searchArray["sect_cd"].replace('false','');
+        if(sect_list){
+            sect_list = ","+sect_list;
+            data_select['sect'] = sect_list;
+        }
+        
+        // 分類リスト展開
+        var prodclass_list = A_searchArray["prodclass_cd"].replace('false','');
+        if(prodclass_list){
+            prodclass_list = ","+prodclass_list;
+            data_select['prodclass'] = prodclass_list;
+        }
+
+        // 仕入先リスト展開
+        var supp_list = A_searchArray["supp_cd"].replace('false','');
+        if(supp_list){
+            supp_list = ","+supp_list;
+            data_select['supp'] = supp_list;
+        }
+
+        // システムマスタ：賞味期限利用区分
+        bb_date_kbn     = '<?php echo $bb_date_kbn; ?>';
+    </script>
+    <script type="text/javascript">
+            // 分類モーダル選択関数
+            function P_modal_select_mgt(e){
+               modal_select_mgt(e);
+               prodclass_hide_col();
+            }
+
+            // 各種ラジオ変更処理
+            function radio_change_management(){
+                var prev = [];
+                document.getElementById("serchTable").addEventListener('change', function(e) {
+                    //console.log('Previous:', prev[e.target.name] ? prev[e.target.name].value : null);
+                    //console.log(e);
+                    if(e.target.name === "period"){
+                        if(!prev[e.target.name]){
+                            old_id_start="start_date";
+                            old_id_end="end_date";                              
+                        }else if(prev[e.target.name].value === "day"){
+                            old_id_start="start_date";
+                            old_id_end="end_date";                            
+                        }else if(prev[e.target.name].value === "month"){
+                            old_id_start="start_dateM";
+                            old_id_end="end_dateM";  
+                        }else if(prev[e.target.name].value === "year"){
+                            old_id_start="start_year";
+                            old_id_end="end_year";
+                        }
+                        document.getElementById(old_id_start).hidden=true;
+                        document.getElementById(old_id_end).hidden=true;
+                        document.getElementById(old_id_start).value="";
+                        document.getElementById(old_id_end).value="";                                                
+                        if(e.target.value === "day"){
+                            date_mode = "date";
+                            new_id_start="start_date";
+                            new_id_end="end_date"; 
+                            // checkbox checked
+                            today = new Date();
+                            document.getElementById(new_id_end).value = today.toISOString().slice(0,10).replace(/-/g,"\/"); 
+                            today.setMonth(today.getMonth()-1);
+                            document.getElementById(new_id_start).value = today.toISOString().slice(0,10).replace(/-/g,"\/");                            
+                        }else if(e.target.value === "month"){
+                            date_mode = "dateM";
+                            new_id_start="start_dateM";
+                            new_id_end="end_dateM";
+                            today = new Date();
+                            document.getElementById(new_id_end).value = today.toISOString().slice(0,7).replace(/-/g,"\/"); 
+                            today.setMonth(today.getMonth()-1);
+                            document.getElementById(new_id_start).value = today.toISOString().slice(0,7).replace(/-/g,"\/");                                                        
+                        }else if(e.target.value === "year"){
+                            date_mode = "year";
+                            new_id_start="start_year";
+                            new_id_end="end_year";
+                            today = new Date();
+                            document.getElementById(new_id_end).value = today.toISOString().slice(0,4).replace(/-/g,"\/"); 
+                            today.setFullYear(today.getFullYear()-1);
+                            document.getElementById(new_id_start).value = today.toISOString().slice(0,4).replace(/-/g,"\/");                                                                                    
+                        }         
+                        document.getElementById(new_id_start).hidden=false;
+                        document.getElementById(new_id_end).hidden=false;                        
+                    }else if(e.target.name === "org_r"){
+                        document.getElementById("tenpo").checked = false;
+                        if(!prev[e.target.name]){
+                            prev[e.target.name]={value:""};
+                        }
+                        document.getElementById("org_select").disabled=true;
+                        if(e.target.value === "" ){
+                            document.getElementById("org_select").disabled=false;
+                        }else if(e.target.value === "compile"){
+                            document.getElementById("tenpo").checked = true;
+                        }
+                    }else if(e.target.name === "sect_r"){
+                        if(!prev[e.target.name]){
+                            prev[e.target.name]={value:""};
+                        }
+                        document.getElementById("sect_select").disabled=true;
+                        if(e.target.value === "" ){
+                            document.getElementById("sect_select").disabled=false;
+                        }
+                    }else if(e.target.name === "prod_r"){
+                        if(!prev[e.target.name]){
+                            prev[e.target.name]={value:""};
+                        }
+                        document.getElementById("prod_select").disabled=true;
+                        if(e.target.value === "" ){
+                            document.getElementById("prod_select").disabled=false;
+                        }
+                    }else if(e.target.name === "prodclass_r"){
+                        if(!prev[e.target.name]){
+                            prev[e.target.name]={value:""};
+                        }
+                        document.getElementById("prodclass_select").disabled=true;
+                        if(e.target.value === "" ){
+                            document.getElementById("prodclass_select").disabled=false;
+                        }
+                    }else if(e.target.name === "supp_r"){
+                        if(!prev[e.target.name]){
+                            prev[e.target.name]={value:""};
+                        }
+                        document.getElementById("supp_select").disabled=true;
+                        if(e.target.value === "" ){
+                            document.getElementById("supp_select").disabled=false;
+                        }
+                    }else if(e.target.name === "middle_class_chk"){
+                        column_mgt("middle_class_chk");
+                        // 大分類をソートします
+                        sort.value = 'prod_t_cd1#1';                        
+                        prodclass_list = '';
+                        prodclass_array=[];
+                        prodclass_r_all.checked = true;
+                        prodclass_r_selected.checked = false;
+                        data_select['prodclass'] = "";
+                        modal_create_select("prodclass_select",prodclass_array);
+                        if(middle_class_chk.checked){
+                            data_prodclass      = A_ptypprodclass_detail['naka'];
+                        }else{
+                            data_prodclass      = A_ptypprodclass_detail['ooki'];
+                        }
+                        search.click();
+                    }
+                    prev[e.target.name] = e.target;
+                });
+            }
+            
+        function chf(frm){
+            if( 1 < window.location.search.length )
+                {
+                    csv_data.value = '';
+                    // modal data
+                    // org_id
+                    if(org_r_selected.checked){
+                        // list org name
+                        for(i=0;i<org_select.options.length;i++){
+                            if( !isNaN(org_select.options[i].value) ){
+                                org_nm_lst.value = org_nm_lst.value + ','+org_select.options[i].innerText;
+                            }
+                            org_nm_lst.value = org_nm_lst.value.replace(/^,/,"");
+                        }   
+                        org_id.value = org_list.replace(/^,/,"'").replace(/,/g,"','").replace(/$/,"'");
+                        if(!org_list){
+                            alert("店舗を選択してください。");
+                            return false;
+                        }
+                    }else{
+                        org_id.value = false;
+                    }
+
+                    // prod_cd                    
+                    if(prod_r_selected.checked){
+                        // list prod name
+                        for(i=0;i<prod_select.options.length;i++){
+                            if( !isNaN(prod_select.options[i].value) ){
+                                prod_nm_lst.value = prod_nm_lst.value + ','+prod_select.options[i].innerText;
+                            }
+                            prod_nm_lst.value = prod_nm_lst.value.replace(/^,/,"");
+                        }   
+                        prod_cd.value = prod_list.replace(/^,/,"'").replace(/,/g,"','").replace(/$/,"'");
+                        if(!prod_list){
+                            alert("商品を選択してください。");
+                            return false;
+                        }
+                    }else{
+                        prod_cd.value = false;
+                    }
+                    
+                    // sect_cd                    
+                    if(sect_r_selected.checked){
+                        // list sect name
+                        for(i=0;i<sect_select.options.length;i++){
+                            if( !isNaN(sect_select.options[i].value) ){
+                                sect_nm_lst.value = sect_nm_lst.value + ','+sect_select.options[i].innerText;
+                            }
+                            sect_nm_lst.value = sect_nm_lst.value.replace(/^,/,"");
+                        }   
+                        sect_cd.value = sect_list.replace(/^,/,"'").replace(/,/g,"','").replace(/$/,"'");
+                        if(!sect_list){
+                            alert("部門を選択してください。");
+                            return false;
+                        }
+                    }else{
+                        sect_cd.value = false;
+                    }
+                    
+                    // 分類選択チェック                    
+                    if(prodclass_r_selected.checked){
+                        // list prodclass name
+                        for(i=0;i<prodclass_select.options.length;i++){
+                            if( !isNaN(prodclass_select.options[i].value.replace(/_/g,'')) ){
+                                prodclass_nm_lst.value = prodclass_nm_lst.value + ','+prodclass_select.options[i].innerText;
+                            }
+                        } 
+                        prodclass_nm_lst.value = prodclass_nm_lst.value.replace(/^,/,"");
+                        prodclass_cd.value = prodclass_list.replace(/^,/,"'").replace(/,/g,"','").replace(/$/,"'");
+                        if(!prodclass_list){
+                            alert("分類を選択してください。");
+                            return false;
+                        }
+                    }else{
+                        prodclass_cd.value = false;
+                    }
+
+                    // 仕入先選択チェック
+                    if(supp_r_selected.checked){
+                        // list supp name
+                        for(i=0;i<supp_select.options.length;i++){
+                            if( !isNaN(supp_select.options[i].value) ){
+                                supp_nm_lst.value = supp_nm_lst.value + ','+supp_select.options[i].innerText;
+                            }
+                            supp_nm_lst.value = supp_nm_lst.value.replace(/^,/,"");
+                        }
+                        supp_cd.value = supp_list.replace(/^,/,"'").replace(/,/g,"','").replace(/$/,"'");
+                        if(!supp_list){
+                            alert("仕入先を選択してください。");
+                            return false;
+                        }
+                    }else{
+                        supp_cd.value = false;
+                    }
+                   // 大小チェック
+                    if (amount_str !== '' && amount_end !== '' && amount_str > amount_end){
+                        alert('在庫数範囲指定に誤りがあります。');
+                        return false;
+                    }
+                    
+                    // 最初の1文字 (?記号) を除いた文字列を取得する
+                    var query = window.location.search.substring( 1 );
+                    var action = frm.action.split( '?' );
+
+                    // 検索以外の機能実行後だった場合、パラメータを補正する
+                    if(1 < action.length){
+                        frm.action = action[0];
+                    }
+
+                    // クエリの区切り記号 (&) で文字列を配列に分割する
+                    var parameters = query.split( '&' );
+                    if (frm.onbtn.value == 'serch') {
+                        // ローディングメッセージ 開始
+                        lording_message.innerHTML = lording_default_message;
+                        modal_lording.hidden = false;
+                    
+                frm.target='_self';
+                        if(1 < parameters.length){
+                             frm.action += '?param=' +frm.elements["codeName"].value + '&home=1';
+                         }else{
+                             frm.action += '?param=' +frm.elements["codeName"].value;
+                        }
+                    }else if (frm.onbtn.value == 'csvoutput'){
+                        // ローディングメッセージ 開始
+                        lording_message.innerHTML = lording_default_message;
+                        modal_lording.hidden = false;
+                        header_text = header_h.getElementsByTagName('tr')[0].innerText.replace(' ▲',"").replace(' ▼',"").replace(/[\n,\r]/g,'').replace(/\t/g,",");
+                        elem_tr_list = data.getElementsByTagName('tr');
+                        data_send = [];
+                        var csv_data_o = {};
+                        csv_data_o['"0"'] = header_text;
+                        var row_nb = 1;
+                        var list_nm = '';  //店舗リスト用の変数
+                        
+                        for(i=0;i<elem_tr_list.length;i++){
+                            if(elem_tr_list[i].style.backgroundColor){
+                                continue;
+                            }                            
+
+                            if(elem_tr_list[i].getElementsByTagName('td')[0].innerText !== ''){
+                                list_nm = elem_tr_list[i].getElementsByTagName('td')[0].innerText;　//CSV出力の時店舗名の行を空ないの場合、普通の店舗名を表示
+                                csv_data_o['"'+row_nb+'"'] = '"'+elem_tr_list[i].innerText.replace(/\t/g,'","')+'"';
+                            }else{
+                                elem_tr_list[i].getElementsByTagName('td')[0].innerText = list_nm;　//店舗名を表示して保持
+                                csv_data_o['"'+row_nb+'"'] = '"'+elem_tr_list[i].innerText.replace(/\t/g,'","')+'"';
+                                elem_tr_list[i].getElementsByTagName('td')[0].innerText = '';　//CSV出力の時行が空の場合、保持した店舗名を空の行を埋めます
+                            }
+                            
+                            row_nb +=1;
+                        }
+                        csv_data.value = JSON.stringify(csv_data_o);                        
+                        if(1 < parameters.length){
+                             frm.action += '?param=LedgerSheetInventory/csvoutput&home=1';
+                         }else{
+                             frm.action += '?param=LedgerSheetInventory/csvoutput';
+                        }
+                        modal_lording.hidden = true;
+                    }
+                }
+            }
+
+    $(document).ready(function()
+    {
+        /**
+         * 帳票種別によって日付フォームを切り替え
+         */
+        $('#codeName').change(function()
+        {
+            if($('#codeName').val() === "LedgerSheetInventory/show")
+            {
+                $('#start_dateM').css('display' , '');
+                $('#end_dateM').css('display' , '');
+                $('#start_date').css('display' , 'none');
+                $('#end_date').css('display' , 'none');
+
+            }
+            else
+            {
+                $('#start_dateM').css('display' , 'none');
+                $('#end_dateM').css('display' , 'none');
+                $('#start_date').css('display' , '');
+                $('#end_date').css('display' , '');
+            }
+        });
+
+    });
+
+    /**
+     *  イベント制御用
+     *
+     */
+    function set_value(s_val){
+        document.serchForm.onbtn.value = s_val;
+        if (s_val === 'serch'){
+         document.getElementById("pageNo").value= 1;   
+       }
+    }
+//ADDSTR 2020/07/06 kanderu
+    /**
+     *  ぺーじこんとろー
+     *
+     */
+    function set_value_bt(s_val,mod){
+        /*const button = document.getElementById("btn_previous");*/
+        document.serchForm.onbtn.value = s_val;
+        if(mod === 'btn_previous'){
+            document.getElementById("pageNo").value = Number(document.getElementById("pageNo").value) - 1;           
+        }
+
+        if(mod === 'btn_next'){
+            document.getElementById("pageNo").value = Number(document.getElementById("pageNo").value) +1;
+       }
+       if (mod === 'btn_first'){
+         document.getElementById("pageNo").value= 1;   
+       }
+       if (mod === 'btn_last'){
+          document.getElementById("pageNo").value=Number(document.getElementById("pageMaxNo").value);
+       }   
+        }
+//ADDEND 2020/07/06 kanderu
+    /**
+     * DatePickerを設定
+     */
+    $(function()
+    {
+        $( "#start_date, #end_date" ).datepicker({
+            numberOfMonths: 2,
+            showCurrentAtPos: 1,
+            showButtonPanel: true,
+            dateFormat: 'yy/mm/dd'
+        });
+    });
+
+    /**
+     *
+      * 画面生成時自動読み込み
+     *
+     */
+            $(function() {
+                $("#start_dateM").ympicker({
+                    altField: "#start_dateM" //リターンセットUI IDorCLASS名
+                    ,altFormat: "yy/mm" //リターン日付形式
+                    ,monthNamesShort: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"]  //カレンダー表示月形式
+                    ,showAnim: "slideDown" //表示アニメーション形式
+                    ,yearRange: "c-2:c+3" //プルダウン年範囲
+                });
+            });
+            
+                function csv_print(e){
+                data_send = [];
+                var csv_data_o = {};
+                var row_nb = 0;
+                looprow = table_id.tHead.rows[0];
+                csv_data_o['"'+row_nb+'"'] = looprow.innerText.replace(/\t/g,',');
+                elem_table = document.getElementById("table_body");
+                elem_tr_list = elem_table.getElementsByTagName("tr");
+                for(i=0;i<elem_tr_list.length;i++){
+                    looprow = elem_tr_list[i];
+                    if( looprow.childElementCount ===1 ){
+                        continue;
+                    }
+                    row_nb += 1; 
+                    if(looprow.style.backgroundColor){
+                        //console.log(looprow);
+                        continue;
+                    }
+                    csv_data_o['"'+row_nb+'"'] = '"'+looprow.innerText.replace(/\t/g,'","')+'"';
+                    
+                }
+                data_send["csv_data"] = JSON.stringify(csv_data_o);
+                //console.log(data_send);
+                //data_sendを送ります。
+                spath       = 'index.php?param=LedgerSheetSalesResults/csvoutput';
+                //console.log(spath);
+                setDataForAjax( data_send, spath ,'ajaxScreenUpdate' );                
+            }
+            
+            
+    $(function() {
+        $("#end_year").datepicker({
+            dateFormat: "yy",
+            changeYear: true
+            ,changeMonth: false
+            ,showButtonPanel: false
+            ,onClose: function(dateText, inst) { 
+                var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
+                $(this).datepicker('setDate', new Date(year, 1));
+            }
+        }).focus(function(){
+            document.getElementsByClassName("ui-datepicker-calendar")[0].style.display="block";
+        } );
+    });
+    
+/**
+*
+* スクロール制御
+*
+*/
+   function SyncScroll(/* elem1, elem2, ... */) {
+       this._elements = [];
+       this._elementOnscroll = this._elementOnscroll.bind(this);
+       this.addElement.apply(this, arguments);
+   }
+   SyncScroll.prototype = {
+       enableHorizontal: true,
+       enableVertical: true,
+       addElement: function (/* elem1, elem2, ... */) {
+           var elem, i;
+           for (i = 0; i < arguments.length; i += 1) {
+               elem = arguments[i];
+               elem.addEventListener('scroll', this._elementOnscroll, false);
+               this._elements.push(elem);
+           }
+       },
+       removeElement: function (/* elem1, elem2, ... */) {
+           var elem, i, j;
+           for (i = 0; i < arguments.length; i += 1) {
+               elem = arguments[i];
+               elem.removeEventListener('scroll', this._elementOnscroll, false);
+               j = this._elements.indexOf(elem);
+               if (j >= 0) {
+                   this._elements.splice(j, 1);
+               }
+           }
+       },
+       _elementOnscroll: function (event) {
+           var i,
+               elems = this._elements,
+               elem = event.target,
+               x = elem.scrollLeft,
+               y = elem.scrollTop;
+           if (this.enableHorizontal) {
+               for (i = 0; i < elems.length; i += 1) {
+                   elem = elems[i];
+                   if (elem === event.target || elem.scrollLeft === x) {
+                       continue;
+                   }
+                   elem.scrollLeft = x;
+                   if (elem.scrollLeft !== x) {
+                       elem.scrollLeft = x + x - elem.scrollLeft;
+                   }
+               }
+           }/*
+           if (this.enableVertical) {
+               for (i = 0; i < elems.length; i += 1) {
+                   elem = elems[i];
+                   if (elem === event.target || elem.scrollTop === y) {
+                       continue;
+                   }
+                   elem.scrollTop = y;
+                   if (elem.scrollTop !== y) {
+                       elem.scrollTop = y + y - elem.scrollTop;
+                   }
+               }
+           }*/
+       },
+       destroy: function () {
+           this.removeElement.apply(this, this._elements);
+       }
+   }; 
+
+        window.onload = function () {
+           
+if(limit_r.value===''){
+    limit_r.value=5000;
+}
+            creat_listener();
+            radio_change_management();
+            prod_array = [];
+//ADDSTR 2020/07/07 kanderu 
+//button　disable 
+        if(document.getElementById("pageNo").value <= 1){
+           /* (mod === 'btn_previous').disabled=true;*/
+            document.getElementById("btn_previous").setAttribute("disabled", true);     
+        }
+        if(document.getElementById("pageNo").value >= document.getElementById("pageMaxNo").value){
+           /* (mod === 'btn_previous').disabled=true;*/
+            document.getElementById("btn_next").setAttribute("disabled", true);     
+        } 
+
+//ADDEND 2020/07/07 kanderu 
+           // lording_message.innerHTML = lording_prod_message;
+            modal_lording.hidden = false;
+            setTimeout(function () {
+                result1 = '';
+                var datasend = [];
+                Send_querry('param='+JSON.stringify(datasend),'./index.php?param=LedgerSheetInventory/getproddata','post');
+                data_prod = JSON.parse(result1);
+                result1 = '';
+                modal_create_select("prod_select",prod_array);
+                modal_lording.hidden = true;
+                lording_message.innerHTML = lording_default_message;
+            }, 100);
+
+            sect_array = [];
+            if(A_param["sect_r"] === ""){
+                code_list = sect_list.replace(/^,/,'').split(',');
+                name_list = A_param["sect_nm_lst"].split(',');
+                for(i=0;i<name_list.length;i++){
+                    sect_array[code_list[i]] = name_list[i];
+                }          
+            }
+            modal_create_select("sect_select",sect_array);
+            if(sect_list){
+                sect_r_selected.checked = true;
+                sect_select.disabled = false;
+            }
+            if(A_param["sect_select"] && A_param["sect_select"] !== 'empty'){
+                sect_select.value = A_param["sect_select"];
+            }
+            
+            if(A_param["prod_r"] === ""){
+                code_list = prod_list.replace(/^,/,'').split(',');
+                name_list = A_param["prod_nm_lst"].split(',');
+                for(i=0;i<name_list.length;i++){
+                    prod_array[code_list[i]] = name_list[i];
+                }          
+            }
+            modal_create_select("prod_select",prod_array);
+            if(prod_list){
+                prod_r_selected.checked = true;
+                prod_select.disabled = false;
+            }
+            if(A_param["prod_select"] && A_param["prod_select"] !== 'empty'){
+                prod_select.value = A_param["prod_select"];
+            }
+
+            prodclass_array = [];
+            if(A_param["prodclass_r"] === ""){
+                code_list = prodclass_list.replace(/^,/,'').split(',').sort();
+                name_list = A_param["prodclass_nm_lst"].split(',');
+                for(i=0;i<name_list.length;i++){
+                    prodclass_array[code_list[i]] = name_list[i];
+                }          
+            }
+            modal_create_select("prodclass_select",prodclass_array);
+            if(prodclass_list){
+                prodclass_r_selected.checked = true;
+                prodclass_select.disabled = false;
+            }
+            if(A_param["prodclass_select"] && A_param["prodclass_select"] !== 'empty'){
+                prodclass_select.value = A_param["prodclass_select"];
+            }
+
+            supp_array = [];
+            if(A_param["supp_r"] === ""){
+                code_list = supp_list.replace(/^,/,'').split(',');
+                name_list = A_param["supp_nm_lst"].split(',');
+                for(i=0;i<name_list.length;i++){
+                    supp_array[code_list[i]] = name_list[i];
+                }          
+            }
+            modal_create_select("supp_select",supp_array);
+            if(supp_list){
+                supp_r_selected.checked = true;
+                supp_select.disabled = false;
+            }
+            if(A_param["supp_select"] && A_param["supp_select"] !== 'empty'){
+                supp_select.value = A_param["supp_select"];
+            }
+
+            org_array = [];
+            if(A_param["org_r"] === ""){
+                code_list = org_list.replace(/^,/,'').split(',');
+                name_list = A_param["org_nm_lst"].split(',');
+                for(i=0;i<name_list.length;i++){
+                    org_array[code_list[i]] = name_list[i];
+                }          
+            }
+            modal_create_select("org_select",org_array);
+            if(org_list){
+                org_r_selected.checked = true;
+                org_select.disabled = false;
+            }
+            if(A_param["org_select"] && A_param["org_select"] !== 'empty'){
+                org_select.value = A_param["org_select"];
+            } 
+            if(A_searchArray['tenpo']){
+                document.getElementById("tenpo").checked = true;
+                org_r_compile.checked = true;
+            }
+            
+            // 賞味期限
+            if (A_searchArray['bb_date_dspkbn'] === '1'){
+                document.getElementById('bb_date_dspkbn_off').checked = true;
+            }
+            else{
+                document.getElementById('bb_date_dspkbn_on').checked = true;
+            }
+
+            // システムマスタ：賞味期限利用しない
+            if (bb_date_kbn === '1'){
+                document.getElementById('th_bb_date_dspkbn').style.display = 'none';
+                document.getElementById('td_bb_date_dspkbn').style.display = 'none';
+                //document.getElementById('th_bb_date_dspkbn_d').style.display = 'none';
+                //document.getElementById('td_bb_date_dspkbn_d').style.display = 'none';
+            }
+            
+            // 分類
+            if(A_searchArray['middle_class_chk']){
+                middle_class_chk.checked = true;
+                data_prodclass           = A_ptypprodclass_detail['naka'];
+            }
+
+            // ゼロ商品
+            if (A_searchArray['zero_kbn'] === '1'){
+                document.getElementById('zero_kbn_ari').checked = true;
+            }
+            else if (A_searchArray['zero_kbn'] === '2'){
+                document.getElementById('zero_kbn_nasi').checked = true;
+            }
+            else{
+                document.getElementById('zero_kbn').checked = true;
+            }
+
+            // 対象在庫
+            if (A_searchArray['amount_kbn'] === '1'){
+                document.getElementById('amount_kbn_ari').checked = true;
+            }
+            else if (A_searchArray['amount_kbn'] === '2'){
+                document.getElementById('amount_kbn_nasi').checked = true;
+            }
+            else{
+                document.getElementById('amount_kbn').checked = true;
+            }
+            // 売単価表示
+            if (A_searchArray['saleprice_kbn'] === '1'){
+                document.getElementById('saleprice_kbn_ex').checked = true;
+            }
+            else{
+                document.getElementById('saleprice_kbn').checked = true;
+            }
+            // 在庫数範囲指定
+            document.getElementById('amount_str').value = A_searchArray['amount_str'];
+            document.getElementById('amount_end').value = A_searchArray['amount_end'];
+
+            // 縦方向のみ
+            var sample2_1 = document.getElementById('header_h');
+            var sample2_2 = document.getElementById('data');
+            var sample2_3 = document.getElementById('footer_h'); 
+            var syncScroll2 = new SyncScroll(sample2_1, sample2_3, sample2_2);
+            syncScroll2.enableHorizontal = true;
+
+            // 横方向のみ
+            var sample3_1 = document.getElementById('header_h');
+            var sample3_2 = document.getElementById('data');
+            var sample3_3 = document.getElementById('footer_h');            
+            var syncScroll3 = new SyncScroll(sample3_1, sample3_3, sample3_2);
+            syncScroll3.enableVertical = true;
+
+        };
+//ADDSTR kanderu 2020/06*************************************************************************  
+//抽出件数1000以上、入力することのメッセージを表示します。
+  function handleChange(input) {
+    if (input.value < 1) input.value = '';
+    if (input.value > 5000) {
+        alert('※入力範囲は１～5000までに入力してください!!');
+        input.value = 5000;
+    }
+  }
+//ADDEND kanderu 2020/06*************************************************************************
+
+    </script>
+
+    <STYLE type="text/css">
+                .serchListArea tr:nth-child(even) td { background: transparent; } 
+                #header_h, #footer_h {
+                   width:98%;
+                   overflow-x:hidden;overflow-y:hidden;
+                   }
+                #header_v {
+                   width:90px;height:650px;
+                   overflow-x:scroll;overflow-y:hidden;
+                   text-align: left;
+                   }
+                #data {
+                   width:99%;
+                   max-height:580px;
+                   overflow-x:scroll;overflow-y:scroll;
+                   table-layout: fixed;
+                   }
+
+            /* ローディングメッセージ */
+            .loader {
+              float: left;
+              border: 16px solid #f3f3f3;
+              border-radius: 50%;
+              border-top: 16px solid #3498db;
+              width: 50px;
+              height: 50px;
+              -webkit-animation: spin 2s linear infinite; /* Safari */
+              animation: spin 2s linear infinite;
+            }
+
+            /* Safari */
+            @-webkit-keyframes spin {
+              0% { -webkit-transform: rotate(0deg); }
+              100% { -webkit-transform: rotate(360deg); }
+            }
+
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+            .css_lording{
+                background-color: #0D0D70;
+                color: white;
+                margin: auto;
+                padding: 20px;
+                border: 1px solid #888;
+                width: 270px;
+                overflow: hidden;   
+                border-radius: 6px;
+                margin-top: 300px;
+            }
+            #modal_lording{
+                position: fixed; /* Stay in place */
+                z-index: 1; /* Sit on top */
+                padding-top: 100px; /* Location of the box */
+                left: 0;
+                top: 0;
+                width: 100%; /* Full width */
+                height: 100%; /* Full height */
+                overflow: auto; /* Enable scroll if needed */
+                background-color: rgb(0,0,0); /* Fallback color */
+                background-color: rgba(0,0,0,0.4); /* Black w/ opacity */                
+            }
+            #limit_r{
+                width:60px;
+            }
+       
+            
+    </STYLE>
+
+    </head>
+    <body>
+<?php
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+
+<?php
+    $checked = '';
+    if (isset($_POST['tenpo'])){
+        $checked = ' checked';
+    }
+?>
+<!-- Site -->
+<div id="sb-site">
+<form name="serchForm" id="serchForm" action="/profit/index.php" method="post" onsubmit="return chf(this)">
+<div class="serchListArea">
+<table align="center">
+    <tr>
+        <td>
+            <table id="serchTable">
+                <tr>
+                    <th rowspan=2 id="serchTableTitle" align="left" width="33">帳票</th>
+                    <td rowspan=2 align=left width="80" id="serchTableItem">
+                        棚卸明細一覧
+                      <input type="hidden" name="codeName" id="codeName" value="LedgerSheetInventory/show">
+                    </td>
+                    <th id="serchTableTitle" align="center" width="60">期間指定</th>
+                    <td id="serchTableItem" width="92"> 
+                        <input type="text" title="西暦/月の形式で入力してください。" id="start_dateM" name="start_dateM" size="10" value=<?php hsc($startDateM); ?>>
+                    </td>
+                    <th id="serchTableTitle" align="center" width="40">店舗<br />選択</th>
+                    <td align="left" width=140>
+                            <input type="radio" name="org_r" id="org_r_compile" value="compile"> 企業計<br />
+                            <input type="radio" name="org_r" id="org_r_all" value="all" checked> 全店<br />
+                            <input type="radio" name="org_r" id="org_r_selected" value=""> 店舗指定&nbsp;&nbsp;
+                            <select id="org_select" name="org_select" disabled onchange="modal_select_mgt(event)"><option value="no">&nbsp;</option></select>
+                            <input type="checkbox" name="tenpo" value="Yes" id="tenpo" hidden>
+                            <input type="text" name="org_id" value="" id="org_id" hidden>
+                            <input type="text" name="org_nm_lst" value="" id="org_nm_lst" hidden> 
+                    </td>
+                    <th id="serchTableTitle" align="left" width="40">部門選択</th>
+                    <td id="serchTableItem" width=110>
+                        <input type="radio" name="sect_r" id="sect_r_all" value="all" checked> 全部門<br />
+                        <input type="radio" name="sect_r" id="sect_r_selected" value=""> 部門指定&nbsp;&nbsp;
+                        <select id="sect_select" name="sect_select" disabled onchange="modal_select_mgt(event)"><option value="no">&nbsp;</option></select>                        
+                        <input type="text" name="sect_cd" value="" id="sect_cd" hidden>
+                        <input type="text" name="sect_nm_lst" value="" id="sect_nm_lst" hidden> 
+                    </td>
+                    <th id="serchTableTitle" align="center" width="60">商品選択</th>
+                    <td id="serchTableItem" width=120>
+                        <input type="radio" name="prod_r" id="prod_r_all" value="all" checked> 全商品<br />
+                        <input type="radio" name="prod_r" id="prod_r_selected" value=""> 商品指定&nbsp;&nbsp;
+                        <select id="prod_select" name="prod_select" disabled onchange="modal_select_mgt(event)"><option value="no">&nbsp;</option></select>                        
+                        <input type="text" name="prod_cd" value="" id="prod_cd" hidden>
+                        <input type="text" name="prod_nm_lst" value="" id="prod_nm_lst" hidden> 
+                    </td>
+                    <th id="serchTableTitle" align="left" width="45">分類<br />選択</th>
+                    <td id="serchTableItem" width=150>
+                        <input type="radio" name="prodclass_r" id="prodclass_r_all" value="all" checked> 全分類<br />
+                        <input type="radio" name="prodclass_r" id="prodclass_r_selected" value=""> 分類指定&nbsp;&nbsp;
+                        <select id="prodclass_select" name="prodclass_select" disabled onchange="P_modal_select_mgt(event)"><option value="no">&nbsp;</option></select>                        
+                        <input type="text" name="prodclass_cd" value="" id="prodclass_cd" hidden>
+                        <br /><input type="checkbox" name="middle_class_chk" value="Yes" id="middle_class_chk" class="chk"> 中分類精                        
+                        <input type="text" name="prodclass_nm_lst" value="" id="prodclass_nm_lst" hidden> 
+                    </td>
+                     <th id="serchTableTitle" align="left" width="50">仕入先<br />選択</th>
+                    <td id="serchTableItem" width=100>
+                        <input type="radio" name="supp_r" id="supp_r_all" value="all" checked> 全仕入先<br />
+                        <input type="radio"  name="supp_r" id="supp_r_selected" value="" > 仕入先指定&nbsp;&nbsp;
+                        <select  id="supp_select" name="supp_select" disabled onchange="modal_select_mgt(event)"  ><option value="no">&nbsp;</option></select>                        
+                        <input type="text"  name="supp_cd" value="" id="supp_cd"   hidden>
+                        <input type="text" name="supp_nm_lst" value="" id="supp_nm_lst" hidden> 
+                    </td>
+                   <td rowspan=2 width="65">
+                       <input class="submit" type="submit" name="search" id="search" value="検索" onClick="set_value('serch')"><br>
+                       <br>
+                       <input type="text" name="csv_data" value="" id="csv_data" hidden>
+                        
+                       
+                       
+                <?php if( !empty($ledgerSheetDetailList) ) { ;?>
+                       <input  class="submit" type="submit" name="csvoutput" id="csvoutput" value="CSV出力" onClick="set_value('csvoutput')">
+                      
+                <?php } ?>
+                      <input type="hidden" name="onbtn">
+                    </td>
+                </tr>
+                <tr>
+                    <th id="serchTableTitle" align="center" width="65">棚番<br/>範囲指定</th>
+                    <td id="serchTableItem" width=280 colspan="3">
+                        <input placeholder="開始" type="text" id="amount_str" name="amount_str" size="8"> ～ 
+                        <input placeholder="終了" type="text" id="amount_end" name="amount_end" size="8">
+                        <br>※初回、最終、他をそれぞれ検索対象としています
+                    </td>
+                    <th id="serchTableTitle" align="center" width="65">売単価<br />表示</th>
+                    <td id="serchTableItem" width=100>
+                        <input type="radio" id="saleprice_kbn"    name="saleprice_kbn" value="0" checked> 税込<br />
+                        <input type="radio" id="saleprice_kbn_ex" name="saleprice_kbn" value="1"> 税抜
+                    </td>
+                    <th id="serchTableTitle" align="center" width="65">在庫差異</th>
+                    <td id="serchTableItem" width=100 >
+                        <input type="radio" id="amount_kbn"      name="amount_kbn" value="0" checked> 全て<br />
+                        <input type="radio" id="amount_kbn_ari"  name="amount_kbn" value="1"> 差異あり<br />
+                        <input type="radio" id="amount_kbn_nasi" name="amount_kbn" value="2"> 差異なし
+                    </td>
+                   <th id="serchTableTitle" align="center" width="65">在庫有無</th>
+                    <td id="serchTableItem" width=100>
+                        <input type="radio" id="zero_kbn"      name="zero_kbn" value="0" checked> 全て<br />
+                        <input type="radio" id="zero_kbn_ari"  name="zero_kbn" value="1"> 在庫ありのみ<br />
+                        <input type="radio" id="zero_kbn_nasi" name="zero_kbn" value="2"> 在庫0のみ
+                    </td>
+                     <th id="serchTableTitle" align="center" width="65"><span id="th_bb_date_dspkbn">賞味期限</span></th>
+                    <td id="serchTableItem" width=100>
+                        <span id="td_bb_date_dspkbn">
+                            <input type="radio" id="bb_date_dspkbn_on"  name="bb_date_dspkbn" value="0" checked> 表示する<br />
+                            <input type="radio" id="bb_date_dspkbn_off" name="bb_date_dspkbn" value="1"> 表示しない
+                        </span>
+                    </td>
+                </tr>
+            </table>
+            <!-- モーダル画面各種 -->
+            <!-- 店舗 -->
+            <div id="modal_org" class="modal">
+                <div class="modal-content">
+                    <?php include("../modal/View/Modalorganization.html"); ?>
+                </div>
+            </div>             
+
+            <!-- 商品 -->
+            <div id="modal_prod" class="modal">
+                <div class="modal-content">
+                    <?php include("../modal/View/Modalproduct.html"); ?>
+                </div>
+            </div>
+
+            <!-- 部門 -->
+            <div id="modal_sect" class="modal">
+                <div class="modal-content">
+                    <?php include("../modal/View/Modaldepartment.html"); ?>
+                </div>
+            </div>
+            
+            <!-- 分類 -->
+            <div id="modal_prodclass" class="modal">
+                <div class="modal-content">
+                    <?php include("../modal/View/Modalprodclass.html"); ?>
+                </div>
+            </div>
+
+            <!-- 仕入先 -->
+            <div id="modal_supp" class="modal">
+                <div class="modal-content">
+                    <?php include("../modal/View/Modalsupplier.html"); ?>
+                </div>
+            </div>
+
+            <!-- インジケーター処理 -->
+            <div id='modal_lording' hidden >
+                <div class="css_lording">
+                    <div class="little_box">
+                        <div class="loader" >
+                        </div>
+                    </div>
+                    <div class="float_rigth">
+                         <span id='lording_message'>検索しています。。。。</span><br />お待ちください。。。。
+                    </div>
+                </div>
+            </div>
+
+        </td>
+    </tr>
+</table>
+<!--ADDSTR kanderu 2020/06*************************************************************************
+ボタンの追加-->
+<br>
+<div align="center">
+    抽出件数: <input type="text" id="limit_r" value="<?php echo htmlspecialchars($_POST['limit_r']); ?>" name="limit_r" maxlength="5" class="field_short" oninput="this.value=this.value.replace(/[^\d]/,'')" onchange="handleChange(this);" >
+    <button  type="submit" id="btn_first"  onClick="set_value_bt('serch','btn_first')">一ページ目</button>
+    <button  type="submit" id="btn_previous" onclick="set_value_bt('serch','btn_previous')"   >前ページ</button>
+    <button  type="submit" id="btn_next"  onClick="set_value_bt('serch','btn_next')">次ページ</button>
+    <button  type="submit" id="btn_last" onClick="set_value_bt('serch','btn_last')">最後ページ</button>
+    <?php if( empty($ledgerSheetDetailList) ) { ;?>
+    <span id="pages_number">0/0 ページ</span>
+    <?php } ?>
+    <?php if( !empty($ledgerSheetDetailList) ) { ;?>
+    <span id="pages_number"><?php hsc($pageNo);?>/<?php hsc($pageMaxNo);?> ページ</span>
+    <?php } ?>
+    <input type="hidden" id="pageNo" name="pageNo" value="<?php hsc($pageNo);?>">
+    <input type="hidden" id="pageMaxNo" name="pageMaxNo" value="<?php hsc($pageMaxNo);?>">
+    <br>
+    <br>
+    </div><br>
+<!--    <div id="listingTable"></div>
+<a   onclick="prevPage()" id="btn_prev">Prev</a>
+<a onclick="nextPage()" id="btn_next">Next</a>
+page: <span id="page"></span>-->
+
+
+<!--ADDEND kanderu 2020/06*************************************************************************-->
+<!-- 固定ヘッダ -->
+<table>
+    <tr>
+        <td>
+            <!-- 水平ヘッダ 現在は固定 -->
+            <div id="header_h">
+            <table>
+            <tbody>
+                <tr>
+                    <th id='viewList' align='center' width=140>店舗名</th>
+                    <th id='viewList' align='center' width=40>棚番(初回)</th>
+                    <th id='viewList' align='center' width=40>棚番(最終)</th>
+                    <th id='viewList' align='center' width=40>棚番(他)</th>
+                    <th id='viewList' align='center' width=102>商品コード</th>
+                    <th id='viewList' align='center' width=350>商品名</th>
+                    <th id='viewList' align='center' width=40>税率</th>
+                    <!--<span id="th_bb_date_dspkbn_d"><th id='viewList' align='center' width=40>賞味<br />期限</th></span>-->
+                    <th id='viewList' align='center' width=60>部門<br />コード</th>
+                    <th id='viewList' align='center' width=150>部門名</th>
+                    <th id='viewList' align='center' width=60>大分類<br />コード</th>
+                    <th id='viewList' align='center' width=150>大分類名</th>
+                    <th id='viewList' align='center' width=60>中分類<br />コード</th>
+                    <th id='viewList' align='center' width=150>中分類名</th>
+                    <th id='viewList' align='center' width=60>仕入先<br />コード</th>
+                    <th id='viewList' align='center' width=150>仕入先名</th>
+                    <th id='viewList' align='center' width=60>実棚数量(A)</th>
+                    <th id='viewList' align='center' width=60>実績差異</th>
+                    <th id='viewList' align='center' width=60>本部原価(B)</th>
+                    <th id='viewList' align='center' width=60>店舗原価(C)</th>
+                    <th id='viewList' align='center' width=100>本部実棚金額(D=A×B)</th>
+                    <th id='viewList' align='center' width=100>店舗実棚金額(E=A×C)</th>
+                    <th id='viewList' align='center' width=100>実棚売価金額</th>
+                    <th id='viewList' align='center' width=60>単品売価</th>
+                    <th id='viewList' align='center' width=100>原価差額(B-C)</th>
+                    <th id='viewList' align='center' width=100>実棚差額(D-E)</th>
+                </tr>
+                </tbody>
+            </table>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td>
+
+            <!-- データ部分  -->
+            <div id="data">
+            <table>
+                <?php if( !empty($ledgerSheetDetailList) ) { 
+                    $row_cnt=1;?>
+                    <?php foreach ($ledgerSheetDetailList as $data ) { ?>
+                    <?php
+                        switch ($data['record_type']){
+                            case 'S':
+                                echo '<tr style="background-color:lightgrey;">';
+                                break;
+                            case 'P':
+                                echo '<tr style="background-color:lightgrey;">';
+                                break;
+                            default:
+                                echo '<tr>';
+                                break;
+                        }
+                        if($rows === end($ledgerSheetDetailList) || $data['record_type'] === 'P'){
+                            break;
+                        }                         
+                    ?>
+                    <td id='viewList' style="background-color:transparent;" align='left'   width=140><?php hsc($data['abbreviated_name']);?></td><!-- 店舗名		 -->
+                    <td id='viewList' style="background-color:transparent;" align='left'   width=40><?php hsc($data['shelf_no_fst']);?></td>     <!-- 棚番(初回)	 -->
+                    <td id='viewList' style="background-color:transparent;" align='left'   width=40><?php hsc($data['shelf_no_lst']);?></td>     <!-- 棚番(最終)	 -->
+                    <td id='viewList' style="background-color:transparent;" align='left'   width=40><?php hsc($data['shelf_no_otr']);?></td>     <!-- 棚番(他)		 -->
+<!--                        /<?php hsc($data['shelf_no_lst']);?>/<?php hsc($data['shelf_no_otr']);?> -->
+                    
+                    <td id='viewList' style="background-color:transparent;" align='left'   width=102><?php hsc($data['prod_cd']);?></td>        <!-- 商品コード		 -->
+                    <td id='viewList' style="background-color:transparent;" align='left'   width=350><?php hsc($data['prod_nm']);?></td>        <!-- 商品名		 -->
+                    <td id='viewList' style="background-color:transparent;" align='left'   width=40><?php hsc($data['prod_tax']);?></td>        <!-- 税率		 -->
+<!--                    <span id="td_bb_date_dspkbn_d">
+                        <td id='viewList' style="background-color:transparent;" align='left'   width=40><?php hsc($data['bb_date']);?></td>
+                    <span>
+-->
+                    <td id='viewList' style="background-color:transparent;" align='left'   width=60><?php hsc($data['sect_cd']);?></td>         <!-- 部門コード 	 -->
+                    <td id='viewList' style="background-color:transparent;" align='left'   width=150><?php hsc($data['sect_nm']);?></td>        <!-- 部門名		 -->
+                    <td id='viewList' style="background-color:transparent;" align='left'   width=60><?php hsc($data['prod_t_cd1']);?></td>      <!-- 大分類コード	 -->
+                    <td id='viewList' style="background-color:transparent;" align='left'   width=150><?php hsc($data['prod_t_nm1']);?></td>     <!-- 大分類名		 -->
+                    <td id='viewList' style="background-color:transparent;" align='left'   width=60><?php hsc($data['prod_t_cd2']);?></td>      <!-- 中分類コード	 -->
+                    <td id='viewList' style="background-color:transparent;" align='left'   width=150><?php hsc($data['prod_t_nm2']);?></td>     <!-- 中分類名		 -->
+                    <td id='viewList' style="background-color:transparent;" align='left'   width=60><?php hsc($data['supp_cd']);?></td>         <!-- 仕入先コード	 -->
+                    <td id='viewList' style="background-color:transparent;" align='left'   width=150><?php hsc($data['supp_nm']);?></td>        <!-- 仕入先名		 -->
+                    
+                    <td id='viewList' style="background-color:transparent;" align='right'  width=60><?php hsc(number_format($data['rea_amount']));?></td>   <!-- 実棚数量(A)	 -->
+                    <td id='viewList' style="background-color:transparent;" align='right'  width=60><?php hsc(number_format($data['difference']));?></td>   <!-- 実績差異	 -->
+                    <td id='viewList' style="background-color:transparent;" align='right'  width=60><?php hsc($data['head_costprice']);?></td>              <!-- 本部原価(B)	 -->
+                    <td id='viewList' style="background-color:transparent;" align='right'  width=60><?php hsc($data['costprice']);?></td>                   <!-- 店舗原価(C)	 -->
+                    <td id='viewList' style="background-color:transparent;" align='right'  width=100><?php hsc(number_format($data['costtotal_honbu'],2));?></td>       <!-- 本部実棚金額(D=A×B  -->
+                    <td id='viewList' style="background-color:transparent;" align='right'  width=100><?php hsc(number_format($data['costtotal']));?></td>                <!-- 店舗実棚金額(E=A×C -->
+                    <td id='viewList' style="background-color:transparent;" align='right'  width=100><?php hsc(number_format($data['saletotal']));?></td>                <!-- 実棚売価金額	  -->
+                    <td id='viewList' style="background-color:transparent;" align='right'  width=60><?php hsc(number_format($data['saleprice']));?></td>                 <!-- 単品売価		  -->
+                    <td id='viewList' style="background-color:transparent;" align='right'  width=100><?php hsc(number_format($data['cost_difference'],2));?></td>        <!-- 原価差額(B-C)	  -->
+                    <td id='viewList' style="background-color:transparent;" align='right'  width=100><?php hsc(number_format($data['actual_shelf_difference'],2));?></td><!-- 実棚差額(D-E)	  -->
+                </tr>
+                    <?php } ?>
+                <?php } ?>
+            </table>
+            </div>
+        </td>
+    </tr>
+    <?php   if( !empty($ledgerSheetDetailList) ) {  
+        $data = end($ledgerSheetDetailList);
+    ?>
+    <tr>
+        <td>        
+            <div id='sep'>
+                <table style="table-layout:fixed;">
+                    <tr>
+                        <th></th>
+                    </tr>
+                </table>
+            </div> 
+        </td>    
+    </tr>    
+    <tr>
+        <td>
+            <div id="footer_h">
+                <table style="table-layout:fixed;">
+                    <tr>
+                        <td id='viewList' style="background-color:transparent;" align='left'   width=140>総合計</td><!-- 店舗名			 -->
+                        <td id='viewList' style="background-color:transparent;" align='left'   width=40></td>       <!-- 棚番(初回)		 -->
+                        <td id='viewList' style="background-color:transparent;" align='left'   width=40></td>       <!-- 棚番(最終)		 -->
+                        <td id='viewList' style="background-color:transparent;" align='left'   width=40></td>       <!-- 棚番(他)		 -->
+                        <td id='viewList' style="background-color:transparent;" align='left'   width=102></td>      <!-- 商品コード		 -->
+                        <td id='viewList' style="background-color:transparent;" align='left'   width=350></td>      <!-- 商品名			 -->
+<!--                        <td id='viewList' style="background-color:transparent;" align='left'   width=40></td>--><!-- 賞味期限		 -->
+                        <td id='viewList' style="background-color:transparent;" align='left'   width=40></td>       <!-- 税率			 -->
+                        <td id='viewList' style="background-color:transparent;" align='left'   width=60></td>       <!-- 部門コード     	 -->
+                        <td id='viewList' style="background-color:transparent;" align='left'   width=150></td>      <!-- 部門名			 -->
+                        <td id='viewList' style="background-color:transparent;" align='left'   width=60></td>       <!-- 大分類コード             -->
+                        <td id='viewList' style="background-color:transparent;" align='left'   width=150></td>      <!-- 大分類名		 -->
+                        <td id='viewList' style="background-color:transparent;" align='left'   width=60></td>       <!-- 中分類コード             -->
+                        <td id='viewList' style="background-color:transparent;" align='left'   width=150></td>      <!-- 中分類名		 -->
+                        <td id='viewList' style="background-color:transparent;" align='left'   width=60></td>       <!-- 仕入先コード    -->
+                        <td id='viewList' style="background-color:transparent;" align='left'   width=150></td>      <!-- 仕入先名	 -->
+                        <td id='viewList' style="background-color:transparent;" align='right'  width=60><?php hsc(number_format($data['rea_amount']));?></td>                   <!-- 実棚数量(A)		 -->
+                        <td id='viewList' style="background-color:transparent;" align='right'  width=60><?php hsc(number_format($data['difference']));?></td>                   <!-- 実績差異			 -->
+                        <td id='viewList' style="background-color:transparent;" align='right'  width=60><?php hsc(number_format($data['head_costprice']));?></td>               <!-- 本部原価(B)		 -->
+                        <td id='viewList' style="background-color:transparent;" align='right'  width=60><?php hsc(number_format($data['costprice']));?></td>                    <!-- 店舗原価(C)		 -->
+                        <td id='viewList' style="background-color:transparent;" align='right'  width=100><?php hsc(number_format($data['costtotal_honbu'],2));?></td>           <!-- 本部実棚金額(D=A×B)	 -->
+                        <td id='viewList' style="background-color:transparent;" align='right'  width=100><?php hsc(number_format($data['costtotal'],2));?></td>                 <!-- 店舗実棚金額(E=A×C)	 -->
+                        <td id='viewList' style="background-color:transparent;" align='right'  width=100><?php hsc(number_format($data['saletotal']));?></td>                   <!-- 実棚売価金額		 -->
+                        <td id='viewList' style="background-color:transparent;" align='right'  width=60><?php hsc(number_format($data['saleprice']));?></td>                    <!-- 単品売価			 -->
+                        <td id='viewList' style="background-color:transparent;" align='right'  width=100><?php hsc(number_format($data['cost_difference'],2));?></td>           <!-- 原価差額(B-C)		 -->
+                        <td id='viewList' style="background-color:transparent;" align='right'  width=100><?php hsc(number_format($data['actual_shelf_difference'],2));?></td>   <!-- 実棚差額(D-E)		 -->
+                    </tr>                 
+                </table>
+            </div>
+        </td>
+    </tr>
+<?php } ?>     
+</table>
+</div>
+</form>
+<script type="text/javascript" src="../jquery/js/scrolltopcontrol2.js"></script> <!--スクロールしながらページのトップに戻る-->
+        </div><!-- /#sb-site -->
+</body>
+</html>

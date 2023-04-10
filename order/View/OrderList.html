@@ -1,0 +1,80 @@
+<?php
+require_once( SystemParameters::$SANITIZE_SETTING_FILE );
+//$disabled = " disabled";
+if(!empty($detailsArr)) {
+	$disabled = '';
+}
+?>
+<thead class="meisai">
+    <tr>
+        <th style="width:30px;">
+        <th style="width:150px;">JANコード/GS1-128
+        <th style="width:300px;">商品名
+        <th style="width:100px;">容量
+        <th style="width:60px;">入数
+        <th style="width:80px;">最低ロット
+        <th style="width:80px;">ケース
+        <th style="width:80px;">数量
+        <th style="width:80px;">単価
+        <th style="width:100px;">金額
+
+        <!--
+        <th style="width:80px;">残</th>
+        -->
+    </tr>
+</thead>
+<tbody class="meisai">
+    <?php
+    for($i=1;$i<=50;$i++) {
+    	$pro_cd   = $detailsArr[$i-1]['pro_cd'];
+        $jan_cd   = $detailsArr[$i-1]['jan_cd'];
+    	$pro_name = $detailsArr[$i-1]['pro_name'];
+        $youryo   = $detailsArr[$i-1]['youryo'];
+        $irisuu   = $detailsArr[$i-1]['irisuu'];
+        $hakosuu  = $detailsArr[$i-1]['hakosuu'];
+        $suu      = $detailsArr[$i-1]['suu'];
+        $tanka    = $detailsArr[$i-1]['tanka'];
+        $kin      = $detailsArr[$i-1]['kin'];
+        $zan      = $detailsArr[$i-1]['zan'];
+        $min_lot  = $detailsArr[$i-1]['min_lot'];
+        if($kin > 0)
+        {
+            $kin = number_format($kin);
+        }
+        if($tanka > 0)
+        {
+            $tanka = number_format($tanka);
+        }
+        if($suu == 0)
+        {
+            $suu = "";
+        }
+        if($hakosuu == 0)
+        {
+            $hakosuu = "";
+        }
+
+    ?>
+    <tr>
+        <td style="text-align:right;width:30px;"><?php echo $i;?>
+        <td align="center" style="width:150px;">
+            <input type="hidden" name="pro_cd_<?php hsc($tag_no);?>_<?php hsc($i);?>" id="pro_cd_<?php hsc($tag_no);?>_<?php hsc($i);?>" value="<?php hsc($pro_cd);?>">
+            <input type="text" style="width:135px;" name="jan_cd_<?php hsc($tag_no);?>_<?php hsc($i);?>" class="code" id="jan_cd_<?php hsc($tag_no);?>_<?php hsc($i);?>" value="<?php hsc($jan_cd);?>" <?php hsc($disabled);?>>
+
+        <td style="width:300px;" id="pro_name_<?php hsc($tag_no);?>_<?php hsc($i);?>"><?php hsc($pro_name);?>
+        <td style="width:100px;text-align:right" id="yoryo_<?php hsc($tag_no);?>_<?php hsc($i);?>"><?php hsc($youryo);?>
+        <td style="width:60px;text-align:right" id="irisuu_<?php hsc($tag_no);?>_<?php hsc($i);?>"><?php hsc($irisuu);?>
+        <td align="right" style="width:80px;" id="lot_<?php hsc($tag_no);?>_<?php hsc($i);?>"><?php hsc($min_lot);?>
+        <td align="center" style="width:80px;">
+            <input type="text" style="width:65px;" class="case" name="case_<?php hsc($tag_no);?>_<?php hsc($i);?>" id="case_<?php hsc($tag_no);?>_<?php hsc($i);?>" value="<?php hsc($hakosuu);?>" <?php hsc($disabled);?>>
+
+        <td align="center" style="width:80px;">
+            <input type="text" style="width:65px;" class="suu" name="suu_<?php hsc($tag_no);?>_<?php hsc($i);?>" id="suu_<?php hsc($tag_no);?>_<?php hsc($i);?>" value="<?php hsc($suu);?>"  <?php hsc($disabled);?>>
+
+        <td style="width:80px;text-align:right" id="tanka_<?php hsc($tag_no);?>_<?php hsc($i);?>"><?php hsc($tanka);?>
+        <td style="width:100px;text-align:right" id="kin_<?php hsc($tag_no);?>_<?php hsc($i);?>"><?php hsc($kin);?></td>
+    </tr>
+    <?php
+    }
+    ?>
+</tbody>

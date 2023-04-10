@@ -1,0 +1,350 @@
+<?php
+    /**
+     * @file      商品検索一覧帳票画面(View)
+     * @author    media craft
+     * @date      2018/03/22
+     * @version   1.00
+     * @note      商品検索一覧帳票画面
+     * @update    2019/03/07
+     * @updater   vergara miguel
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述
+            include("../profit/View/Common/HtmlHeader.php");
+        ?>
+
+    <script src="../js/profit/jquery/jquery.ui.ympicker.js" /></script>
+    <script src="../js/profit/jquery/jquery-migrate-1.0.0.js" /></script>
+    <script src="../js/profit/jquery/datepicker-ja.js" /></script>
+    <script src="../js/autofil_v<?php echo $_SESSION['AUTOFIL_VER'] ?>.js" ></script>
+    <script type="text/javascript">
+        Sizelist       = '<?php echo json_encode(json_encode($Sizelist)); ?>';
+        A_Sizelist     = JSON.parse(Sizelist.slice(1,-1));
+    </script>
+    <script type="text/javascript">
+        function chf(frm){
+            if( 1 < window.location.search.length )
+                {
+                    // 最初の1文字 (?記号) を除いた文字列を取得する
+                    var query = window.location.search.substring( 1 );
+                    var action = frm.action.split( '?' );
+
+                    // 検索以外の機能実行後だった場合、パラメータを補正する
+                    if(1 < action.length){
+                        frm.action = action[0];
+                    }
+
+                    // クエリの区切り記号 (&) で文字列を配列に分割する
+                    var parameters = query.split( '&' );
+
+                    if (frm.onbtn.value == 'serch') {
+                        frm.target='_self';
+                        if(1 < parameters.length){
+                             frm.action += '?param=' +frm.elements["codeName"].value + '&home=1';
+                         }else{
+                             frm.action += '?param=' +frm.elements["codeName"].value;
+                        }
+                    }else if (frm.onbtn.value == 'csvoutput'){
+                        if(1 < parameters.length){
+                             frm.action += '?param=LedgerSheetProduct/csvoutput&home=1';
+                         }else{
+                             frm.action += '?param=LedgerSheetProduct/csvoutput';
+                        }
+                    }
+                }
+       }
+
+    $(document).ready(function()
+    {
+        // 日付検索条件の初期設定
+        if($('#codeName').val() === "LedgerSheetProduct/show")
+        {
+            $('#start_date').css('display' , '');
+            $('#end_date').css('display' , '');
+        }
+    });
+
+    /**
+     *  イベント制御用
+     *
+     */
+    function set_value(s_val){
+        document.serchForm.onbtn.value = s_val;
+    }
+
+    /**
+     * DatePickerを設定
+     */
+    $(function()
+    {
+        $( "#start_date, #end_date" ).datepicker({
+            numberOfMonths: 2,
+            showCurrentAtPos: 1,
+            showButtonPanel: true,
+            dateFormat: 'yy/mm/dd'
+        });
+    });
+
+    /**
+     *
+     * スクロール制御
+     *
+     */
+        function SyncScroll(/* elem1, elem2, ... */) {
+            this._elements = [];
+            this._elementOnscroll = this._elementOnscroll.bind(this);
+            this.addElement.apply(this, arguments);
+        }
+        SyncScroll.prototype = {
+            enableHorizontal: true,
+            enableVertical: true,
+            addElement: function (/* elem1, elem2, ... */) {
+                var elem, i;
+                for (i = 0; i < arguments.length; i += 1) {
+                    elem = arguments[i];
+                    elem.addEventListener('scroll', this._elementOnscroll, false);
+                    this._elements.push(elem);
+                }
+            },
+            removeElement: function (/* elem1, elem2, ... */) {
+                var elem, i, j;
+                for (i = 0; i < arguments.length; i += 1) {
+                    elem = arguments[i];
+                    elem.removeEventListener('scroll', this._elementOnscroll, false);
+                    j = this._elements.indexOf(elem);
+                    if (j >= 0) {
+                        this._elements.splice(j, 1);
+                    }
+                }
+            },
+            _elementOnscroll: function (event) {
+                var i,
+                    elems = this._elements,
+                    elem = event.target,
+                    x = elem.scrollLeft,
+                    y = elem.scrollTop;
+                if (this.enableHorizontal) {
+                    for (i = 0; i < elems.length; i += 1) {
+                        elem = elems[i];
+                        if (elem === event.target || elem.scrollLeft === x) {
+                            continue;
+                        }
+                        elem.scrollLeft = x;
+                        if (elem.scrollLeft !== x) {
+                            elem.scrollLeft = x + x - elem.scrollLeft;
+                        }
+                    }
+                }
+                if (this.enableVertical) {
+                    for (i = 0; i < elems.length; i += 1) {
+                        elem = elems[i];
+                        if (elem === event.target || elem.scrollTop === y) {
+                            continue;
+                        }
+                        elem.scrollTop = y;
+                        if (elem.scrollTop !== y) {
+                            elem.scrollTop = y + y - elem.scrollTop;
+                        }
+                    }
+                }
+            },
+            destroy: function () {
+                this.removeElement.apply(this, this._elements);
+            }
+        };
+
+        window.onload = function () {
+            creat_listener();
+            // 縦方向のみ
+            var sample2_1 = document.getElementById('header_h');
+            var sample2_2 = document.getElementById('data');
+            var syncScroll2 = new SyncScroll(sample2_1, sample2_2);
+            syncScroll2.enableHorizontal = true;
+
+            // 横方向のみ
+            var sample3_1 = document.getElementById('header_h');
+            var sample3_2 = document.getElementById('data');
+            var syncScroll3 = new SyncScroll(sample3_1, sample3_2);
+            syncScroll3.enableVertical = false;
+        };
+
+    </script>
+
+    <STYLE type="text/css">
+#header_h {
+   width:98%;
+   overflow-x:hidden;overflow-y:hidden;
+   }
+#header_v {
+   width:90px;height:650px;
+   overflow-x:scroll;overflow-y:hidden;
+   text-align: left;
+   }
+#data {
+   width:99%;height:650px;
+   overflow-x:scroll;overflow-y:scroll;
+   table-layout: fixed;
+   }
+
+    </STYLE>
+
+    </head>
+    <body>
+<?php
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+
+<!-- Site -->
+<div id="sb-site">
+    <!-- menuNameArea -->
+    <div class="menuNameArea">
+    <!-- パンくずリスト -->
+    </div>
+    <!-- /.menuNameArea -->
+<form name="serchForm" id="serchForm" action="/profit/index.php" method="post" onsubmit="return chf(this)">
+<div class="serchListArea">
+<table align="center">
+    <tr>
+        <td>
+            <table id="serchTable">
+                <tr class=hidaritr>
+                    <th id="serchTableTitle" align="center" width="75">帳票</th>
+                    <td id="serchTableItem" width=220>
+                        商品検索一覧
+                      <input type="hidden" name="codeName" id="codeName" value="LedgerSheetProduct/show">
+                    </td>
+                    <th id="serchTableTitle" align="center" width="65">商品コード</th>
+                    <td id="serchTableItem" width="300">
+                        <input placeholder = "開始" type="text" id="start_code" name="start_code" size="11" maxlength="13" value=<?php hsc($startCd); ?>>
+                        <input placeholder = "終了" type="text" id="end_code" name="end_code" size="11" maxlength="13" value=<?php hsc($endCd); ?>>
+                    </td>
+                    <th id="serchTableTitle" align="center" width="65">在庫</th>
+                    <td id="serchTableItem" width="300">
+                        <input placeholder = "開始" type="text" id="start_tsa" name="start_tsa" size="7" maxlength="9"value=<?php hsc($startTsa); ?>>
+                        <input placeholder = "終了" type="text" id="end_tsa" name="end_tsa" size="7" maxlength="9" value=<?php hsc($endTsa); ?>>
+                    </td>
+                   
+                </tr>
+                <style>
+                .migitr{float:right;}
+                .hidaritr{float: left;}
+                </style>
+                <tr class=hidaritr>
+                        <th id="serchTableTitle" align="center" width="75">商品</th>
+                        <td id="serchTableItem" width="220">
+                            <input placeholder="名前" type="text" id="prod_kn" name="prod_kn" size="16" value=<?php hsc($prodName); ?>>
+                        </td>
+                    <th id="serchTableTitle" align="center" width="65">前月末在庫</th>
+                    <td id="serchTableItem" width="300">
+                        <input placeholder = "開始" type="text" id="start_ea" name="start_ea" size="7" maxlength="9" value=<?php hsc($startEa); ?>>
+                        <input placeholder = "終了" type="text" id="end_ea" name="end_ea" size="7" maxlength="9" value=<?php hsc($endEa); ?>>
+                    </td>
+                    <th id="serchTableTitle" align="center" width="65">部門</th>
+                    <td id="serchTableItem">
+                        <select name="sect_cd" id="sect_cd">
+                            <option value="00"></option>
+                            <?php foreach($sectList as $value){ ?>
+                            <option value="<?php echo (array_unique($value)['sect_cd']) ?>"<?php if($sectCd == $value['sect_cd']){ ?>selected<?php } ?> >
+                              <?php echo $value['sect_nm'] ?></option>
+                            <?php } ?>
+                        </select>
+                    </td>
+                    <td colspan="2">
+                      <input class="submit" type="submit" name="search" id="search" value="検索" onClick="set_value('serch')">
+                <?php if( !empty($list) ) { ;?>
+                       <input width=20 size=10 class="submit" type="submit" name="csvoutput" id="csvoutput" value="CSV出力" onClick="set_value('csvoutput')">
+                <?php } ?>
+                      <input type="hidden" name="onbtn">
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+<!-- 固定ヘッダ -->
+<table>
+    <tr>
+        <td>
+            <!-- 水平ヘッダ -->
+            <div id="header_h">
+            <table>
+                <tr>
+                    <th id='viewList' align='center' width=50>No</th>
+                    <th id='viewList' align='center' width=140>商品コード<br>商品名</th>
+                    <th id='viewList' align='center' width=80>容量<br>商品名カナ</th>
+                    <th id='viewList' align='center' width=80>部門コード<br>部門名</th>
+                    <th id='viewList' align='center' width=80>仕入先コード<br>仕入先名</th>
+                    <th id='viewList' align='center' width=80>売価<br>会員売価</th>
+                    <th id='viewList' align='center' width=80>税区分<br>原価</th>
+                    <th id='viewList' align='center' width=60>在庫<br>前月末在庫</th>
+                    <th id='viewList' align='center' width=60>店舗</th>
+                </tr>
+            </table>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <!-- データ部分  -->
+            <div id="data">
+            <table>
+                <?php if( !empty($list) ) { 
+                    $row_cnt = 1 ;?>
+                    <?php foreach ($list as $rows ) { ?>
+                <tr>
+                    <th align="left" width=50><?php hsc($row_cnt++); ?></th>
+
+                    <td id='viewList' align='left' width=140><?php hsc($rows['prod_cd']); ?>
+                        <br>
+                        <?php hsc(str_replace('　',' ',$rows['prod_nm'])); ?>
+                    </td>
+                    <td id='viewList' align='left' width=80><?php hsc($rows['prod_capa']); ?>
+                        <br>
+                        <?php hsc($rows['prod_kn']); ?>
+                    </td>
+                    <td id='viewList' align='left' width=80><?php hsc($rows['sect_cd']); ?>
+                        <br>
+                        <?php hsc($rows['sect_nm']); ?>
+                    </td>
+                    <td id='viewList' align='left' width=80><?php hsc($rows['head_supp_cd']); ?>
+                        <br>
+                        <?php hsc($rows['supp_nm']); ?>
+                      </td>
+                    <td id='viewList' align='right' width=80><?php hsc($rows['saleprice']); ?>
+                        <br>
+                        <?php hsc($rows['cust_saleprice']); ?>
+                      </td>
+                    <td id='viewList' align='right' width=80><?php hsc($rows['tax_type']); ?>
+                        <br>
+                        <?php hsc($rows['head_costprice']); ?></td>
+                    <td id='viewList' align='right' width=60><?php echo $rows['total_stock_amount'].'<br />'.$rows['endmon_amount']; ?>
+                    </td>
+                    <td id='viewList' align='center' width=60><?php hsc($rows['abbreviated_name']); ?></td>
+                </tr>
+                    <?php } ?>
+                <?php } ?>
+            </table>
+            </div>
+        </td>
+    </tr>
+</table>
+</div>
+</form>
+<script type="text/javascript" src="../jquery/js/scrolltopcontrol2.js"></script>
+<!--スクロールしながらページのトップに戻る-->
+</div><!-- /#sb-site -->
+
+</body>
+</html>

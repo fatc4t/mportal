@@ -1,0 +1,65 @@
+<?php
+    /**
+     * @file        テロップ画面(View)
+     * @author      millionet oota
+     * @date        2017/01/26
+     * @version     1.00
+     * @note        テロップ画面
+     */
+?>
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-ajax">
+
+            <!-- PageMoveArea -->
+            <?php include("../FwCommon/View/PagingArea.php"); ?>
+
+            <!-- serchListArea -->
+            <?php if( $isScrollBar ) { ?>
+                <div class="serchListArea" style=" clear:both; width:99%; margin:0px auto !important; overflow-y:auto; height:25px;">
+            <?php } else { ?>
+                <div class="serchListArea" style=" clear:both; width:99%; margin:5px auto !important;">
+            <?php } ?>
+            <!-- ---------------------- -->
+                    <table>
+                        <tbody>
+                            <tr>
+                                <th width="37px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?></u><?php hsc($headerArray['telopNoSortMark']); ?></span></th><!-- No -->
+                                <th width="70px"><span onClick="setColumnInfo('内容');"><u>内容</u><?php hsc($headerArray['contentsSortMark']); ?></span></th>
+                                <th width="50px"><span onClick="setColumnInfo('リンク');"><u>リンク</u><?php hsc($headerArray['linkUrlSortMark']); ?></span></th>
+                                <th width="62px"><span onClick="setColumnInfo('作成日');"><u>適用開始日</u><?php hsc($headerArray['applicationStartDateSortMark']); ?></span></th>
+                                <th width="62px"><span onClick="setColumnInfo('作成日');"><u>適用終了日</u><?php hsc($headerArray['applicationEndDateSortMark']); ?></span></th>
+                            </tr>
+                </table>
+            <?php if( $isScrollBar ) { ?>
+                </div>
+                <div class="serchListArea" style="width:99%; margin: 0px auto; overflow-y:auto; height:400px; !important;">
+            <?php } ?>
+                <table id="nameTable" style="background-color: #ffffff">
+                            <?php foreach($telopList as $telop) { ?>
+                                <?php $telop_no++; ?>
+                                <?php if(!$telopNoSortFlag) { ?>
+                                    <?php $display_no++; ?>
+                                <?php } ?>
+                                <tr>
+                                    <td align="right" style="width:37px;"><?php hsc($display_no); ?></td>
+                                    <?php 
+                                        if(!empty($telop['updateDisabled'])){
+                                            $isUpdateDisabled = 1;
+                                        }else{
+                                            $isUpdateDisabled = 0;
+                                        }
+                                    ?>
+                                    <td align="center" style="width:70px;"><span onClick="editPanelTransition(<?php hsc($telop['telop_id']); ?>, <?php hsc($isUpdateDisabled); ?>)"><a href="#"><?php hsc($telop['contents']); ?></a></span></td>
+                                    <td align="center" style="width:50px;"><?php hsc($telop['link_url']); ?></td>
+                                    <td align="center" style="width:62px;"><?php hsc($telop['application_start_date']); ?></td>
+                                    <td align="center" style="width:62px;"><?php hsc($telop['application_end_date']); ?></td>
+                                </tr>
+                                <?php if($telopNoSortFlag) { ?>
+                                      <?php $display_no--; ?>
+                                <?php } ?>
+                            <?php } ?>
+                        </tbody>
+                    </table>
+                </div><!-- /.serchListArea -->
+           </div><!-- /.jquery-replace-ajax -->

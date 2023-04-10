@@ -1,0 +1,22 @@
+<?php
+    /**
+     * @file      発注先設定画面(View)
+     * @author    USE K.Kanda(media-craft.co.jp)
+     * @date      2018/01/22
+     * @version   1.00
+     * @note      発注先一覧
+     */
+?>
+<?php
+require_once( SystemParameters::$SANITIZE_SETTING_FILE );
+foreach($makerArr1 as $key => $val)
+{
+?>
+<tr>
+	<td style="width:100px;"><?php hsc($val['ma_cd']);?></td>
+    <td style="width:300px;"><?php hsc($val['ma_name']);?></td>
+    <td style="width:40px;"><input type="button" value="選択" onclick="addMakerRow(this,'<?php hsc($val['ma_cd']);?>','<?php hsc($val['ma_name']);?>')"></td>
+</tr>
+<?php
+}
+?>

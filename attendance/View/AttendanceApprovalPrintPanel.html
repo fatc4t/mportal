@@ -1,0 +1,68 @@
+<?php
+    /**
+     * @file      勤怠承認印刷画面(View)
+     * @author    USE R.dendo
+     * @date      2016/07/14
+     * @version   1.00
+     * @note      勤怠承認印刷画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array( 'default.css',
+                                'common.js', 
+                                'jquery-ui.min.js', 
+                                'jquery-ui.css' );    // cssまたはｊｓファイルを拡張子付きで配列に記述 
+
+            include("Common/HtmlHeader.php");
+        ?>
+       <script src="../js/attendance/jquery/printThis.js"></script>
+        <script type="text/javascript">
+            /**
+             * 印刷プレビュー画面へ
+             */
+            function goPrint()
+            {
+                $('#outPrint').printThis();
+            }
+             
+            /**
+             * 検索画面へ
+             */
+            function dateMoved()
+            {
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                                date : $('#target_date').val(),
+                                userId : $('#searchUserID_print').val(),
+                                searchOrganizatioID : $('#searchOrganizatioID').val(),
+                                dateTimeUnit : $("#dateTimeUnitView").val(),
+                                targetDayBulk : $("#targetDayBulk").val(),
+                                isScreen : $("#isScreen").val(),
+                           }
+
+                var path = 'index.php?param=AttendanceApproval/printReturn&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+            }
+            
+        </script>
+    </head>
+    <body onload="goPrint(); setTimeout('dateMoved();', 1500);" id="outPrint">
+
+        <!-- Site -->
+        <div id="sb-site">
+            <div class="approvalStampContainer" >
+                <div class="approvalStamp"></div>
+                <div class="approvalStamp"></div>
+                <div class="approvalStamp"></div>
+                <div class="approvalStampBlank"></div>
+            </div>
+            <div style=" clear:both;"></div>
+            <?php include("AttendanceApprovalTablePanel.html"); ?>
+        </div><!-- /.sb-site -->
+    </body>
+</html>

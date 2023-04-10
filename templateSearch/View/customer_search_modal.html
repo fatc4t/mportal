@@ -1,0 +1,29 @@
+        <div>
+            <br /><br /><br />
+            <div>顧客検索</div>
+            <div>
+                <label  for="PROD_KN"> 商品名（カナ） </label><input type="text"  id="CUST_KN" onblur="cust_searchdata()"><br />
+                <label  for="PROD_NM"> 商品名（漢字） </label><input type="text"  id="CUST_NM" onblur="cust_searchdata()"><br />             
+                <label  for="SECT_CD"> 部門 </label><select id="SECT_CD" onblur="cust_searchdata()">
+                  <option value=""></option>
+              </select><br /><label for="SUPP_CD" > 仕入先</label><select id="SUPP_CD" onblur="cust_searchdata()">
+                  <option value=""></option>
+              </select><br /><br />
+                <button type="button" id="bt_fisrt" onclick="firstpage()"  >一ページ目</button><button type="button" id="bt_previous" onclick="previous()" disabled >前ページ</button><button type="button" id="bt_next" onclick="next()">次ページ</button><button type="button" id="bt_last" onclick="lastpage()"  >最後ページ</button>
+            </div>
+            <br />
+            <div>
+                <table>
+                    <thead id="thead_id">
+                        <tr>
+                            <th>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody_id">
+
+                    </tbody>
+                </table>
+            </div>
+            <button type="button" id="cust_result" onclick="cust_result()"  >決定</button>
+        </div>

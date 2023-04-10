@@ -1,0 +1,450 @@
+<?php
+    /**
+     * @file      勤怠承認マスタ画面(View)
+     * @author    USE R.dendo
+     * @date      2016/07/14
+     * @version   1.00
+     * @note      勤怠承認マスタ画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array( 'default.css',
+                                'common.js', 
+                                'jquery-ui.min.js', 
+                                'jquery-ui.css' );    // cssまたはｊｓファイルを拡張子付きで配列に記述 
+
+            include("Common/HtmlHeader.php");
+        ?>
+        <script src="../js/attendance/jquery/jquery.ui.ympicker.js" /></script>
+        <script src="../js/attendance/jquery/jquery-migrate-1.0.0.js" /></script>
+        <script src="../js/attendance/jquery/datepicker-ja.js" /></script>
+        <script type="text/javascript">
+            var attendanceCnt = null;
+            var btnInfo  = null;
+            var check = true;
+            var searchPath = 'index.php?param=AttendanceApproval/search&home=1';
+            
+            $(document).ready(function()
+            {
+                /**
+                 * 検索ボタンクリック
+                 */
+                $('#search').click(function()
+                {
+                    searchPath = 'index.php?param=AttendanceApproval/search&home=1';
+                });
+
+                /**
+                 * 印刷ボタンクリック
+                 */
+                $('#print').click(function()
+                {
+                    searchPath = 'index.php?param=AttendanceApproval/print&home=1';
+                });
+                
+                /**
+                 * 検索ボタンクリック
+                 */
+                $('#searchForm').submit(function(event)
+                {
+                    event.preventDefault();
+
+                    var isScreen = 2; // 個人の一ヶ月分の勤怠承認
+                    var date = $('#datetextYm').val();
+                    var targetDayBulk = 0;
+                    // 検索用データの設定
+                    if($("[name=dateTimeUnit]:checked").val() === "日")
+                    {
+                        date = $('#datetext').val();
+                        if($("[name=targetUnit]:checked").val() === "個人")
+                        {
+                            // 個人の日単位の勤怠承認
+                            isScreen = 1;
+                        }
+                        else
+                        {
+                            // 対象日一括修正
+                            isScreen = 3;
+                            targetDayBulk = 3;
+                        }
+                    }
+
+                    // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                    var data = {
+                                    date : date,
+                                    userId : $('#searchUser').val(),
+                                    searchOrganizatioID : $('#organizationName').val(),
+                                    dateTimeUnit : $("[name=dateTimeUnit]:checked").val(),
+                                    targetDayBulk : targetDayBulk,
+                                    isScreen : isScreen,
+                               }
+                    var path = searchPath;
+
+                    // データ更新
+                    setDataForAjax( data, path );
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+                /**
+                 * 更新/削除ボタンクリック
+                 */
+                $('#modForm').submit(function(event)
+                {
+                    event.preventDefault();
+                    document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$SHELF_REGIST_MSG); ?>';
+                    $("#dialog_mod").dialog('open');
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+                
+                /**
+                 * 日・月のラジオボタン変更イベント
+                 */
+                $("input:radio[name=dateTimeUnit]").change(function()
+                {
+                    if($("[name=dateTimeUnit]:checked").val() === "日")
+                    {
+                        $('#datetextYm').css('display' , 'none');
+                        $('#datetext').css('display' , '');
+                        $('#targetUnit_o').prop('disabled', false);
+                    }
+                    else
+                    {
+                        $('#datetextYm').css('display' , '');
+                        $('#datetext').css('display' , 'none');
+                        // 組織は、選択不可
+                        $('#targetUnit_o').prop('disabled', true);
+                        document.getElementsByName("targetUnit")[0].checked = true;
+                    }
+                });
+                
+                // ラジオボタンの初期設定
+                if( <?php hsc($isScreen); ?> == 2 )
+                {
+                    document.getElementsByName("dateTimeUnit")[1].checked = true;
+                    $('#datetextYm').css('display' , '');
+                    $('#datetext').css('display' , 'none');
+                    $('#datetextYm').css('display' , '');
+                    $('#datetext').css('display' , 'none');
+                    // 組織は、選択不可
+                    $('#targetUnit_o').prop('disabled', true);
+                    document.getElementsByName("targetUnit")[0].checked = true;
+                }
+                else if( <?php hsc($isScreen); ?> == 1 )
+                {
+                    document.getElementsByName("dateTimeUnit")[0].checked = true;
+                    document.getElementsByName("targetUnit")[0].checked = true;
+                    $('#datetextYm').css('display' , 'none');
+                    $('#datetext').css('display' , '');
+                }
+                else
+                {
+                    $('#datetextYm').css('display' , 'none');
+                    $('#datetext').css('display' , '');
+                }
+                
+            });
+            
+            /**
+             * 更新キャンセル
+             */
+            function cancel()
+            {
+                var date   = $('#date_' + attendanceCnt).val();
+                var userId = $('#userID_' + attendanceCnt).val();
+
+                // 値が取得できているか
+                if( undefined === date )
+                {
+                    // できていない場合、検索条件の内容を取得する
+                    date   = $('#datetextYm').val();
+                    if($("[name=dateTimeUnit]:checked").val() === "日")
+                    {
+                        date = $('#datetext').val();
+                    }
+                    
+                    userId = $('#searchUser').val();
+                }
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                                date: date,
+                                userId: userId,
+                                searchOrganizatioID: $('#organizationName').val(),
+                                dateTimeUnit: $('#dateTimeUnitView').val(),
+                                targetDayBulk : $('#targetDayBulk').val(),
+                                isScreen : $('#isScreen').val(),
+                           }
+                var path = 'index.php?param=AttendanceApproval/search&home=1';
+
+                // データ更新
+                setDataForAjax( data, path );
+            }
+
+            /**
+             * 更新用データの設定
+             */
+            function setModData()
+            {
+                // 一括登録
+                bulkRegistration();
+            }
+
+            /**
+             * チェックボックス制御
+             */
+            function setAllCheck()
+            {
+                $('input:checkbox').prop("checked", check );
+                if( check )
+                {
+                    check = false;
+                }
+                else
+                {
+                    check = true;
+                }
+            }
+
+            /**
+             * 前日/翌日　前月/翌月データの設定
+             */
+            function dateMoved(userID, dateCheck)
+            {
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var dateTarget = $('#target_date_next').val();
+                if(dateCheck == 0)
+                {
+                    dateTarget = $('#target_date_prev').val();
+                }
+                var data = {
+                                date   : dateTarget,
+                                userId : userID,
+                                dateTimeUnit : $('#dateTimeUnitView').val(),
+                                targetDayBulk : $('#targetDayBulk').val(),
+                                searchOrganizatioID : $('#organizationName').val(),
+                                isScreen : $('#isScreen').val(),
+                           };
+                var path = 'index.php?param=AttendanceApproval/search&home=1';
+                // データ更新
+                setDataForAjax( data, path );
+
+                //サブミット後、ページをリロードしないようにする
+                return false;
+            }
+            
+            /**
+             * 戻るボタン押下時処理
+             */
+            function returnScreen()
+            {
+                location.href='index.php?param=AttendanceRecord/show&home=1';
+            }
+            
+            /**
+             * 一括更新ボタン押下時処理
+             */
+            function pushBulkRegistration()
+            {
+                // 編集Formのサブミット
+                $('#modForm').submit();
+            }
+            
+            /**
+             * 一括更新処理
+             */
+            function bulkRegistration()
+            {
+                // 打刻場所
+                var outputItemNameArray = $(".organizationName").map(function()
+                {
+                    return $(this).val();
+                }).get();
+                
+                // 日付
+                var dateArray = $(".date").map(function()
+                {
+                    return $(this).val();
+                }).get();
+                
+                // 打刻ID
+                var attendanceIDArray = $(".attendanceID").map(function()
+                {
+                    return $(this).val();
+                }).get();
+                
+                // 更新時間
+                var updateTimeArray = $(".updateTime").map(function()
+                {
+                    return $(this).val();
+                }).get();
+                
+                // ユーザID
+                var userIDArray = $(".userID").map(function()
+                {
+                    return $(this).val();
+                }).get();
+
+                // 承認リスト
+                var approvalModArray = $(".approval").map(function()
+                {
+                    return $(this).prop('checked');
+                }).get();
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                            attendanceId : attendanceIDArray,
+                            date: dateArray,
+                            organizationId : outputItemNameArray,
+                            updateTime : updateTimeArray,
+                            userId : userIDArray,
+                            approval : approvalModArray,
+                            token : $('#token').val(),
+                            dateTimeUnit : $('#dateTimeUnitView').val(),
+                            targetDayBulk : $('#targetDayBulk').val(),
+                            isScreen : $('#isScreen').val(),
+                            searchOrganizatioID : $('#organizationName').val(),
+                        };
+
+                var path = 'index.php?param=AttendanceApproval/addBulk&home=1';
+
+                // データ更新
+                setDataForAjax( data, path );
+            }
+            
+            /**
+             * 日付のデイトピッカーを設定
+             */
+            $(function()
+            {
+                $( "#datetext" ).datepicker({
+                    numberOfMonths: 2,
+                    showButtonPanel: true,
+                    dateFormat: 'yy/mm/dd'
+                });
+            });
+            
+            /**
+              * 画面生成時自動読み込み
+              */
+            $(function() {
+                /*
+                 * DatePickerInisilizer
+                 * @author 2016/06/30 Y.Sugou
+                 */
+                $("#datetextYm").ympicker({
+                    altField: "#datetextYm" //リターンセットUI IDorCLASS名
+                    ,altFormat: "yy/mm" //リターン日付形式
+                    ,monthNamesShort: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"]  //カレンダー表示月形式
+                    ,showAnim: "slideDown" //表示アニメーション形式
+                    ,yearRange: "c-2:c+3" //プルダウン年範囲
+                });
+            });
+            
+            /**
+             * 検索用従業員リスト更新
+             */
+            function setSearchUserList()
+            {
+                // 検索用従業員リスト更新用パス
+                var path = 'index.php?param=AttendanceApproval/searchUserList&home=1';
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              searchOrgID : $('#organizationName').val(),
+                           };
+
+                // データ更新
+                setDataForAjax( data, path, "jquery-replace-SearchUserName-ajax" );
+            }
+            
+        </script>
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site" style="overflow: auto;">
+            <!-- パンくずリスト -->
+            <?php 
+                include("Common/Breadcrumb.php");
+
+                $titleDate   = $sendingDate;
+                $titleDateYm = substr($sendingDate,0,7);
+                // -を/に置換
+                $titleDate   = str_replace( "-", "/", $titleDate );
+                $titleDateYm = str_replace( "-", "/", $titleDateYm );
+            ?>
+            <form id="searchForm" name="searchForm" >
+                <div class="serchBoardArea" style="width:99%; margin: 5px auto; !important; background-color: #ffffff">
+                    <div class="searchElement">
+                        <table>
+                            <tr>
+                                <th style="width:110px">表示単位</th>
+                                <td style="width:110px" align="center">
+                                    　<input type="radio" id="dateTimeUnit" name="dateTimeUnit" value="<?php hsc($Log->getMsgLog('MSG_CUMULATIVE_DAY')); ?>" checked="checked" ><?php hsc($Log->getMsgLog('MSG_CUMULATIVE_DAY')); ?> <!-- 日 -->
+                                    　<input type="radio" id="dateTimeUnit" name="dateTimeUnit" value="<?php hsc($Log->getMsgLog('MSG_CUMULATIVE_MONTH')); ?>" ><?php hsc($Log->getMsgLog('MSG_CUMULATIVE_MONTH')); ?> <!-- 月 -->
+                                </td>
+                                <th style="width:110px">検索対象</th>
+                                <td style="width:110px" align="center">
+                                    　<input type="radio" id="targetUnit_p" name="targetUnit" value="<?php hsc($Log->getMsgLog('MSG_CUMULATIVE_INDIVIDUAL')); ?>" ><?php hsc($Log->getMsgLog('MSG_CUMULATIVE_INDIVIDUAL')); ?> <!-- 個人 -->
+                                    　<input type="radio" id="targetUnit_o" name="targetUnit" value="<?php hsc($Log->getMsgLog('MSG_CUMULATIVE_ORGANIZATION')); ?>" checked="checked" ><?php hsc($Log->getMsgLog('MSG_CUMULATIVE_ORGANIZATION')); ?> <!-- 組織 -->
+                                </td>
+                                <th style="width:110px">対象年月日</th>
+                                <td style="width:110px" align="center">
+                                    <input type="text" id="datetext"  name="datetext" value="<?php echo $titleDate; ?>" style="width:90px" />
+                                    <input type="text" id="datetextYm"  name="datetextYm" value="<?php echo $titleDateYm; ?>" style="width:90px" />
+                                </td>
+                                <th style="width:110px">所属店舗</th>
+                                <td style="width:220px">
+                                    <select name="organizationName" id="organizationName" style="width:200px" onChange="setSearchUserList()" >
+                                        <?php foreach($abbreviatedNameList as $abbreviated) { ?>
+                                            <?php $selected = ""; ?>
+                                            <?php if($abbreviated['organization_id'] == $searchArray['organizationID']) { ?>
+                                                <?php $selected = "selected"; ?>
+                                            <?php } ?>
+                                            <option value="<?php hsc($abbreviated['organization_id']); ?>" <?php hsc($selected); ?>><?php hsc($abbreviated['abbreviated_name']); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </td>
+                                <th style="width:110px">従業員</th>
+                                <td style="width:110px">
+                                    <?php include("../FwCommon/View/SearchUserName.php"); ?>
+                                </td>
+                            </tr>
+                        </table>
+                    </div><!-- /.searchElement -->
+                </div><!-- /.serchBoardArea -->
+                <div class="screenSize" style="text-align: center; white-space: nowrap;">
+                    <!-- logicButtonArea -->
+                    <div style="display: inline-block;" class="logicButtonArea">
+                        <input type="button" id="back" name="back" value="戻る" class="return" onclick="returnScreen()" >
+                    </div><!-- /.logicButtonArea -->
+                    <div style="display: inline-block;" class="serchButtonArea">
+                        <input type="submit" id="search" name="search" href="#" value="検索" class="serch" />
+                        <input type="submit" id="print" name="print" value="印刷" class="print">
+                    </div><!-- /.serchButtonArea -->
+                </div><!-- /.screenSize -->
+            </form>
+            <form id="modForm" name="modForm" >
+                <?php include("AttendanceApprovalTablePanel.html"); ?>
+            </form>
+        </div><!-- /.sb-site -->
+        <?php include("../FwCommon/View/Dialog.php"); ?>
+    </body>
+</html>

@@ -1,0 +1,250 @@
+<?php
+    /**
+     * @file      商品別帳票画面(View)
+     * @author    millionet oota
+     * @date      2016/06/30
+     * @version   1.00
+     * @note      商品別帳票画面
+     */
+?>
+<?php
+    header('Content-Type: application/vnd.ms-excel');
+    header('Content-Disposition: attachment; filename="商品別帳票.xls"');
+ ?>
+<!DOCTYPE html>
+<html>
+    <head>
+<?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+<!-- Stylesheets -->
+    <STYLE type="text/css">
+#sb-site .serchListArea {
+	margin:10px 10px;
+}
+
+.serchListArea table th {
+  color: #fff;
+  padding: 2px 2px;
+  background: #0D0D70;
+  border-left:1px solid #000000;
+  border-right:1px solid #000000;
+  border-top:1px solid #000000;
+  border-bottom:1px solid #000000;
+  line-height: 120%;
+  text-align: center;
+  text-shadow:0 -1px 0 rgba(34,85,136,0.9);
+  box-shadow: 0px 1px 1px rgba(255,255,255,0.3) inset;
+  height:25px;
+}
+.serchListArea table th:first-child {
+  border-radius: 5px 0 0 0;	
+}
+.serchListArea table th:last-child {
+  border-radius:0 5px 0 0;
+  border-right:1px solid #258;
+  box-shadow: 2px 2px 1px rgba(0,0,0,0.1),0px 1px 1px rgba(255,255,255,0.3) inset;
+}
+.serchListArea table tr td {
+  padding: 2px 2px;
+  border-top: 1px solid #000000;
+  border-bottom: 1px solid #000000;
+  border-left: 1px solid #000000;
+  border-right: 1px solid #000000;
+  vertical-align: middle;
+  height: 25px;
+}
+.serchListArea tr:nth-child(even) td {  
+  background-color: #EFEFEF;  
+}
+    </STYLE>
+
+    </head>
+    <body>
+<!-- Site -->
+<div id="sb-siste">
+<form name="serchForm">
+<div class="serchListArea">
+<!-- 固定ヘッダ -->
+<table align="center">
+    <tr>
+        <td>
+            <table id="serchTable">
+                <tr>
+                    <th align="center" width="65">帳票種別</th>
+                    <td>商品別帳票</td>
+                    <th align="center" width="65">集計期間</th>
+                    <td><?php hsc($startDate); ?> ～ <?php hsc($endDate); ?></td>
+                    <th align="center" width="65">店舗</th>
+                    <td>
+                        <?php foreach($abbreviatedNameList as $abbreviated) { ?>
+                            <?php if($abbreviated['organization_id'] == $searchArray['organizationID']) { ?>
+                                <?php hsc($abbreviated['abbreviated_name']); ?>
+                            <?php } ?>
+                        <?php } ?>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+<br/>
+<table>
+<div align='right'>    ※ランク 3%以上 A 1%以上 B 1%未満 C</div>
+    <tr>
+        <th width="90" align="center">No</th>
+        <td>
+            <!-- 水平ヘッダ 現在は固定 -->
+            <div>                                      
+            <table>
+                <tr>
+                    <th align='center' width=40 colspan='1' rowspan='2'>メニューコード</th>
+                    <th align='center' width=80 colspan='1' rowspan='2'>メニュー名</th>
+                    <th align='center' width=40 colspan='1' rowspan='2'>数量</th>
+                    <th align='center' width=40 colspan='1' rowspan='2'>単価</th>
+                    <th align='center' width=40 colspan='1' rowspan='2'>売上</th>
+                    <th align='center' width=40 colspan='1' rowspan='2'>原価</th>
+                    <th align='center' width=40 colspan='1' rowspan='2'>原価額</th>
+                    <th align='center' width=40 colspan='1' rowspan='2'>原価率</th>
+                    <th align='center' width=40 colspan='1' rowspan='2'>粗利</th>
+                    <th align='center' width=40 colspan='1' rowspan='2'>粗利額</th>
+                    <th align='center' width=40 colspan='1' rowspan='2'>粗利率</th>
+                    <th align='center' width=120 colspan='3' rowspan='1'>構成比</th>
+                    <th align='center' width=20 colspan='1' rowspan='2'>ランク</th>
+                </tr>
+                <tr>
+                    <th align='center' width=40 colspan='1' rowspan='1'>数量</th>
+                    <th align='center' width=40 colspan='1' rowspan='1'>金額</th>
+                    <th align='center' width=40 colspan='1' rowspan='1'>粗利</th>
+                </tr>
+            </table>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <!-- 垂直ヘッダ -->
+            <div>
+                <table style="width: 90px;">
+                <!-- タイトル部  -->
+                <?php if( !empty($timeDataList) ) {
+                        $row_cnt = 1;
+                        foreach ($timeDataList as $rows ) {
+                ?>
+                        <tr>
+                            <th align='left' width=20><?php hsc($row_cnt); ?></th>
+                        </tr>
+                        <?php $row_cnt ++; ?>
+                    <?php } ?>
+                <?php } ?>
+                <tr>
+                    <th align='left' width=20>合計</th>
+                </tr>
+            </table>
+            </div>
+        </td>
+        <td>
+            <!-- データ部分  -->
+            <div>
+            <table>
+                <?php if( !empty($timeDataList) ) { ?>
+                    <?php foreach ($timeDataList as $trows ) { ?>
+                <tr>
+                    <td align='left' width=40><?php hsc($trows['plu_code']); ?></td> <!-- メニューコード -->
+                    <td align='left' width=80><?php hsc($trows['plu_name']); ?></td> <!-- メニュー名 -->
+                    <td align='right' width=40><?php hsc(number_format($trows['count'])); ?></td> <!-- 数量 -->
+                    <td align='right' width=40><?php hsc(number_format($trows['price'])); ?></td> <!-- 単価 -->
+                    <td align='right' width=40><?php hsc(number_format($trows['sales'])); ?></td> <!-- 売上 -->
+                    <td align='right' width=40><?php hsc(number_format($trows['cost'])); ?></td> <!-- 原価 -->
+                    <td align='right' width=40><?php hsc(number_format($trows['cost'] * $trows['count'])); ?></td> <!-- 原価額 -->
+                    <?php if( $trows['sales'] > 0 ) { ?>
+                    <td align='right' width=40><?php hsc(round(($trows['cost'] * 100 )/ $trows['price']),2); ?>%</td> <!-- 原価率 -->
+                    <?php } else{?>
+                        <td align='right' width=40>0%</td> <!-- 原価率 -->
+                    <?php } ?>
+                    <td align='right' width=40><?php hsc(number_format($trows['price'] - $trows['cost'])); ?></td> <!-- 粗利 -->
+                    <td align='right' width=40><?php hsc(number_format(($trows['price'] - $trows['cost']) * $trows['count'])); ?></td> <!-- 粗利額 -->
+                    <?php if( $trows['sales'] > 0 ) { ?>
+                        <td align='right' width=40><?php hsc(round(($trows['price'] - $trows['cost']) * $trows['count'] * 100 / $trows['sales']),2); ?>%</td> <!-- 粗利率 -->
+                    <?php } else{?>
+                        <td align='right' width=40>0%</td> <!-- 粗利率 -->
+                    <?php } ?>
+                    <?php if( $sumCount > 0 ) { ?>
+                        <td align='right' width=40><?php hsc(round($trows['count'] * 100 / $sumCount,2)); ?>%</td> <!-- 数量 -->
+                    <?php } else{?>
+                        <td align='right' width=40>0%</td> <!-- 数量 -->
+                    <?php } ?>
+                    <?php if( $sumSales > 0 ) { ?>
+                        <td align='right' width=40><?php hsc(round($trows['sales'] * 100 / $sumSales,2)); ?>%</td> <!-- 金額 -->
+                    <?php } else{?>
+                        <td align='right' width=40>0%</td> <!-- 金額 -->
+                    <?php } ?>
+                    <?php if( $sumGrossProfitt > 0 ) { ?>
+                        <td align='right' width=40><?php hsc(round(($trows['price'] - $trows['cost']) * $trows['count'] * 100 / $sumGrossProfitt,2)); ?>%</td> <!-- 粗利 -->
+                        <?php if( round(($trows['price'] - $trows['cost']) * $trows['count'] * 100 / $sumGrossProfitt,2) > 3 ) { ?>
+                        <td align='center' width=20>A</td> <!-- ランク -->
+                        <?php }else if( round(($trows['price'] - $trows['cost']) * $trows['count'] * 100 / $sumGrossProfitt,2) > 1 ){ ?>
+                        <td align='center' width=20>B</td> <!-- ランク -->
+                        <?php }else{ ?>
+                        <td align='center' width=20>C</td> <!-- ランク -->
+                        <?php } ?>
+                    <?php } else{?>
+                        <td align='right' width=40>0%</td> <!-- 粗利 -->
+                        <td align='center' width=20>C</td> <!-- ランク -->
+                    <?php } ?>
+                </tr>
+                    <?php } ?>
+                <?php } ?>
+            <!-- 合計部 -->
+                <?php if( !empty($sumDataList) ) { ?>
+                    <?php foreach ($sumDataList as $strows ) { ?>
+                <tr>
+                    <td id='viewList' align='left' width=40><?php hsc($strows['plu_code']); ?></td> <!-- メニューコード -->
+                    <td id='viewList' align='left' width=80><?php hsc($strows['plu_name']); ?></td> <!-- メニュー名 -->
+                    <td id='viewList' align='right' width=40><?php hsc(number_format($strows['count'])); ?></td> <!-- 数量 -->
+                    <td id='viewList' align='right' width=40><?php hsc(number_format($strows['price'])); ?></td> <!-- 単価 -->
+                    <td id='viewList' align='right' width=40><?php hsc(number_format($strows['sales'])); ?></td> <!-- 売上 -->
+                    <td id='viewList' align='right' width=40><?php hsc(number_format($strows['cost'])); ?></td> <!-- 原価 -->
+                    <td id='viewList' align='right' width=40><?php hsc(number_format($sumCostPrice)); ?></td> <!-- 原価額 -->
+                    <?php if( $strows['sales'] > 0 ) { ?>
+                    <td id='viewList' align='right' width=40><?php hsc(round($trows['$sumCostPriceRate']),2); ?>%</td> <!-- 原価率 -->
+                    <?php } else{?>
+                        <td id='viewList' align='right' width=40>0%</td> <!-- 原価率 -->
+                    <?php } ?>
+                    <td id='viewList' align='right' width=40><?php hsc(number_format($strows['price'] - $strows['cost'])); ?></td> <!-- 粗利 -->
+                    <td id='viewList' align='right' width=40><?php hsc(number_format($sumGrossMargin)); ?></td> <!-- 粗利額 -->
+                    <?php if( $strows['sales'] > 0 ) { ?>
+                        <td id='viewList' align='right' width=40><?php hsc(round($sumGrossMargin * 100 / $strows['sales']),2); ?>%</td> <!-- 粗利率 -->
+                    <?php } else{?>
+                        <td id='viewList' align='right' width=40>0%</td> <!-- 粗利率 -->
+                    <?php } ?>
+                    <?php if( $sumCount > 0 ) { ?>
+                        <td id='viewList' align='right' width=40><?php hsc(round($strows['count'] * 100 / $sumCount,2)); ?>%</td> <!-- 数量 -->
+                    <?php } else{?>
+                        <td id='viewList' align='right' width=40>0%</td> <!-- 数量 -->
+                    <?php } ?>
+                    <?php if( $sumSales > 0 ) { ?>
+                        <td id='viewList' align='right' width=40><?php hsc(round($strows['sales'] * 100 / $sumSales,2)); ?>%</td> <!-- 金額 -->
+                    <?php } else{?>
+                        <td id='viewList' align='right' width=40>0%</td> <!-- 金額 -->
+                    <?php } ?>
+                    <?php if( $sumGrossProfitt > 0 ) { ?>
+                        <td id='viewList' align='right' width=40><?php hsc(round($sumGrossMargin * 100 / $sumGrossProfitt,2)); ?>%</td> <!-- 粗利 -->
+                        <td id='viewList' align='center' width=20> </td> <!-- ランク -->
+                    <?php } else{?>
+                        <td id='viewList' align='right' width=40>0%</td> <!-- 粗利 -->
+                        <td id='viewList' align='center' width=20> </td> <!-- ランク -->
+                    <?php } ?>
+                </tr>
+                    <?php } ?>
+                <?php } ?>
+            </table>
+            </div>
+        </td>
+    </tr>
+</table>
+</div>
+</form>
+</div><!-- /#sb-site -->
+</body>
+</html>

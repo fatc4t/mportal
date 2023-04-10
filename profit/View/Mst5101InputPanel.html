@@ -1,0 +1,51 @@
+<?php
+    /**
+     * @file      POS商品セット構成マスタ画面(View)
+     * @author    川橋
+     * @date      2018/12/21
+     * @version   1.00
+     * @note      POS商品セット構成マスタ画面(新規登録部分)
+     */
+?>
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-input-ajax">
+                <?php if( $isScrollBar ) { ?>
+                    <div class="serchListArea" style="width:99%; margin:5px auto !important; overflow-y:auto; height:28px;">
+                <?php } else { ?>
+                    <div class="serchListArea" style="width:99%; margin:5px auto!important;">
+                <?php } ?>
+                <!-- ---------------------- -->
+                    <table id="addTable" style="background-color: #ffffff">
+                        <tr>
+                            <td style="width:240px;">
+                                <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="organization_id_add" name="organization_id_add" style="width: 230px;" onchange="changeOrganization(this);" required>
+                                    <?php foreach($abbreviatedList as $abbreviated) { ?>
+                                        <option value="<?php hsc($abbreviated['organization_id']); ?>"><?php hsc($abbreviated['abbreviated_name']); ?></option>
+                                    <?php } ?>
+                                </select>
+                            </td>
+                            <td colspan="2" style="width:520px;">
+                                <input type="text" title="商品" id="prod_cd_add" name="prod_cd_add" style="width:520px;" autocomplete="on" list="prod_list_add">
+                            </td>
+                            <td colspan="2" style="width:520px;">
+                                <input type="text" title="セット商品" id="setprod_cd_add" name="setprod_cd_add" style="width:520px;" autocomplete="on" list="prod_list_add">
+                            </td>
+                            <td class="R" style="width:123px;">
+                                <input type="text" title="構成数" id="setprod_amount_add" name="setprod_amount_add" style="width:100px;" maxlength="4" pattern="^([1-9](,\d{3}|\d{0,2})*)$" oncopy="return false" onpaste="return false" oninput="return checkNumInput(this,4)" onfocus="commaRemove(this)" onblur="checkNumFormat(this)" value="" class="R En" required>
+                            </td>
+                            <td class="C" style="width:123px;">
+                                <?php $add_disabled = ""; ?>
+                                <?php if(empty($regFlag)) { ?>
+                                    <?php $add_disabled = "disabled"; ?>
+                                <?php } ?>
+                                <input type="submit" id="add" name="add" value="<?php hsc($Log->getMsgLog('MSG_BASE_0800')); ?>" <?php hsc($add_disabled); ?>>
+                            </td>
+                        </tr>
+                    </table>
+                    <!-- 登録用オートコンプリートリスト -->
+                    <datalist id="prod_list_add">
+                    </datalist>
+                </div><!-- /.serchListArea -->
+            </div><!-- /.jquery-replace-input-ajax -->
+

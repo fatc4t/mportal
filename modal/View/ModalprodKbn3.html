@@ -1,0 +1,66 @@
+<script type="text/javascript">
+   
+    if(!pagenb){
+        pagenb=[];
+    }       
+    pagenb["prodkcd3"] = 0;
+    if(!table_keys){
+        table_keys=[];
+    }    
+    table_keys["prodkcd3"]=[];
+    table_keys["prodkcd3"]=["prod_k_cd","prod_k_nm"]    
+</script>
+<style type="text/css">
+#h2{
+     text-align:center;
+     background-color:#FF6928;
+     height:36px;
+}
+</style>
+<div>
+    <h2 id="h2">商品区分検索</h2>
+    <div class="modal_prodkcd3_search">
+        <div class="modal_prodkcd3_left" id="modal_prodkcd3_param" style="width:500px">
+            <label class="modal_prod_type_id" for="modal_prod_type_id">  
+                商品種別   &nbsp&nbsp ：　
+            </label><span>商品区分3</span><br />
+            <label class="modal_prodkcd3_label" for="modal_prodkcd3_prod_k_nm">  
+                商品区分名  ：　
+            </label><input type="text"  id="modal_prodkcd3_prod_k_nm" class="modal_prod_k_nm_code">
+            <button type="button" id="modal_prodkcd3_search_prodkcd3" onclick="modal_search(event)"  class="modal_prodkcd3_left search_btn">
+                表示
+            </button>
+        </div>
+       
+    </div>
+    <br />
+    <div>
+        <table id="modal_prodkcd3_table_id" class="modal_prodkcd3_table" style="width:100%;">
+            <thead style="height:25px;">
+                <tr>
+                    <th>選択</th>
+                    <th>区分コード</th>
+                    <th>商品区分名</th>
+                </tr>
+            </thead>
+            <tbody id="modal_prodkcd3_table_body">
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>                        
+            </tbody>
+        </table>
+    </div>
+    <br />
+    <div>
+        <div class="modal_div_btn">
+            <button type="button" id="modal_prodkcd3_unselect" onclick="modal_unselect(event)"  >一括解除</button>
+            <button type="button" id="modal_prodkcd3_select" onclick="modal_select(event)"  >一括選択</button>        
+            <button type="button" id="modal_prodkcd3_befpage" onclick="modal_befpage(event)"  >前ページ</button>        
+            <button type="button" id="modal_prodkcd3_nextpage" onclick="modal_nextpage(event)"  >次ページ</button>        
+            <button type="button" id="modal_prodkcd3_validate" onclick="modal_validate(event)"  >決定</button>        
+            <button type="button" id="modal_prodkcd3_close" onclick="modal_close(event)"  >終了</button>        
+        </div>
+    </div>
+</div>

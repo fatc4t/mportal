@@ -1,0 +1,44 @@
+<?php
+    /**
+     * @file      JICFS検索画面(View)
+     * @author    尉
+     * @date      2019/07/08
+     * @version   1.00
+     * @note      JICFS検索画面
+     */
+?>
+<div id="formArea">
+    <table>
+        <tr>
+            <th style="background:#FF6928;color:#FFF;">JICFS検索</th>
+        </tr>
+        <tr>
+            <th style="background:#FF6928;color:#FFF;">JICFSコード</th>
+            <td><input type="text" class="size30" name="pro_name" id="pro_name"></td>
+        </tr>
+        <tr>
+            <th style="background:#FF6928;color:#FFF;">JICFS名</th>
+            <td><input type="text" class="size20" name="jan_cd" id="jan_cd"></td>
+            <td style="width:200px;text-align:right;">
+                <div class="button_search" id="pro_search">表　示</div>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="listArea" style="height:415px;">
+    <table id="listTable" style="height:380px;">
+
+        <thead class="meisai">
+            <tr>
+                <th style="width:30px;">選択
+                <th style="width:140px;">JICFSコード
+                <th style="width:300px;">JICFS名
+        </thead>
+        <tbody class="meisai" id="productsList" style="font-size:10px;">
+          <?php print_r($proArr);?>
+        </tbody>
+   </table>
+   <div id="formArea">
+        <div class="button_order" id="proadd">一括解除</div>
+   </div>
+</div>

@@ -1,0 +1,180 @@
+<?php
+    /**
+     * @file      日次マッピングマスタ画面(View)
+     * @author    millionet oota
+     * @date      2016/07/14
+     * @version   1.00
+     * @note      日次マッピングマスタ画面(一覧部分)
+     */
+?>
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-ajax">
+
+                <!-- PageMoveArea -->
+                <?php include("../FwCommon/View/PagingArea.php"); ?>
+
+                <!-- serchListArea -->
+                <div class="serchListArea">
+                    <input type="hidden" id="token" name="token" value="<?php hsc($TokenID); ?>">
+                    <table id="nameTable">
+                        <tr><!-- ヘッダ部分  -->
+                            <!-- No -->
+                            <th width="5%"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0810')); ?>');"><?php hsc($Log->getMsgLog('MSG_BASE_0810')); ?><?php hsc($headerArray['posMappngNoSortMark']); ?></span></th>
+                            <!-- 表示順 -->
+                            <th width="5%"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0811')); ?>');"><?php hsc($Log->getMsgLog('MSG_BASE_0811')); ?><?php hsc($headerArray['posMappngDispOrderSortMark']); ?></span></th>
+                            <!-- POS種別名 -->
+                            <th width="10%"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0821')); ?>');"><?php hsc($Log->getMsgLog('MSG_BASE_0821')); ?><?php hsc($headerArray['posBrandIdSortMark']); ?></span></th>
+                            <!-- Mコード -->
+                            <th width="5%"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0844')); ?>');"><?php hsc($Log->getMsgLog('MSG_BASE_0844')); ?><?php hsc($headerArray['mCodeSortMark']); ?></span></th>
+                            <!-- POSマッピング名 -->
+                            <th width="10%"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0845')); ?>');"><?php hsc($Log->getMsgLog('MSG_BASE_0845')); ?><?php hsc($headerArray['mappingNameSortMark']); ?></span></th>
+                            <!-- タイプ -->
+                            <th width="5%"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0840')); ?>');"><?php hsc($Log->getMsgLog('MSG_BASE_0840')); ?><?php hsc($headerArray['logicTypeSortMark']); ?></span></th>
+                            <!-- ロジック -->
+                            <th width="10%"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0846')); ?>');"><?php hsc($Log->getMsgLog('MSG_BASE_0846')); ?><?php hsc($headerArray['logicSortMark']); ?></span></th>
+                            <!-- キーファイル名 -->
+                            <th width="10%"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0830')); ?>');"><?php hsc($Log->getMsgLog('MSG_BASE_0830')); ?><?php hsc($headerArray['posKeyFileIdSortMark']); ?></span></th>
+                            <!-- 端数処理 桁数 -->
+                            <th width="5%"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0847')); ?>');"><?php hsc($Log->getMsgLog('MSG_BASE_0847')); ?><?php hsc($headerArray['ketaSortMark']); ?></span></th>
+                            <!-- 端数処理 タイプ -->
+                            <th width="5%"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?>');"><?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?><?php hsc($headerArray['roundTypeSortMark']); ?></span></th>
+                            <!-- 単位 -->
+                            <th width="5%"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0849')); ?>');"><?php hsc($Log->getMsgLog('MSG_BASE_0849')); ?><?php hsc($headerArray['symbolSortMark']); ?></span></th>
+                            <!-- 初回登録日 -->
+                            <th width="10%"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0813')); ?>');"><?php hsc($Log->getMsgLog('MSG_BASE_0813')); ?><?php hsc($headerArray['registrationTimeSortMark']); ?></span></th>
+                            <!-- 更新日 -->
+                            <th width="10%"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0814')); ?>');"><?php hsc($Log->getMsgLog('MSG_BASE_0814')); ?><?php hsc($headerArray['updateTimeSortMark']); ?></span></th>
+                            <!-- 状態 -->
+                            <th width="5%"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0815')); ?>');"><?php hsc($Log->getMsgLog('MSG_BASE_0815')); ?><?php hsc($headerArray['mappingNameStateSortMark']); ?></span></th>
+                            <th width="10%"></th>
+                        </tr>
+                        
+                        <!-- データ部分  -->
+                        <?php if( !empty($posMappingList) ) { ?>
+                        <?php foreach($posMappingList as $posMapping) { ?>
+                            <?php $posMapping_no++; ?>
+                            <?php if(!$posMappingNoSortFlag) { ?>
+                                <?php $display_no++; ?>
+                            <?php } ?>
+                            <tr>
+                                <input type="hidden" id="posMappingIdMod<?php hsc($posMapping_no); ?>" name="posMappingId<?php hsc($posMapping_no); ?>" value="<?php hsc($posMapping['pos_mapping_id']); ?>">
+                                <input type="hidden" id="updateTime<?php hsc($posMapping_no); ?>" name="updateTime<?php hsc($posMapping_no); ?>" value="<?php hsc($posMapping['update_time']); ?>">
+                                <!-- No -->
+                                <td><?php hsc($display_no); ?></td>
+                                <!-- 表示順 -->
+                                <td id="sDisp<?php hsc($posMapping_no); ?>"><?php hsc($posMapping['disp_order']); ?></td>
+                                <td id="sDisp-edit<?php hsc($posMapping_no); ?>" style="display : none">
+                                    <input type="text" pattern="^[0-9A-Za-z]+$" title="<?php hsc($Log->getMsgLog('MSG_BASE_0301')); ?>" id="sDispMod<?php hsc($posMapping_no); ?>" name="sDisp<?php hsc($posMapping_no); ?>" size="5" maxlength="20" value="<?php hsc($posMapping['disp_order']); ?>" class="En" required>
+                                </td>
+                                <!-- POS種別名 -->
+                                <td id="sPosBrandId<?php hsc($posMapping_no); ?>"><?php hsc($posMapping['pos_brand_name']); ?></td>
+                                <td id="sPosBrandId-edit<?php hsc($posMapping_no); ?>" style="display : none">
+                                    <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="posBrandIdMod<?php hsc($posMapping_no); ?>" name="sPosBrandId<?php hsc($posMapping_no); ?>" style="width: 150px" >
+                                        <?php foreach($abbPosBrandList as $abbPosBrand) { ?>
+                                            <?php $selected = ""; ?>
+                                            <?php if($abbPosBrand['pos_brand_id'] == $posMapping['pos_brand_id']) { ?>
+                                                <?php $selected = "selected"; ?>
+                                            <?php } ?>
+                                        <option value="<?php hsc($abbPosBrand['pos_brand_id']); ?>"<?php hsc($selected); ?>><?php hsc($abbPosBrand['pos_brand_name']); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </td>
+                                <!-- Mコード -->
+                                <td id="sMCode<?php hsc($posMapping_no); ?>"><?php hsc($posMapping['mapping_code']); ?></td>
+                                <!-- POSマッピング名 -->
+                                <td id="sMappingNameId<?php hsc($posMapping_no); ?>"><?php hsc($posMapping['mapping_name']); ?></td>
+                                <td id="sMappingNameId-edit<?php hsc($posMapping_no); ?>" style="display : none">
+                                    <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="mappingNameIdMod<?php hsc($posMapping_no); ?>" name="sMappingNameId<?php hsc($posMapping_no); ?>" style="width: 150px" >
+                                        <?php foreach($abbMappingNameList as $abbMappingName) { ?>
+                                            <?php $selected = ""; ?>
+                                            <?php if($abbMappingName['mapping_name_id'] == $posMapping['mapping_name_id']) { ?>
+                                                <?php $selected = "selected"; ?>
+                                            <?php } ?>
+                                        <option value="<?php hsc($abbMappingName['mapping_name_id']); ?>"<?php hsc($selected); ?>><?php hsc($abbMappingName['mapping_name']); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </td>
+                                <!-- タイプ -->
+                                <td id="sLogicType<?php hsc($posMapping_no); ?>"><?php hsc($posMapping['logic_type_name']); ?></td>
+                                <td id="sLogicType-edit<?php hsc($posMapping_no); ?>" style="display : none">
+                                    <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="logicTypeMod<?php hsc($posMapping_no); ?>" name="sLogicType<?php hsc($posMapping_no); ?>" style="width: 50px" >
+                                        <?php foreach($abbTypeList as $abbType) { ?>
+                                            <?php $selected = ""; ?>
+                                            <?php if($abbType['logic_type'] == $posMapping['logic_type']) { ?>
+                                                <?php $selected = "selected"; ?>
+                                            <?php } ?>
+                                        <option value="<?php hsc($abbType['logic_type']); ?>"<?php hsc($selected); ?>><?php hsc($abbType['logic_name']); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </td>
+                                <!-- ロジック -->
+                                <td id="sLogic<?php hsc($posMapping_no); ?>"><?php hsc($posMapping['logic']); ?></td>
+                                <td id="sLogic-edit<?php hsc($posMapping_no); ?>" style="display : none">
+                                    <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0302')); ?>" id="logicMod<?php hsc($posMapping_no); ?>" name="sLogic<?php hsc($posMapping_no); ?>" size="10" maxlength="20" value="<?php hsc($posMapping['logic']); ?>" class="Em">
+                                </td>
+                                <!-- キーファイル名 -->
+                                <td id="sPosKeyFileId<?php hsc($posMapping_no); ?>"><?php hsc($posMapping['pos_key_file_name']); ?></td>
+                                <td id="sPosKeyFileId-edit<?php hsc($posMapping_no); ?>" style="display : none">
+                                    <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="posKeyFileIdMod<?php hsc($posMapping_no); ?>" name="sPosKeyFileId<?php hsc($posMapping_no); ?>" style="width: 150px" >
+                                        <?php foreach($abbPosKeyFileList as $abbPosKeyFile) { ?>
+                                            <?php $selected = ""; ?>
+                                            <?php if($abbPosKeyFile['pos_key_file_id'] == $posMapping['pos_key_file_id']) { ?>
+                                                <?php $selected = "selected"; ?>
+                                            <?php } ?>
+                                        <option value="<?php hsc($abbPosKeyFile['pos_key_file_id']); ?>"<?php hsc($selected); ?>><?php hsc($abbPosKeyFile['pos_key_file_name']); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </td>
+                                <!-- 端数処理 桁数 -->
+                                <td id="sKeta<?php hsc($posMapping_no); ?>"><?php hsc($posMapping['keta']); ?></td>
+                                <td id="sKeta-edit<?php hsc($posMapping_no); ?>" style="display : none">
+                                    <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0302')); ?>" id="ketaMod<?php hsc($posMapping_no); ?>" name="sKeta<?php hsc($posMapping_no); ?>" size="6" maxlength="10" value="<?php hsc($posMapping['keta']); ?>" class="Em">
+                                </td>
+                                <!-- 端数処理 タイプ -->
+                                <td id="sRoundType<?php hsc($posMapping_no); ?>"><?php hsc($posMapping['round_type_name']); ?></td>
+                                <td id="sRoundType-edit<?php hsc($posMapping_no); ?>" style="display : none">
+                                    <select title="<?php hsc($Log->getMsgLog('MSG_BASE_0303')); ?>" id="roundTypeMod<?php hsc($posMapping_no); ?>" name="sRoundType<?php hsc($posMapping_no); ?>" style="width: 50px" >
+                                        <?php foreach($abbRoundTypeList as $abbRoundType) { ?>
+                                            <?php $selected = ""; ?>
+                                            <?php if($abbRoundType['round_type'] == $posMapping['round_type']) { ?>
+                                                <?php $selected = "selected"; ?>
+                                            <?php } ?>
+                                        <option value="<?php hsc($abbRoundType['round_type']); ?>"<?php hsc($selected); ?>><?php hsc($abbRoundType['round_type_name']); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </td>
+                                <!-- 単位 -->
+                                <td id="sSymbol<?php hsc($posMapping_no); ?>"><?php hsc($posMapping['symbol']); ?></td>
+                                <td id="sSymbol-edit<?php hsc($posMapping_no); ?>" style="display : none">
+                                    <input type="text" title="<?php hsc($Log->getMsgLog('MSG_BASE_0302')); ?>" id="symbolMod<?php hsc($posMapping_no); ?>" name="sSymbol<?php hsc($posMapping_no); ?>" size="6" maxlength="10" value="<?php hsc($posMapping['symbol']); ?>" class="Em">
+                                </td>
+                                <!-- 初回登録日 -->
+                                <td id="sRegistrationTime<?php hsc($posMapping_no); ?>"><?php hsc($posMapping['registration_time']); ?></td>
+                                <!-- 更新日 -->
+                                <td id="sUpdateTime<?php hsc($posMapping_no); ?>"><?php hsc($posMapping['update_time']); ?></td>
+                                <!-- 状態 -->
+                                <?php $del_state = ""; ?>
+                                <?php if(!empty($posMapping['is_del'])) { ?>
+                                    <?php $del_state = "削除"; ?>
+                                <?php } ?>
+                                <td><?php hsc($del_state); ?></td>
+                                <td align="center">
+                                    <?php if(empty($posMapping['is_del'])) { ?>
+                                        <div class="logicButtonArea">
+                                            <input type="button" id="edtBtn<?php hsc($posMapping_no); ?>" value="<?php hsc($Log->getMsgLog('MSG_BASE_0801')); ?>" onclick="editRow(this)" class="update" <?php hsc($posMapping['cor_disabled']); ?>>
+                                            <input type="submit" id="edtBtn-mod<?php hsc($posMapping_no); ?>" name="mod<?php hsc($posMapping_no); ?>" style="display : none" value="<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>')" class="confirm" <?php hsc($posMapping['mod_disabled']); ?>>
+                                            <input type="submit" id="edtBtn-del<?php hsc($posMapping_no); ?>" name="del<?php hsc($posMapping_no); ?>" style="display : none" value="<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>')" class="delete" <?php hsc($posMapping['del_disabled']); ?>>
+                                        </div><!-- /.logicButtonArea -->
+                                    <?php } ?>
+                                </td>
+                            </tr>
+                            <?php if($posMappingNoSortFlag) { ?>
+                                <?php $display_no--; ?>
+                            <?php } ?>
+                        <?php }} ?>
+                    </table>
+                </div>
+                <!-- /.serchListArea -->
+            </div>
+            <!-- /.jquery-replace-ajax -->

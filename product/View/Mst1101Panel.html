@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <?php
+        // cssまたはｊｓファイルを拡張子付きで配列に記述
+        $fileNames = array(
+            'default.css',
+            'common.js',
+            'jquery-ui.min.js',
+            'jquery-ui.css',
+            'viewpos.js' );
+        include("../home/View/Common/HtmlHeader.php");
+    ?>
+    <script src="../js/customer/jquery/jquery-migrate-1.0.0.js" ></script>
+    <!--  ADDSTR 2020/09/01 kanderu-->
+    <script src="../js/product/common.js" ></script>
+    <!-- ADDSTR 2020/09/01 kanderu-->
+    <script type="text/javascript" src="../js/customer/jquery/datepicker-ja.js" ></script>
+    <script src="../js/customer/jquery/jquery.ui.ympicker.js" ></script>
+    <script type="text/javascript" src="../../FwCommon/js/common.js" ></script>
+    <script src="../js/autofil_v<?php echo $_SESSION['AUTOFIL_VER'] ?>.js" ></script>
+<!--ADDSTR 20201118 kanderu    -->
+<!--        Enterキーを押すと、次のフィールドに移動します-->
+     <script type="text/javascript" src="../../FwCommon/js/EnterFocus.js" ></script>
+<!--ADDEND 20201118 kanderu    -->
+    <script type="text/javascript">
+        //
+        pmst1101            = '<?php echo json_encode(json_encode($mst1101_getdata)); ?>';
+        pmst0010            = '<?php echo json_encode(json_encode($mst0010_getdata)); ?>';
+        pmst6301            = '<?php echo json_encode(json_encode($mst6301_getdata)); ?>';
+        pjsk5200            = '<?php echo json_encode(json_encode($jsk5200_getdata)); ?>';
+        //
+        pmst1101_sd         = '<?php echo json_encode(json_encode($mst1101_searchdata)); ?>';
+        smst1101List        = "<?php hsc($mst1101List['list']); ?>"; 
+        //
+       // ptypjsk4120         = JSON.parse(pjsk4120.slice(1,-1));
+        ptypmst1101         = JSON.parse(pmst1101.slice(1,-1));
+        ptypmst1101_sd      = JSON.parse(pmst1101_sd.slice(1,-1));
+        ptypmst0010         = JSON.parse(pmst0010.slice(1,-1));
+        ptypmst6301         = JSON.parse(pmst6301.slice(1,-1));
+        ptypjsk5200         = JSON.parse(pjsk5200.slice(1,-1));
+
+        function numberWithCommas(x) {
+            var parts = x.toString().split(".");
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            return parts.join(".");
+        }
+        $(function() {
+            $("#txt_TRNYM").ympicker({
+                altField: "#txt_TRNYM" 
+                ,altFormat: "yy/mm" //リターン日付形式
+                ,monthNamesShort: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"]  //カレンダー表示月形式
+                ,showAnim: "slideDown" //表示アニメーション形式
+                ,yearRange: "c-2:c+3" //プルダウン年範囲
+            });
+        });       
+    </script>
+    <style>
+        body {
+          /*font-family: MS Gothic;*/
+            background-color: whitesmoke;
+        }
+        label {
+          background-color: #0B0B61;
+          color: white;
+          font-weight: bold;
+          padding: 2px;
+          text-transform: uppercase;
+          font-size: 12pt;
+          margin: 1px;
+        }
+        div{
+          margin: 0px;  
+        }
+
+        label.new {
+          background-color: #FF0000;
+          color: #FFFFFF;
+        }
+
+        /* Style the tab */
+        .tab {
+          overflow: hidden;
+          border: 1px solid #ccc;
+          background-color: #f1f1f1;
+        }
+
+        /* Style the buttons inside the tab */
+        .tab button {
+          background-color: inherit;
+          float: left;
+          border: none;
+          outline: none;
+          cursor: pointer;
+          padding: 14px 16px;
+          transition: 0.3s;
+          font-size: 17px;
+        }
+
+        /* Change background color of buttons on hover */
+        .tab button:hover {
+          background-color: #ddd;
+        }
+
+        /* Create an active/current tablink class */
+        .tab button.active {
+          background-color: #ccc;
+        }
+
+        /* Style the tab content */
+        .tabcontent {
+          display: none;
+          padding: 6px 12px;
+          border: 1px solid #ccc;
+          border-top: none; 
+        }
+
+        .blocline_left {
+          float : left;
+          padding-left: 1em;
+          vertical-align: middle;
+        }
+        .group_no_float{
+          clear: both;
+
+        }
+        .parent{
+            overflow: hidden;
+        }
+        .blocline_right{
+           float : right;
+           padding-right: 1em;
+           vertical-align: middle;
+           max-width: 50%;
+        }
+        .test_class{
+            width: 15em;
+            height: 20pt;
+            padding: 0;
+            vertical-align: bottom;
+            border: 1px solid #ccc;
+        }
+        .label_pro{
+            width: 9em;
+        }
+        .lbl_BIRTH1{
+            width: 4em;
+            height: 19pt;
+            padding: 0;
+            vertical-align: bottom;        
+            text-align: -webkit-center;
+        }
+        .label_base{
+            width: 14em;   
+        }
+        .input_long{
+            width: 30em
+        }
+        .input_middle{
+            width: 20em;
+        }
+        .input_middle1{
+            width: 30%;
+        }
+        .input_middle2{
+            width: 20%;
+        }    
+        .input_small{
+            width: 2em;
+        }
+        .input_small2{
+            width: 7em;
+        }
+        .input_small3{
+            width: 8em;
+        }
+        .input_small4{
+            width: 4em;
+        }
+        .tbl_staff{
+            border: 1px solid #AAA;        
+        }
+
+        #staff_data th {
+            background-color: #0B0B61;
+            border: 1px solid #AAA;
+            color: white;
+        }
+        #staff_data td{
+            border: 1px solid #0B0B61;
+
+        }
+        #staff_data th, #staff_data  td {        
+            width: 7em;
+            font-weight: bold;
+            text-align: -webkit-center;        
+        }
+        #staff_data td:nth-child(1){
+            width: 20em;
+        }
+        #tbl_fam th{
+            text-align: -webkit-center;
+        }
+         #tbl_fam td:nth-child(1){
+            width: 2em;
+        }  
+        #tb_jsk4120 th, #tb_jsk4120 td {
+            font-weight: bold;
+            text-align: left;
+        }
+        thead th {
+            background-color: #0B0B61;
+            border: 1px solid #AAA;
+            color: white;
+            text-align: -webkit-center; 
+        }
+        tbody {
+            background-color: #fff;
+        }
+        #tb_jsk4120 td{
+            border: 1px solid #0B0B61;
+            padding: 2px;
+        }
+        #tb_jsk4120   td:nth-child(2), #tb_jsk4120 td:nth-child(5), #tb_jsk4120 td:nth-child(6), #tb_jsk4120  td:nth-child(7), #tb_jsk4120 td:nth-child(8), #tb_jsk4120 td:nth-child(9), #tb_jsk4120 td:nth-child(11){
+            text-align:right;
+        }
+        #table_4110 {
+
+        }
+        #tb_jsk4110 td{
+            border: 1px solid #0B0B61;
+            padding: 1px;
+        }
+        #no_pad1{
+            padding-left: unset;
+        }
+        #no_pad2{
+            padding-left: unset;
+        }
+
+        #tb_mst6301 td {
+            text-align: -webkit-center;
+        }
+        #tb_mst6301 td.cbx {
+          background-color: #0B0B61;
+          color: white;
+          font-weight: bold;
+          padding: 2px;
+          text-transform: uppercase;
+          font-size: 12pt;
+        }
+        .input_num {
+            text-align: right;
+        }
+        h4{
+            background-color: #0D0D70;
+            border: 1px solid #AAA;
+            color: whitesmoke;
+            padding: 5px;            
+        }
+/*//ADDSTR KANDERU 2020/09/01*/
+        #bt_reset,#bt_delete,#bt_updins{
+           margin-top: 20px;
+        }     
+        #bt_updins{  
+          position: absolute;
+          right: 92.5%;
+        }
+        #bt_delete{
+          position: absolute;
+          right: 88.5%;  
+        }
+        #bt_reset{
+          position: absolute;
+          right: 84.5%;  
+        }
+        #title{
+           position: absolute;
+           margin-left: 15px;
+        }
+        #xyz{
+              max-width: 1400px;
+                margin-left: auto !important;
+                margin-right: auto !important;
+        }
+/*//ADDEND KANDERU 2020/09/01*/  
+        
+    </style>
+ 
+    <title>仕入先マスタ</title>
+  </head>
+  <body id="test">
+        <?php
+        /*
+            if( isset($_GET['home']) ) {
+                if( "1" ==  $_GET['home'] ){
+                include("../home/View/Common/PageHeader.php");
+                }else{
+                    include("Common/PageHeader.php");
+                }
+            }else{
+                include("Common/PageHeader.php");
+            }
+        */
+            include("../home/View/Common/PageHeader.php");
+        ?>
+      <div>
+    <!-- Site -->
+
+    <div id="sb-site" style="overflow: auto;">
+       <div id="xyz">
+        <table  width="300px">
+        <th id='title' style="background-color:#0B0B61; color:white; font-size:18pt; ">商品管理 ★仕入先マスタ</th>
+        </table>
+        <br>
+        <br>
+        <br>
+        <div class="group_no_float">
+          <div class="blocline_left">
+              
+              <label for="cmb_ORGANIZATION_ID">組織名</label>
+              <select id="cmb_ORGANIZATION_ID" name="cmb_ORGANIZATION_ID">
+                <?php foreach($abbreviatedNameList as $abbreviated) { ?>
+                    <option value="<?php hsc($abbreviated['organization_id']); ?>" <?php hsc($selected); ?>><?php hsc($abbreviated['abbreviated_name']); ?></option>
+                <?php } ?>
+              </select>
+          </div>
+          <div class="blocline_left"><label for="txt_SUPP_CD">仕入先コード</label>
+              <input type="text" id="txt_SUPP_CD" class="input_small2" maxlength="4">
+          </div>
+          <div class="blocline_left">
+              <label id="lbl_MODE" style="display:none;"></label>
+          </div>
+          <div class="blocline_left">
+              <button type="button" id="bt_search" onclick="searchdata()">検索</button>
+          </div>
+        </div>
+        <div class="group_no_float"> 
+          <div class="blocline_left">
+            <label class="label_base" for="txt_SUPP_KN"> 仕入先カナ </label>
+            <!-- EDITSTR 2020/09/01 kanderu　仕入先カナと仕入先名 半角14桁入力可 --> 
+            <input type="text" class="input_long" id="txt_SUPP_KN" maxlength="14" ><br />
+            <label class="label_base" for="txt_SUPP_NM"> 仕入先名 </label>
+            <input type="text" class="input_long" id="txt_SUPP_NM" maxlength="14"><br />
+            <!-- EDITEND 2020/09/01 kanderu　仕入先カナと仕入先名 半角14桁入力可 --> 
+          </div>
+          </div>
+         <div id="time">
+          <div class="blocline_right"><label id="lbl_INSDATETIME">作成日時:</label><br />
+              <label id="lbl_UPDDATETIME">更新日時:</label>    </div>
+        </div>
+       
+
+        <div class="group_no_float">
+          <div class="blocline_left">
+            <label class="label_base" for="txt_TEL"> 電話番号 </label>
+            <input type="text" id="txt_TEL" maxlength="14"><br />
+            <label class="label_base" for="txt_FAX" > FAX番号 </label>
+            <input type="text" id="txt_FAX" maxlength="14"><br />
+            <label class="label_base" for="txt_ZIP"> 郵便番号 </label>
+            <!-- EDITSTR 2020/09/01 kanderu　郵便番号 半角8桁入力可 --> 
+            <input type="text" id="txt_ZIP" maxlength="8"><br />
+            <!-- EDITEND 2020/09/01 kanderu　郵便番号 半角8桁入力可 --> 
+            <label class="label_base" for="txt_ADDR1"> 住所１ </label>
+            <!-- EDITSTR 2020/09/01 kanderu　住所１ 全角,半角32桁桁入力可 --> 
+            <input type="text" class="input_long" id="txt_ADDR1" maxlength="32"><br />
+            <!-- EDITEND 2020/09/01 kanderu　住所１ 全角,半角32桁桁入力可 --> 
+          </div>
+        </div>
+        <div class="group_no_float">
+          <div class="blocline_left">
+            <label class="label_base" for="txt_ADDR2"> 住所２ </label>
+            <!-- EDITSTR 2020/09/01 kanderu　住所2 全角,半角32桁桁入力可 --> 
+            <input type="text" class="input_long" id="txt_ADDR2" maxlength="32"><br />
+            <!-- EDITSTR 2020/09/01 kanderu　住所2 全角,半角32桁桁入力可 --> 
+          </div>
+          <div class="blocline_left">
+            <label class="label_base" for="txt_ORDER_SP_CD"> 発注書印字得意先コード </label>
+            <input type="text" class="input_small2" id="txt_ORDER_SP_CD" maxlength="6"><br />
+          </div>
+        </div>
+        <div class="group_no_float">
+          <div class="blocline_left">
+            <label class="label_base" for="txt_BIKO"> 備考 </label>
+            <!-- EDITSTR 2020/09/01 kanderu　備考 全角,半角32桁桁入力可 -->
+            <input type="text" class="input_long" id="txt_BIKO" maxlength="32"><br />
+            <!-- EDITSTR 2020/09/01 kanderu　備考 全角,半角32桁桁入力可 -->
+          </div>
+          <div class="blocline_left">
+            <label class="label_base" for="txt_KICS_SUPP_CD"> 自店仕入先コード </label>
+            <input type="text" class="input_small2" id="txt_KICS_SUPP_CD" maxlength="6"><br />
+          </div>
+        </div>
+        <div class="group_no_float">
+          <div class="blocline_left">
+            <label class="label_base" for="cmb_SUPP_KBN"> 仕入先区分 </label>
+            <select id="cmb_SUPP_KBN" class="input_long">
+              <option value="0">社内(自社)</option>
+              <option value="1">社外(メーカー・卸)</option>
+            </select><br />
+          </div>
+          <div class="blocline_left">
+            <label class="label_base" for="txt_TRNYM"> 年月 </label>
+            <input type="text" class="input_small2" id="txt_TRNYM" maxlength="7"><br />
+          </div>
+        </div>
+        <div class="group_no_float">
+          <div class="blocline_left">
+            <label class="label_base" for="cmb_ORD_FORM_KBN"> 発注形態 </label>
+            <select id="cmb_ORD_FORM_KBN" class="input_long">
+              <option value="1">EOS発注</option>
+              <option value="2">FAX発注</option>
+            </select><br />
+          </div>
+          <div class="blocline_left">
+            <label class="label_base" for="txt_SUPP_BUDGET"> 仕入予算 </label>
+            <input type="text" class="input_small2 input_num" id="txt_SUPP_BUDGET" maxlength="6"><br />
+          </div>
+        </div>
+        <div class="group_no_float">
+          <div class="blocline_left">
+            <label class="label_base" for="cmb_SUPP_DETA_KBN"> 仕入明細入力区分 </label>
+            <select id="cmb_SUPP_DETA_KBN" class="input_long">
+              <option value="0">明細入力なし</option>
+              <option value="1">明細入力あり</option>
+            </select><br />
+          </div>
+          <div class="blocline_left">
+            <label class="label_base" for="txt_SALE_BUDGET"> 売上予算 </label>
+            <input type="text" class="input_small2 input_num" id="txt_SALE_BUDGET" maxlength="6"><br />
+          </div>
+        </div>
+        <div class="group_no_float">
+          <div class="blocline_left">
+            <label class="label_base" for="cmb_TAX_FRAC_KBN"> 消費税端数区分 </label>
+            <select id="cmb_TAX_FRAC_KBN" class="input_long">
+              <option value="0">切り捨て</option>
+              <option value="1">四捨五入</option>
+              <option value="2">切り上げ</option>
+            </select><br />
+          </div>
+          <div class="blocline_left">
+            <label class="label_base" for="txt_UNDER_PRICE"> 1回発注下限額 </label>
+            <input type="text" class="input_small2 input_num" id="txt_UNDER_PRICE" maxlength="6" value=0><br />
+          </div>
+        </div>
+        <div class="group_no_float">
+          <div class="blocline_left">
+            <label class="label_base" for="cmb_ORDER_PROD_KBN"> 発注書商品印字区分 </label>
+            <select id="cmb_ORDER_PROD_KBN" class="input_long">
+              <option value="0">商品マスタコード</option>
+              <option value="1">発注書印字商品コード1</option>
+              <option value="2">発注書印字商品コード2</option>
+              <option value="3">発注書印字商品コード3</option>
+            </select><br />
+          </div>
+          <div class="blocline_left">
+            <label class="label_base" for="txt_DETAIL_CNT"> 伝票行数 </label>
+            <input type="text" class="input_small input_num"  id="txt_DETAIL_CNT" maxlength="2" value=10><br />
+          </div>
+        </div>
+        <div class="group_no_float">
+          <div class="blocline_left">
+            <label class="label_base" for="txt_PAY_CLOSE_DAY"> 締日 </label>
+            <input type="text" class="input_small input_num" id="txt_PAY_CLOSE_DAY" maxlength="2"><br />
+          </div>
+        </div>
+
+        <div class="group_no_float">
+          <div class="blocline_left">
+            <label class="label_base" for="txt_ARR_NEED_DAY"> 入荷必要日数 </label>
+            <input type="text" class="input_small input_num" id="txt_ARR_NEED_DAY" maxlength="3" value=0 ><br />
+            <table id="tb_mst6301">
+              <tr>
+                <th><label class="label_base">発注可能曜日</label></th>
+                <td class="cbx"><input type="checkbox" id="chk_DAY_KBN_1">月</td>
+                <td class="cbx"><input type="checkbox" id="chk_DAY_KBN_2">火</td>
+                <td class="cbx"><input type="checkbox" id="chk_DAY_KBN_3">水</td>
+                <td class="cbx"><input type="checkbox" id="chk_DAY_KBN_4">木</td>
+                <td class="cbx"><input type="checkbox" id="chk_DAY_KBN_5">金</td>
+                <td class="cbx"><input type="checkbox" id="chk_DAY_KBN_6">土</td>
+                <td class="cbx"><input type="checkbox" id="chk_DAY_KBN_7">日</td>
+              </tr>
+              <tr>
+                <th><label class="label_base">必要日数</label></th>
+                <td><input type="text" class="input_small4 input_num" id="txt_NEED_DAY_1" maxlength="3"></td>
+                <td><input type="text" class="input_small4 input_num" id="txt_NEED_DAY_2" maxlength="3"></td>
+                <td><input type="text" class="input_small4 input_num" id="txt_NEED_DAY_3" maxlength="3"></td>
+                <td><input type="text" class="input_small4 input_num" id="txt_NEED_DAY_4" maxlength="3"></td>
+                <td><input type="text" class="input_small4 input_num" id="txt_NEED_DAY_5" maxlength="3"></td>
+                <td><input type="text" class="input_small4 input_num" id="txt_NEED_DAY_6" maxlength="3"></td>
+                <td><input type="text" class="input_small4 input_num" id="txt_NEED_DAY_7" maxlength="3"></td>
+              </tr>
+            </table>
+          </div>
+        </div>
+        <div class="group_no_float" id="bt_function">
+            <input type="text" id="txt_updins" hidden >
+          <button type="button" id="bt_updins" onclick="savedata()"></button>
+          <button type="button" id="bt_delete" onclick="deldata()">削除</button>
+          <button type="button" id="bt_reset"  onclick="reset()">取消</button>
+        </div>        
+      </div>
+    </div>
+   
+    </div><!-- /#sb-site -->
+    <script type="text/javascript">  
+        creat_listener();
+        
+        document.getElementById('cmb_ORGANIZATION_ID').addEventListener("change",function(){
+            iorgn_id = document.getElementById("cmb_ORGANIZATION_ID").value;
+            spath = window.location.href;
+            spath = spath.split('?'); 
+            spath = spath[0]+'?param=Mst1101/show&orgnid='+iorgn_id;
+            window.location.replace(spath);
+        });    
+    
+        document.getElementById("txt_SUPP_CD").addEventListener("keydown",function(e){
+            if(e.which == 13 || e.keycode == 13) {  
+                document.getElementById("txt_SUPP_CD").blur();
+            }
+            else if(document.getElementById("txt_SUPP_CD").value.length > 4){
+                document.getElementById("txt_SUPP_CD").value = document.getElementById("txt_SUPP_CD").value.substring(0,4);
+            }
+        });
+
+        document.getElementById("txt_SUPP_CD").addEventListener("blur",function(){
+            iorgn_id = document.getElementById("cmb_ORGANIZATION_ID").value;
+            isupp_cd = document.getElementById("txt_SUPP_CD").value;
+            if (iorgn_id !== "" && isupp_cd !== ""){
+                if(!isNaN(isupp_cd)){
+                    isupp_cd = parseInt(isupp_cd);
+                    isupp_cd = ("0000" + isupp_cd).slice(-4);
+                    String(isupp_cd);
+                    //console.log(smst1101list);
+                    document.getElementById("txt_SUPP_CD").value = isupp_cd ;
+                    //console.log("isupp_cd: "+isupp_cd);
+                    //if(smst1101List.indexOf(isupp_cd) !== -1 ){
+                    var strkey = iorgn_id + ':' + isupp_cd;
+                    if(smst1101List.indexOf(strkey) !== -1 ){
+                        spath = window.location.href;
+                        spath = spath.split('?'); 
+                        //spath = spath[0]+'?param=Mst1101/show&suppcd='+isupp_cd;
+                        spath = spath[0]+'?param=Mst1101/show&orgnid='+iorgn_id+'&suppcd='+isupp_cd;
+                        window.location.replace(spath);
+                    }
+                    else { 
+                         //document.getElementById("bt_updins").removeAttribute("hidden");
+                         var allinput = document.getElementsByTagName ("INPUT");
+                         for(var i=0;i < allinput.length;i++){
+                             allinput[i].value="";
+                         }
+                         var allselect = document.getElementsByTagName ("SELECT");
+                         for(var i=0;i < allselect.length;i++){
+                            //allselect[i].value=0;
+                            // 組織プルダウンは保持する
+                            if (allselect[i].id !== "cmb_ORGANIZATION_ID") {
+                                // 発注形態は"1"がデフォルト
+                                if (allselect[i].id === "cmb_ORD_FORM_KBN") {
+                                    allselect[i].value=1;
+                                }
+                                else {
+                                    allselect[i].value=0;
+                                }
+                            }
+                         }
+                         txt_ARR_NEED_DAY.value = 0;
+                         txt_UNDER_PRICE.value  = 0;
+                         txt_DETAIL_CNT.value   = 10;
+                         var alllbl = document.getElementsByTagName ("LABEL");
+                         for(var i=0;i < alllbl.length;i++){
+                             if(alllbl[i].id){
+                                  alllbl[i].innerHTML="&nbsp;&nbsp;";
+                              }
+                          }
+                         var alltbody = document.getElementsByTagName ("TBODY");
+                         for(var i=0;i < alltbody.length;i++){
+                             if(alltbody[i].id){
+                                  alltbody[i].innerHTML="";
+                              }
+                         }
+                        document.getElementById("bt_function").removeAttribute("hidden");
+                        document.getElementById("txt_updins").value = "ins"; 
+//ADDSTR kanderu 2020/09/01 
+                        //登録タンの追
+                        document.getElementById("bt_updins").innerText =   "一括配信";
+//ADDSTR kanderu 2020/09/01             
+                        document.getElementById("txt_SUPP_CD").value     =   isupp_cd; 
+                        today = new Date();
+                        //document.getElementById("txt_INSDATE").value     =   today.getFullYear()+'/'+today.getUTCMonth()+1+'/'+('00'+today.getUTCDate()).slice(-2);
+                        //document.getElementById("lbl_INSDATETIME").innerHTML             =	"作成日時:"+ document.getElementById("txt_INSDATE").value;
+                        //document.getElementById("lbl_UPDDATETIME").innerHTML             =	"更新日時:"+ document.getElementById("txt_INSDATE").value;
+                        var insdate = today.getFullYear()+'/'+('00'+(today.getUTCMonth()+1)).slice(-2)+'/'+('00'+today.getUTCDate()).slice(-2);
+                        document.getElementById("lbl_INSDATETIME").innerHTML             =	"作成日時:"+ insdate;
+                        document.getElementById("lbl_UPDDATETIME").innerHTML             =	"更新日時:"+ insdate;
+
+                        document.getElementById('lbl_MODE').style.display = '';
+                        document.getElementById('lbl_MODE').style.background = '#FF0000';
+                        document.getElementById('lbl_MODE').style.color = '#FFFFFF';
+                        document.getElementById('lbl_MODE').innerHTML = '新規';
+                    }
+                }
+            }
+            else{
+                document.getElementById("txt_SUPP_CD").value = "";
+                //document.getElementById("bt_updins").removeAttribute("hidden");                        
+                var allinput = document.getElementsByTagName ("INPUT");
+                for(var i=0;i < allinput.length;i++){
+                    allinput[i].value="";
+                }
+                var allselect = document.getElementsByTagName ("SELECT");
+                for(var i=0;i < allselect.length;i++){
+                    allselect[i].value=0;
+                }
+                var alllbl = document.getElementsByTagName ("LABEL");
+                for(var i=0;i < alllbl.length;i++){
+                    if(alllbl[i].id){
+                         alllbl[i].innerHTML="&nbsp;&nbsp;";
+                     }
+                 }
+                var alltbody = document.getElementsByTagName ("TBODY");
+                for(var i=0;i < alltbody.length;i++){
+                    if(alltbody[i].id){
+                         alltbody[i].innerHTML="";
+                     }
+                }
+                document.getElementById("bt_function").removeAttribute("hidden");        
+                document.getElementById("txt_SUPP_CD").value     =   isupp_cd; 
+                today = new Date();
+                //document.getElementById("txt_INSDATE").value     =   today.getFullYear()+'/'+today.getUTCMonth()+1+'/'+('00'+today.getUTCDate()).slice(-2);
+                //document.getElementById("lbl_INSDATETIME").innerHTML             = "作成日時:"+ document.getElementById("txt_INSDATE").value;
+                //document.getElementById("lbl_UPDDATETIME").innerHTML             = "更新日時:"+ document.getElementById("txt_INSDATE").value;
+                var insdate = today.getFullYear()+'/'+('00'+(today.getUTCMonth()+1)).slice(-2)+'/'+('00'+today.getUTCDate()).slice(-2);
+                document.getElementById("lbl_INSDATETIME").innerHTML             =	"作成日時:"+ insdate;
+                document.getElementById("lbl_UPDDATETIME").innerHTML             =	"更新日時:"+ insdate;
+                
+                document.getElementById('lbl_MODE').style.display = 'none';
+ 
+                document.getElementById("bt_function").setAttribute("hidden", true); 
+            }
+        });
+
+        document.getElementById("txt_TRNYM").addEventListener("keydown",function(e){
+            if(e.which == 13 || e.keycode == 13) {  
+                document.getElementById("txt_TRNYM").blur();
+            }
+            else if(document.getElementById("txt_TRNYM").value.length > 7){
+                document.getElementById("txt_TRNYM").value = document.getElementById("txt_TRNYM").value.substring(0,7);
+            }
+        });
+
+        document.getElementById("txt_TRNYM").addEventListener("blur",function(){
+            // 仕入予算クリア
+            document.getElementById("txt_SUPP_BUDGET").value = "";
+            // 売上予算クリア
+            document.getElementById("txt_SALE_BUDGET").value = "";
+
+            
+            setTimeout(function(){
+                // 入力値
+                sdate = document.getElementById("txt_TRNYM").value;
+
+                iorgn_id = document.getElementById("cmb_ORGANIZATION_ID").value;
+                isupp_cd = document.getElementById("txt_SUPP_CD").value;
+                            
+                strnym   = sdate.replace('/', '');
+                //console.log("strnym= "+ strnym);
+                // 仕入先月別実績データ検索
+                if (ptypjsk5200){
+                    for (var i = 0; i < ptypjsk5200.length; i ++) {
+                        if (ptypjsk5200[i].trnym == strnym){
+                            document.getElementById("txt_SUPP_BUDGET").value = numberWithCommas(ptypjsk5200[i].supp_budget.split('.')[0]);
+                            document.getElementById("txt_SALE_BUDGET").value = numberWithCommas(ptypjsk5200[i].sale_budget.split('.')[0]);
+                            break;
+                        }
+                    }
+                }
+            },100);
+        });
+
+        /**
+         * 数値の3桁カンマ区切り
+         * 入力値をカンマ区切りにして返却
+         * [引数]   numVal: 入力数値
+         * [返却値] String(): カンマ区切りされた文字列
+         */
+        function addFigure(numVal) {
+            // 空の場合そのまま返却
+            if (numVal == ''){
+                return '';
+            }
+            // 既にカンマが入力されていたら事前に削除
+            numVal = numVal.toString().replace(/,/g, "").trim();
+// 小数ありの場合の処理も残しておく
+//            // 数値でなければそのまま返却
+//            if ( !/^[+|-]?(\d*)(\.\d+)?$/.test(numVal) ){
+//                return numVal;
+//            }
+//            // 整数部分と小数部分に分割
+//            var numData = numVal.toString().split('.');
+//            // 整数部分を3桁カンマ区切りへ
+//            numData[0] = Number(numData[0]).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+//            // 小数部分と結合して返却
+//            return numData.join('.');
+ 
+            // 整数値でなければアラートを出して空を返却
+            if ( !/^[0-9]+$/.test(numVal) ){
+                alert('※数値チェックエラー');
+                return '';
+            }
+            return Number(numVal).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        /**
+         * カンマ外し
+         * 入力値のカンマを取り除いて返却
+         * [引数]   strVal: 半角でカンマ区切りされた数値
+         * [返却値] String(): カンマを削除した数値
+         */
+        function delFigure(strVal){
+            return strVal.replace( /,/g , "" );
+        }
+
+        // 仕入予算
+        document.getElementById("txt_SUPP_BUDGET").addEventListener('blur', function(){ this.value = addFigure(this.value); }, false);
+        document.getElementById("txt_SUPP_BUDGET").addEventListener('focus', function(){ this.value = delFigure(this.value); }, false);
+        // 売上予算
+        document.getElementById("txt_SALE_BUDGET").addEventListener('blur', function(){ this.value = addFigure(this.value); }, false);
+        document.getElementById("txt_SALE_BUDGET").addEventListener('focus', function(){ this.value = delFigure(this.value); }, false);
+        // 1回発注下限額
+        document.getElementById("txt_UNDER_PRICE").addEventListener('blur', function(){ this.value = addFigure(this.value); }, false);
+        document.getElementById("txt_UNDER_PRICE").addEventListener('focus', function(){ this.value = delFigure(this.value); }, false);
+        txt_PAY_CLOSE_DAY.addEventListener('input',function(e){if(e.target.value >28){window[e.target.id].value = 99;}else if(e.target.value <1){window[e.target.id].value = 1;}}, false);
+        txt_TEL.addEventListener('input',function(e){txt_TEL.value = txt_TEL.value.replace(/[^0-9-]/g,'').replace(/^-/,'');});
+        txt_FAX.addEventListener('input',function(e){txt_FAX.value = txt_FAX.value.replace(/[^0-9-]/g,'').replace(/^-/,'');});
+        function savedata(){
+//ADDSTR 2020/09/01 kanderu            
+            //データを削除するときにメッセージデータを表示する
+            if(document.getElementById("txt_updins").value ==="upd"){
+               if(!confirm("※データ更新します。よろしいですか？")){
+            　  return;
+        　     }
+            } else{
+                if(!confirm("※データ保存します。よろしいですか？")){
+            　      return;
+        　      }
+            }
+//ADDEND 2020/09/01 kanderu             
+            var data = new Object;
+            allinput = document.getElementsByTagName ("INPUT");
+            for(var i=0;i < allinput.length;i++){
+                if(allinput[i].id !== ""){
+                    //data[allinput[i].id.substring(4)] = allinput[i].value;
+                    var id = allinput[i].id.substring(4);
+                    data[id] = allinput[i].value;
+                    // 数値項目(0以上の整数)
+                    if (id === "SUPP_BUDGET" ||
+                        id === "SALE_BUDGET" ||
+                        id === "UNDER_PRICE" ||
+                        id === "ARR_NEED_DAY" ||
+                        id === "DETAIL_CNT"){
+                        // 未入力時デフォルト値設定
+                        if (data[id] === "") {
+                            if (id === "DETAIL_CNT") {
+                                data[id] = "10";
+                            }
+                            else {
+                                data[id] = "0";
+                            }
+                        }
+                        // 数値チェック
+                        var pattern = /^(0|[1-9]\d{0,2}(,\d{3})*)$/;
+                        if (pattern.test(data[id]) === false) {
+                            alert("※数値チェックエラー");
+                            return;
+                        }
+                    }
+                    // 締日(1～28または99または空白)
+                    if (id === "PAY_CLOSE_DAY"){
+                        if (data[id] !== ""){
+                            if (!(data[id] === 99 || (data[id] >= 1 && data[id] <= 28))) {
+                                alert("※締日チェックエラー");
+                                return;
+                            }
+                        }
+                    }
+                    
+                    // 発注可能曜日checkbox
+                    if (id.substring(0,8) === "DAY_KBN_"){
+                        if (allinput[i].checked){
+                            data[id] = 1;
+                        }
+                        else {
+                            data[id] = 0;
+                        }
+                    }
+                }
+            }
+            var allselect = document.getElementsByTagName ("SELECT");
+            for(var i=0;i < allselect.length;i++){
+                if(allselect[i].id !== ""){
+                    data[allselect[i].id.substring(4)] = allselect[i].value; 
+                }
+            }
+
+            // (曜日別仕入先発注マスタ)必要日数
+            for(var i = 1; i <=7; i ++){
+                // 発注可能曜日checkbox
+                id = "DAY_KBN_" + i;
+                if (data[id] == 1) {
+                    // 必要日数チェック
+                    id = "NEED_DAY_" + i;
+                    if (data[id] == ""){
+                        data[id] = "0";
+                    }
+                    else{
+                        // 数値チェック
+                        var pattern = /^(0|[1-9]\d{0,2}(,\d{3})*)$/;
+                        if (pattern.test(data[id]) === false) {
+                            alert("※数値チェックエラー");
+                            return;
+                        }
+                    }
+                }
+                else{
+                    id = "NEED_DAY_" + i;
+                    data[id] = "";
+                }
+            }
+
+            //console.log(data);
+            var path = 'index.php?param=Mst1101/addInput&home=1';
+
+            setDataForAjax( data, path,'ajaxScreenUpdate' );
+        }
+        function deldata(){
+        //データを削除するときにメッセージデータを表示する
+            if(!confirm("※データ削除します。よろしいですか？")){
+            　 return;
+        　 }  
+//            if(ptypjsk4120.length > 0){
+//                if (!confirm("既に売上が存在します。削除してもよろしですか。")) {
+//                    //console.log("not deleted");
+//                    return;
+//                }
+//            }
+            //console.log("deleted");
+            iorgn_id    = document.getElementById("cmb_ORGANIZATION_ID").value;
+            isupp_cd    = document.getElementById("txt_SUPP_CD").value;
+            spath       = window.location.href;
+            spath       = spath.split('?'); 
+            //spath       = spath[0]+'?param=Mst1101/del&suppcd='+isupp_cd;
+            spath       = spath[0]+'?param=Mst1101/del&orgnid='+iorgn_id+'&suppcd='+isupp_cd;
+            window.location.replace(spath);             
+
+        }
+        function reset(){
+            spath = window.location.href;
+            spath = spath.split('?'); 
+            spath = spath[0]+'?param=Mst1101/show&home=1';
+            window.location.replace(spath);
+        }
+        function searchdata(){
+            spath       = window.location.href;
+            spath       = spath.split('?'); 
+            spath       = spath[0]+'?param=Mst1101/search';          
+            window.location.replace(spath);
+        }
+
+        if(ptypmst1101){
+            // エディット項目
+            //if(ptypmst1101["supp_cd"]) { document.getElementById("txt_SUPP_CD").value                   = ptypmst1101["supp_cd"]; }
+            if(ptypmst1101["supp_cd"]) {
+                document.getElementById("txt_SUPP_CD").value    = ptypmst1101["supp_cd"];
+                document.getElementById("txt_SUPP_CD").disabled = true;
+
+                document.getElementById('lbl_MODE').style.display = '';
+                document.getElementById('lbl_MODE').style.background = '#0000FF';
+                document.getElementById('lbl_MODE').style.color = '#FFFFFF';
+                document.getElementById('lbl_MODE').innerHTML = '更新';
+            }
+            if(ptypmst1101["supp_nm"]) { document.getElementById("txt_SUPP_NM").value                   = ptypmst1101["supp_nm"]; }
+            if(ptypmst1101["supp_kn"]) { document.getElementById("txt_SUPP_KN").value                   = ptypmst1101["supp_kn"]; }
+            if(ptypmst1101["zip"]){document.getElementById("txt_ZIP").value                             = ptypmst1101["zip"];}
+            if(ptypmst1101["addr1"]){document.getElementById("txt_ADDR1").value                         = ptypmst1101["addr1"];}
+            if(ptypmst1101["addr2"]){document.getElementById("txt_ADDR2").value                         = ptypmst1101["addr2"];}
+            //if(ptypmst1101["addr3"]){document.getElementById("txt_ADDR3").value                         = ptypmst1101["addr3"];}
+            if(ptypmst1101["tel"]){document.getElementById("txt_TEL").value                             = ptypmst1101["tel"];}
+            if(ptypmst1101["fax"]){document.getElementById("txt_FAX").value                             = ptypmst1101["fax"];}
+            if(ptypmst1101["pay_close_day1"]){document.getElementById("txt_PAY_CLOSE_DAY").value        = ptypmst1101["pay_close_day1"];}
+            if(ptypmst1101["arr_need_day"]){document.getElementById("txt_ARR_NEED_DAY").value           = ptypmst1101["arr_need_day"];}
+            if(ptypmst1101["ord_form_kbn"]){document.getElementById("cmb_ORD_FORM_KBN").value           = ptypmst1101["ord_form_kbn"];}
+            if(ptypmst1101["supp_deta_kbn"]){document.getElementById("cmb_SUPP_DETA_KBN").value         = ptypmst1101["supp_deta_kbn"];}
+            if(ptypmst1101["kics_supp_cd"]){document.getElementById("txt_KICS_SUPP_CD").value           = ptypmst1101["kics_supp_cd"];}
+            //if(ptypmst1101["noworder_no"]){document.getElementById("txt_NOWORDER_NO").value             = ptypmst1101["noworder_no"];}
+            //if(ptypmst1101["order_line"]){document.getElementById("txt_ORDER_LINE").value               = ptypmst1101["order_line"];}
+            if(ptypmst1101["biko"]){document.getElementById("txt_BIKO").value                           = ptypmst1101["biko"];}
+            if(ptypmst1101["order_under_price"]){document.getElementById("txt_UNDER_PRICE").value       = ptypmst1101["order_under_price"];}
+            if(ptypmst1101["fax_detail_cnt"]){document.getElementById("txt_DETAIL_CNT").value           = ptypmst1101["fax_detail_cnt"];}
+            //if(ptypmst1101["fax_denno"]){document.getElementById("txt_FAX_DENNO").value                 = ptypmst1101["fax_denno"];}
+            //if(ptypmst1101["tax_calc_kbn"]){document.getElementById("cmb_TAX_CALC_KBN").value           = ptypmst1101["tax_calc_kbn"];}
+            if(ptypmst1101["tax_frac_kbn"]){document.getElementById("cmb_TAX_FRAC_KBN").value           = ptypmst1101["tax_frac_kbn"];}
+            if(ptypmst1101["order_prod_kbn"]){document.getElementById("cmb_ORDER_PROD_KBN").value       = ptypmst1101["order_prod_kbn"];}
+            if(ptypmst1101["order_sp_cd"]){document.getElementById("txt_ORDER_SP_CD").value             = ptypmst1101["order_sp_cd"];}
+
+            // プルダウン項目
+            //if(ptypmst1101["organization_id"]) { document.getElementById("cmb_ORGANIZATION_ID").value   = ptypmst1101["organization_id"]; }
+            if(ptypmst1101["organization_id"]) {
+                document.getElementById("cmb_ORGANIZATION_ID").value = ptypmst1101["organization_id"];
+                if(ptypmst1101["supp_cd"]) {
+                    document.getElementById("cmb_ORGANIZATION_ID").disabled = true;
+                }
+            }
+
+            // ラベル項目
+            if(ptypmst1101["insdatetime"]) { document.getElementById("lbl_INSDATETIME").innerHTML   = "作成日時:" + ptypmst1101["insdatetime"].split('.')[0].replace(/-/g,'/'); }
+            if(ptypmst1101["upddatetime"]) { document.getElementById("lbl_UPDDATETIME").innerHTML   = "更新日時:" + ptypmst1101["upddatetime"].split('.')[0].replace(/-/g,'/'); }
+
+            document.getElementById("txt_updins").value =   "upd";
+//ADDSTR kanderu 2020/09/01 
+            //更新ボタンの追
+            document.getElementById("bt_updins").innerText =   "一括配信";
+//ADDSTR kanderu 2020/09/01             
+            document.getElementById("bt_function").removeAttribute("hidden");
+        }
+        
+        if (ptypmst6301){
+            for (var i = 0; i < ptypmst6301.length; i ++) {
+                switch (ptypmst6301[i].day_kbn) {
+                    case "0":   // 月
+                        document.getElementById("chk_DAY_KBN_1").checked = true;
+                        document.getElementById("txt_NEED_DAY_1").value = ptypmst6301[i]["arr_need_day"];
+                        break;
+                    case "1":   // 火
+                        document.getElementById("chk_DAY_KBN_2").checked = true;
+                        document.getElementById("txt_NEED_DAY_2").value = ptypmst6301[i]["arr_need_day"];
+                        break;
+                    case "2":   // 水
+                        document.getElementById("chk_DAY_KBN_3").checked = true;
+                        document.getElementById("txt_NEED_DAY_3").value = ptypmst6301[i]["arr_need_day"];
+                        break;
+                    case "3":   // 木
+                        document.getElementById("chk_DAY_KBN_4").checked = true;
+                        document.getElementById("txt_NEED_DAY_4").value = ptypmst6301[i]["arr_need_day"];
+                        break;
+                    case "4":   // 金
+                        document.getElementById("chk_DAY_KBN_5").checked = true;
+                        document.getElementById("txt_NEED_DAY_5").value = ptypmst6301[i]["arr_need_day"];
+                        break;
+                    case "5":   // 土
+                        document.getElementById("chk_DAY_KBN_6").checked = true;
+                        document.getElementById("txt_NEED_DAY_6").value = ptypmst6301[i]["arr_need_day"];
+                        break;
+                    case "6":   // 日
+                        document.getElementById("chk_DAY_KBN_7").checked = true;
+                        document.getElementById("txt_NEED_DAY_7").value = ptypmst6301[i]["arr_need_day"];
+                        break;
+                }
+            }
+        }
+
+        if(document.getElementById("txt_SUPP_CD").value == ""){
+            document.getElementById("bt_function").setAttribute("hidden", true);
+        }
+    </script>
+  </body>
+</html>

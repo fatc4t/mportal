@@ -1,0 +1,223 @@
+<?php
+    /**
+     * @file      月次コスト報告書画面(View)
+     * @author    millionet oota
+     * @date      2016/06/30
+     * @version   1.00
+     * @note      月次コスト報告書画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述 
+            include("Common/HtmlHeader.php"); 
+        ?>
+        <script type="text/javascript">
+        function chf(frm){
+            if( 1 < window.location.search.length ){
+                // 最初の1文字 (?記号) を除いた文字列を取得する
+                var query = window.location.search.substring( 1 );
+                // クエリの区切り記号 (&) で文字列を配列に分割する
+                var parameters = query.split( '&' );
+
+                if (frm.onbtn.value == 'serch') {
+                    if(1 < parameters.length){
+                         frm.action += 'CostReportListMonth/show&home=1'
+                                    + '&target_date=' +frm.elements["target_date"].value
+                                    + '&organizationName=' +frm.elements["organizationName"].value ;
+                     }else{
+                         frm.action += 'CostReportListMonth/show'
+                                    + '&target_date=' +frm.elements["target_date"].value
+                                    + '&organizationName=' +frm.elements["organizationName"].value ;
+                     }
+                }else if (frm.onbtn.value == 'add'){
+                    if(1 < parameters.length){
+                         frm.action += 'CostReportListMonth/add&home=1'
+                                    + '&target_date=' +frm.elements["target_date"].value;
+                                    + '&organizationName=' +frm.elements["organizationName"].value;
+                     }else{
+                         frm.action += 'CostReportListMonth/add'
+                                    + '&target_date=' +frm.elements["target_date"].value
+                                    + '&organizationName=' +frm.elements["organizationName"].value;
+                     }
+                }else if (frm.onbtn.value == 'mod'){
+                    if(1 < parameters.length){
+                         frm.action += 'CostReportListMonth/mod&home=1'
+                                    + '&target_date=' +frm.elements["target_date"].value
+                                    + '&organizationName=' +frm.elements["organizationName"].value;
+                     }else{
+                         frm.action += 'CostReportListMonth/mod'
+                                    + '&target_date=' +frm.elements["target_date"].value
+                                    + '&organizationName=' +frm.elements["organizationName"].value;
+                     }
+                }else if (frm.onbtn.value == 'del'){
+                    if(1 < parameters.length){
+                         frm.action += 'CostReportListMonth/del&home=1'
+                                    + '&target_date=' +frm.elements["target_date"].value
+                                    + '&organizationName=' +frm.elements["organizationName"].value;
+                     }else{
+                         frm.action += 'CostReportListMonth/del'
+                                    + '&target_date=' +frm.elements["target_date"].value
+                                    + '&organizationName=' +frm.elements["organizationName"].value;
+                     }
+                }
+            }
+        }
+       
+        function set_value(s_val){
+            document.serchForm.onbtn.value = s_val;
+        }
+       
+    /**
+     * 
+     *  DatePickerを設定
+     *
+     */
+    $(function()
+    {
+        $( "#target_date" ).datepicker({
+            showButtonPanel: true,
+            dateFormat: 'yy/mm/dd',
+        });
+
+    });
+    </script>
+
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+<!-- Site -->
+<div id="sb-site">
+    <!-- menuNameArea -->
+    <div class="menuNameArea">
+    <!-- パンくずリスト -->
+        <?php include("Common/Breadcrumb.php"); ?>
+    </div>
+    <!-- /.menuNameArea -->
+<form name="serchForm" id="serchForm" action="/profit/index.php?param=" method="post" onsubmit="return chf(this)">
+<div class="serchListArea">
+<table align="center">
+    <tr>
+        <td>
+            <table id="serchTable">
+                <tr>
+                    <th id="serchTableTitle" align="center" width="65">営業月</th>
+                    <td id="serchTableItem" width="300">
+                        <input type="text" pattern="\d{4}/\d{2}/\d{2}" title="西暦/月/日の形式で入力してください。" id="target_date" name="target_date" size="10" value=<?php hsc($targetDate); ?>>
+                    </td>
+                    <th id="serchTableTitle" align="center" width="65">組織名</th>
+                    <td>
+                        <?php include("../FwCommon/View/SearchOrganizationName.php"); ?>
+                    </td>
+                    <td>
+                      <input class="submit" type="submit" name="submit" value="検索" onClick="set_value('serch')">
+                    </td>
+                </tr>
+            </table>
+    </tr>
+</table>
+<br/>
+<table align="center" width="600">
+<tr>
+    <?php if( !empty($costReportMonthDetailList) ) { ?>
+        <?php $cnt = 0; ?>
+        <?php foreach($costReportMonthDetailList as $reportDay) { ?>
+            <!-- タイプに合わせて作成 -->
+            <?php if( $reportDay['report_form_detail_type'] == 0){ ?>
+                <!-- 改行 -->
+                </tr>
+                <tr>
+            <?php }else if( $reportDay['report_form_detail_type'] == 1){ ?>
+                <!-- ヘッダ -->
+                <th style=<?php hsc($reportDay['placement']); ?>
+                                  colspan=<?php hsc($reportDay['colspan']); ?>
+                                  rowspan=<?php hsc($reportDay['rowspan']); ?>
+                                  width=<?php hsc($reportDay['width']); ?>> 
+                    <?php hsc($reportDay['report_form_detail_name']); ?>
+                </th>
+                
+            <?php }else if( $reportDay['report_form_detail_type'] == 2){ ?>
+                <!-- テキスト -->
+                <td align=<?php hsc($reportDay['placement']); ?>
+                    colspan=<?php hsc($reportDay['colspan']); ?>
+                    rowspan=<?php hsc($reportDay['rowspan']); ?>
+                >
+                    <input id="<?php hsc($reportDay['report_form_detail_id']); ?>"
+                           name="<?php hsc($reportDay['report_form_detail_id']); ?>"
+                           type="text"
+                           size="15"
+                           style="ime-mode:disabled;text-align:right;"
+                           value="<?php hsc($reportDay['data']); ?>"
+                    >
+                </td>
+            <?php }else if( $reportDay['report_form_detail_type'] == 3){ ?>
+                <!-- リスト -->
+            <?php }else if( $reportDay['report_form_detail_type'] == 4){ ?>
+                <!-- ラジオ -->
+                <td align=<?php hsc($reportDay['placement']); ?> colspan=<?php hsc($reportDay['colspan']); ?> rowspan=<?php hsc($reportDay['rowspan']); ?>>
+                    <?php $items = explode("," , $reportDay['item']); ?>
+                    <?php for ($hc = 0; $hc < count($items); $hc++){ ?>
+                        <label>
+                        <input id="<?php hsc($reportDay['report_form_detail_id']); ?>"
+                               name="<?php hsc($reportDay['report_form_detail_id']); ?>"
+                               type="radio"
+                               <?php if( $items[$hc] == $reportDay['data']){ ?>
+                               checked="checked"
+                               <?php } ?>
+                               value="<?php hsc($items[$hc]); ?>">
+                        <?php hsc($items[$hc]); ?>
+                        </label>
+                    <?php } ?>
+                </td>
+            <?php }else if( $reportDay['report_form_detail_type'] == 5){ ?>
+                <!-- 日付 -->
+            <?php }else if( $reportDay['report_form_detail_type'] == 6){ ?>
+                <!-- エリア -->
+                <td id="inputTableItem" align=<?php hsc($reportDay['placement']); ?> colspan=<?php hsc($reportDay['colspan']); ?> rowspan=<?php hsc($reportDay['rowspan']); ?>>
+                    <TEXTAREA id=<?php hsc($reportDay['report_form_detail_id']); ?>
+                              name=<?php hsc($reportDay['report_form_detail_id']); ?>
+                              cols=<?php hsc($reportDay['item']); ?>
+                              rows=<?php hsc($reportDay['rowspan']); ?>
+                    ><?php hsc($reportDay['data']); ?></TEXTAREA>
+                </td>
+            <?php }else if( $reportDay['report_form_detail_type'] == 7){ ?>
+                <!-- チェックボックス -->
+            <?php }else if( $reportDay['report_form_detail_type'] == 8){ ?>
+                <!-- 表示専用 計算項目 -->
+            <?php } ?>
+            <?php $cnt++ ; ?>
+        <?php } ?>
+    <?php } ?>
+    <input type="hidden" name="report_data_id" value="<?php hsc($reportDataId); ?>">
+    <input type="hidden" name="report_form_id" value="<?php hsc($reportFormId); ?>">
+    <input type="hidden" name="report_type" value="<?php hsc($reportType); ?>">
+</table>
+</div>
+<br />
+<p align=center>
+    <?php if( $dataFlg == ""){ ?>
+        <input class="submit" type="submit" name="submit" value="登録" onClick="set_value('add')">
+    <?php }else{ ?>
+        <input class="submit" type="submit" name="submit" value="更新" onClick="set_value('mod')">
+        <input class="submit" type="submit" name="submit" value="削除" onClick="set_value('del')">
+    <?php } ?>
+    <input type="hidden" name="onbtn">
+</p>
+</form>
+
+<script type="text/javascript" src="../../jquery/js/scrolltopcontrol3.js"></script> <!--スクロールしながらページのトップに戻る-->
+        </div><!-- /#sb-site -->
+</body>
+</html>

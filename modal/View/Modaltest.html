@@ -1,0 +1,94 @@
+<script type="text/javascript">
+    /*　 */
+
+    function modal_delete_test(e){
+        for(i=1;i<11;i++){
+            input_id = 'name_input_'+i;
+            if(window[input_id].value){
+                window[input_id].value ='';
+            }
+        }
+    }
+       function modal_validate_test(e){
+            for(i=1;i<11;i++){
+                input_id = 'name_input_'+i;
+                name_id = 'name_display_'+i;
+                if(window[input_id].value){
+                    window[name_id].innerHTML = window[input_id].value;
+                    window[input_id].value =''; 
+                }
+            }
+            modal_test.style.display = 'none';
+        }
+</script>
+<STYLE type="text/css">
+    #modal_test_table_body input{
+        width:100%;
+    }
+</STYLE>
+<div>
+    <h2>見出し設定</h2>
+    <br />
+    <div>
+    <!--<div>-->
+        <table id="modal_test_table_id" class="modal_test_table">
+            <thead>
+                <tr>
+                    <th>見出し名</th>
+                    <th>変更名</th>
+                </tr>
+            </thead>
+            <tbody id="modal_test_table_body">
+                <tr>
+                    <td id="name_display_1">設定01</td>
+                    <td><input type="text" maxlength="5" id="name_input_1"></td>
+                </tr> 
+                <tr>
+                    <td id="name_display_2">設定02</td>
+                    <td><input type="text" maxlength="5" id="name_input_2"></td>
+                </tr>
+                <tr>
+                    <td id="name_display_3">設定03</td>
+                    <td><input type="text" maxlength="5" id="name_input_3"></td>
+                </tr>
+                <tr>
+                    <td id="name_display_4">設定04</td>
+                    <td><input type="text" maxlength="5" id="name_input_4"></td>
+                </tr>
+                <tr>
+                    <td id="name_display_5">設定05</td>
+                    <td><input type="text" maxlength="5" id="name_input_5"></td>
+                </tr> 
+                <tr>
+                    <td id="name_display_6">設定06</td>
+                    <td><input type="text" maxlength="5" id="name_input_6"></td>
+                </tr> 
+                <tr>
+                    <td id="name_display_7">設定07</td>
+                    <td><input type="text" maxlength="5" id="name_input_7"></td>
+                </tr>
+                <tr>
+                    <td id="name_display_8">設定08</td>
+                    <td><input type="text" maxlength="5" id="name_input_8"></td>
+                </tr>
+                <tr>
+                    <td id="name_display_9">設定09</td>
+                    <td><input type="text" maxlength="5" id="name_input_9"></td>
+                </tr>
+                <tr>
+                    <td id="name_display_10">設定10</td>
+                    <td><input type="text" maxlength="5" id="name_input_10"></td>
+                </tr>                 
+            </tbody>
+        </table>
+    </div>
+    <!--</div>-->
+    <br />
+    <div>       
+        <div class="modal_div_btn">              
+            <button type="button" id="modal_test_dlt" onclick="modal_delete_test(event)"  >一括削除</button>        
+            <button type="button" id="modal_test_ok" onclick="modal_validate_test(event)"  >決定</button>        
+            <button type="button" id="modal_test_ko" onclick="modal_close_test()"  >終了</button>        
+        </div>            
+    </div>
+</div>

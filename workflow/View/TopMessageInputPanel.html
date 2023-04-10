@@ -1,0 +1,367 @@
+<?php
+    /**
+     * @file      トップメッセージ入力画面(View)
+     * @author    millionet oota
+     * @date      2017/01/26
+     * @version   1.00
+     * @note      トップメッセージ入力画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array( 'default.css', 'common.js', 'jquery-ui.min.js', 'jquery-ui.css' );    // cssまたはｊｓファイルを拡張子付きで配列に記述 
+            include("Common/HtmlHeader.php"); 
+        ?>
+        <script src="../js/topMessage/jquery/datepicker-ja.js" ></script>
+        <script type="text/javascript">
+            var lineInfo = null;
+            var btnInfo  = null;
+            var appCnt = 0;
+
+            $(document).ready(function() 
+            {
+            
+                /**
+                 * 削除ボタン押下時処理
+                 */
+                $('#del').click(function()
+                {
+                    event.preventDefault();
+
+                    document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$DELETE_DIALOG_MSG); ?>';
+                    $("#dialog_mod").dialog('open');
+
+                    // サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+            
+                /**
+                 * 戻るボタン押下時処理
+                 */
+                $('#back').click(function()
+                {
+                    // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                    var data = {
+                                  back : $('#back').val(),
+                                  searchTitle : $('#searchTitle').val(),
+                                  searchContents : $('#searchContents').val(),
+                                  searchThumbnail : $('#searchThumbnail').val(),
+                                  searchFile : $('#searchFile').val(),
+                                  searchViewer_count : $('#searchViewer_count').val(),
+                                  searchSAppStartDate : $('#minApplicationStartDate').val(),
+                                  searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                               }
+                    var path = 'index.php?param=TopMessage/show&home=1';
+
+                    // データ更新
+                    setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+                    // サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+                // サムネイルの行を追加する
+                $(document).on("click", "#appSelectAdd", function ()
+                {
+                    appCnt++;
+                    $('#appSelectDel').css('display' , '');
+                    $('#appAddTbody > tr').eq(0).clone(true).insertAfter(
+                        $(this).parent().parent()
+                    ).find("#approvalOrganization").attr('id', "approvalOrganization" + appCnt);
+                });
+
+                // サムネイルの行を削除する
+                $(document).on("click", "#appSelectDel", function ()
+                {
+                    $(this).parent().parent().remove();
+                });
+
+                // 登録系ボタン押下時
+                $('#addForm').submit(function(event)
+                {
+                    event.preventDefault();
+
+                    if(btnInfo !== '<?php hsc($Log->getMsgLog("MSG_BASE_0803")); ?>')
+                    {
+                        if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0800")); ?>')
+                        {
+                            // 一覧画面新規作成ボタンから遷移してきた場合
+                            document.getElementById("dialog_add").textContent='<?php hsc(SystemParameters::$NEW_DIALOG_MSG); ?>';
+                            $("#dialog_add").dialog('open');
+                        
+                        }
+                        else if(btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>')
+                        {
+                            document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$UPDATE_DIALOG_MSG); ?>';
+                            $("#dialog_mod").dialog('open');
+                        }
+                    }
+                    else
+                    {
+                        document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$DELETE_DIALOG_MSG); ?>';
+                        $("#dialog_mod").dialog('open');
+                    }
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+            });
+
+            /**
+             * 新規作成データの設定
+             */
+            function setAddData()
+            {
+                // サムネイルファイルをまとめる
+                var approvalArray = $(".approvalOrganization").map(function(){
+                    return $(this).val();
+                }).get();
+                
+                // 添付ファイルをまとめる
+                var allowanceArray = $(".allowance").map(function(){
+                    return $(this).val();
+                }).get();
+                
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              searchTitle : $('#searchTitle').val(),
+                              searchContents : $('#searchContents').val(),
+                              searchThumbnail : $('#searchThumbnail').val(),
+                              searchFile : $('#searchFile').val(),
+                              searchViewer_count : $('#searchViewer_count').val(),
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              token : $('#token').val(),
+                              title : $('#title').val(),
+                              contents : $('#contents').val(),
+                              thumbnail : $('#thumbnail').val(),
+                              file : $('#file').val(),
+                              viewer_count : $('#viewer_count').val()
+                           };
+                var path = 'index.php?param=TopMessage/add&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+            }
+
+            /**
+             * データ更新の設定
+             */
+            function setModData()
+            {
+                if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>' )
+                {
+                    path = 'index.php?param=TopMessage/mod&home=1';
+                }
+                else
+                {
+                    path = 'index.php?param=TopMessage/del&home=1';
+                }
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              topMessageID : $('#topMessageID').val(),
+                              updateTime : $('#updateTime').val(),
+                              searchTitle : $('#searchTitle').val(),
+                              searchContents : $('#searchContents').val(),
+                              searchThumbnail : $('#searchThumbnail').val(),
+                              searchFile : $('#searchFile').val(),
+                              searchViewer_count : $('#searchViewer_count').val(),
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              token : $('#token').val(),
+                              title : $('#title').val(),
+                              contents : $('#contents').val(),
+                              thumbnail : $('#thumbnail').val(),
+                              file : $('#file').val(),
+                              viewer_count : $('#viewer_count').val()
+                           };
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+            }
+
+            /**
+             * 更新キャンセル
+             */
+            function cancel()
+            {
+                var data = null;
+                var path = '';
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              searchTitle : $('#searchTitle').val(),
+                              searchContents : $('#searchContents').val(),
+                              searchThumbnail : $('#searchThumbnail').val(),
+                              searchFile : $('#searchFile').val(),
+                              searchViewer_count : $('#searchViewer_count').val(),
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              token : $('#token').val()
+                            }
+                var path = 'index.php?param=TopMessage/show&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+                // サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 行情報を設定
+             */
+            function setLineInfo(thisLineInfo, thisBtnInfo)
+            {
+                lineInfo = thisLineInfo;
+                btnInfo  = thisBtnInfo;
+                return true;
+            }
+
+            /**
+             * 遷移先の設定
+             */
+            function moveRedirect()
+            {
+                cancel();
+            }
+
+        </script>
+
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site">
+            <!-- パンくずリスト -->
+            <?php include("Common/Breadcrumb.php"); ?>
+            
+            <!-- serchButtonArea -->
+            <div class="logicButtonArea">
+                <p align=center>
+                    <input type="button" id="back" name="back" value="戻る" class="return" data-href="index.php?param=TopMessage/show&home=1">
+                </p>
+            </div><!-- /.serchButtonArea -->
+
+            <!-- serchEditArea -->
+            <form id="addForm" name="addForm">
+                <!-- 以下、hiddenの値は修正/削除時の条件に使用 -->
+                <input type="hidden" id="token" name="token" value="<?php hsc($TokenID); ?>">
+                <input type="hidden" id="topMessageID" name="topMessageID" value="<?php hsc($topMessageDataList['top_message_id']); ?>">
+                <input type="hidden" id="updateTime" name="updateTime" value="<?php hsc($topMessageDataList['update_time']); ?>">
+                <!-- 以下、hiddenの値は一覧表の検索条件保持のため、使用 -->
+                <input type="hidden" id="searchTitle" name="searchTitle" value="<?php hsc($_POST['searchTitle']); ?>">
+                <input type="hidden" id="searchContents" name="searchContents" value="<?php hsc($_POST['searchContents']); ?>">
+                <input type="hidden" id="searchThumbnail" name="searchThumbnail" value="<?php hsc($_POST['searchThumbnail']); ?>">
+                <input type="hidden" id="searchFile" name="searchFile" value="<?php hsc($_POST['searchFile']); ?>">
+                <input type="hidden" id="searchViewer_count" name="searchViewer_count" value="<?php hsc($_POST['searchViewer_count']); ?>">
+                <input type="hidden" id="minApplicationStartDate" name="minApplicationStartDate" value="<?php hsc($_POST['searchSAppStartDate']); ?>">
+                <input type="hidden" id="maxApplicationStartDate" name="maxApplicationStartDate" value="<?php hsc($_POST['searchEAppStartDate']); ?>">
+                <div class="serchEditArea">
+                    <div style="width:690px; margin:0 auto;">
+                        <table width="100%">
+                            <tbody>
+                                <tr>
+                                    <td width="120px" style="border-style:none;"></td>
+                                    <td width="800px" style="border-style:none;"></td>
+                                    <td width="120px" style="border-style:none;"></td>
+                                    <td width="800" style="border-style:none;"></td>
+                                    <td width="50px" style="border-style:none;"></td>
+                                </tr>
+                                <tr>
+                                    <th>タイトル</th>
+                                    <td><input type="text" title="タイトル" id="title" name="title" style="width: 742px" maxlength="20" value="<?php hsc($topMessageDataList['title']); ?>" class="Em" required></td>
+                                </tr>
+                                <tr>
+                                    <th>内容</th>
+                                    <td><textarea  id="contents" name="contents" rows="20" cols="120"><?php hsc($topMessageDataList['contents']); ?></textarea></td>
+                                    <td style="border-style:none;"></td>
+                                </tr>
+                                <tr>
+                                    <td style="border-style:none;"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <table width="100%" id="aappAddTable">
+                            <tbody id="aappAddTbody">
+                                <tr>
+                                    <th width="120px">サムネイル</th>
+                                    <td width="800px">
+                                        <input type="file" title="サムネイル" id="thumbnail" name="thumbnail" style="width: 742px" maxlength="20" value="<?php hsc($topMessageDataList['thumbnail']); ?>" multiple class="Em" required>
+                                        <?php hsc($topMessageDataList['thumbnail']); ?>
+                                    </td>
+                                    <td width="370px" style="border-style:none;">
+                                        <input type="button" id="appSelectAdd" name="appSelectAdd" value="追加" class="add">
+                                        <input type="button" style="display : none" id="appSelectDel" name="appSelectDel" value="削除" class="delete">
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tr>
+                                <td style="border-style:none;"></td>
+                            </tr>
+                        </table>
+                        
+                        <table width="100%" id="fileAddTable">
+                            <tbody id="filepAddTbody">
+                                <tr>
+                                    <th width="120px">添付ファイル</th>
+                                    <td width="800px">
+                                        <input type="file" title="添付ファイル" id="file" name="file" style="width: 742px" maxlength="20" value="<?php hsc($topMessageDataList['file']); ?>" class="Em" required>
+                                        <?php hsc($topMessageDataList['file']); ?>
+                                    </td>
+                                    <td width="370px" style="border-style:none;">
+                                        <input type="button" id="fileSelectAdd" name="fileSelectAdd" value="追加" class="add">
+                                        <input type="button" style="display : none" id="fileSelectDel" name="appSelectDel" value="削除" class="delete">
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tr>
+                                <td style="border-style:none;"></td>
+                            </tr>
+                        </table>
+
+                    </div><!-- /. width:65% -->
+                </div><!-- /.serchEditArea -->
+                <input type="hidden" id="btnid" name="btnid" value=""/>
+
+                <!-- logicButtonArea -->
+                <div class="logicButtonArea">
+                    <p align=center>
+                        <?php $add_disabled = ""; ?>
+                        <?php if (!empty($_POST['disabledID'])) { ?>
+                            <?php $add_disabled = "disabled"; ?>
+                            <?php $del_disabled = "disabled"; ?>
+                        <?php } ?>
+                        <?php if($CorrectionFlag) { ?>
+                            <input type="submit" id="del" name="del" value="<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>')" class="delete" <?php hsc($del_disabled); ?>>
+                            <input type="submit" id="newadd" name="newadd" value="　<?php hsc($Log->getMsgLog('MSG_BASE_0805')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0800')); ?>')" class="add" <?php hsc($add_disabled); ?>>
+                            <input type="submit" id="mod" name="mod" value="<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>')" class="update" <?php hsc($add_disabled); ?>>
+                        <?php } else { ?>
+                            <input type="submit" id="add" name="add" value="　<?php hsc($Log->getMsgLog('MSG_BASE_0805')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0800')); ?>')" class="add" <?php hsc($add_disabled); ?>>
+                        <?php } ?>
+                    </p>
+                </div><!-- /.logicButtonArea -->
+            </form>
+
+        </div><!-- /#sb-site -->
+        <div id="jquery-replace-ajax">
+            
+        </div><!-- /#jquery-replace-ajax -->
+
+        <?php include("../FwCommon/View/Dialog.php"); ?>
+    </body>
+</html>

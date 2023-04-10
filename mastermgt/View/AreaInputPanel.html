@@ -1,0 +1,571 @@
+<?php
+    /**
+     * @file      エリアマスタ入力画面(View)
+     * @author    millionet oota
+     * @date      2017/07/26
+     * @version   1.00
+     * @note      エリアマスタ入力画面
+     */
+?>
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+    <!-- Force latest IE rendering engine or ChromeFrame if installed -->
+    <!--[if IE]>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <![endif]-->
+    <meta charset="utf-8">
+    <meta name="description" content="File Upload widget with multiple file selection, drag&amp;drop support, progress bars, validation and preview images, audio and video for jQuery. Supports cross-domain, chunked and resumable file uploads and client-side image resizing. Works with any server-side platform (PHP, Python, Ruby on Rails, Java, Node.js, Go etc.) that supports standard HTML form file uploads.">
+    <!-- Bootstrap styles -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <!-- Generic page styles -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- blueimp Gallery styles -->
+    <link rel="stylesheet" href="//blueimp.github.io/Gallery/css/blueimp-gallery.min.css">
+    <!-- CSS to style the file input field as button and adjust the Bootstrap progress bars -->
+    <link rel="stylesheet" href="css/jquery.fileupload.css">
+    <link rel="stylesheet" href="css/jquery.fileupload-ui.css">
+    <!-- CSS adjustments for browsers with JavaScript disabled -->
+    <noscript><link rel="stylesheet" href="css/jquery.fileupload-noscript.css"></noscript>
+    <noscript><link rel="stylesheet" href="css/jquery.fileupload-ui-noscript.css"></noscript>
+        
+    <?php
+        $fileNames = array( 'default.css', 'common.js', 'jquery-ui.min.js', 'jquery-ui.css' );    // cssまたはｊｓファイルを拡張子付きで配列に記述 
+        include("Common/HtmlHeader.php"); 
+    ?>
+        
+        <script type="text/javascript">
+            var lineInfo = null;
+            var btnInfo  = null;
+            var appCnt = 0;
+
+            $(document).ready(function() 
+            {
+                
+                /**
+                 * 削除ボタン押下時処理
+                 */
+                $('#del').click(function()
+                {
+                    event.preventDefault();
+
+                    document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$DELETE_DIALOG_MSG); ?>';
+                    $("#dialog_mod").dialog('open');
+
+                    // サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+            
+                /**
+                 * 戻るボタン押下時処理
+                 */
+                $('#back').click(function()
+                {
+                    // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                    var data = {
+                                  back : $('#back').val(),
+                                  searchGroupName : $('#groupName').val(),
+                                  searchMenberName : $('#menberName').val(),
+                                  searchSAppStartDate : $('#minApplicationStartDate').val(),
+                                  searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                               }
+                    var path = 'index.php?param=Group/show&home=1';
+
+                    // データ更新
+                    setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+                    // サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+                // 登録系ボタン押下時
+                $('#fileupload').submit(function(event)
+                {
+                    event.preventDefault();
+
+                    if(btnInfo !== '<?php hsc($Log->getMsgLog("MSG_BASE_0803")); ?>')
+                    {
+                        if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0800")); ?>')
+                        {
+                            // 一覧画面新規作成ボタンから遷移してきた場合
+                            document.getElementById("dialog_add").textContent='<?php hsc(SystemParameters::$NEW_DIALOG_MSG); ?>';
+                            $("#dialog_add").dialog('open');
+                        
+                        }
+                        else if(btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>')
+                        {
+                            document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$UPDATE_DIALOG_MSG); ?>';
+                            $("#dialog_mod").dialog('open');
+                        }
+                    }
+                    else
+                    {
+                        document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$DELETE_DIALOG_MSG); ?>';
+                        $("#dialog_mod").dialog('open');
+                    }
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+                /**
+                 * ラジオボタン変更イベント
+                 */
+                $("input:radio[name=unit]").change(function()
+                {
+                    if($("[name=unit]:checked").val() == "1")
+                    {
+                        // 全員指定の場合
+                        $('#organizationName').css('display' , 'none');
+                        $('#searchUser').css('display' , 'none');
+                        $('#right').css('display' , 'none');
+                        $('#left').css('display' , 'none');
+                        $('#searchUser').css('display' , 'none');
+                        $('#selectUser').css('display' , 'none');
+                        $('#p1').css('display' , 'none');
+                        $('#p2').css('display' , 'none');
+                    }
+                    else if($("[name=unit]:checked").val() == "2")
+                    {
+                        // 組織指定の場合
+                        $('#organizationName').css('display' , 'none');
+                        $('#searchUser').css('display' , '');
+                        document.getElementById("organizationName").disabled = false;
+                        document.getElementById("right").disabled = false;
+                        document.getElementById("left").disabled = false;
+                        document.getElementById("searchUser").disabled = false;
+                        document.getElementById("selectUser").disabled = false;
+                    }
+                    else if($("[name=unit]:checked").val() == "3")
+                    {
+                        // 組織配下指定の場合
+                    }
+                    else if($("[name=unit]:checked").val() == "4")
+                    {
+                        // 役職指定の場合
+                        $('#organizationName').css('display' , 'none');
+                        document.getElementById("organizationName").disabled = false;
+                        document.getElementById("right").disabled = false;
+                        document.getElementById("left").disabled = false;
+                        document.getElementById("searchUser").disabled = false;
+                        document.getElementById("selectUser").disabled = false;
+                    }
+                    else if($("[name=unit]:checked").val() == "5")
+                    {
+                        // 個人指定の場合
+                        $('#organizationName').css('display' , '');
+                        document.getElementById("organizationName").disabled = false;
+                        document.getElementById("right").disabled = false;
+                        document.getElementById("left").disabled = false;
+                        document.getElementById("searchUser").disabled = false;
+                        document.getElementById("selectUser").disabled = false;
+                    }
+                    else if($("[name=unit]:checked").val() == "5")
+                    {
+                        // グループ指定の場合
+                        $('#organizationName').css('display' , 'none');
+                        document.getElementById("organizationName").disabled = false;
+                        document.getElementById("right").disabled = false;
+                        document.getElementById("left").disabled = false;
+                        document.getElementById("searchUser").disabled = false;
+                        document.getElementById("selectUser").disabled = false;
+                    }
+                    
+                    if($("[name=unit]:checked").val() != "1")
+                    {
+                        // リストを再生成
+                        setSearchUserList();
+                    }
+                    
+                });
+
+            });
+
+            /**
+             * 新規作成データの設定
+             */
+            function setAddData()
+            {
+                
+                var $selectUser = '';
+                var $selectLabel = '';
+                var selectUser = document.getElementById('selectUser')
+                
+                for(var i = 0; i < selectUser.options.length; i++){
+                    $selectUser += selectUser[i].value + ',';
+                    $selectLabel += selectUser[i].text + ',';
+                };
+                
+                // 選択種別を渡すために判別する
+                var $selectUnit = '';
+                var unit = document.getElementsByName('unit');
+                for(var i = 0; i < unit.length; i++){
+                    if (unit[i].checked) {
+                        $selectUnit = unit[i].value;
+                        break;
+                    }
+                };
+                
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              searchGroupName : $('#groupName').val(),
+                              searchMenberName : $('#menberName').val(),
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              token : $('#token').val(),
+                              dispOrder : $('#dispOrder').val(),
+                              groupName : $('#groupName').val(),
+                              selectUser : $selectUser,
+                              selectLabel : $selectLabel,
+                              unit : $selectUnit,
+                           };
+                var path = 'index.php?param=Group/add&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+            }
+
+            /**
+             * データ更新の設定
+             */
+            function setModData()
+            {
+                if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>' )
+                {
+                    path = 'index.php?param=Group/mod&home=1';
+                }
+                else
+                {
+                    path = 'index.php?param=Group/del&home=1';
+                }
+                
+                // 保持リストを渡す為にまとめる(右リスト)
+                var $selectUser = '';
+                var $selectLabel = '';
+                var selectUser = document.getElementById('selectUser')
+                
+                for(var i = 0; i < selectUser.options.length; i++){
+                    $selectUser += selectUser[i].value + ',';
+                    $selectLabel += selectUser[i].text + ',';
+                };
+
+                // 選択種別を渡すために判別する
+                var $selectUnit = '';
+                var unit = document.getElementsByName('unit');
+                for(var i = 0; i < unit.length; i++){
+                    if (unit[i].checked) {
+                        $selectUnit = unit[i].value;
+                        break;
+                    }
+                };
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              groupID : $('#groupID').val(),
+                              updateTime : $('#updateTime').val(),
+                              searchGroupName : $('#groupName').val(),
+                              searchMenberName : $('#menberName').val(),
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              token : $('#token').val(),
+                              dispOrder : $('#dispOrder').val(),
+                              groupName : $('#groupName').val(),
+                              selectUser : $selectUser,
+                              selectLabel : $selectLabel,
+                              unit : $selectUnit,
+                           };
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+            }
+
+            /**
+             * 更新キャンセル
+             */
+            function cancel()
+            {
+                var data = null;
+                var path = '';
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              searchGroupName : $('#groupName').val(),
+                              searchMenberName : $('#menberName').val(),
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              token : $('#token').val()
+                            }
+                var path = 'index.php?param=Group/show&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+                // サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 行情報を設定
+             */
+            function setLineInfo(thisLineInfo, thisBtnInfo)
+            {
+                lineInfo = thisLineInfo;
+                btnInfo  = thisBtnInfo;
+                return true;
+            }
+
+            /**
+             * 遷移先の設定
+             */
+            function moveRedirect()
+            {
+                cancel();
+            }
+            
+            /**
+             * 検索用従業員リスト更新
+             */
+            function setSearchUserList()
+            {
+                // 検索用従業員リスト更新用パス
+                var path = 'index.php?param=Group/searchUserList&home=1';
+                
+                // 保持リストを渡す為にまとめる(右リスト)
+                var $selectUser = '';
+                var $selectUserLabel ='';
+                
+                var selectUser = document.getElementById('selectUser')
+                
+                for(var i = 0; i < selectUser.options.length; i++){
+                    $selectUser += selectUser[i].value + ',';
+                    $selectUserLabel += selectUser.options[i].text + ',';
+                };
+
+                // 選択種別を渡すために判別する
+                var $selectUnit = '';
+                var unit = document.getElementsByName('unit');
+                for(var i = 0; i < unit.length; i++){
+                    if (unit[i].checked) {
+                        $selectUnit = unit[i].value;
+                        break;
+                    }
+                };
+        
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              searchOrgID : $('#organizationName').val(),
+                              selectUser : $selectUser,
+                              selectUserLabel : $selectUserLabel,
+                              unit : $selectUnit,
+                           };
+
+                // データ更新
+                setDataForAjax( data, path, "jquery-replace-SearchUserName-ajax" );
+            }
+            
+            /**
+             * リスト操作
+             */
+            function moveList() {
+
+                //　リストで選択している要素を取得する。
+                var leftList = document.getElementById("searchUser");
+                var rightList = document.getElementById("selectUser");
+                
+                //　移動する
+                for (var i = 0; i < leftList.length; i++) {
+                   if (leftList[i].selected) {
+                       // 重複チェック
+                       var flg = true;
+                       if(rightList.length != 0){
+                           for (var j = 0; j < rightList.length; j++) {
+                                if(leftList[i].value == rightList[j].value){
+                                   flg = false;
+                                }
+                           }
+                       }
+
+                       // 重複フラグ判定
+                       if(flg){
+                           
+                           // 追加前にラベルの組織改装文字を除去
+                           var label = leftList[i].text.replace( /｜/g , "" ) ;
+                           label = label.replace( /　/g , "" ) ;
+                           label = label.replace( /├/g , "" ) ;
+                           label = label.replace( /└/g , "" ) ;
+                           leftList[i].text = label;
+                           
+                           //重複していなければ右リストに追加
+                           rightList.appendChild(leftList[i]);
+                           i--;
+                       }
+                   }
+                }
+            }
+            
+            /**
+             * リスト削除
+             */
+            function delList() {
+
+                //　左リストで選択している要素を取得する。
+                var rightList = document.getElementById("selectUser");
+                
+                //　処理分判定を行う
+                for (var i = 0; i < rightList.length; i++) {
+                   if (rightList[i].selected) {
+                        rightList.removeChild(rightList[i]);
+                        i--;
+                   }
+                }
+                
+            }
+
+        </script>
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site">
+            <!-- パンくずリスト -->
+            <?php include("Common/Breadcrumb.php"); ?>
+            
+            <!-- serchButtonArea -->
+            <div class="logicButtonArea">
+                <p align=center>
+                    <input type="button" id="back" name="back" value="戻る" class="return" data-href="index.php?param=Group/show&home=1">
+                </p>
+            </div><!-- /.serchButtonArea -->
+
+            <!-- serchEditArea -->
+            <form id="fileupload" name="fileupload" method="POST" enctype="multipart/form-data">
+                <!-- 以下、hiddenの値は修正/削除時の条件に使用 -->
+                <input type="hidden" id="token" name="token" value="<?php hsc($TokenID); ?>">
+                <input type="hidden" id="groupID" name="groupID" value="<?php hsc($groupDataList['group_id']); ?>">
+                <input type="hidden" id="updateTime" name="updateTime" value="<?php hsc($groupDataList['update_time']); ?>">
+                <!-- 以下、hiddenの値は一覧表の検索条件保持のため、使用 -->
+                <input type="hidden" id="searchTitle" name="searchGroupName" value="<?php hsc($_POST['searchGroupName']); ?>">
+                <input type="hidden" id="searchContents" name="searchMenberName" value="<?php hsc($_POST['searchMenberName']); ?>">
+                <input type="hidden" id="minApplicationStartDate" name="minApplicationStartDate" value="<?php hsc($_POST['searchSAppStartDate']); ?>">
+                <input type="hidden" id="maxApplicationStartDate" name="maxApplicationStartDate" value="<?php hsc($_POST['searchEAppStartDate']); ?>">
+                <div class="serchEditArea">
+                    <div style="width:900px; margin:0 auto;">
+                        <table width="100%">
+                            <tbody>
+                                <tr>
+                                    <td width="120px" style="border-style:none;"></td>
+                                    <td width="800px" style="border-style:none;"></td>
+                                </tr>
+                                <tr>
+                                    <th>表示順</th>
+                                    <td>
+                                        <input type="text" title="表示順" id="dispOrder" name="dispOrder" style="width: 50px" maxlength="4" value="<?php hsc($groupDataList['disp_order']); ?>" class="Em" required>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>エリア名</th>
+                                    <td>
+                                        <input type="text" title="エリア名" id="groupName" name="groupName" style="width: 792px" maxlength="50" value="<?php hsc($groupDataList['group_name']); ?>" class="Em" required>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <table width="100%">
+                            <tbody>
+                                <tr>
+                                    <td style="border-style:none;"></td>
+                                </tr>
+                                <tr>
+                                </tr>
+                                <th>選択種別</th>
+                                <td style="width:110px; background-color: #ffffff">
+                        <?php if($CorrectionFlag) { ?>
+                                    　<input type="radio" id="unit" name="unit" value="2">組織
+<!--                                    　<input type="radio" id="unit" name="unit" value="3">組織配下 -->
+                                    　<input type="radio" id="unit" name="unit" value="4">役職
+                                    　<input type="radio" id="unit" name="unit" value="5" checked>個人
+                        <?php } else { ?>
+                                    　<input type="radio" id="unit" name="unit" value="2">組織
+<!--                                    　<input type="radio" id="unit" name="unit" value="3">組織配下 -->
+                                    　<input type="radio" id="unit" name="unit" value="4">役職
+                                    　<input type="radio" id="unit" name="unit" value="5">個人
+                        <?php } ?>
+                                </td>
+                                <tr>
+                                    <th>フィルタ</th>
+                                        <td style="background-color: #ffffff">
+                                            <?php $unit_disabled = ""; ?>
+                                            <?php if (empty($groupDataList['group_id'])) { ?>
+                                                <?php $unit_disabled = "display:none"; ?>
+                                                <?php $unit_disabled = "display:none"; ?>
+                                            <?php } ?>
+                                            <select name="organizationName" id="organizationName" style="width:200px;<?php hsc($unit_disabled); ?>" onChange="setSearchUserList()">
+                                                <?php foreach($abbreviatedNameList as $abbreviated) { ?>
+                                                    <?php $selected = ""; ?>
+                                                    <?php if($abbreviated['organization_id'] == $searchArray['organizationID']) { ?>
+                                                        <?php $selected = "selected"; ?>
+                                                    <?php } ?>
+                                                    <option value="<?php hsc($abbreviated['organization_id']); ?>" <?php hsc($selected); ?>><?php hsc($abbreviated['abbreviated_name']); ?></option>
+                                                <?php } ?>
+                                            </select>
+                                        </td>
+                                </tr>
+                                <tr>
+                                    <th>対象リスト</th>
+                                    <td style="background-color: #ffffff">
+                                        <?php include("Common/SearchList.php"); ?>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border-style:none;"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                    </div><!-- /. width:65% -->
+                </div><!-- /.serchEditArea -->
+                <input type="hidden" id="btnid" name="btnid" value=""/>
+
+                <!-- logicButtonArea -->
+                <div class="logicButtonArea">
+                    <p align=center>
+                        <?php $add_disabled = ""; ?>
+                        <?php if (!empty($_POST['disabledID'])) { ?>
+                            <?php $add_disabled = "disabled"; ?>
+                            <?php $del_disabled = "disabled"; ?>
+                        <?php } ?>
+                        <?php if($CorrectionFlag) { ?>
+                            <input type="submit" id="del" name="del" value="<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>')" class="delete" <?php hsc($del_disabled); ?>>
+                            <input type="submit" id="newadd" name="newadd" value="<?php hsc($Log->getMsgLog('MSG_BASE_0805')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0800')); ?>')" class="add" <?php hsc($add_disabled); ?>>
+                            <input type="submit" id="mod" name="mod" value="<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>')" class="update" <?php hsc($add_disabled); ?>>
+                        <?php } else { ?>
+                            <input type="submit" id="add" name="add" value="　<?php hsc($Log->getMsgLog('MSG_BASE_0805')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0800')); ?>')" class="add" <?php hsc($add_disabled); ?>>
+                        <?php } ?>
+                    </p>
+                </div><!-- /.logicButtonArea -->
+            </form>
+
+        </div><!-- /#sb-site -->
+        
+        <div id="jquery-replace-ajax">
+            
+        </div><!-- /#jquery-replace-ajax -->
+
+        <?php include("../FwCommon/View/Dialog.php"); ?>
+    <script>
+       $('#fileupload').fileupload({
+            autoUpload: true
+        });
+    </script>
+    </body>
+</html>

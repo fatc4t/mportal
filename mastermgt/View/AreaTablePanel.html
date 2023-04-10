@@ -1,0 +1,65 @@
+<?php
+    /**
+     * @file        エリアマスタ画面(View)
+     * @author      millionet oota
+     * @date        2017/07/26
+     * @version     1.00
+     * @note        エリアマスタ画面
+     */
+?>
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-ajax">
+
+            <!-- PageMoveArea -->
+            <?php include("../FwCommon/View/PagingArea.php"); ?>
+
+            <?php if( $isScrollBar ) { ?>
+                <div class="serchListArea" style=" clear:both; width:99%; margin:0px auto !important; overflow-y:auto; height:25px;">
+            <?php } else { ?>
+                <div class="serchListArea" style=" clear:both; width:99%; margin:5px auto !important;">
+            <?php } ?>
+            <!-- ---------------------- -->
+                    <table>
+                        <tbody>
+                            <tr>
+                                <th width="20px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?></u><?php hsc($headerArray['areaNoSortMark']); ?></span></th><!-- No -->
+                                <th width="20px"><span onClick="setColumnInfo('エリアコード');"><u>エリアコード</u><?php hsc($headerArray['dispOrderSortMark']); ?></span></th>
+                                <th width="50px"><span onClick="setColumnInfo('エリア名');"><u>エリア名</u><?php hsc($headerArray['groupNameSortMark']); ?></span></th>
+                                <th width="62px"><span onClick="setColumnInfo('エリア名カナ');"><u>エリア名カナ</u><?php hsc($headerArray['registrationTimeSortMark']); ?></span></th>
+                                <th width="80px"><span onClick="setColumnInfo('店舗名');"><u>店舗名</u><?php hsc($headerArray['menberNameMark']); ?></span></th>
+                                <!-- ---------------------- -->
+                            </tr>
+                </table>
+            <?php if( $isScrollBar ) { ?>
+                </div>
+                <div class="serchListArea" style="width:99%; margin: 0px auto; overflow-y:auto; height:400px; !important;">
+            <?php } ?>
+                <table id="nameTable" style="background-color: #ffffff">
+                            <?php foreach($areaList as $area) { ?>
+                                <?php $area_no++; ?>
+                                <?php if(!$areaNoSortFlag) { ?>
+                                    <?php $display_no++; ?>
+                                <?php } ?>
+                                <tr>
+                                    <td align="right" style="width:20px;"><?php hsc($display_no); ?></td>
+                                    <?php 
+                                        if(!empty($area['updateDisabled'])){
+                                            $isUpdateDisabled = 1;
+                                        }else{
+                                            $isUpdateDisabled = 0;
+                                        }
+                                    ?>
+                                    <td align="center" style="width:20px;"><?php hsc($area['area_cd']); ?></td>
+                                    <td align="center" style="width:50px;"><span onClick="editPanelTransition(<?php hsc($area['area_id']); ?>, <?php hsc($isUpdateDisabled); ?>)"><a href="#"><?php hsc($area['area_nm']); ?></a></span></td>
+                                    <td align="center" style="width:62px;"><?php hsc($area['area_kn']); ?></td>
+                                    <td align="center" style="width:80px;"><?php hsc($area['shop_name']); ?></td>
+                                </tr>
+                                <?php if($areaNoSortFlag) { ?>
+                                      <?php $display_no--; ?>
+                                <?php } ?>
+                            <?php } ?>
+                        </tbody>
+                    </table>
+                </div><!-- /.serchListArea -->
+           </div><!-- /.jquery-replace-ajax -->

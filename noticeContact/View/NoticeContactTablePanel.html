@@ -1,0 +1,80 @@
+<?php
+    /**
+     * @file        通達連絡画面(View)
+     * @author      millionet oota
+     * @date        2017/01/26
+     * @version     1.00
+     * @note        通達連絡画面
+     */
+?>
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-ajax">
+
+            <!-- PageMoveArea -->
+            <?php include("../FwCommon/View/PagingArea.php"); ?>
+
+            <!-- serchListArea -->
+            <?php if( $isScrollBar ) { ?>
+                <div class="serchListArea" style=" clear:both; width:99%; margin:0px auto !important; overflow-y:auto; height:25px;">
+            <?php } else { ?>
+                <div class="serchListArea" style=" clear:both; width:99%; margin:5px auto !important;">
+            <?php } ?>
+            <!-- ---------------------- -->
+                    <table>
+                        <tbody>
+                            <tr>
+                                <th width="10px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?></u><?php hsc($headerArray['noticeContactNoSortMark']); ?></span></th><!-- No -->
+                                <th width="20px"><span onClick="setColumnInfo('未読・既読');"><u>未読・既読</u><?php hsc($headerArray['unreadSortMark']); ?></span></th>
+                                <th width="70px"><span onClick="setColumnInfo('タイトル');"><u>タイトル</u><?php hsc($headerArray['titleSortMark']); ?></span></th>
+                                <th width="70px"><span onClick="setColumnInfo('内容');"><u>内容</u><?php hsc($headerArray['contentsSortMark']); ?></span></th>
+                                <th width="20px"><span onClick="setColumnInfo('発信組織');"><u>発信組織</u><?php hsc($headerArray['organizationNameSortMark']); ?></span></th>
+                                <th width="20px"><span onClick="setColumnInfo('発信者');"><u>発信者</u><?php hsc($headerArray['userNameSortMark']); ?></span></th>
+                                <th width="40px"><span onClick="setColumnInfo('作成日');"><u>作成日</u><?php hsc($headerArray['registrationTimeSortMark']); ?></span></th>
+                                <th width="30px"><span onClick="setColumnInfo('未読数/既読数');"><u>未読数/既読数</u><?php hsc($headerArray['unreadCntSortMark']); ?></span></th>
+                            </tr>
+                </table>
+            <?php if( $isScrollBar ) { ?>
+                </div>
+                <div class="serchListArea" style="width:99%; margin: 0px auto; overflow-y:auto; height:400px; !important;">
+            <?php } ?>
+                <table id="nameTable" style="background-color: #ffffff">
+                            <?php foreach($noticeContactList as $noticeContact) { ?>
+                                <?php $noticeContact_no++; ?>
+                                <?php if(!$noticeContactNoSortFlag) { ?>
+                                    <?php $display_no++; ?>
+                                <?php } ?>
+                                <tr>
+                                    <td align="right" style="width:10px;"><?php hsc($display_no); ?></td>
+                                    <?php 
+                                        if(!empty($noticeContact['updateDisabled'])){
+                                            $isUpdateDisabled = 1;
+                                        }else{
+                                            $isUpdateDisabled = 0;
+                                        }
+                                    ?>
+                                    <td align="center" style="width:20px;">
+                                        <?php if( $noticeContact['state'] == 0 ) { ?>
+                                            <font color=Red>未読</font>
+                                        <?php }else{ ?>
+                                            既読
+                                        <?php } ?>
+                                        <?php if( $noticeContact['state'] == 0 && $noticeContact['is_new'] == 1 ) { ?>
+                                            <font color=Red> NEW</font>
+                                        <?php } ?>
+                                    </td>
+                                    <td align="left" style="width:70px;"><span onClick="editPanelTransition(<?php hsc($noticeContact['notice_contact_id']); ?>, <?php hsc($isUpdateDisabled); ?>)"><a href="#"><?php hsc($noticeContact['title']); ?></a></span></td>
+                                    <td align="left" style="width:70px;"><?php hsc($noticeContact['contents']); ?></td>
+                                    <td align="center" style="width:20px;"><?php hsc($noticeContact['organization_name']); ?></td>
+                                    <td align="center" style="width:20px;"><?php hsc($noticeContact['user_name']); ?></td>
+                                    <td align="center" style="width:40px;"><?php hsc($noticeContact['registration_time']); ?></td>
+                                    <td align="center" style="width:30px;"><?php hsc($noticeContact['unread_cnt']); ?>/<?php hsc($noticeContact['already_read_cnt']); ?></td>
+                                </tr>
+                                <?php if($noticeContactNoSortFlag) { ?>
+                                      <?php $display_no--; ?>
+                                <?php } ?>
+                            <?php } ?>
+                        </tbody>
+                    </table>
+                </div><!-- /.serchListArea -->
+           </div><!-- /.jquery-replace-ajax -->

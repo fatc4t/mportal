@@ -1,0 +1,93 @@
+/* 
+    Created on : Jan 17, 2019, 9:02:39 AM
+    Author     : montagne
+*/
+            body {
+                
+                background-color: whitesmoke;
+            }            
+            .table_container {
+                overflow: hidden;                
+                padding: 0;
+            }
+            table {
+                max-height: 30em;
+                display: flex;
+                flex-flow: column;
+                height: 100%;
+                width: 100%;
+                padding: 0;
+                border-spacing: 0;  
+            }
+            table thead {
+                /* head takes the height it requires, 
+                and it's not scaled when table is resized */
+                flex: 0 0 auto;
+                width: calc(100% - 17px);
+            }
+            table tbody {
+                /* body takes all the remaining available space */
+                flex: 1 1 auto;
+                display: block;
+                overflow-y: scroll;
+                padding: 0;
+            }
+            table tbody tr {
+                width: 100%;
+            }
+            table thead,
+            table tbody tr {
+                display: table;
+                table-layout: fixed;
+                padding: 0;
+            }
+            
+            thead th {
+                background-color: #0B0B61;
+                border: 1px solid #AAA;
+                color: white;
+                text-align: -webkit-center;
+                padding: 0;
+                border-collapse: collapse;
+            }
+            tbody td{
+                background-color: #fff;
+                border: 1px solid #0B0B61;
+                padding: 0;
+                text-align: -webkit-center; 
+                border-collapse: collapse;
+            } 
+
+          
+            input{ 
+                width: -webkit-fill-available;
+            }
+            thead th:first-child,
+            tbody tr td:first-child {
+              width: 4em;
+            }
+            thead th:nth-child(2),
+            tbody tr td:nth-child(2){
+                width: 11em;
+            }
+            thead th:nth-child(3),
+            tbody tr td:nth-child(3){
+                
+            }
+            thead th:nth-child(4),
+            tbody tr td:nth-child(4){
+                width: 6em;
+            }    
+            thead th:nth-child(5),
+            tbody tr td:nth-child(5){
+                width: 6em;
+            } 
+            thead th:nth-child(6),
+            tbody tr td:nth-child(6){
+                width: 6em;
+            } 
+            thead th:nth-child(7),
+            tbody tr td:nth-child(7){
+                width: 6em;
+            }             
+

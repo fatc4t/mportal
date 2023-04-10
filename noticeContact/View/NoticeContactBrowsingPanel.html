@@ -1,0 +1,327 @@
+<?php
+    /**
+     * @file      通達連絡閲覧画面(View)
+     * @author    millionet oota
+     * @date      2017/01/26
+     * @version   1.00
+     * @note      通達連絡閲覧画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        
+    <?php
+        $fileNames = array( 'default.css', 'common.js', 'jquery-ui.min.js', 'jquery-ui.css' );    // cssまたはｊｓファイルを拡張子付きで配列に記述 
+        include("Common/HtmlHeader.php"); 
+    ?>
+        
+        <script type="text/javascript">
+            $(document).ready(function() 
+            {
+                
+                /**
+                 * 戻るボタン押下時処理
+                 */
+                $('#back').click(function()
+                {
+                    if($('#mode').val() == 0){
+                        // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                        var data = {
+                                      back : $('#back').val(),
+                                      searchTitle : $('#searchTitle').val(),
+                                      searchContents : $('#searchContents').val(),
+                                      searchSAppStartDate : $('#minApplicationStartDate').val(),
+                                      searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                                      searchOrgID : $('#searchOrgID').val(),
+                                      searchUser : $('#searchUser').val(),
+                                   }
+                        var path = 'index.php?param=NoticeContact/show&home=1';
+                    }else{
+                        // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                        var data = {
+                                      back : $('#back').val(),
+                                   }
+                        var path = '../home/index.php?param=Home/show&home=1';
+                    }
+
+                    // データ更新
+                    setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+                    // サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+                // 登録系ボタン押下時
+                $('#fileupload').submit(function(event)
+                {
+                    event.preventDefault();
+                    document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$UPDATE_DIALOG_MSG); ?>';
+                    $("#dialog_mod").dialog('open');
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+            });
+
+            /**
+             * データの更新情報入力画面遷移
+             */
+            function editPanelTransition()
+            {
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              noticeContactID : $('#noticeContactID').val(),
+                              searchTitle : $('#searchTitle').val(),
+                              searchContents : $('#searchContents').val(),
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              searchOrgID : $('#searchOrgID').val(),
+                              searchUser : $('#searchUser').val(),
+                           };
+                var path = '../noticeContact/index.php?param=NoticeContact/addInput&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+                // サブミット後、ページをリロードしないようにする
+                return false;
+            }
+            
+            /**
+             * データ更新の設定
+             */
+            function setModData()
+            {
+                path = 'index.php?param=NoticeContactBrowsing/mod&home=1';
+
+                $state = 0;
+                if(document.getElementById("state").value == 0) {
+                    $state = 1;
+                }
+                
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              noticeContactID : $('#noticeContactID').val(),
+                              state : $state,
+                              updateTime : $('#updateTime').val(),
+                              token : $('#token').val()
+                           };
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+            }
+
+            /**
+             * 更新キャンセル
+             */
+            function cancel()
+            {
+                var data = null;
+                var path = '';
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              noticeContactID : $('#noticeContactID').val(),
+                              state : $('#state').val(),
+                              updateTime : $('#updateTime').val(),
+                              token : $('#token').val()
+                            }
+                var path = 'index.php?param=NoticeContactBrowsing/show&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+                // サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 遷移先の設定
+             */
+            function moveRedirect()
+            {
+                cancel();
+            }
+            
+
+
+        </script>
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site">
+            <!-- パンくずリスト -->
+            <?php include("Common/Breadcrumb.php"); ?>
+            
+            <!-- serchButtonArea -->
+            <div class="logicButtonArea">
+                <p align=center>
+                    <input type="button" id="back" name="back" value="戻る" class="return" data-href="../home/index.php?param=Home/show&home=1">
+                    <?php if ($CorrectionFlag == true) { ?>
+                        <input type="button" id="edit" name="edit" onClick="editPanelTransition()" value="　 編集" class="update">
+                    <?php } ?>
+                </p>
+            </div><!-- /.serchButtonArea -->
+
+            <!-- serchEditArea -->
+            <form id="fileupload" name="fileupload" method="POST" enctype="multipart/form-data">
+                <!-- 以下、hiddenの値は修正/削除時の条件に使用 -->
+                <input type="hidden" id="token" name="token" value="<?php hsc($TokenID); ?>">
+                <input type="hidden" id="noticeContactID" name="noticeContactID" value="<?php hsc($noticeContactBrowsingDataList['notice_contact_id']); ?>">
+                <input type="hidden" id="state" name="state" value="<?php hsc($noticeContactBrowsingDetailsDataList['state']); ?>">
+                <input type="hidden" id="updateTime" name="updateTime" value="<?php hsc($noticeContactBrowsingDetailsDataList['update_time']); ?>">
+                <input type="hidden" id="mode" name="mode" value="<?php hsc($mode); ?>">
+                <!-- 以下、hiddenの値は一覧表の検索条件保持のため、使用 -->
+                <input type="hidden" id="searchTitle" name="searchTitle" value="<?php hsc($_POST['searchTitle']); ?>">
+                <input type="hidden" id="searchContents" name="searchContents" value="<?php hsc($_POST['searchContents']); ?>">
+                <input type="hidden" id="searchThumbnail" name="searchThumbnail" value="<?php hsc($_POST['searchThumbnail']); ?>">
+                <input type="hidden" id="searchFile" name="searchFile" value="<?php hsc($_POST['searchFile']); ?>">
+                <input type="hidden" id="searchViewer_count" name="searchViewer_count" value="<?php hsc($_POST['searchViewer_count']); ?>">
+                <input type="hidden" id="minApplicationStartDate" name="minApplicationStartDate" value="<?php hsc($_POST['searchSAppStartDate']); ?>">
+                <input type="hidden" id="maxApplicationStartDate" name="maxApplicationStartDate" value="<?php hsc($_POST['searchEAppStartDate']); ?>">
+                <input type="hidden" id="searchOrgID" name="searchOrgID" value="<?php hsc($_POST['searchOrgID']); ?>">
+                <input type="hidden" id="searchUser" name="searchUser" value="<?php hsc($_POST['searchUser']); ?>">
+                <div class="serchEditArea">
+                    <div style="width:800px; margin:0 auto;">
+                        <table width="100%">
+                            <tbody>
+                                <tr>
+                                    <td width="120px" style="border-style:none;"></td>
+                                    <td width="680px" style="border-style:none;"></td>
+                                </tr>
+                                <tr>
+                                    <th colspan="2">タイトル</th>
+                                </tr>
+                                <tr>
+                                    <td colspan="2">
+                                        <input type="text" title="タイトル" id="title" name="title" style="width: 792px" value="<?php hsc($noticeContactBrowsingDataList['title']); ?>" readonly>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border-style:none;"></td>
+                                </tr>
+                                <tr>
+                                    <th colspan="2">内容</th>
+                                </tr>
+                                <tr>
+                                    <td colspan="2">
+                                        <textarea  id="contents" name="contents" rows="15" cols="110" readonly><?php hsc($noticeContactBrowsingDataList['contents']); ?></textarea>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2">
+                                        <?php
+                                        // ディレクトリのパスを記述
+                                        $dir = "../noticeContact/server/php/".$_SESSION['SCHEMA'].'/'.$noticeContactBrowsingDataList['thumbnail'].'/'  ;
+
+                                        // ディレクトリの存在を確認し、ハンドルを取得
+                                        if( is_dir( $dir ) && $handle = opendir( $dir ) ) {
+                                                // ループ処理
+                                                while( ($file = readdir($handle)) !== false ) {
+                                                        // ファイルのみ取得
+                                                        if( filetype( $path = $dir . $file ) == "file" ) {
+                                                            if (strstr($file, '.jpg') || strstr($file, '.jpeg') || strstr($file, '.gif') || strstr($file, '.png') || strstr($file, '.tiff') || strstr($file, '.bmp')) {
+                                        ?>
+                                        <a href="<?php hsc($dir); ?><?php hsc($file); ?>" download="<?php hsc($dir); ?><?php hsc($file); ?>">
+                                            <img src="<?php hsc($dir); ?><?php hsc($file); ?>" border="1" width="180" height="180"/>
+                                        </a>
+                                        <?php
+                                                            } else {
+                                        ?>
+                                        <a href="<?php hsc($dir); ?><?php hsc($file); ?>" download="<?php hsc($dir); ?><?php hsc($file); ?>">
+                                            <?php hsc($file); ?>
+                                        </a>
+                                        <?php
+                                                            }
+                                                        }
+                                                }
+                                        }
+                                        ?>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border-style:none;"></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2" style="border-style:none;">
+                                        <table>
+                                            <tr>
+                                                <th>未読者一覧</th>
+                                                <td style="border-style:none;"></td>
+                                                <td style="border-style:none;"></td>
+                                                <td style="border-style:none;"></td>
+                                                <th>既読者一覧</th>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <select name="unreadUser" id="unreadUser" size="10" style="width: 200px" multiple>
+                                                        <?php
+                                                            foreach($unreadList as $userName)
+                                                            {
+                                                        ?>
+                                                                <option value="<?php hsc($userName['user_id']); ?>"><?php hsc($userName['user_name']); ?></option>
+                                                        <?php } ?>
+                                                    </select>
+                                                </td>
+                                                <td style="border-style:none;"></td>
+                                                <td style="border-style:none;"></td>
+                                                <td style="border-style:none;"></td>
+                                                <td>
+                                                    <select name="selectUser" id="selectUser" size="10" style="width: 200px" multiple>
+                                                        <?php
+                                                            foreach($alreadyReadList as $sUserName)
+                                                            {
+                                                        ?>
+                                                                <option value="<?php hsc($sUserName['user_id']); ?>"><?php hsc($sUserName['user_name']); ?></option>
+                                                        <?php } ?>
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border-style:none;"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div><!-- /. width:65% -->
+                </div><!-- /.serchEditArea -->
+                <input type="hidden" id="btnid" name="btnid" value=""/>
+
+                <!-- logicButtonArea -->
+                <div class="logicButtonArea">
+                    <p align=center>
+                        <?php foreach($noticeContactBrowsingDetailsDataList as $noticeContactBrowsingDetailsData) { ?>
+                            <?php if ($noticeContactBrowsingDetailsData['state'] == 0) { ?>
+                                <input type="submit" id="mod" name="mod" value="既読にする">
+                            <?php } else {?>
+                                <input type="submit" id="mod" name="mod" value="未読にする">
+                            <?php } ?>
+                        <?php } ?>
+                    </p>
+                </div><!-- /.logicButtonArea -->
+            </form>
+
+        </div><!-- /#sb-site -->
+        
+        <div id="jquery-replace-ajax">
+            
+        </div><!-- /#jquery-replace-ajax -->
+
+        <?php include("../FwCommon/View/Dialog.php"); ?>
+    </body>
+</html>

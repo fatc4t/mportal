@@ -1,0 +1,1830 @@
+<?php
+    /**
+     * @file      商品別実績画面(View)
+     * @author    millionet montagne
+     * @date      2019/05/22
+     * @version   1.00
+     * @note      
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述
+            include("../profit/View/Common/HtmlHeader.php");
+        ?>
+
+        <script src="../js/profit/jquery/jquery.ui.ympicker.js" ></script>
+        <script src="../js/profit/jquery/jquery-migrate-1.0.0.js" ></script>
+        <script src="../js/profit/jquery/datepicker-ja.js" ></script>
+        <script src="../js/autofil_v<?php echo $_SESSION['AUTOFIL_VER'] ?>.js" ></script>
+        <script src="../FwCommon/js/common.js" ></script>
+        <!-- modal script-->
+        <script src="../js/modal/modal.js" ></script>
+        <link rel="stylesheet" href="../css/modal/modal.css" >
+        
+
+        <script type="text/javascript">
+            Sizelist       = '<?php echo json_encode(json_encode($Sizelist)); ?>';
+            A_Sizelist     = JSON.parse(Sizelist.slice(1,-1)); 
+            asc            = [];
+	    nb_row_shown        = [];		
+            porg_id_list        = '<?php echo json_encode(json_encode($org_id_list)); ?>';
+            data_org            = JSON.parse(porg_id_list.slice(1,-1)); 
+            ptypsect_detail     = '<?php echo json_encode($sect_detail); ?>';
+            data_sect           = JSON.parse(ptypsect_detail);
+            ptypsupp_detail     = '<?php echo json_encode($supp_detail); ?>';
+            data_supp           = JSON.parse(ptypsupp_detail);
+            lst_spe_sales       = '<?php echo json_encode($spe_sales_lst); ?>';
+            A_lst_spe_sales     = JSON.parse(lst_spe_sales);
+            spe_sales_detail    = '<?php echo json_encode($spe_sales_detail); ?>';
+            A_spe_sales_detail  = JSON.parse(spe_sales_detail);	
+            data_prod           = [];  
+            data_appoprod       = [1]; 
+            str_page            = 0;
+             searchArray         = '<?php echo json_encode($searchArray); ?>';
+            A_searchArray       = JSON.parse(searchArray);
+            gorogoro_default_message = '検索しています。';
+            gorogoro_prod_message    = 'データを取得しています。';
+            appoprod_detail_lst = '<?php echo json_encode($appoprod_detail); ?>';
+            data_appoprod = JSON.parse(appoprod_detail_lst);
+                        
+            var date_mode = "date";
+            var sect_list = "";
+            var org_list = "";
+            var prod_list = "";
+            var supp_list = "";
+            var appoprod_list = '';
+            result1 = [];
+            A_Data  = [];
+            A_Data_sorted = [];
+            pagemaxnb = 0;
+            function numberWithCommas(x,precision = 0) {
+                // x : value
+                // precision : precision to return default 0 (no decimal: 99) | 1 => 99.9 | 2 => 99.99 ...
+                x = Math.round(Number(x)*Math.pow(10,precision))/Math.pow(10,precision);
+                var parts = x.toString().split(".");
+                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                if(precision){
+                    if(!parts[1]){
+                        parts[1] = 0;
+                    }                    
+                    parts[1]=(parts[1]+"0".repeat(precision)).substr(0,precision);
+                }                
+                return parts.join(".");
+            }
+            
+            /**
+             * DatePickerを設定
+             */
+            $(function()
+            {
+                $( "#start_date, #end_date" ).datepicker({
+                    numberOfMonths: 2,
+                    showCurrentAtPos: 1,
+                    showButtonPanel: true,
+                    dateFormat: 'yy/mm/dd'
+                });
+            });
+
+            $(function() {
+                $("#start_dateM").ympicker({
+                    altField: "#start_dateM" //リターンセットUI IDorCLASS名
+                    ,altFormat: "yy/mm" //リターン日付形式
+                    ,monthNamesShort: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"]  //カレンダー表示月形式
+                    ,showAnim: "slideDown" //表示アニメーション形式
+                    ,yearRange: "c-2:c+3" //プルダウン年範囲
+                });
+            });
+            $(function() {
+                $("#end_dateM").ympicker({
+                    altField: "#end_dateM" //リターンセットUI IDorCLASS名
+                    ,altFormat: "yy/mm" //リターン日付形式
+                    ,monthNamesShort: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"]  //カレンダー表示月形式
+                    ,showAnim: "slideDown" //表示アニメーション形式
+                    ,yearRange: "c-2:c+3" //プルダウン年範囲
+                });
+            });
+            $(function() {
+                $("#end_year, #start_year").datepicker({
+                    dateFormat: "yy",
+                    changeYear: true
+                    ,changeMonth: false
+                    ,showButtonPanel: false
+                    ,onClose: function(dateText, inst) { 
+                        var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
+                        $(this).datepicker('setDate', new Date(year, 1));
+                    }
+                }).focus(function(){
+                    document.getElementsByClassName("ui-datepicker-calendar")[0].style.display="none";
+                    document.getElementsByClassName("ui-datepicker-month")[0].style.display="none";
+                    document.getElementsByClassName("ui-datepicker-prev")[0].style.display="none";
+                    document.getElementsByClassName("ui-datepicker-next")[0].style.display="none";
+                } )                ;
+            });
+            /**
+            *
+            * スクロール制御
+            *
+            */
+               function SyncScroll(/* elem1, elem2, ... */) {
+                   this._elements = [];
+                   this._elementOnscroll = this._elementOnscroll.bind(this);
+                   this.addElement.apply(this, arguments);
+               }
+               SyncScroll.prototype = {
+                   enableHorizontal: true,
+                   enableVertical: true,
+                   addElement: function (/* elem1, elem2, ... */) {
+                       var elem, i;
+                       for (i = 0; i < arguments.length; i += 1) {
+                           elem = arguments[i];
+                           elem.addEventListener('scroll', this._elementOnscroll, false);
+                           this._elements.push(elem);
+                       }
+                   },
+                   removeElement: function (/* elem1, elem2, ... */) {
+                       var elem, i, j;
+                       for (i = 0; i < arguments.length; i += 1) {
+                           elem = arguments[i];
+                           elem.removeEventListener('scroll', this._elementOnscroll, false);
+                           j = this._elements.indexOf(elem);
+                           if (j >= 0) {
+                               this._elements.splice(j, 1);
+                           }
+                       }
+                   },
+                   _elementOnscroll: function (event) {
+                       var i,
+                           elems = this._elements,
+                           elem = event.target,
+                           x = elem.scrollLeft,
+                           y = elem.scrollTop;
+                       if (this.enableHorizontal) {
+                           for (i = 0; i < elems.length; i += 1) {
+                               elem = elems[i];
+                               if (elem === event.target || elem.scrollLeft === x) {
+                                   continue;
+                               }
+                               elem.scrollLeft = x;
+                               if (elem.scrollLeft !== x) {
+                                   elem.scrollLeft = x + x - elem.scrollLeft;
+                               }
+                           }
+                       }
+
+                   },
+                   destroy: function () {
+                       this.removeElement.apply(this, this._elements);
+                   }
+               };             
+            function radio_change_management(){
+                var prev = [];
+                document.getElementById("search_param").addEventListener('change', function(e) {
+                    //console.log('Previous:', prev[e.target.name] ? prev[e.target.name].value : null);
+                    //console.log(e);
+                    if(e.target.name === "period"){
+                        if(!prev[e.target.name]){
+                            old_id_start="start_date";
+                            old_id_end="end_date";                              
+                        }else if(prev[e.target.name].value === "day"){
+                            old_id_start="start_date";
+                            old_id_end="end_date";                            
+                        }else if(prev[e.target.name].value === "month"){
+                            old_id_start="start_dateM";
+                            old_id_end="end_dateM";  
+                        }else if(prev[e.target.name].value === "year"){
+                            old_id_start="start_year";
+                            old_id_end="end_year";
+                        }
+                        document.getElementById(old_id_start).hidden=true;
+                        document.getElementById(old_id_end).hidden=true;
+                        document.getElementById(old_id_start).value="";
+                        document.getElementById(old_id_end).value="";                                                
+                        if(e.target.value === "day"){
+                            date_mode = "date";
+                            new_id_start="start_date";
+                            new_id_end="end_date"; 
+                            // checkbox checked
+                            today = new Date();
+                            document.getElementById(new_id_end).value = today.toISOString().slice(0,10).replace(/-/g,"\/"); 
+                            today.setMonth(today.getMonth()-1);
+                            document.getElementById(new_id_start).value = today.toISOString().slice(0,10).replace(/-/g,"\/");                            
+                        }else if(e.target.value === "month"){
+                            date_mode = "dateM";
+                            new_id_start="start_dateM";
+                            new_id_end="end_dateM";
+                            today = new Date();
+                            document.getElementById(new_id_end).value = today.toISOString().slice(0,7).replace(/-/g,"\/"); 
+                            today.setMonth(today.getMonth()-1);
+                            document.getElementById(new_id_start).value = today.toISOString().slice(0,7).replace(/-/g,"\/");                                                        
+                        }else if(e.target.value === "year"){
+                            date_mode = "year";
+                            new_id_start="start_year";
+                            new_id_end="end_year";
+                            today = new Date();
+                            document.getElementById(new_id_end).value = today.toISOString().slice(0,4).replace(/-/g,"\/"); 
+                            today.setFullYear(today.getFullYear()-1);
+                            document.getElementById(new_id_start).value = today.toISOString().slice(0,4).replace(/-/g,"\/");                                                                                    
+                        }         
+                        document.getElementById(new_id_start).hidden=false;
+                        document.getElementById(new_id_end).hidden=false;                        
+                    }else if(e.target.name === "org_r"){
+                        if(!prev[e.target.name]){
+                            prev[e.target.name]={value:""};
+                        }
+                        document.getElementById("org_select").disabled=true;
+                        if(e.target.value === "" ){
+                            document.getElementById("org_select").disabled=false;
+                        }
+                        }else if(e.target.name === "middle_class_chk"){
+                        column_mgt("middle_class_chk");
+                        // 大分類をソートします
+                        sort.value = 'prod_t_cd1#1';                        
+                        prodclass_list = '';
+                        prodclass_array=[];
+                        prodclass_r_all.checked = true;
+                        prodclass_r_selected.checked = false;
+                        data_select['prodclass'] = "";
+                        modal_create_select();
+                        if(middle_class_chk.checked){
+                        //    data_prodclass      = A_ptypprodclass_detail['naka'];
+                        }else{
+                            data_prodclass      = A_ptypprodclass_detail['ooki'];
+                        }
+                        search.click();
+              
+                    }else if(e.target.name === "sect_r"){
+                        if(!prev[e.target.name]){
+                            prev[e.target.name]={value:""};
+                        }                        
+                        document.getElementById("sect_select").disabled=true;
+                        if(e.target.value === "" ){
+                            document.getElementById("sect_select").disabled=false;
+                        }
+                    }else if(e.target.name === "prod_r"){
+                        if(!prev[e.target.name]){
+                            prev[e.target.name]={value:""};
+                        }                        
+                        document.getElementById("prod_select").disabled=true;
+                        if(e.target.value === "" ){
+                            document.getElementById("prod_select").disabled=false;
+                        }
+                    }else if(e.target.name === "supp_r"){
+                        if(!prev[e.target.name]){
+                            prev[e.target.name]={value:""};
+                        }                        
+                        document.getElementById("supp_select").disabled=true;
+                        if(e.target.value === "" ){
+                            document.getElementById("supp_select").disabled=false;
+                        }
+                    }else if(e.target.name === "appoprod_r"){
+                        if(!prev[e.target.name]){
+                            prev[e.target.name]={value:""};
+                        }                        
+                        document.getElementById("appoprod_select").disabled=true;
+                        if(e.target.value === "" ){
+                            document.getElementById("appoprod_select").disabled=false;
+                        }
+                    }
+                    prev[e.target.name] = e.target;
+                });
+            }
+            function rank_show(){
+                if(rank_on.checked){
+                    $("#table_head   th:nth-child(17)").show();
+                    $("#table_body   td:nth-child(17)").show();
+                    $("#table_foot td:nth-child(17)").show();                   
+                }else{
+                    $("#table_head   th:nth-child(17)").hide();
+                    $("#table_body   td:nth-child(17)").hide();
+                    $("#table_foot td:nth-child(17)").hide();              
+                }                
+            }
+            // add　org_id
+            function show_data(t_data){
+                //console.log(t_data);
+                date_str_id = "start_"+date_mode;
+                date_end_id = "end_"+date_mode;                
+                elem_tbody=document.getElementById("table_body");
+                elem_tbody.innerHTML="";
+                table_foot.innerHTML ='';
+                if(t_data.length === 0){
+                    data.parentNode.parentNode.hidden = true;
+                    sep.parentNode.parentNode.hidden = true;
+                    footer_h.parentNode.parentNode.hidden = true;
+                    alert("データがありません。");
+                    return;
+                }
+                data.parentNode.parentNode.hidden = false;
+                sep.parentNode.parentNode.hidden = false;
+                footer_h.parentNode.parentNode.hidden = false;                
+                t_cumul_data = [];
+                t_cumul_data["total"]=[];
+                t_cumul_data["total"]["pure_total"] = 0;
+                t_cumul_data["total"]["sale_amount"]= 0;
+                t_cumul_data["total"]["profit"]     = 0;
+                t_cumul_data["total"]["res1"]       = 0;
+                t_cumul_data["total"]["res2"]       = 0;
+                t_cumul_data["total"]["res3"]       = 0;                
+                function insert_row(row){
+                    
+                    //console.log("row to print");
+                    //console.log(row);
+                    trow     = elem_tbody.insertRow();
+                    if(row["background"]){
+                        //console.log(row);
+                        trow.style.backgroundColor = row["background"];
+                    }
+                    calc1 = 0;
+                    calc2 = 0;
+                    calc3 = 0;
+                   // calc5 = 0;
+                    org_val             = trow.insertCell(0);
+                    special_val         = trow.insertCell(1);
+
+//EDITSTR 2020/09/08 kanderu
+                    sect_cd_val         = trow.insertCell(2);
+                    sect_nm_val         = trow.insertCell(3);
+                    supp_cd_val         = trow.insertCell(4);
+                    supp_nm_val         = trow.insertCell(5);
+                    maker_cd_val        = trow.insertCell(6);
+                    maker_nm_val        = trow.insertCell(7);
+                    prod_t_cd1_val      = trow.insertCell(8);
+                    prod_t_nm1_val      = trow.insertCell(9);
+                    prod_t_cd2_val      = trow.insertCell(10);
+                    prod_t_nm2_val      = trow.insertCell(11);
+                    prod_cd_val         = trow.insertCell(12);
+                    prod_nm_val         = trow.insertCell(13);
+                    prod_tax_val        = trow.insertCell(14);
+                    prod_capa_nm_val    = trow.insertCell(15);
+                    rank_val            = trow.insertCell(16);
+                    res1_val            = trow.insertCell(17);
+                    res2_val            = trow.insertCell(18);
+                    sale_amount_val     = trow.insertCell(19);
+                    pure_total_val      = trow.insertCell(20);
+                    profit_val          = trow.insertCell(21); 
+                    res3_val            = trow.insertCell(22);
+                    r1_val              = trow.insertCell(23);
+                    r2_val             = trow.insertCell(24); 
+                    r3_val              = trow.insertCell(25);
+                    org_val.innerHTML           = row["org_nm"];
+                    special_val.innerHTML       = row["special"];
+                    sect_cd_val.innerHTML       = row["sect_cd"];
+                    sect_nm_val.innerHTML       = row["sect_nm"];
+                    supp_cd_val.innerHTML       = row["supp_cd"];
+                    supp_nm_val.innerHTML       = row["supp_nm"];
+                    maker_cd_val.innerHTML      = row["maker_cd"];
+                    maker_nm_val.innerHTML      = row["maker_nm"];
+                    prod_t_cd1_val.innerHTML    = row["prod_t_cd1"];
+                    prod_t_nm1_val.innerHTML    = row["prod_t_nm1"];
+                    prod_t_cd2_val.innerHTML    = row["prod_t_cd2"];
+                    prod_t_nm2_val.innerHTML    = row["prod_t_nm2"];
+                    r1_val.innerHTML            = row["r1"];  
+                    r2_val.innerHTML            = row["r2"]; 
+                    r3_val.innerHTML            = row["r3"];  
+//EDITEND 2020/09/08 kanderu
+                    prod_cd_val.innerHTML       = row["prod_cd"];
+                    prod_nm_val.innerHTML       = row["prod_nm"];
+                    if(row["prod_tax"]){
+                        prod_tax_val.innerHTML      = row["prod_tax"].split('.')[0];
+                    }else{
+                        prod_tax_val.innerHTML      = '';
+                    }
+                    prod_capa_nm_val.innerHTML  = row["prod_capa_nm"];
+                    rank_val.innerHTML          = row["rank"];
+                    sale_amount_val.innerHTML   = numberWithCommas(row["sale_amount"]).split('.')[0];
+                    pure_total_val.innerHTML    = numberWithCommas(row["pure_total"]).split('.')[0];
+                    profit_val.innerHTML        = numberWithCommas(row["profit"]).split('.')[0];
+//                    if(row["pure_total"] == 0 ){
+//                        calc3 = 0;
+//                    }else{
+//                        calc3  = Number(row["pure_total"]);
+//                    }
+//                    r1_val.innerHTML    += Number(cumul["pure_total"]);
+                    if(row["sale_amount"] == 0){
+                        calc1 = 0;
+                        calc2 = 0;
+                    }else{
+                        calc1  = (Number(row["pure_total"])-Number(row["profit"]))/Number(row["sale_amount"]);
+                        calc2  = Number(row["pure_total"])/Number(row["sale_amount"]);
+                       // calc5 += Number(loop_row["pure_total"])*100;   
+                    }
+                //    r1_val.innerHTML    += Number(loop_row["pure_total"])*100;
+                    res1_val.innerHTML = numberWithCommas(calc1,2);
+                    res2_val.innerHTML = numberWithCommas(calc2).split('.')[0];
+                    if(row["pure_total"] == 0 ){
+                        calc3 = 0;
+                    }else{
+                        calc3 = Number(row["profit"])/Number(row["pure_total"])*100;  
+                    }
+                    res3_val.innerHTML = numberWithCommas(calc3,2);
+                }
+                function insert_footer(){
+                    elem_tfoot=document.getElementById("table_foot");
+                    elem_tfoot.innerHTML="";
+                    row = A_Data[9999];
+                    trow     = elem_tfoot.insertRow();
+                    org_val             = trow.insertCell(0);
+                    special_val         = trow.insertCell(1);
+//EDITSTR 2020/09/08 kanderu
+                    sect_cd_val         = trow.insertCell(2);
+                    sect_nm_val         = trow.insertCell(3);
+                    supp_cd_val         = trow.insertCell(4);
+                    supp_nm_val         = trow.insertCell(5);
+                    maker_cd_val        = trow.insertCell(6);
+                    maker_nm_val        = trow.insertCell(7);
+                    prod_t_cd1_val      = trow.insertCell(8);
+                    prod_t_nm1_val      = trow.insertCell(9);
+                    prod_t_cd2_val      = trow.insertCell(10);
+                    prod_t_nm2_val      = trow.insertCell(11);
+                    prod_cd_val         = trow.insertCell(12);
+                    prod_nm_val         = trow.insertCell(13);
+                    prod_tax_val        = trow.insertCell(14);
+                    prod_capa_nm_val    = trow.insertCell(15);
+                    rank_val            = trow.insertCell(16);
+                    res1_val            = trow.insertCell(17);
+                    res2_val            = trow.insertCell(18);
+                    sale_amount_val     = trow.insertCell(19);
+                    pure_total_val      = trow.insertCell(20);
+                    profit_val          = trow.insertCell(21); 
+                    res3_val            = trow.insertCell(22);  
+                    r1_val             = trow.insertCell(23);
+                    r2_val             = trow.insertCell(24); 
+                    r3_val              = trow.insertCell(25);
+                    org_val.innerHTML           = "";
+                    special_val.innerHTML       = "";
+                    sect_cd_val.innerHTML       = "総合計";
+                    sect_nm_val.innerHTML       = "";
+                    supp_cd_val.innerHTML       =  "";
+                    supp_nm_val.innerHTML       =  "";
+                    maker_cd_val.innerHTML      =  "";
+                    maker_nm_val.innerHTML      =  "";
+                    prod_t_cd1_val.innerHTML    =  "";
+                    prod_t_nm1_val.innerHTML    =  "";
+                    prod_t_cd2_val.innerHTML    =  "";
+                    prod_t_nm2_val.innerHTML    =  "";
+//EDITSTR 2020/09/08 kanderu
+                    prod_cd_val.innerHTML       = "";
+                    prod_nm_val.innerHTML       = "";
+                    prod_tax_val.innerHTML      = "";
+                    prod_capa_nm_val.innerHTML  = "";
+                    sale_amount_val.innerHTML   = numberWithCommas(row["sale_amount"]).split('.')[0];
+                    pure_total_val.innerHTML    = numberWithCommas(row["pure_total"]).split('.')[0];
+                    profit_val.innerHTML        = numberWithCommas(row["profit"]).split('.')[0];
+                   // r1_val.innerHTML    = Number(row["pure_total"]);
+ //  r1_val.innerHTML            =Number(row["pure_total"])/Number(row["sale_amount"]);
+                    if(row["sale_amount"] == 0){
+                        calc1 = 0;
+                        calc2 = 0;
+                    }else{
+                        calc1  = (Number(row["pure_total"])-Number(row["profit"]))/Number(row["sale_amount"]);
+                        calc2  = Number(row["pure_total"])/Number(row["sale_amount"]);
+                    }
+                    res1_val.innerHTML = numberWithCommas(calc1,2);
+                    res2_val.innerHTML = numberWithCommas(calc2).split('.')[0];
+                    if(row["pure_total"] == 0 ){
+                        calc3 = 0;
+                    }else{
+                        calc3 = Number(row["profit"])/Number(row["pure_total"])*100;  
+                    }
+                    res3_val.innerHTML = numberWithCommas(calc3,2);                    
+                }
+                org_nm = "";
+                elem_str_date = document.getElementById(date_str_id).value.replace(/\//g,"");
+                elem_end_date = document.getElementById(date_end_id).value.replace(/\//g,"");
+                prev_org = -1;
+                //console.log(org_id_key);
+                cumul=[];
+                cumul["sale_amount"]     = 0;
+                cumul["pure_total"]      = 0;
+                cumul["profit"]          = 0;                  
+                for(i=0;i<t_data.length;i++){
+                    loop_row = t_data[i];
+                    loop_org_id = t_data[i]['org_id'];
+                    if(loop_org_id !== prev_org)
+                    {
+                        rank_no = 1;
+                       if(loop_org_id === 0){
+                            org_nm = "企業計";
+                        }else{
+                            org_nm = loop_row["org_nm"];
+                        }                        
+                    }else{
+                        org_nm = '';
+                    }
+                   if( limit_r.value && limit_r.value < rank_no) {
+                        continue;
+                    }      
+                    i_row = [];
+                    i_row["org_nm"]          = org_nm;
+ //ADDSTR 2020/09/08 kanderu
+                    i_row["sect_cd"]         = loop_row["sect_cd"];
+                    i_row["sect_nm"]         = loop_row["sect_nm"];
+                    i_row["supp_cd"]         = loop_row["supp_cd"];
+                    i_row["supp_nm"]         = loop_row["supp_nm"];
+                    i_row["maker_cd"]        = loop_row["maker_cd"];
+                    i_row["maker_nm"]        = loop_row["maker_nm"];
+                    i_row["prod_t_cd1"]      = loop_row["prod_t_cd1"];
+                    i_row["prod_t_nm1"]      = loop_row["prod_t_nm1"];
+                    i_row["prod_t_cd2"]      = loop_row["prod_t_cd2"];
+                    i_row["prod_t_nm2"]      = loop_row["prod_t_nm2"];  
+                    i_row["r1"]              = loop_row["r1"];
+                    i_row["r2"]              = loop_row["r2"];
+                    i_row["r3"]              = loop_row["r3"];
+//ADDEND 2020/09/08 kanderu                    
+                    i_row["prod_cd"]         = loop_row["prod_cd"];
+                    i_row["prod_nm"]         = loop_row["prod_nm"];
+                    i_row["prod_tax"]        = loop_row["prod_tax"];
+                    i_row["prod_capa_nm"]    = loop_row["prod_capa_nm"];
+                    asc_key = Object.keys(asc)[0];
+                    if((asc[asc_key] === -1 && asc_key !== 'org_id' && 'prod_pure_total,prod_profit'.indexOf(asc_key) === -1) || (asc[asc_key] === 1 && 'prod_pure_total,prod_profit'.indexOf(asc_key) !== -1) ){
+                        if(limit_r.value && limit_r.value < A_Data[loop_org_id].length ){
+                            max_row = Number(limit_r.value);
+                        }else{
+                            max_row = A_Data[loop_org_id].length;
+                        }
+                        i_row['rank'] = max_row + 1 - rank_no;
+                    }else{
+                        i_row['rank']            = rank_no;
+                    }
+                    i_row["sale_amount"]     = loop_row["prod_sale_amount"];
+                    i_row["pure_total"]      = loop_row["prod_pure_total"];
+                    i_row["profit"]          = loop_row["prod_profit"];                          
+                    i_row["special"]         = "";
+                    //console.log(loop_prod_cd);
+                    //console.log(A_lst_spe_sales[loop_org_id]);
+                    if( loop_row["special"] == 1 ){
+                        i_row["special"] = '⚫';
+                    }
+                    //console.log(i_row);
+                    org_nm  = "";
+                    rank_no += 1;
+ 
+                    if((i >0 && loop_org_id !== prev_org)){
+                        i_row_c = [];
+                        i_row_c["background"]      = "lightgrey" ;
+                        i_row_c["org_nm"]          = '';
+//ADDSTR 2020/09/08 kanderu                        
+                        i_row_c["sect_cd"]         = "合計";
+                        i_row_c["sect_nm"]         = "";
+                        i_row_c["supp_cd"]         = "";
+                        i_row_c["supp_nm"]         = "";
+                        i_row_c["maker_cd"]        = "";
+                        i_row_c["maker_nm"]        = "";
+                        i_row_c["prod_t_cd1"]      = "";
+                        i_row_c["prod_t_nm1"]      = "";
+                        i_row_c["prod_t_cd2"]      = "";
+                        i_row_c["prod_t_nm2"]      = "";
+                        i_row_c["r1"]              = "";
+                        i_row_c["r2"]              = "";
+                        i_row_c["r3"]              = "";
+//ADDEND 2020/09/08 kanderu                        
+                        i_row_c["prod_cd"]         = "";
+                        i_row_c["prod_nm"]         = "";
+                        i_row_c["prod_tax"]        = "";
+                        i_row_c["prod_capa_nm"]    = ""; 
+                        i_row_c["sale_amount"]     = cumul["sale_amount"];
+                        i_row_c["pure_total"]      = cumul["pure_total"];
+                        i_row_c["profit"]          = cumul["profit"];                          
+                        i_row_c["special"]         = "";
+                        i_row_c['rank']            = "";
+                        i_row_c['r1']              = ""; 
+                        i_row_c['r2']              = ""; 
+                        i_row_c['r2']              = ""; 
+                        insert_row(i_row_c);
+                        cumul=[];
+                        cumul["sale_amount"]     = 0;
+                        cumul["pure_total"]      = 0;
+                        cumul["profit"]          = 0;                          
+                    }
+                    insert_row(i_row);
+                    cumul["sale_amount"] += Number(loop_row["prod_sale_amount"]);
+                    cumul["pure_total"]  += Number(loop_row["prod_pure_total"]);
+                    cumul["profit"]      += Number(loop_row["prod_profit"]);
+                    if(i === t_data.length-1){
+                        i_row_c = [];
+                        i_row_c["background"]      = "lightgrey" ;
+                        i_row_c["org_nm"]          = '';
+//ADDSTR 2020/09/08 kanderu                        
+                        i_row_c["sect_cd"]         = "合計";
+                        i_row_c["sect_nm"]         = "";
+                        i_row_c["supp_cd"]         = "";
+                        i_row_c["supp_nm"]         = "";
+                        i_row_c["maker_cd"]        = "";
+                        i_row_c["maker_nm"]        = "";
+                        i_row_c["prod_t_cd1"]      = "";
+                        i_row_c["prod_t_nm1"]      = "";
+                        i_row_c["prod_t_cd2"]      = "";
+                        i_row_c["prod_t_nm2"]      = "";
+                        i_row_c["r1"]              = "";
+                        i_row_c["r2"]              = "";
+                        i_row_c["r3"]              = "";
+//ADDSTR 2020/09/08 kanderu                          
+                        i_row_c["prod_cd"]         = "";
+                        i_row_c["prod_nm"]         = "";
+                        i_row_c["prod_tax"]        = "";
+                        i_row_c["prod_capa_nm"]    = ""; 
+                        i_row_c["sale_amount"]     = cumul["sale_amount"];
+                        i_row_c["pure_total"]      = cumul["pure_total"];
+                        i_row_c["profit"]          = cumul["profit"];                          
+                        i_row_c["special"]         = "";
+                        i_row_c['rank']            = "";
+                        insert_row(i_row_c);
+                        cumul=[];
+                        cumul["sale_amount"]     = 0;
+                        cumul["pure_total"]      = 0;
+                        cumul["profit"]          = 0;                         
+                    }
+                    prev_org = loop_org_id;
+                }
+                
+                insert_footer();
+                rank_show();
+            }
+            function sort_tbody(col_to_sort,title = '商品'){
+                col_sort_type = "";
+                if( !asc[col_to_sort] || asc[col_to_sort] === 0 ){
+                    col_sort_type = 1;
+                }else{
+                    col_sort_type = asc[col_to_sort] * -1;
+                }
+                rank_title.innerHTML = title+'<br />順位';
+                //console.log(col_to_sort + ": "+asc[col_to_sort]);
+                elem_th = table_head.getElementsByTagName('TH');
+                for(i=0;i<elem_th.length;i++){
+                    //console.log("i: "+i);
+                    //console.log(elem_th[i]);
+                    elem_th[i].innerHTML = elem_th[i].innerHTML.replace(' ▲',"").replace(' ▼',"");
+                    if( elem_th[i].outerHTML.indexOf("'"+col_to_sort+"'") !== -1 ){
+                        if( col_sort_type === 1 ){
+                            elem_th[i].innerHTML = elem_th[i].innerHTML + ' ▲';
+                        }else{
+                            elem_th[i].innerHTML = elem_th[i].innerHTML + ' ▼';
+                        }
+                    }
+                }
+                asc = [];
+                asc[col_to_sort] = col_sort_type;
+                //console.log(col_to_sort);
+                A_Data_sorted = sort_data(A_Data,col_sort_type, col_to_sort);
+                
+                pagemaxnb = Math.ceil(A_Data_sorted.length/1000)-1; // 0から
+                page_mnt(A_Data_sorted);
+            }
+            function sort_data(data_to_sort,sort_type, v_sort_data){
+                // sort_type:  1 : asc
+                //            -1 : desc
+                function compare( a, b ) {
+                     bcheck = "";
+                     acheck = "";
+                     //console.log(b);
+                     //console.log(a);
+                     if(b[v_sort_data] && !isNaN(b[v_sort_data])){
+                         varsplit = b[v_sort_data].toString().split('.');
+                         bcheck = varsplit[0];
+                         if(varsplit[1]){
+                             bcheck = bcheck + '.' + (varsplit[1]+"00").substr(0,2);
+                         }else{
+                             bcheck = bcheck + '.' + "00";
+                         }
+                         bcheck = ("0".repeat(51) + bcheck).slice(-51);
+                     }else if( b[v_sort_data] ) {
+                         bcheck = b[v_sort_data].toString().toLocaleLowerCase();
+                     }
+                     if(a[v_sort_data] && !isNaN(a[v_sort_data])){
+                         varsplit = a[v_sort_data].toString().split('.');
+                         acheck = varsplit[0];
+                         if(varsplit[1]){
+                             acheck = acheck + '.'+ (varsplit[1]+"00").substr(0,2);
+                         }else{
+                             acheck = acheck + '.' + "00";
+                         }
+                         acheck = ("0".repeat(51) + acheck).slice(-51);
+                     }else if( a[v_sort_data] ){
+                         acheck = a[v_sort_data].toString().toLocaleLowerCase();
+                     }                            
+                     //console.log("a.org_id: "+ a["org_id"] + " a.prod_cd: " +a["prod_cd"]+ " " + acheck + " a/b " +  bcheck+" b.org_id: "+ b["org_id"] + " b.prod_cd: " +b["prod_cd"]);
+                     if ( acheck < bcheck ){
+                       return -1;
+                     }
+                     if ( acheck > bcheck ){
+                       return 1;
+                     }
+                     return 0;
+                 }  
+                A_v_sort_data = [];
+                var temp_data = JSON.parse(JSON.stringify(data_to_sort));
+                org_id_lst = Object.keys(temp_data);
+                //console.log(v_sort_data);
+                //console.log(sort_type);
+                if(v_sort_data === 'org_id'){
+                    if( sort_type === -1 ){
+                        org_id_lst.reverse();
+                    }
+                    for(i=0;i<org_id_lst.length;i++){
+                        loop_org_id = org_id_lst[i];
+                        if(loop_org_id == 9999){
+                            continue;
+                        }
+                        if(!temp_data[loop_org_id]){
+                            delete temp_data[loop_org_id];
+                            continue;
+                        }
+                        A_v_sort_data = A_v_sort_data.concat(temp_data[loop_org_id].sort());
+                    }
+                }else{
+                    for(i=0;i<org_id_lst.length;i++){
+                        loop_org_id = org_id_lst[i];
+                        if(loop_org_id == 9999){
+                            continue;
+                        }                        
+                        if(!temp_data[loop_org_id]){
+                            delete temp_data[loop_org_id];
+                            continue;
+                        }                        
+                        temp_data[loop_org_id].sort( compare );
+                        if( sort_type === -1 ){
+                            temp_data[loop_org_id].reverse();
+                        }                        
+                        A_v_sort_data = A_v_sort_data.concat(temp_data[loop_org_id]);
+                    }
+                }
+                return A_v_sort_data; 
+            }             
+            function search_data_test(e){
+                A_Data = [];
+                date_str_id = "start_"+date_mode;
+                date_end_id = "end_"+date_mode;
+                period_val = document.querySelector('input[name="period"]:checked').value;
+                elem_str_date = document.getElementById(date_str_id).value.replace(/\//g,"");
+                elem_end_date = document.getElementById(date_end_id).value.replace(/\//g,"");
+                elem_special_sale = document.getElementById("special_sale");
+                org_select_val = document.getElementById("org_select").value;
+                sect_select_val = document.getElementById("sect_select").value;
+                prod_select_val = document.getElementById("prod_select").value;
+                supp_select_val = document.getElementById("supp_select").value;
+                //console.log("here:"+elem_str_date.value+":");
+                if(elem_str_date === ""){
+                    alert("営業期間を入力してください。");
+                    document.getElementById(date_str_id).focus();
+                    return;                    
+                }else if(elem_end_date === ""){
+                    alert("営業期間を入力してください。");
+                    document.getElementById(date_end_id).focus();
+                    return;
+                }
+                if(elem_str_date > elem_end_date){
+                    alert("期間指定が不正です。開始日が終了日を超えています。");
+                    document.getElementById(date_str_id).value="";
+                    document.getElementById(date_str_id).focus();
+                    return;
+                }
+                //console.log(temp_data);
+                elem_sect = document.querySelector('input[name="sect_r"]:checked');
+                elem_supp = document.querySelector('input[name="supp_r"]:checked');
+                elem_prod = document.querySelector('input[name="prod_r"]:checked');                
+                elem_org  = document.querySelector('input[name="org_r"]:checked');
+                elem_appoprod = document.querySelector('input[name="appoprod_r"]:checked');
+                if(elem_sect.value === ""){
+                    if(sect_list===""){
+                        alert("部門を入力してください。");
+                        sect_select.focus();
+                        return;
+                    }
+                }
+                if(elem_supp.value === ""){
+                    if(supp_list===""){
+                        alert("仕入先を入力してください。");
+                        supp_select.focus();
+                        return;
+                    }
+                }
+                if(elem_prod.value === ""){
+                    if(prod_list===""){
+                        alert("商品を入力してください。");
+                        prod_select.focus();
+                        return;
+                    }
+                }
+                if(elem_org.value === ""){
+                    if(org_list===""){
+                        alert("店舗を入力してください。");
+                        org_select.focus();
+                        return;
+                    }
+                }    
+                elem_appoprod = document.querySelector('input[name="appoprod_r"]:checked');
+                if(elem_appoprod.value === ""){
+                    if(appoprod_list===""){
+                        alert("指定商品区分を入力してください。");
+                        appoprod_select.focus();
+                        return;
+                    }
+                }                 
+                gorogoro_message.innerHTML = gorogoro_default_message;
+                modal_gorogoro.hidden = false;
+                //console.log(modal_gorogoro.hidden);
+                //$("#modal_gorogoro").show();
+                
+                var datasend={};
+                datasend['org_id'] = org_list.replace(/^,/,'');
+                datasend['prod_cd'] = "'"+prod_list.replace(/^,/,'').replace(/,/g,"','")+"'";
+                datasend['sect_cd'] = "'"+sect_list.replace(/^,/,'').replace(/,/g,"','")+"'";
+                datasend['supp_cd'] = "'"+supp_list.replace(/^,/,'').replace(/,/g,"','")+"'";
+                datasend['appoprod_cd'] = "'"+appoprod_list.replace(/^,/,'').replace(/,/g,"','")+"'";
+                var elem_input_lst = search_param.getElementsByTagName('input');
+                for(i=0;i<elem_input_lst.length;i++){
+                    looprow = elem_input_lst[i];
+                    if(looprow.type === 'radio'){
+                       datasend[looprow.id] = looprow.checked; 
+                       datasend[looprow.name] = document.querySelector('input[name="'+looprow.name+'"]:checked').value;
+                    }else if(looprow.type === 'checkbox'){
+                       datasend[looprow.id] = looprow.checked;
+                    }else{
+                       datasend[looprow.id] = looprow.value; 
+                    }
+                }
+                
+                var elem_select_lst = search_param.getElementsByTagName('select');
+                for(i=0;i<elem_select_lst.length;i++){
+                    looprow = elem_select_lst[i];
+                    datasend[looprow.id] = looprow.value; 
+                }                
+                result1 = '';
+                setTimeout(function () {
+                    Send_querry('param='+JSON.stringify(datasend),'./index.php?param=LedgerSheetProductResultstest/datasearch','post');
+                    var A_temp = JSON.parse(result1);
+                    var org_lst = Object.keys(A_temp);
+                    for(i=0;i<org_lst.length;i++){
+                        A_Data[Number(org_lst[i])] = A_temp[org_lst[i]];
+                    }
+                    //1ページ目
+                    str_page = 0;
+                    document.getElementById("bt_previous").setAttribute("disabled", true);
+                    document.getElementById("bt_next").removeAttribute("disabled"); 
+                    //ソート
+                    if(Object.keys(asc).length === 0){
+                        asc['org_id'] = 0;
+                    }
+                    if(A_Data.length !== 0){
+                        btn_csv.hidden = false;
+                    }
+                    //page_mnt(A_Data);
+                    
+                    asc = [];
+                    asc['prod_pure_total'] = 1;                 
+                    sort_tbody('prod_pure_total','売上金額'); 
+                    modal_gorogoro.hidden = true;
+                }, 100);
+                result1='';
+            }
+            function page_mnt(t_data){
+                if(!limit_r.value){
+                    row_str = str_page*1000;
+                    row_end = row_str + 1000;
+                    working_data = t_data.slice(row_str,row_end);
+                    pages_number.innerHTML = (str_page+1)+'/'+(pagemaxnb+1)+' ページ';                    
+                }else{
+                    str_page = 1;
+                    pagemaxnb = 1;
+                    working_data = t_data;
+                    pages_number.innerHTML = '1/1 ページ';
+                }
+                //alert('here, ok');
+               show_data(working_data);
+            }            
+            // ページボタン管理
+            function firstpage(){
+                str_page=0;
+                document.getElementById("bt_previous").setAttribute("disabled", true);
+                document.getElementById("bt_next").removeAttribute("disabled");
+                page_mnt(A_Data_sorted);
+                modal_gorogoro.hidden = true;
+            }
+            function lastpage(){
+                str_page=pagemaxnb;
+                document.getElementById("bt_previous").removeAttribute("disabled");
+                document.getElementById("bt_next").setAttribute("disabled", true);
+                page_mnt(A_Data_sorted);
+                modal_gorogoro.hidden = true;
+            }
+            function previous(){
+                str_page--;
+                if(str_page > 0){  
+                    document.getElementById("bt_previous").removeAttribute("disabled");
+                }
+                else {
+                    str_page = 0;
+                    document.getElementById("bt_previous").setAttribute("disabled", true);
+                }
+                if(str_page < pagemaxnb){
+                    document.getElementById("bt_next").removeAttribute("disabled");
+                }
+                else {
+                    str_page = pagemaxnb;                    
+                    document.getElementById("bt_next").setAttribute("disabled", true);
+                }                
+                page_mnt(A_Data_sorted);
+                modal_gorogoro.hidden = true;
+            }
+            function next(){ 
+                str_page++;
+                if(str_page < pagemaxnb){
+                    document.getElementById("bt_next").removeAttribute("disabled");
+                }
+                else {
+                    str_page = pagemaxnb;                    
+                    document.getElementById("bt_next").setAttribute("disabled", true);
+                }
+                if(str_page > 0){  
+                    document.getElementById("bt_previous").removeAttribute("disabled");
+                }
+                else {
+                    str_page = 0;
+                    document.getElementById("bt_previous").setAttribute("disabled", true);
+                }                
+                page_mnt(A_Data_sorted);
+                modal_gorogoro.hidden = true;
+            }            
+            window.onload = function () {
+                gorogoro_message.innerHTML = gorogoro_prod_message;
+                modal_gorogoro.hidden = false;
+                setTimeout(function () {
+                    result1 = '';
+                    var datasend = [];
+                    Send_querry('param='+JSON.stringify(datasend),'./index.php?param=LedgerSheetProductResultstest/getproddata','post');
+                    data_prod = JSON.parse(result1);
+                    result1 = '';
+                    modal_create_select("prod_select",empty_array);
+                    modal_gorogoro.hidden = true;
+                    gorogoro_message.innerHTML = gorogoro_default_message;
+                }, 100);
+                creat_listener();
+                radio_change_management();
+                today = new Date();
+                document.getElementById("end_date").value = today.toISOString().slice(0,10).replace(/-/g,"\/"); 
+                today.setMonth(today.getMonth()-1);
+                document.getElementById("start_date").value = today.toISOString().slice(0,10).replace(/-/g,"\/"); 
+                var empty_array = [];
+                modal_create_select("sect_select",empty_array);
+                modal_create_select("org_select",empty_array);
+                modal_create_select("supp_select",empty_array); 
+                modal_create_select("appoprod_select",empty_array);
+                
+                // 縦方向のみ
+                var sample2_1 = document.getElementById('header_h');
+                var sample2_2 = document.getElementById('data');
+                var sample2_3 = document.getElementById('footer_h'); 
+                var syncScroll2 = new SyncScroll(sample2_1, sample2_3, sample2_2);
+                syncScroll2.enableHorizontal = true;
+
+                // 横方向のみ
+                var sample3_1 = document.getElementById('header_h');
+                var sample3_2 = document.getElementById('data');
+                var sample3_3 = document.getElementById('footer_h');            
+                var syncScroll3 = new SyncScroll(sample3_1, sample3_3, sample3_2);
+                syncScroll3.enableVertical = false; 
+//ADDSTR 2020/09/09 kanderu                
+            if(A_searchArray['sect_cd_chk']){sect_cd_chk.checked = true;}
+            if(A_searchArray['sect_nm_chk']){sect_nm_chk.checked = true;}
+            if(A_searchArray['supp_cd_chk']){supp_cd_chk.checked = true;}
+            if(A_searchArray['supp_nm_chk']){supp_nm_chk.checked = true;}
+            if(A_searchArray['maker_cd_chk"']){maker_cd_chk.checked = true;}
+            if(A_searchArray['maker_nm_chk']){maker_nm_chk.checked = true;}
+            if(A_searchArray['prod_t_cd1_chk']){prod_t_cd1_chk.checked = true;}
+            if(A_searchArray['prod_t_nm1_chk"']){prod_t_nm1_chk.checked = true;}
+            if(A_searchArray['prod_t_cd2_chk']){prod_t_cd2_chk.checked = true;}
+            if(A_searchArray['prod_t_nm2_chk']){prod_t_nm2_chk.checked = true;}
+//            if(A_searchArray['history_chk_shie']){history_chk_shie.checked = true;}
+//            if(A_searchArray['history_chk_shu']){history_chk_shu.checked = true;}
+//            if(A_searchArray['history_chk_ta']){history_chk_ta.checked = true;}
+//            if(A_searchArray['history_chk_u']){history_chk_u.checked = true;}
+//            if(A_searchArray['history_chk_ue']){history_chk_ue.checked = true;}  
+        modal_lording.hidden = true;    
+            }; 
+        function hide_show(){
+            if(sect_cd_chk.checked){
+                $("#table_head   th:nth-child(3)").show();
+                $("#table_body   td:nth-child(3)").show();
+                $("#table_foot td:nth-child(3)").show();                   
+            }else{
+                $("#table_head   th:nth-child(3)").hide();
+                $("#table_body   td:nth-child(3)").hide();
+                $("#table_foot td:nth-child(3)").hide();              
+            } 
+            if(sect_nm_chk.checked){
+                $("#table_head   th:nth-child(4)").show();
+                $("#table_body   td:nth-child(4)").show();
+                $("#table_foot td:nth-child(4)").show();                   
+            }else{
+                $("#table_head   th:nth-child(4)").hide();
+                $("#table_body   td:nth-child(4)").hide();
+                $("#table_foot td:nth-child(4)").hide();              
+            }
+            if(supp_cd_chk.checked){
+                $("#table_head   th:nth-child(5)").show();
+                $("#table_body   td:nth-child(5)").show();
+                $("#table_foot td:nth-child(5)").show();                   
+            }else{
+                $("#table_head   th:nth-child(5)").hide();
+                $("#table_body   td:nth-child(5)").hide();
+                $("#table_foot td:nth-child(5)").hide();              
+            }
+            if(supp_nm_chk.checked){
+                $("#table_head   th:nth-child(6)").show();
+                $("#table_body   td:nth-child(6)").show();
+                $("#table_foot td:nth-child(6)").show();                   
+            }else{
+                $("#table_head   th:nth-child(6)").hide();
+                $("#table_body   td:nth-child(6)").hide();
+                $("#table_foot td:nth-child(6)").hide();              
+            } 
+            if(maker_cd_chk.checked){
+                $("#table_head   th:nth-child(7)").show();
+                $("#table_body   td:nth-child(7)").show();
+                $("#table_foot td:nth-child(7)").show();                   
+            }else{
+                $("#table_head   th:nth-child(7)").hide();
+                $("#table_body   td:nth-child(7)").hide();
+                $("#table_foot td:nth-child(7)").hide();              
+            }              
+            if(maker_nm_chk.checked){
+                $("#table_head   th:nth-child(8)").show();
+                $("#table_body   td:nth-child(8)").show();
+                $("#table_foot td:nth-child(8)").show();                   
+            }else{
+                $("#table_head   th:nth-child(8)").hide();
+                $("#table_body   td:nth-child(8)").hide();
+                $("#table_foot td:nth-child(8)").hide();              
+            }              
+            if(prod_t_cd1_chk.checked){
+                $("#table_head   th:nth-child(9)").show();
+                $("#table_body   td:nth-child(9)").show();
+                $("#table_foot td:nth-child(9)").show();                   
+            }else{
+                $("#table_head   th:nth-child(9)").hide();
+                $("#table_body   td:nth-child(9)").hide();
+                $("#table_foot td:nth-child(9)").hide();              
+            }              
+            if(prod_t_nm1_chk.checked){
+                $("#table_head   th:nth-child(10)").show();
+                $("#table_body   td:nth-child(10)").show();
+                $("#table_foot td:nth-child(10)").show();                   
+            }else{
+                $("#table_head   th:nth-child(10)").hide();
+                $("#table_body   td:nth-child(10)").hide();
+                $("#table_foot td:nth-child(10)").hide();              
+            }              
+            if(prod_t_cd2_chk.checked){
+                $("#table_head   th:nth-child(11)").show();
+                $("#table_body   td:nth-child(11)").show();
+                $("#table_foot td:nth-child(11)").show();                   
+            }else{
+                $("#table_head   th:nth-child(11)").hide();
+                $("#table_body   td:nth-child(11)").hide();
+                $("#table_foot td:nth-child(11)").hide();              
+            }               
+            if(prod_t_nm2_chk.checked){
+                $("#table_head   th:nth-child(12)").show();
+                $("#table_body   td:nth-child(12)").show();
+                $("#table_foot td:nth-child(12)").show();                   
+            }else{
+                $("#table_head   th:nth-child(12)").hide();
+                $("#table_body   td:nth-child(12)").hide();
+                $("#table_foot td:nth-child(12)").hide();              
+            }
+            if(r1_chk.checked){
+                $("#table_head   th:nth-child(24)").show();
+                $("#table_body   td:nth-child(24)").show();
+                $("#table_foot td:nth-child(24)").show();                   
+            }else{
+                $("#table_head   th:nth-child(24)").hide();
+                $("#table_body   td:nth-child(24)").hide();
+                $("#table_foot td:nth-child(24)").hide();              
+            }       
+            if(r2_chk.checked){
+                $("#table_head   th:nth-child(25)").show();
+                $("#table_body   td:nth-child(25)").show();
+                $("#table_foot td:nth-child(25)").show();                   
+            }else{
+                $("#table_head   th:nth-child(25)").hide();
+                $("#table_body   td:nth-child(25)").hide();
+                $("#table_foot td:nth-child(25)").hide();              
+            }       
+            if(r3_chk.checked){
+                $("#table_head   th:nth-child(26)").show();
+                $("#table_body   td:nth-child(26)").show();
+                $("#table_foot td:nth-child(26)").show();                   
+            }else{
+                $("#table_head   th:nth-child(26)").hide();
+                $("#table_body   td:nth-child(26)").hide();
+                $("#table_foot td:nth-child(26)").hide();              
+            }           
+        }
+        
+        function select_all(){
+            $("#table_head   th:nth-child(3)").show();
+            $("#table_body   td:nth-child(3)").show();
+            $("#table_foot td:nth-child(3)").show();        
+            $("#table_head   th:nth-child(4)").show();
+            $("#table_body   td:nth-child(4)").show();
+            $("#table_foot td:nth-child(4)").show();         
+            $("#table_head   th:nth-child(5)").show();
+            $("#table_body   td:nth-child(5)").show();
+            $("#table_foot td:nth-child(5)").show();        
+            $("#table_head   th:nth-child(6)").show();
+            $("#table_body   td:nth-child(6)").show();
+            $("#table_foot td:nth-child(6)").show();                         
+            $("#table_head   th:nth-child(7)").show();
+            $("#table_body   td:nth-child(7)").show();
+            $("#table_foot td:nth-child(7)").show();        
+            $("#table_head   th:nth-child(8)").show();
+            $("#table_body   td:nth-child(8)").show();
+            $("#table_foot td:nth-child(8)").show();  
+            $("#table_head   th:nth-child(9)").show();
+            $("#table_body   td:nth-child(9)").show();
+            $("#table_foot td:nth-child(9)").show();        
+            $("#table_head   th:nth-child(10)").show();
+            $("#table_body   td:nth-child(10)").show();
+            $("#table_foot td:nth-child(10)").show(); 
+            $("#table_head   th:nth-child(11)").show();
+            $("#table_body   td:nth-child(11)").show();
+            $("#table_foot td:nth-child(11)").show();        
+            $("#table_head   th:nth-child(12)").show();
+            $("#table_body   td:nth-child(12)").show();
+            $("#table_foot td:nth-child(12)").show(); 
+            $("#table_head   th:nth-child(24)").show();
+            $("#table_body   td:nth-child(24)").show();
+            $("#table_foot td:nth-child(24)").show();
+            $("#table_head   th:nth-child(25)").show();
+            $("#table_body   td:nth-child(25)").show();
+            $("#table_foot td:nth-child(25)").show();     
+            $("#table_head   th:nth-child(26)").show();
+            $("#table_body   td:nth-child(26)").show();
+            $("#table_foot td:nth-child(26)").show();  
+            $('#itemcond input[type=checkbox]').prop('checked', true); return(false);
+        }
+        function disselect_all(){
+            $("#table_head   th:nth-child(3)").hide();
+            $("#table_body   td:nth-child(3)").hide();
+            $("#table_foot td:nth-child(3)").hide();        
+            $("#table_head   th:nth-child(4)").hide();
+            $("#table_body   td:nth-child(4)").hide();
+            $("#table_foot td:nth-child(4)").hide();         
+            $("#table_head   th:nth-child(5)").hide();
+            $("#table_body   td:nth-child(5)").hide();
+            $("#table_foot td:nth-child(5)").hide();        
+            $("#table_head   th:nth-child(6)").hide();
+            $("#table_body   td:nth-child(6)").hide();
+            $("#table_foot td:nth-child(6)").hide();                         
+            $("#table_head   th:nth-child(7)").hide();
+            $("#table_body   td:nth-child(7)").hide();
+            $("#table_foot td:nth-child(7)").hide();        
+            $("#table_head   th:nth-child(8)").hide();
+            $("#table_body   td:nth-child(8)").hide();
+            $("#table_foot td:nth-child(8)").hide();  
+            $("#table_head   th:nth-child(9)").hide();
+            $("#table_body   td:nth-child(9)").hide();
+            $("#table_foot td:nth-child(9)").hide();        
+            $("#table_head   th:nth-child(10)").hide();
+            $("#table_body   td:nth-child(10)").hide();
+            $("#table_foot td:nth-child(10)").hide(); 
+            $("#table_head   th:nth-child(11)").hide();
+            $("#table_body   td:nth-child(11)").hide();
+            $("#table_foot td:nth-child(11)").hide();        
+            $("#table_head   th:nth-child(12)").hide();
+            $("#table_body   td:nth-child(12)").hide();
+            $("#table_foot td:nth-child(12)").hide(); 
+            $("#table_head   th:nth-child(24)").hide();
+            $("#table_body   td:nth-child(24)").hide();
+            $("#table_foot td:nth-child(24)").hide();
+            $("#table_head   th:nth-child(25)").hide();
+            $("#table_body   td:nth-child(25)").hide();
+            $("#table_foot td:nth-child(25)").hide();     
+            $("#table_head   th:nth-child(26)").hide();
+            $("#table_body   td:nth-child(26)").hide();
+            $("#table_foot td:nth-child(26)").hide();             
+            $('#itemcond input[type=checkbox]').prop('checked', false); return(false);
+        } 
+//ADDSTR 2020/09/11 kanderu
+        //CSV
+        function csv_print(e){
+            // ローディングメッセージ 開始            
+            header_text = header_h.getElementsByTagName('tr')[0].innerText.replace(' ▲',"").replace(' ▼',"").replace(/[\n,\r]/g,'').replace(/\t/g,",");
+            elem_tr_list = data.getElementsByTagName('tr');
+            data_send = [];
+            var csv_data_o = {};
+            csv_data_o['"0"'] = header_text;
+            var row_nb = 1;
+            for(i=0;i<elem_tr_list.length;i++){
+                if(elem_tr_list[i].style.backgroundColor){
+                    //console.log(elem_tr_list[i]);
+                    continue;
+                }                            
+                csv_data_o['"'+row_nb+'"'] = '"'+elem_tr_list[i].innerText.replace(/\t/g,'","')+'"';
+                row_nb +=1;
+            }
+            data_send["csv_data"] = JSON.stringify(csv_data_o);
+            //data_sendを送ります。
+            spath       = 'index.php?param=LedgerSheetProductResultstest/csvoutput';
+            //console.log(spath);
+            setDataForAjax( data_send, spath ,'ajaxScreenUpdate' );                                        
+            return;                
+        }  
+        
+//ADDEND 2020/09/09 kanderu                       
+        </script>
+
+        <STYLE type="text/css">
+            .serchListArea tr:nth-child(even) td { background: transparent; }
+            select{
+                max-width: 100px;
+                min-width: 50px;
+            }
+            #sb-site{
+                padding-left: 5px;
+            }
+            #serchTable th{
+                width: 50px;
+            }
+            #search_param{
+                overflow: hidden; 
+                width:1070px;
+                margin-left: auto !important;
+                margin-right: auto !important;
+            }
+            .no_overflow{
+                float: left; 
+            }
+            .float_rigth{
+                float: right; 
+                padding-top: 10px;
+            }
+            .block_left{
+                overflow: hidden;
+                float: left;
+            }
+            .field_title {
+                float: left;
+                /*display:flex;*/
+                align-items:center;
+                background: #0D0D70;
+                height: 6em;
+                color: white;
+                text-align: center;
+                padding: 5px;
+				padding-top: 20px;
+                border: 1px solid black;
+				min-width: 4em;
+            }
+            .field_data {
+                padding: 5px 20px 5px 20px;
+                float : left;
+                height: 6em;
+                border: 1px solid black;
+            }
+            .field_data_bottom {
+                padding: 5px 20px 5px 20px;
+                float : left;
+                height: 6em;
+                border-bottom:  1px solid black;
+            }
+            .field_title_large {
+                float: left;
+                display:flex;
+                align-items:center;
+                background: #0D0D70;
+                height: 12em;
+                color: white;
+                text-align: center;
+                padding: 5px;
+                border: 1px solid black;
+            }
+            .field_data_large {
+                padding: 5px 20px 5px 20px;
+                float : left;
+                height: 12em;
+                border: 1px solid black;
+            }
+            .field_title_small {
+                float: left;
+                display:flex;
+                align-items:center;
+                background: #0D0D70;
+                height: 6em;
+                color: white;
+                text-align: center;
+                padding: 5px;
+                border: 1px solid black;
+            }
+            .field_data_small {
+                padding: 5px 20px 5px 20px;
+                float : left;
+                height: 6em;
+                border: 1px solid black;
+            } 
+            .field_long{
+                width: 40em;
+            }
+            .field_short{
+                width: 3em;
+            }
+            .cl_btn{
+                /*width: 20em;*/
+            }
+            #btn_search{
+               /*margin-left: 45px; */
+            }
+            #supplier_t_d{
+                width: 400px;
+            }
+            #product_t_d{
+            }
+            #department_t_d{
+            }
+            #org_d{
+                width: 200px;
+            }
+            #limit_t_d{
+            }
+            #screen_name_d{
+                width: 70px;
+            }
+            #action_d{
+             text-align: center;
+             width: 70px;
+            }
+            #period_d{
+                width: 270px;
+            }
+            #btn_csv{
+               margin-top: 4px; 
+            }
+            #search_param th{
+                width:60px;
+            }
+            #page_mnt{
+                text-align: center;
+            }   
+            .little_box{
+                width: 50px;
+            }
+            #page_mnt{
+                margin-bottom: 4px;
+                margin-top: 4px;
+                margin-bottom: 10px;
+            }
+/* table css            */
+            #header_h,#footer_h {
+               width:calc(100% - 17px);
+               max-height:200px;
+               
+               overflow-x:hidden;overflow-y:hidden;
+               }
+            #header_v {
+               width:90px;max-height:600px;
+               overflow-x:scroll;overflow-y:hidden;
+               text-align: left;
+            }
+            #data {
+               width:100%;
+               max-height: 475px;
+               overflow-x:scroll;overflow-y:scroll;
+               table-layout: fixed;
+               }
+            #table_head   th,
+            #table_body   td,
+            #table_foot td{
+              width: 100px;
+            }
+            #table_head   th:nth-child(2),
+            #table_body   td:nth-child(2),
+            #table_foot td:nth-child(2){
+                width: 60px;
+            }
+            #table_head   th:nth-child(3),
+            #table_body   td:nth-child(3),
+            #table_foot td:nth-child(3){
+                width: 70px;
+            }
+            #table_head   th:nth-child(6),
+            #table_body   td:nth-child(6),
+            #table_foot td:nth-child(6){
+                width: 120px;
+            }            
+            #table_head   th:nth-child(4),
+            #table_body   td:nth-child(4),
+            #table_foot td:nth-child(4){
+                width: 100px;
+            } 
+            #table_head   th:nth-child(5),
+            #table_body   td:nth-child(5),
+            #table_foot td:nth-child(5){
+                width: 90px;
+            }            
+
+            #table_head   th:nth-child(7),
+            #table_body   td:nth-child(7),
+            #table_foot td:nth-child(7){
+                width: 90px;
+            }
+            #table_head   th:nth-child(12),
+            #table_body   td:nth-child(12),
+            #table_foot td:nth-child(12){
+                width: 160px;
+            }
+             #table_head   th:nth-child(14),
+            #table_body   td:nth-child(14),
+            #table_foot td:nth-child(14){
+                width: 160px;
+            }
+            #table_body   td,
+            #table_foot td{
+                text-align: right;
+            }
+            #table_body td:nth-child(1),
+            #table_foot td:nth-child(1),                        
+            #table_body td:nth-child(2),
+            #table_foot td:nth-child(2),            
+            #table_body td:nth-child(3),
+            #table_foot td:nth-child(3),            
+            #table_body td:nth-child(4),
+            #table_foot td:nth-child(4),
+            #table_body td:nth-child(5),
+            #table_foot td:nth-child(5),
+            #table_body td:nth-child(6),
+            #table_foot td:nth-child(6),
+            #table_body td:nth-child(7),
+            #table_foot td:nth-child(7),
+            #table_foot td:nth-child(8),
+            #table_foot td:nth-child(8),
+            #table_foot td:nth-child(9),
+            #table_foot td:nth-child(9),
+            #table_foot td:nth-child(10),
+            #table_foot td:nth-child(10),
+            #table_foot td:nth-child(11),
+            #table_foot td:nth-child(11) {
+                text-align: left;
+            }
+            
+            #table_body   td:nth-child(2),
+            #table_foot td:nth-child(2){
+                text-align: center; 
+            }
+            .hasDatepicker, .hasYmpicker{
+                margin-top: 3px;
+            }
+            /* ゴロゴロモダール*/
+            .loader {
+              float: left;
+              border: 16px solid #f3f3f3;
+              border-radius: 50%;
+              border-top: 16px solid #3498db;
+              width: 50px;
+              height: 50px;
+              -webkit-animation: spin 2s linear infinite; /* Safari */
+              animation: spin 2s linear infinite;
+            }
+
+            /* Safari */
+            @-webkit-keyframes spin {
+              0% { -webkit-transform: rotate(0deg); }
+              100% { -webkit-transform: rotate(360deg); }
+            }
+
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+            .css_gorogoro{
+                background-color: #0D0D70;
+                color: white;
+                margin: auto;
+                padding: 20px;
+                border: 1px solid #888;
+                width: 270px;
+                overflow: hidden;   
+                border-radius: 6px;
+                margin-top: 300px;
+            }
+            #modal_gorogoro{
+                position: fixed; /* Stay in place */
+                z-index: 1; /* Sit on top */
+                padding-top: 100px; /* Location of the box */
+                left: 0;
+                top: 0;
+                width: 100%; /* Full width */
+                height: 100%; /* Full height */
+                overflow: auto; /* Enable scroll if needed */
+                background-color: rgb(0,0,0); /* Fallback color */
+                background-color: rgba(0,0,0,0.4); /* Black w/ opacity */                
+            }
+            #check_tbl{
+                width:1069px;
+            }
+            th {
+              cursor: pointer;
+            }
+            #table_id{
+                margin-top: -20px;
+            }
+            
+        </STYLE>
+    </head>
+    <body>
+        <?php
+        if( isset($_GET['home']) ) {
+            if( "1" ==  $_GET['home'] ){
+                include("../home/View/Common/PageHeader.php");
+            }else{
+                include("Common/PageHeader.php");
+            }
+        }else{
+                include("Common/PageHeader.php");
+        }
+        ?>
+        <!-- Site -->
+        <div id="sb-site">
+        <div id="serchForm">
+            <div class="serchListArea"  >
+                <table align="center" id="search_param">  
+                    <tr>
+                        <td>
+                            <table id="serchTable" >
+                                <tr>
+                                    <th id="screen_name_t" rowspan="2">
+                                        帳票	
+                                    </th>
+                                    <td id="screen_name_d" rowspan="2">
+                                        商品別実績
+                                    </td>    
+                                    <!--<div class="no_overflow">-->
+                                    <th id="period_t" >
+                                        期間<br />配分	
+                                    </th>    
+                                    <td id="period_d">
+                                          <input type="radio" name="period" id="day" value="day" checked > 日別<br />
+                                          <input type="radio" name="period" id="month" value="month"> 月別&nbsp;&nbsp;
+                                          <!-- day -->
+                                          <input type="text" title="開始" id="start_date" name="start_date" size="10" >
+                                          <input type="text" title="終了" id="end_date" name="end_date" size="10" >
+                                          <!-- month -->
+                                          <input type="text" title="開始" id="start_dateM" name="start_dateM" size="10" hidden>
+                                          <input type="text" title="終了" id="end_dateM" name="end_dateM" size="10" hidden>                    
+                                          <!-- year -->
+                                          <input type="text" title="開始" id="start_year" name="start_year" size="10" hidden>
+                                          <input type="text" title="終了" id="end_year" name="end_year" size="10" hidden>                     
+                                          <br />
+                                          <input type="radio" name="period" id="year" value="year"> 年別
+                                    </td>
+                                    <th id="department_t">
+                                        部門<br />選択	
+                                    </th>  
+                                    <td id="department_t_d">
+                                          <input type="radio" name="sect_r" id="sect_r_all" value="all" checked> 全部門<br />
+                                          <input type="radio" name="sect_r" id="sect_r_selected" value=""> 部門指定&nbsp;&nbsp;
+                                          <select id="sect_select" name="sect_select" disabled onchange="modal_select_mgt(event)"><option value="no">&nbsp;</option></select>
+                                    </td>      
+                                    <th id="org_t">
+                                        店舗<br />選択
+                                    </th>    
+                                      <td id="org_d">
+                                        <input type="radio" name="org_r" id="org_r_compile" value="compile"> 企業計<br />
+                                        <input type="radio" name="org_r" id="org_r_all" value="all" checked> 全店<br />
+                                        <input type="radio" name="org_r" id="org_r_selected" value=""> 店舗指定&nbsp;&nbsp;
+                                        <select id="org_select" name="org_select" disabled onchange="modal_select_mgt(event)"><option value="no">&nbsp;</option></select>
+                                    </td> 
+                                    <td id="action_d" rowspan="2">
+                                          <button type="button" id="btn_search" onclick="search_data_test(event)" >検索</button>&nbsp;&nbsp;<br />
+                                          <button type="button" id="btn_csv" onclick="csv_print(event)" hidden>CSV出力</button>
+                                    </td>                                        
+                            </tr>
+                            <tr>
+                                <th id="product_t">
+                                    商品<br />選択
+                                </th> 
+                                
+                                <td id="product_t_d">
+                                      <input type="radio" name="prod_r" id="prod_r_all" value="all" checked> 全商品<br />
+                                      <input type="radio" name="prod_r" id="prod_r_selected" value=""> 商品指定&nbsp;&nbsp;
+                                      <select id="prod_select" name="prod_select" disabled onchange="modal_select_mgt(event)"><option value="no">&nbsp;</option></select>
+                                      <br /><input type="checkbox" id="special_sale" name="special_sale" value="special_sale"> 特売商品のみ
+                                </td>
+                                <th id="supplier_t">
+                                    仕入先<br />選択	
+                                </th>     
+                                <td id="supplier_t_d">
+
+                                     <!--クラス（下線のみ表示）変更 2019/11/29 柴田 -->
+                                      <input type="radio" name="supp_r" id="supp_r_all" value="all" checked> 全仕入先<br />
+                                      <input type="radio" name="supp_r" id="supp_r_selected" value=""> 仕入先指定&nbsp;&nbsp;
+                                      <select id="supp_select" name="supp_select" disabled onchange="modal_select_mgt(event)"><option value="no">&nbsp;</option></select>
+                                  </td>
+                              <th id="appoprod_t">
+                                  指定<br />商品<br />区分<br />選択	
+                              </th>  
+                              <td id="appoprod_t_d">
+                                    <input type="radio" name="appoprod_r" id="appoprod_r_all" value="all" checked> 全指定商品区分<br />
+                                    <input type="radio" name="appoprod_r" id="appoprod_r_selected" value=""> 指定商品区分指定&nbsp;&nbsp;
+                                    <select id="appoprod_select" name="appoprod_select" disabled onchange="modal_select_mgt(event)"><option value="no">&nbsp;</option></select>
+                              </td>
+                            </tr>
+                        </table>
+                    </td> 
+                </tr>
+            </table>
+            <!-- The Modal -->
+            <div id="modal_sect" class="modal">
+                <!-- Modal content -->
+                <div class="modal-content">
+                    <?php include("../modal/View/Modaldepartment.html"); ?>
+                </div>
+            </div>
+            
+            <div id="modal_org" class="modal">
+                <!-- Modal content -->
+                <div class="modal-content">
+                    <?php include("../modal/View/Modalorganization.html"); ?>
+                </div>
+            </div>            
+            <div id="modal_prod" class="modal">
+                <!-- Modal content -->
+                <div class="modal-content">
+                    <?php include("../modal/View/Modalproduct.html"); ?>
+                </div>
+            </div> 
+            <div id="modal_supp" class="modal">
+                <!-- Modal content -->
+                <div class="modal-content">
+                    <?php include("../modal/View/Modalsupplier.html"); ?>
+                </div>
+            </div>
+            <div id="modal_appoprod" class="modal">
+                <!-- Modal content -->
+                <div class="modal-content">
+                    <?php include("../modal/View/Modalappoprod.html"); ?>
+                </div>
+            </div>            
+            <div id='modal_gorogoro' hidden >
+                <div class="css_gorogoro">
+                    <div class="little_box">
+                        <div class="loader" >
+                        </div>
+                    </div>
+                    <div class="float_rigth">
+                         <span id='gorogoro_message'>検索しています。</span><br />お待ちください。
+                    </div>
+                </div>
+            </div>
+            <table id="check_tbl">
+                <td  id="itemcond">
+<!--                    部門コード <input type="checkbox" id="rank_on1" name="rank_on1" value="rank_on1" checked onchange="rank_show1()">-->   
+                <input type="checkbox" name="sect_cd_chk" value="sect_cd_chk" id="sect_cd_chk"  checked onchange="hide_show()">&nbsp; 部門コード  &nbsp;&nbsp; &nbsp;&nbsp;
+                <input type="checkbox" name="sect_nm_chk" value="sect_nm_chk" id="sect_nm_chk" checked onchange="hide_show()">&nbsp;部門名&nbsp;&nbsp; &nbsp;&nbsp; 
+                <input type="checkbox" name="supp_cd_chk" value="supp_cd_chk" id="supp_cd_chk"  checked onchange="hide_show()">&nbsp;仕入先コード&nbsp;&nbsp;  &nbsp;&nbsp;    
+                <input type="checkbox" name="supp_nm_chk" value="supp_nm_chk" id="supp_nm_chk"   checked onchange="hide_show()">&nbsp;仕入先名&nbsp;&nbsp; &nbsp;&nbsp; 
+                <input type="checkbox" name="maker_cd_chk" value="maker_cd_chk" id="maker_cd_chk"  checked onchange="hide_show()">&nbsp;メーカーコード&nbsp;&nbsp; &nbsp;&nbsp;   
+                <input type="checkbox" name="maker_nm_chk" value="maker_nm_chk" id="maker_nm_chk"  checked onchange="hide_show()">&nbsp;メーカー名&nbsp;&nbsp; &nbsp;&nbsp; 
+                <input type="checkbox" name="prod_t_cd1_chk" value="prod_t_cd1_chk" id="prod_t_cd1_chk" checked onchange="hide_show()" >&nbsp;大分類コード&nbsp;&nbsp; &nbsp;&nbsp; 
+                <input type="checkbox" name="prod_t_nm1_chk" value="prod_t_nm1_chk" id="prod_t_nm1_chk"  checked onchange="hide_show()">&nbsp;大分類名&nbsp;&nbsp; &nbsp;&nbsp; &nbsp; &nbsp;&nbsp;　
+                <input type="checkbox" name="prod_t_cd2_chk" value="prod_t_cd2_chk" id="prod_t_cd2_chk"   checked onchange="hide_show()">&nbsp;中分類コード&nbsp;&nbsp; &nbsp;&nbsp; 
+                <input type="checkbox" name="prod_t_nm2_chk" value="prod_t_nm2_chk" id="prod_t_nm2_chk"   checked onchange="hide_show()">&nbsp;中分類名&nbsp;&nbsp;&nbsp;&nbsp;
+                <input type="checkbox" name="r1_chk" value="r1_chk" id="r1_chk" checked  onchange="hide_show()">&nbsp;部門比率   &nbsp;&nbsp; &nbsp;&nbsp;  
+                <input type="checkbox" name="r2_chk" value="r2_chk" id="r2_chk" checked  onchange="hide_show()">&nbsp;分類内比率&nbsp;&nbsp; &nbsp;&nbsp; 
+                <input type="checkbox" name="r3_chk" value="r3_chk" id="r3_chk"  checked onchange="hide_show()">&nbsp;全体比率   &nbsp;&nbsp;
+<!--            <button onclick="$('#itemcond input[type=checkbox]').prop('checked', true); return(false);">一括選択</button>&nbsp; 
+                <button onclick="$('#itemcond input[type=checkbox]').prop('checked', false); return(false);">一括解除</button>&nbsp;&nbsp; &nbsp;&nbsp; -->
+                <button onclick="select_all()">一括選択</button>&nbsp;&nbsp; 
+                <button onclick="disselect_all()">一括解除</button>
+                </td>
+                </table>
+<!--                <input type="checkbox" name="prod_t_nm3_chk" value="Yes" id="prod_t_nm3_chk" class="chk"> 部門コード    -->
+<!--                <input type="checkbox" name="sect_nm_chk" value="Yes" id="sect_nm_chk" class="chk"> 部門名
+                <input type="checkbox" name="sect_cd_chk" value="Yes" id="sect_cd_chk" class="chk"> 部門コード    -->
+      
+            <div id="page_mnt">
+                抽出件数: <input type="text" id="limit_r" name="limit_r" maxlength="3" class="field_short" oninput="this.value=this.value.replace(/[^\d]/,'')" onchange="page_mnt(A_Data_sorted);">
+                　順位表示: <input type="checkbox" id="rank_on" name="rank_on" value="rank_on" checked onchange="rank_show()">
+                <button type="button" id="bt_fisrt" onclick="firstpage()"  >一ページ目</button>
+                <button type="button" id="bt_previous" onclick="previous()" disabled >前ページ</button>
+                <button type="button" id="bt_next" onclick="next()">次ページ</button>
+                <button type="button" id="bt_last" onclick="lastpage()"  >最後ページ</button>
+                <span id="pages_number">0/0ページ</span>
+            </div> 
+            <table>
+                <tr>
+                    <td>
+                        <!-- 水平ヘッダ -->
+                        <div id="header_h">
+                            <table id="table_id">
+                                <tbody id="table_head">
+                                    <tr>
+                                        <th onclick="sort_tbody('org_id','商品')"><u>店舗名</u></th>
+                                        <th>特売</th>
+<!-- ADDSTR kanderu 2020/09/07-->
+                                        <th onclick="sort_tbody('sect_cd')" ><u>部門コード </u> </th>
+                                        <th onclick="sort_tbody('sect_nm')"><u>部門名</u></th>
+                                       <th onclick="sort_tbody('supp_cd')"><u>仕入先コード</u></th>
+                                        <th onclick="sort_tbody('supp_nm')"><u>仕入先名</u></th>
+                                        <th onclick="sort_tbody('maker_cd')"><u>メーカーコード</u></th>
+                                        <th onclick="sort_tbody('maker_nm')"><u>メーカー名</u></th>
+                                        <th onclick="sort_tbody('prod_t_cd1')"><u>大分類コード</u></th>
+                                        <th onclick="sort_tbody('prod_t_nm1')"><u>大分類名</u></th>
+                                        <th onclick="sort_tbody('prod_t_cd2')"><u>中分類コード</u></th>
+                                        <th onclick="sort_tbody('prod_t_nm2')"><u>中分類名</u></th>  
+<!--  ADDEND kanderu 2020/09/07-->
+                                        <th onclick="sort_tbody('prod_cd','商品')"><u>商品コード</u></th>
+                                        <th onclick="sort_tbody('prod_nm','商品')"><u>商品名</u></th>
+                                        <th onclick="sort_tbody('prod_tax','税率')"><u>税率</u></th>
+                                        <th>規格容量</th>
+                                        <th id="rank_title">商品順位</th>
+                                        <th >平均原価</th>
+                                        <th >平均売価</th>
+                                        <th onclick="sort_tbody('prod_sale_amount','売上数量')"><u>売上数量</u></th>
+                                        <th onclick="sort_tbody('prod_pure_total','売上金額')"><u>売上金額</u></th>
+                                        <th onclick="sort_tbody('prod_profit','粗利金額')"><u>粗利金額</u></th>
+                                        <th >粗利率</th>
+<!-- ADDSTR kanderu 2020/09/07-->
+                                        <th onclick="sort_tbody('r1')"><u>部門比率</u></th>
+                                        <th onclick="sort_tbody('r2')"><u>分類内比率</u></th>
+                                       　<th onclick="sort_tbody('r3')"><u>全体比率</u></th>
+<!--  ADDEND kanderu 2020/09/07-->
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                <tr hidden>
+                    <td>
+                        <!-- データ部分  -->
+                        <div id="data">
+                            <table id="t_body_data">             
+                                <tbody id="table_body">
+                                    <tr>
+                                        <td></td>
+                                        <td></td>
+<!-- ADDSTR 2020/09/07 kanderu-->
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>  
+                                        <td></td>
+                                        <td></td>
+                                        <td></td> 
+<!--ADDEND 2020/09/07 kanderu-->
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>                            
+                                        <td></td>                            
+                                    </tr>                        
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                <tr hidden>
+                    <td>        
+                        <div id='sep'>
+                            <table style="table-layout:fixed;">
+                                <tr>
+                                    <th></th>
+                                </tr>
+                            </table>
+                        </div> 
+                    </td>    
+                </tr>    
+                <tr hidden>
+                    <td>
+                        <div id="footer_h">
+                            <table id="t_footer_data" style="table-layout:fixed;">                                
+                                <tbody id="table_foot">
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>  
+            </table>            
+        </div>
+        </div>     
+    </div>            
+        <script type="text/javascript">
+        </script>
+
+    </body>        
+</html>

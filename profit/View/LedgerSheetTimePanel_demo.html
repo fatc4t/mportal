@@ -1,0 +1,292 @@
+<?php
+    /**
+     * @file      時間別帳票画面(View)
+     * @author    millionet oota
+     * @date      2016/06/30
+     * @version   1.00
+     * @note      時間別帳票画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述 
+            include("../profit/View/Common/HtmlHeader.php"); 
+        ?>
+    <script type="text/javascript">
+        function chf(frm){
+            if( 1 < window.location.search.length )
+                {
+                    // 最初の1文字 (?記号) を除いた文字列を取得する
+                    var query = window.location.search.substring( 1 );
+                    // クエリの区切り記号 (&) で文字列を配列に分割する
+                    var parameters = query.split( '&' );
+                    if(1 < parameters.length){
+                        frm.action += '?param=' +frm.elements["codeName"].value + '&home=1';
+                    }else{
+                        frm.action += '?param=' +frm.elements["codeName"].value;
+                    }
+                }
+       }
+    </script>
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site">
+<form name="serchForm" id="serchForm" action="/profit/index.php" method="post" onsubmit="return chf(this)">
+<div class="serchListArea">
+<table align="center">
+<tr>
+<td>
+<table id="serchTable">
+<tr>
+<th id="serchTableTitle" align="center" width="65">帳票種別</th>
+<td id="serchTableItem">
+<select name="codeName" id="codeName">
+    <option value="LedgerSheetDay/show">売上分析</option>
+    <option value="LedgerSheetMonth/show">月次帳票</option>
+    <option value="LedgerSheetItem/show">商品別帳票</option>
+    <option value="LedgerSheetTime/show" selected>時間別帳票</option>
+    <option value="LedgerSheetTimeZone/show">時間帯別帳票</option>
+    <option value="LedgerSheetCost/show">コスト帳票</option>
+</select>
+</td>
+<th id="serchTableTitle" align="center" width="65">集計期間</th>
+<td id="serchTableItem">
+<select name="from_year" class="from_year" >
+<option value="2011">2011 年</option>
+<option value="2012">2012 年</option>
+<option value="2013">2013 年</option>
+<option value="2014">2014 年</option>
+<option value="2015">2015 年</option>
+<option value="2016" selected>2016 年</option>
+</select>
+<select name="from_month" class="from_month" >
+<option value="1">01 月</option>
+<option value="2">02 月</option>
+<option value="3">03 月</option>
+<option value="4">04 月</option>
+<option value="5">05 月</option>
+<option value="6">06 月</option>
+<option value="7" selected>07 月</option>
+<option value="8">08 月</option>
+<option value="9">09 月</option>
+<option value="10">10 月</option>
+<option value="11">11 月</option>
+<option value="12">12 月</option>
+</select>
+<label class="label_kara" >～</label>
+<select name="to_year" class="to_year" >
+<option value="2011">2011 年</option>
+<option value="2012">2012 年</option>
+<option value="2013">2013 年</option>
+<option value="2014">2014 年</option>
+<option value="2015">2015 年</option>
+<option value="2016" selected>2016 年</option>
+</select>
+<select name="to_month" class="to_month" >
+<option value="1">01 月</option>
+<option value="2">02 月</option>
+<option value="3">03 月</option>
+<option value="4">04 月</option>
+<option value="5">05 月</option>
+<option value="6">06 月</option>
+<option value="7" selected>07 月</option>
+<option value="8">08 月</option>
+<option value="9">09 月</option>
+<option value="10">10 月</option>
+<option value="11">11 月</option>
+<option value="12">12 月</option>
+</select>
+<select name="to_day" class="to_day" >
+<option value="1">01 日</option>
+<option value="2">02 日</option>
+<option value="3">03 日</option>
+<option value="4">04 日</option>
+<option value="5">05 日</option>
+<option value="6">06 日</option>
+<option value="7">07 日</option>
+<option value="8">08 日</option>
+<option value="9">09 日</option>
+<option value="10">10 日</option>
+<option value="11">11 日</option>
+<option value="12">12 日</option>
+<option value="13">13 日</option>
+<option value="14">14 日</option>
+<option value="15">15 日</option>
+<option value="16">16 日</option>
+<option value="17">17 日</option>
+<option value="18">18 日</option>
+<option value="19">19 日</option>
+<option value="20">20 日</option>
+<option value="21">21 日</option>
+<option value="22">22 日</option>
+<option value="23">23 日</option>
+<option value="24">24 日</option>
+<option value="25">25 日</option>
+<option value="26">26 日</option>
+<option value="27">27 日</option>
+<option value="28">28 日</option>
+<option value="29">29 日</option>
+<option value="30">30 日</option>
+<option value="31" selected>31 日</option>
+</select>　
+</td>
+</tr>
+</table>
+</td>
+<td>
+　<input class="submit" type="submit" name="submit" value="検索">
+</td>
+</table><br />
+</form>
+<div id="menu-wrap">
+</div>
+<table id='viewList' align='center'>
+<div id="menu-wrap">
+<thead>
+<tr>
+<th id='viewList' align='center' width=100> </th>
+<th id='viewList' align='center' width=50>11時</th>
+<th id='viewList' align='center' width=50>12時</th>
+<th id='viewList' align='center' width=50>13時</th>
+<th id='viewList' align='center' width=50>14時</th>
+<th id='viewList' align='center' width=50>15時</th>
+<th id='viewList' align='center' width=50>16時</th>
+<th id='viewList' align='center' width=50>17時</th>
+<th id='viewList' align='center' width=50>18時</th>
+<th id='viewList' align='center' width=50>19時</th>
+<th id='viewList' align='center' width=50>20時</th>
+<th id='viewList' align='center' width=50>21時</th>
+<th id='viewList' align='center' width=50>22時</th>
+<th id='viewList' align='center' width=50>23時</th>
+<th id='viewList' align='center' width=50>24時</th>
+<th id='viewList' align='center' width=50>00時</th>
+<th id='viewList' align='center' width=50>01時</th>
+<th id='viewList' align='center' width=50>02時</th>
+</tr>
+</thead>
+</div>
+<tbody>
+<tr>
+<th id='viewList' align='left' width=100>税抜売上</th>
+<td id='viewList' align='right' width=60>1,220,056</td>
+<td id='viewList' align='right' width=60>1,863,510</td>
+<td id='viewList' align='right' width=60>3,451,450</td>
+<td id='viewList' align='right' width=60>1,080,129</td>
+<td id='viewList' align='right' width=60>1,400,858</td>
+<td id='viewList' align='right' width=60>2,153,122</td>
+<td id='viewList' align='right' width=60>1,432,123</td>
+<td id='viewList' align='right' width=60>2,645,451</td>
+<td id='viewList' align='right' width=60>1,902,213</td>
+<td id='viewList' align='right' width=60>990,784</td>
+<td id='viewList' align='right' width=60>1,053,123</td>
+<td id='viewList' align='right' width=60>1,001,012</td>
+<td id='viewList' align='right' width=60>1,912,311</td>
+<td id='viewList' align='right' width=60>1,451,600</td>
+<td id='viewList' align='right' width=60>870,012</td>
+<td id='viewList' align='right' width=60>1,002,145</td>
+<td id='viewList' align='right' width=60>770,973</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>組数</th>
+<td id='viewList' align='right'>345,441</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>客数</th>
+<td id='viewList' align='right'>303,230</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>商品販売数</th>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>648,671</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+<td id='viewList' align='right' bgcolor='#E0F2F7'>0</td>
+</tr>
+<tr>
+<th id='viewList' align='left'>人時売上</th>
+<td id='viewList' align='right'>451,321</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+<td id='viewList' align='right'>0</td>
+</tr>
+</tbody>
+</table>
+</div>
+<br />
+<br />
+<br />
+<script type="text/javascript" src="../jquery/js/scrolltopcontrol2.js"></script> <!--スクロールしながらページのトップに戻る-->
+        </div><!-- /#sb-site -->
+</body>
+</html>

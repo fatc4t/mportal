@@ -1,0 +1,45 @@
+<?php
+require_once( SystemParameters::$SANITIZE_SETTING_FILE );
+if(!empty($ordersList))
+{
+  //print_r($ordersList);
+?>
+<div style="float:right;padding-bottom:5px;margin-right:20px;">
+  <div class="button_order">一括処理</div>
+  <input type="hidden" id="record_count" value="<?php hsc(count($ordersList));?>">
+</div>
+<table id="listTable" style="height:550px;width:1100px;">
+    <thead class="meisai">
+        <tr>
+            <th style="width:40px;text-align:center"><input type="checkbox" id="all_check">
+            <th style="width:180px;">受注日時
+            <th style="width:300px;">取引先
+            <th style="width:100px;">点数
+            <th style="width:100px;">金額
+            <th style="width:80px;">
+            <th style="width:130px;">
+        </tr>
+    </thead>
+    <tbody class="meisai">
+        <?php
+        $index = 1;
+        foreach($ordersList as $key => $value) {
+       	?>
+        <tr>
+            <td style="width:40px;text-align:center"><input type="checkbox" class="sale_chk" id="chk_<?php hsc($index);?>" name="chk" value="<?php hsc($value['pha_id']);?>:<?php hsc($value['ord_no']);?>">
+            <td style="width:180px;text-align:center;"><?php hsc($value['order_time']);?>
+            <td style="width:300px;"><?php hsc($value['pha_name']);?>
+            <td style="width:100px;text-align:right;"><?php hsc($value['suu']+$value['hakosuu']);?>
+            <td style="width:100px;text-align:right;"><?php hsc(number_format($value['syokei']+$value['souryo']));?>
+            <td style="width:80px;text-align:center;"><div class="button_select" data-phaid="<?php hsc($value['pha_id']);?>" data-ordno="<?php hsc($value['ord_no']);?>">CSV</div>
+            <td style="width:130px;text-align:center;"><div class="button_data" data-phaid="<?php hsc($value['pha_id']);?>" data-ordno="<?php hsc($value['ord_no']);?>">受注処理</div>
+        </tr>
+        <?php
+          $index++;
+        }
+        ?>
+    </tbody>
+</table>
+<?php
+}
+?>

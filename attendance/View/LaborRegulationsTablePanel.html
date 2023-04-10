@@ -1,0 +1,146 @@
+<?php
+    /**
+     * @file      就業規則マスタ画面(View)
+     * @author    USE S.Kasai
+     * @date      2016/06/29
+     * @version   1.00
+     * @note      就業規則マスタ画面(一覧部分)
+     */
+?>
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-ajax">
+
+                <!-- PageMoveArea -->
+                <?php include("../FwCommon/View/PagingArea.php"); ?>
+
+                <!-- serchListArea -->
+            <!-- 2016/09/19 Y.Sugou -->
+            <?php if( $isScrollBar ) { ?>
+                <div class="serchListArea" style=" clear:both; width:99%; margin:0px auto !important; overflow-y:auto; height:33px;">
+            <?php } else { ?>
+                <div class="serchListArea" style=" clear:both; width:99%; margin:5px auto !important;">
+            <?php } ?>
+            <!-- ---------------------- -->
+                    <table>
+                        <tbody>
+                        <tr>
+                            <th width="50px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?></u><?php hsc($headerArray['laborRegulationsNoSortMark']); ?></span></th>
+                            <th width="50px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0849')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0849')); ?></u><?php hsc($headerArray['laborRegulationsStateSortMark']); ?></span></th>
+                            <th width="123px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?></u><?php hsc($headerArray['laborRegulationsOrganizationSortMark']); ?></span></th>
+                            <th width="136px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0906')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0906')); ?></u><?php hsc($headerArray['laborRegulationsNameSortMark']); ?></span></th>
+                            <th width="74px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0853')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0853')); ?></u><?php hsc($headerArray['laborRegulationsApplicationDateStartSortMark']); ?></span></th>
+                            <th width="74px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0907')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0907')); ?></u><?php hsc($headerArray['laborRegulationsOvertimeSettingSortMark']); ?></span></th>
+                            <th width="50px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0908')); ?>');"><u>法定内<br>残業代</u><?php hsc($headerArray['laborRegulationsLegalTimeInOvertimeSortMark']); ?></span></th>
+                            <th width="62px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0909')); ?>');"><u>法定外<br>残業代</u><?php hsc($headerArray['laborRegulationsLegalTimeOutOvertimeSortMark']); ?></span></th>
+                            <th width="62px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0910')); ?>');"><u>みなし<br>残業</u><?php hsc($headerArray['laborRegulationsFixedOvertimeSortMark']); ?></span></th>
+                            <th width="62px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0911')); ?>');"><u>法定休日<br>残業代</u><?php hsc($headerArray['laborRegulationsLegalHolidayAllowanceSortMark']); ?></span></th>
+                            <th width="62px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0912')); ?>');"><u>公休日<br>残業代</u><?php hsc($headerArray['laborRegulationsPrescribedHolidayAllowanceSortMark']); ?></span></th>
+                            <th width="74px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0913')); ?>');"><u>深夜労働<br>時間帯</u><?php hsc($headerArray['laborRegulationsLateAtNightTimeSortMark']); ?></span></th>
+                            <th width="74px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0914')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0914')); ?></u><?php hsc($headerArray['laborRegulationsLateAtNightOutOvertimeSortMark']); ?></span></th>
+                            <th width="74px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0915')); ?>');"><u>休憩時間<br>の判定</u><?php hsc($headerArray['laborRegulationsBreakTimeAcquisitionSortMark']); ?></span></th>
+                            <th width="148px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0892')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0892')); ?></u><?php hsc($headerArray['laborRegulationsCommentSortMark']); ?></span></th>
+                            <th width="50px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0852')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0852')); ?></u><?php hsc($headerArray['laborRegulationsDispOrderSortMark']); ?></span></th>
+                        </tr>
+                </table>
+            <?php if( $isScrollBar ) { ?>
+                </div>
+                <div class="serchListArea" style="width:99%; margin: 0px auto; overflow-y:auto; height:300px; !important;">
+            <?php } ?>
+                <table id="nameTable" style="background-color: #ffffff">
+                        <?php foreach($laborRegList as $laborRegulations) { ?>
+                            <?php if(!$laborRegNoSortFlag) { ?>
+                                <?php $display_no++; ?>
+                            <?php } ?>
+                            <tr>
+                                <td align="right" style="width:50px;">
+                                    <?php hsc($display_no); ?>
+                                    <input type="hidden" id="applicationDateId<?php hsc($display_no); ?>" name="applicationDateId<?php hsc($display_no); ?>" value="<?php hsc($laborRegulations['application_date_id']); ?>">
+                                </td>
+                                <td align="center" style="width:50px;"><?php hsc($laborRegulations['eff_code']); ?></td>
+                                <td style="width:123px;"><?php hsc($laborRegulations['abbreviated_name']); ?></td>
+                                    <?php if(!empty($laborRegulations['updateDisabled'])) { ?>
+                                        <td style="width:136px;"><span onClick="editPanelTransition(<?php hsc($laborRegulations['labor_regulations_id']); ?>, 1, <?php hsc($display_no); ?>)"><a href="#"><?php hsc($laborRegulations['labor_regulations_name']); ?></a></span></td>
+                                    <?php } else { ?>
+                                        <td style="width:136px;"><span onClick="editPanelTransition(<?php hsc($laborRegulations['labor_regulations_id']); ?>, 0, <?php hsc($display_no); ?>)"><a href="#"><?php hsc($laborRegulations['labor_regulations_name']); ?></a></span></td>
+                                    <?php } ?>
+                                    <?php
+                                        $changeSlash = $laborRegulations['application_date_start'];
+                                        $changeSlash = str_replace("-", "/", $changeSlash);
+                                    ?>
+                                <td align="center" style="width:74px;"><?php hsc($changeSlash); ?></td>
+                                <td align="center" style="width:74px;"><?php hsc($laborRegulations['overtime_setting_name']); ?></td>
+                                <td align="center" style="width:50px;"><?php hsc($laborRegulations['legal_time_in_overtime']); ?></td>
+                                <td align="center" style="width:62px;"><?php hsc($laborRegulations['legal_time_out_overtime']); ?></td>
+                                <td align="center" style="width:62px;">
+                                    <?php if($laborRegulations['fixed_overtime'] == 0){ ?>
+                                        <?php $changeFixed = ""; ?>
+                                        <?php $laborRegulations['fixed_overtime'] = $changeFixed; ?>
+                                        <?php hsc($laborRegulations['fixed_overtime']); ?>
+                                    <?php } ?>
+                                    <?php if($laborRegulations['fixed_overtime'] == 1){ ?>
+                                        <?php $changeFixed = "無"; ?>
+                                        <?php $laborRegulations['fixed_overtime'] = $changeFixed; ?>
+                                        <?php hsc($laborRegulations['fixed_overtime']); ?>
+                                    <?php } ?>
+                                    <?php if($laborRegulations['fixed_overtime'] == 2){ ?>
+                                        <?php $changeFixed = "有"; ?>
+                                        <?php $laborRegulations['fixed_overtime'] = $changeFixed; ?>
+                                        <?php hsc($laborRegulations['fixed_overtime']); ?>
+                                    <?php } ?>
+                                </td>
+                                <td align="center" style="width:62px;"><?php hsc($laborRegulations['legal_holiday_allowance']); ?></td>
+                                <td align="center" style="width:62px;"><?php hsc($laborRegulations['prescribed_holiday_allowance']); ?></td>
+                                <td align="center" style="width:74px;">
+                                    <?php 
+                                        $substrStart = substr($laborRegulations['late_at_night_start'], 11, 2);
+                                        hsc($substrStart); 
+                                    ?>時
+                                    ～<?php 
+                                    
+                                        $substrEnd = substr( $laborRegulations['late_at_night_end'], 11, 2 );
+
+                                        // 深夜残業代の時間整形
+                                        if( substr( $laborRegulations['late_at_night_end'], 9, 1 ) == "2" )
+                                        {
+                                            $time = substr( $laborRegulations['late_at_night_end'], 11, 5 );
+                                            $timeList = explode( ":", $time );
+                                            $substrEnd = ($timeList[0] + 24);
+                                        }
+                                        hsc( $substrEnd ); 
+                                    ?>時
+                                </td>
+                                <td align="center" style="width:74px;"><?php hsc($laborRegulations['late_at_night_out_overtime']); ?></td>
+                                <td align="center" style="width:74px;">
+                                    <?php if($laborRegulations['break_time_acquisition'] == 0){ ?>
+                                        <?php $changeFixed = ""; ?>
+                                        <?php $laborRegulations['break_time_acquisition'] = $changeFixed; ?>
+                                        <?php hsc($laborRegulations['break_time_acquisition']); ?>
+                                    <?php } ?>
+                                    <?php if($laborRegulations['break_time_acquisition'] == 1){ ?>
+                                        <?php $changeFixed = "手動取得"; ?>
+                                        <?php $laborRegulations['break_time_acquisition'] = $changeFixed; ?>
+                                        <?php hsc($laborRegulations['break_time_acquisition']); ?>
+                                    <?php } ?>
+                                    <?php if($laborRegulations['break_time_acquisition'] == 2){ ?>
+                                        <?php $changeFixed = "自動取得"; ?>
+                                        <?php $laborRegulations['break_time_acquisition'] = $changeFixed; ?>
+                                        <?php hsc($laborRegulations['break_time_acquisition']); ?>
+                                    <?php } ?>
+                                    <?php if($laborRegulations['break_time_acquisition'] == 3){ ?>
+                                        <?php $changeFixed = "手動と自動"; ?>
+                                        <?php $laborRegulations['break_time_acquisition'] = $changeFixed; ?>
+                                        <?php hsc($laborRegulations['break_time_acquisition']); ?>
+                                    <?php } ?>
+                                </td>
+                                <td style="width:148px;"><?php hsc($laborRegulations['comment']); ?></td>
+                                <td align="right" style="width:50px;"><?php hsc($laborRegulations['disp_order']); ?></td>
+                            </tr>
+                            <?php if($laborRegNoSortFlag) { ?>
+                                <?php $display_no--; ?>
+                            <?php } ?>
+                        <?php } ?>
+                        </tbody>
+                    </table>
+                </div><!-- /.serchListArea -->
+            </div><!-- /.jquery-replace-ajax -->

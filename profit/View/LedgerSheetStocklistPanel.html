@@ -1,0 +1,780 @@
+<?php
+    /**
+     * @file      在庫一覧表(明細一覧表)画面(View)
+     * @author    millionet oota
+     * @date      2018/04/20
+     * @version   1.00
+     * @note      在庫一覧表(明細一覧表)帳票画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array('default.css'); // cssまたはｊｓファイルを拡張子付きで配列に記述
+            include("../profit/View/Common/HtmlHeader.php");
+        ?>
+
+    <script src="../js/profit/jquery/jquery.ui.ympicker.js" /></script>
+    <script src="../js/profit/jquery/jquery-migrate-1.0.0.js" /></script>
+    <script src="../js/profit/jquery/datepicker-ja.js" /></script>
+    <script src="../js/autofil_v<?php echo $_SESSION['AUTOFIL_VER'] ?>.js" ></script>
+    <!-- modal script-->
+    <script src="../js/modal/modal.js" ></script>
+    <link rel="stylesheet" href="../css/modal/modal.css" >    
+    <script type="text/javascript">
+        Sizelist       = '<?php echo json_encode(json_encode($Sizelist)); ?>';
+        A_Sizelist     = JSON.parse(Sizelist.slice(1,-1));
+        porg_id_list        = '<?php echo json_encode(json_encode($org_id_list)); ?>';
+        data_org            = JSON.parse(porg_id_list.slice(1,-1)); 
+        ptypprod_detail     = '<?php echo json_encode($prod_detail); ?>';
+        data_prod           = JSON.parse(ptypprod_detail);  
+        ptypsect_detail     = '<?php echo json_encode($sect_detail); ?>';
+        data_sect           = JSON.parse(ptypsect_detail);  
+        searchArray         = '<?php echo json_encode($searchArray); ?>';
+        A_searchArray       = JSON.parse(searchArray);
+        param               = '<?php echo json_encode($param); ?>';
+        A_param             = JSON.parse(param);
+        
+        var prod_list = A_searchArray["prod_cd"].replace('false','');
+        if(prod_list){
+            prod_list = ","+prod_list;
+            data_select['prod'] = prod_list;
+        }
+        var sect_list = A_searchArray["sect_cd"].replace('false','');
+        if(sect_list){
+            sect_list = ","+sect_list;
+            data_select['sect'] = sect_list;
+        }
+        var org_list = A_searchArray["org_id"].replace('false',''); 
+        if(org_list){
+            org_list = ","+org_list;
+            data_select['org'] = org_list;
+        }
+        // システムマスタ：賞味期限利用区分
+        bb_date_kbn     = '<?php echo $bb_date_kbn; ?>';
+    </script>
+    <script type="text/javascript">
+            function radio_change_management(){
+                var prev = [];
+                document.getElementById("serchTable").addEventListener('change', function(e) {
+                    //console.log('Previous:', prev[e.target.name] ? prev[e.target.name].value : null);
+                    //console.log(e);
+                    if(e.target.name === "period"){
+                        if(!prev[e.target.name]){
+                            old_id_start="start_date";
+                            old_id_end="end_date";                              
+                        }else if(prev[e.target.name].value === "day"){
+                            old_id_start="start_date";
+                            old_id_end="end_date";                            
+                        }else if(prev[e.target.name].value === "month"){
+                            old_id_start="start_dateM";
+                            old_id_end="end_dateM";  
+                        }else if(prev[e.target.name].value === "year"){
+                            old_id_start="start_year";
+                            old_id_end="end_year";
+                        }
+                        document.getElementById(old_id_start).hidden=true;
+                        document.getElementById(old_id_end).hidden=true;
+                        document.getElementById(old_id_start).value="";
+                        document.getElementById(old_id_end).value="";                                                
+                        if(e.target.value === "day"){
+                            date_mode = "date";
+                            new_id_start="start_date";
+                            new_id_end="end_date"; 
+                            // checkbox checked
+                            today = new Date();
+                            document.getElementById(new_id_end).value = today.toISOString().slice(0,10).replace(/-/g,"\/"); 
+                            today.setMonth(today.getMonth()-1);
+                            document.getElementById(new_id_start).value = today.toISOString().slice(0,10).replace(/-/g,"\/");                            
+                        }else if(e.target.value === "month"){
+                            date_mode = "dateM";
+                            new_id_start="start_dateM";
+                            new_id_end="end_dateM";
+                            today = new Date();
+                            document.getElementById(new_id_end).value = today.toISOString().slice(0,7).replace(/-/g,"\/"); 
+                            today.setMonth(today.getMonth()-1);
+                            document.getElementById(new_id_start).value = today.toISOString().slice(0,7).replace(/-/g,"\/");                                                        
+                        }else if(e.target.value === "year"){
+                            date_mode = "year";
+                            new_id_start="start_year";
+                            new_id_end="end_year";
+                            today = new Date();
+                            document.getElementById(new_id_end).value = today.toISOString().slice(0,4).replace(/-/g,"\/"); 
+                            today.setFullYear(today.getFullYear()-1);
+                            document.getElementById(new_id_start).value = today.toISOString().slice(0,4).replace(/-/g,"\/");                                                                                    
+                        }         
+                        document.getElementById(new_id_start).hidden=false;
+                        document.getElementById(new_id_end).hidden=false;                        
+                    }else if(e.target.name === "org_r"){
+                        document.getElementById("tenpo").checked = false;
+                        if(!prev[e.target.name]){
+                            prev[e.target.name]={value:""};
+                        }
+                        document.getElementById("org_select").disabled=true;
+                        if(e.target.value === "" ){
+                            document.getElementById("org_select").disabled=false;
+                        }else if(e.target.value === "compile"){
+                            document.getElementById("tenpo").checked = true;
+                        }  
+                    }else if(e.target.name === "sect_r"){
+                        if(!prev[e.target.name]){
+                            prev[e.target.name]={value:""};
+                        }                        
+                        document.getElementById("sect_select").disabled=true;
+                        if(e.target.value === "" ){
+                            document.getElementById("sect_select").disabled=false;
+                        }
+                    }else if(e.target.name === "prod_r"){
+                        if(!prev[e.target.name]){
+                            prev[e.target.name]={value:""};
+                        }                        
+                        document.getElementById("prod_select").disabled=true;
+                        if(e.target.value === "" ){
+                            document.getElementById("prod_select").disabled=false;
+                        }
+                    }
+                    prev[e.target.name] = e.target;
+                });
+            }
+            
+        function chf(frm){
+            if( 1 < window.location.search.length )
+                {
+                    csv_data.value = '';
+                    // modal data
+                    // org_id
+                    if(org_r_selected.checked){
+                        // list org name
+                        for(i=0;i<org_select.options.length;i++){
+                            if( !isNaN(org_select.options[i].value) ){
+                                org_nm_lst.value = org_nm_lst.value + ','+org_select.options[i].innerText;
+                            }
+                            org_nm_lst.value = org_nm_lst.value.replace(/^,/,"");
+                        }   
+                        org_id.value = org_list.replace(/^,/,"'").replace(/,/g,"','").replace(/$/,"'");
+                        if(!org_list){
+                            alert("店舗を選択してください。");
+                            return false;
+                        }
+                    }else{
+                        org_id.value = false;
+                    }
+
+                    // prod_cd                    
+                    if(prod_r_selected.checked){
+                        // list prod name
+                        for(i=0;i<prod_select.options.length;i++){
+                            if( !isNaN(prod_select.options[i].value) ){
+                                prod_nm_lst.value = prod_nm_lst.value + ','+prod_select.options[i].innerText;
+                            }
+                            prod_nm_lst.value = prod_nm_lst.value.replace(/^,/,"");
+                        }   
+                        prod_cd.value = prod_list.replace(/^,/,"'").replace(/,/g,"','").replace(/$/,"'");
+                        if(!prod_list){
+                            alert("商品を選択してください。");
+                            return false;
+                        }
+                    }else{
+                        prod_cd.value = false;
+                    }
+                    
+                    // sect_cd                    
+                    if(sect_r_selected.checked){
+                        // list sect name
+                        for(i=0;i<sect_select.options.length;i++){
+                            if( !isNaN(sect_select.options[i].value) ){
+                                sect_nm_lst.value = sect_nm_lst.value + ','+sect_select.options[i].innerText;
+                            }
+                            sect_nm_lst.value = sect_nm_lst.value.replace(/^,/,"");
+                        }   
+                        sect_cd.value = sect_list.replace(/^,/,"'").replace(/,/g,"','").replace(/$/,"'");
+                        if(!sect_list){
+                            alert("部門を選択してください。");
+                            return false;
+                        }
+                    }else{
+                        sect_cd.value = false;
+                    }
+                    
+                    // 在庫数範囲指定チェック
+                    var amount_str = document.getElementById('amount_str').value.replace( /,/g , "" );;
+                    if (amount_str !== ''){
+                        amount_str = parseInt(amount_str, 10);
+                        if (Math.abs(amount_str) > 999999){
+                            alert('在庫数範囲は6桁以内で入力してください');
+                            return false;
+                        }
+                    }
+                    var amount_end = document.getElementById('amount_end').value.replace( /,/g , "" );
+                    if (amount_end !== ''){
+                        amount_end = parseInt(amount_end, 10);
+                        if (Math.abs(amount_end) > 999999){
+                            alert('在庫数範囲は6桁以内で入力してください');
+                            return false;
+                        }
+                    }
+                    // 大小チェック
+                    if (amount_str !== '' && amount_end !== '' && amount_str > amount_end){
+                        alert('在庫数範囲指定に誤りがあります。');
+                        return false;
+                    }
+                    
+                    // 最初の1文字 (?記号) を除いた文字列を取得する
+                    var query = window.location.search.substring( 1 );
+                    var action = frm.action.split( '?' );
+
+                    // 検索以外の機能実行後だった場合、パラメータを補正する
+                    if(1 < action.length){
+                        frm.action = action[0];
+                    }
+
+                    // クエリの区切り記号 (&) で文字列を配列に分割する
+                    var parameters = query.split( '&' );
+                    if (frm.onbtn.value == 'serch') {
+                        frm.target='_self';
+                        if(1 < parameters.length){
+                             frm.action += '?param=' +frm.elements["codeName"].value + '&home=1';
+                         }else{
+                             frm.action += '?param=' +frm.elements["codeName"].value;
+                        }
+                    }else if (frm.onbtn.value == 'csvoutput'){
+                        header_text = header_h.getElementsByTagName('tr')[0].innerText.replace(' ▲',"").replace(' ▼',"").replace(/[\n,\r]/g,'').replace(/\t/g,",");
+                        elem_tr_list = data.getElementsByTagName('tr');
+                        data_send = [];
+                        var csv_data_o = {};
+                        csv_data_o['"0"'] = header_text;
+                        var row_nb = 1;
+                //ADDSTR 2020/02/03 kanderu
+                var list_nm = '';  //店舗リスト用の変数
+                //ADDEND 2020/02/03 kanderu 
+                        for(i=0;i<elem_tr_list.length;i++){
+                            if(elem_tr_list[i].style.backgroundColor){
+                                //console.log(elem_tr_list[i]);
+                                continue;
+                            }                            
+                    //EDITSTR 2020/02/03 kanderu
+                    //csv_data_o['"'+row_nb+'"'] = '"'+elem_tr_list[i].innerText.replace(/\t/g,'","')+'"'; 
+                    
+		                    if(elem_tr_list[i].getElementsByTagName('td')[0].innerText !== ''){
+		                        list_nm = elem_tr_list[i].getElementsByTagName('td')[0].innerText;　//CSV出力の時店舗名の行を空ないの場合、普通の店舗名を表示
+		                        csv_data_o['"'+row_nb+'"'] = '"'+elem_tr_list[i].innerText.replace(/\t/g,'","')+'"';
+		                    }else{
+		                        elem_tr_list[i].getElementsByTagName('td')[0].innerText = list_nm;　//店舗名を表示して保持
+		                        csv_data_o['"'+row_nb+'"'] = '"'+elem_tr_list[i].innerText.replace(/\t/g,'","')+'"';
+		                        elem_tr_list[i].getElementsByTagName('td')[0].innerText = '';　//CSV出力の時行が空の場合、保持した店舗名を空の行を埋めます
+		                    }
+		                    //EDITEND 2020/02/03 kanderu
+                            row_nb +=1;
+                        }
+                        csv_data.value = JSON.stringify(csv_data_o);                        
+                        if(1 < parameters.length){
+                             frm.action += '?param=LedgerSheetStocklist/csvoutput&home=1';
+                         }else{
+                             frm.action += '?param=LedgerSheetStocklist/csvoutput';
+                        }
+                    }
+                }
+            }
+
+    $(document).ready(function()
+    {
+        /**
+         * 帳票種別によって日付フォームを切り替え
+         */
+        $('#codeName').change(function()
+        {
+            if($('#codeName').val() === "LedgerSheetMonth/show")
+            {
+                $('#start_dateM').css('display' , '');
+                $('#end_dateM').css('display' , '');
+                $('#start_date').css('display' , 'none');
+                $('#end_date').css('display' , 'none');
+
+            }
+            else
+            {
+                $('#start_dateM').css('display' , 'none');
+                $('#end_dateM').css('display' , 'none');
+                $('#start_date').css('display' , '');
+                $('#end_date').css('display' , '');
+            }
+        });
+
+        // 日付検索条件の初期設定
+        if($('#codeName').val() === "LedgerSheetItem/show")
+        {
+            $('#start_dateM').css('display' , 'none');
+            $('#end_dateM').css('display' , 'none');
+            $('#start_date').css('display' , '');
+            $('#end_date').css('display' , '');
+        }
+        else
+        {
+            $('#start_date').css('display' , '');
+            $('#end_date').css('display' , '');
+            //$('#start_date2').css('display' , '');
+            //$('#end_date2').css('display' , '');
+        }
+
+    });
+
+    /**
+     *  イベント制御用
+     *
+     */
+    function set_value(s_val){
+        document.serchForm.onbtn.value = s_val;
+    }
+
+    /**
+     * DatePickerを設定
+     */
+    $(function()
+    {
+        $( "#start_date, #end_date" ).datepicker({
+            numberOfMonths: 2,
+            showCurrentAtPos: 1,
+            showButtonPanel: true,
+            dateFormat: 'yy/mm/dd'
+        });
+    });
+    /**
+     *
+     * スクロール制御
+     *
+     */
+        function SyncScroll(/* elem1, elem2, ... */) {
+            this._elements = [];
+            this._elementOnscroll = this._elementOnscroll.bind(this);
+            this.addElement.apply(this, arguments);
+        }
+        SyncScroll.prototype = {
+            enableHorizontal: true,
+            enableVertical: true,
+            addElement: function (/* elem1, elem2, ... */) {
+                var elem, i;
+                for (i = 0; i < arguments.length; i += 1) {
+                    elem = arguments[i];
+                    elem.addEventListener('scroll', this._elementOnscroll, false);
+                    this._elements.push(elem);
+                }
+            },
+            removeElement: function (/* elem1, elem2, ... */) {
+                var elem, i, j;
+                for (i = 0; i < arguments.length; i += 1) {
+                    elem = arguments[i];
+                    elem.removeEventListener('scroll', this._elementOnscroll, false);
+                    j = this._elements.indexOf(elem);
+                    if (j >= 0) {
+                        this._elements.splice(j, 1);
+                    }
+                }
+            },
+            _elementOnscroll: function (event) {
+                var i,
+                    elems = this._elements,
+                    elem = event.target,
+                    x = elem.scrollLeft,
+                    y = elem.scrollTop;
+                if (this.enableHorizontal) {
+                    for (i = 0; i < elems.length; i += 1) {
+                        elem = elems[i];
+                        if (elem === event.target || elem.scrollLeft === x) {
+                            continue;
+                        }
+                        elem.scrollLeft = x;
+                        if (elem.scrollLeft !== x) {
+                            elem.scrollLeft = x + x - elem.scrollLeft;
+                        }
+                    }
+                }
+                if (this.enableVertical) {
+                    for (i = 0; i < elems.length; i += 1) {
+                        elem = elems[i];
+                        if (elem === event.target || elem.scrollTop === y) {
+                            continue;
+                        }
+                        elem.scrollTop = y;
+                        if (elem.scrollTop !== y) {
+                            elem.scrollTop = y + y - elem.scrollTop;
+                        }
+                    }
+                }
+            },
+            destroy: function () {
+                this.removeElement.apply(this, this._elements);
+            }
+        };
+
+        window.onload = function () {
+            creat_listener();
+            radio_change_management();
+            document.getElementById("amount_str").addEventListener('input', function(){ this.value = this.value.replace(/\D/g,''); });
+            document.getElementById("amount_end").addEventListener('input', function(){ this.value = this.value.replace(/\D/g,''); });
+            prod_array = [];
+            if(A_param["prod_r"] === ""){
+                code_list = prod_list.replace(/^,/,'').split(',');
+                name_list = A_param["prod_nm_lst"].split(',');
+                for(i=0;i<name_list.length;i++){
+                    prod_array[code_list[i]] = name_list[i];
+                }          
+            }
+            modal_create_select("prod_select",prod_array);
+            if(prod_list){
+                prod_r_selected.checked = true;
+                prod_select.disabled = false;
+            }
+            if(A_param["prod_select"] && A_param["prod_select"] !== 'empty'){
+                prod_select.value = A_param["prod_select"];
+            }
+            
+            sect_array = [];
+            if(A_param["sect_r"] === ""){
+                code_list = sect_list.replace(/^,/,'').split(',');
+                name_list = A_param["sect_nm_lst"].split(',');
+                for(i=0;i<name_list.length;i++){
+                    sect_array[code_list[i]] = name_list[i];
+                }          
+            }
+            modal_create_select("sect_select",sect_array);
+            if(sect_list){
+                sect_r_selected.checked = true;
+                sect_select.disabled = false;
+            }
+            if(A_param["sect_select"] && A_param["sect_select"] !== 'empty'){
+                sect_select.value = A_param["sect_select"];
+            }
+            
+            org_array = [];
+            if(A_param["org_r"] === ""){
+                code_list = org_list.replace(/^,/,'').split(',');
+                name_list = A_param["org_nm_lst"].split(',');
+                for(i=0;i<name_list.length;i++){
+                    org_array[code_list[i]] = name_list[i];
+                }          
+            }
+            modal_create_select("org_select",org_array);
+            if(org_list){
+                org_r_selected.checked = true;
+                org_select.disabled = false;
+            }
+            if(A_param["org_select"] && A_param["org_select"] !== 'empty'){
+                org_select.value = A_param["org_select"];
+            } 
+            if(A_searchArray['tenpo']){
+                document.getElementById("tenpo").checked = true;
+                org_r_compile.checked = true;
+            }
+            
+            // 賞味期限
+            if (A_searchArray['bb_date_dspkbn'] === '1'){
+                document.getElementById('bb_date_dspkbn_off').checked = true;
+            }
+            else{
+                document.getElementById('bb_date_dspkbn_on').checked = true;
+            }
+            // システムマスタ：賞味期限利用しない
+            if (bb_date_kbn === '1'){
+                document.getElementById('th_bb_date_dspkbn').style.display = 'none';
+                document.getElementById('td_bb_date_dspkbn').style.display = 'none';
+            }
+            
+            // ゼロ商品
+            if (A_searchArray['zero_kbn'] === '0'){
+                document.getElementById('zero').checked = true;
+            }
+            // 対象在庫
+            if (A_searchArray['amount_kbn'] === '1'){
+                document.getElementById('amount_kbn_endmon').checked = true;
+            }
+            else{
+                document.getElementById('amount_kbn').checked = true;
+            }
+            // 売単価表示
+            if (A_searchArray['saleprice_kbn'] === '1'){
+                document.getElementById('saleprice_kbn_ex').checked = true;
+            }
+            else{
+                document.getElementById('saleprice_kbn').checked = true;
+            }
+            // 在庫数範囲指定
+            document.getElementById('amount_str').value = A_searchArray['amount_str'];
+            document.getElementById('amount_end').value = A_searchArray['amount_end'];
+            
+
+            // 縦方向のみ
+            var sample2_1 = document.getElementById('header_v');
+            var sample2_2 = document.getElementById('data');
+            var sample2_3 = document.getElementById('footer_h'); 
+            var syncScroll2 = new SyncScroll(sample2_1, sample2_3, sample2_2);
+            syncScroll2.enableHorizontal = false;
+
+            // 横方向のみ
+            var sample3_1 = document.getElementById('header_h');
+            var sample3_2 = document.getElementById('data');
+            var sample3_3 = document.getElementById('footer_h');            
+            var syncScroll3 = new SyncScroll(sample3_1, sample3_3, sample3_2);
+            syncScroll3.enableVertical = false;
+        };
+
+    </script>
+
+    <STYLE type="text/css">
+                .serchListArea tr:nth-child(even) td { background: transparent; } 
+                #header_h, #footer_h, #sep {
+                   width:98%;
+                   overflow-x:hidden;overflow-y:hidden;
+                   }
+                #header_v {
+                   width:90px;height:650px;
+                   overflow-x:scroll;overflow-y:hidden;
+                   text-align: left;
+                   }
+                #data {
+                   width:99%;
+                   max-height:600px;
+                   overflow-x:scroll;overflow-y:scroll;
+                   table-layout: fixed;
+                   }
+
+    </STYLE>
+
+    </head>
+    <body>
+<?php
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+
+<?php
+    $checked = '';
+    if (isset($_POST['tenpo'])){
+        $checked = ' checked';
+    }
+?>
+<!-- Site -->
+<div id="sb-site">
+<form name="serchForm" id="serchForm" action="/profit/index.php" method="post" onsubmit="return chf(this)">
+<div class="serchListArea">
+<table align="center">
+    <tr>
+        <td>
+            <table id="serchTable">
+                <tr>
+                    <th rowspan=2 id="serchTableTitle" align="left" width="65">帳票</th>
+                    <td rowspan=2 align=left width="120" id="serchTableItem">
+                        在庫明細一覧<br>(明細一覧表)
+                        <!-- 帳票名変更　2019/11/30 柴田 -->
+                      <input type="hidden" name="codeName" id="codeName" value="LedgerSheetStocklist/show">
+                    </td>
+                    <th id="serchTableTitle" align="center" width="65">グループ<br />選択</th>
+                    <td align="left" width=150>
+                            <input type="radio" name="org_r" id="org_r_compile" value="compile"> 企業計<br />
+                            <input type="radio" name="org_r" id="org_r_all" value="all" checked> 全店<br />
+                            <input type="radio" name="org_r" id="org_r_selected" value=""> 店舗指定&nbsp;&nbsp;
+                            <select id="org_select" name="org_select" disabled onchange="modal_select_mgt(event)"><option value="no">&nbsp;</option></select>
+                            <input type="checkbox" name="tenpo" value="Yes" id="tenpo" hidden>
+                            <input type="text" name="org_id" value="" id="org_id" hidden>
+                            <input type="text" name="org_nm_lst" value="" id="org_nm_lst" hidden> 
+                    </td>
+                    <th id="serchTableTitle" align="left" width="65">部門選択</th>
+                    <td id="serchTableItem" width=150>
+                        <input type="radio" name="sect_r" id="sect_r_all" value="all" checked> 全部門<br />
+                        <input type="radio" name="sect_r" id="sect_r_selected" value=""> 部門指定&nbsp;&nbsp;
+                        <select id="sect_select" name="sect_select" disabled onchange="modal_select_mgt(event)"><option value="no">&nbsp;</option></select>                        
+                        <input type="text" name="sect_cd" value="" id="sect_cd" hidden>
+                        <input type="text" name="sect_nm_lst" value="" id="sect_nm_lst" hidden> 
+                    </td>
+                    <th id="serchTableTitle" align="center" width="65">商品選択</th>
+                    <td id="serchTableItem" width=250>
+                        <input type="radio" name="prod_r" id="prod_r_all" value="all" checked> 全商品<br />
+                        <input type="radio" name="prod_r" id="prod_r_selected" value=""> 商品指定&nbsp;&nbsp;
+                        <select id="prod_select" name="prod_select" disabled onchange="modal_select_mgt(event)"><option value="no">&nbsp;</option></select>                        
+                        <input type="text" name="prod_cd" value="" id="prod_cd" hidden>
+                        <input type="text" name="prod_nm_lst" value="" id="prod_nm_lst" hidden> 
+                    </td>
+                    <th id="serchTableTitle" align="center" width="65">ゼロ商品</th>
+                    <td id="serchTableItem" width=100>
+                        <input type="checkbox" id="zero" name="zero"> ゼロ在庫表示
+                    </td>
+                    <td rowspan=2 width="100">
+                      <input class="submit" type="submit" name="search" id="search" value="検索" onClick="set_value('serch')">
+                      <input type="text" name="csv_data" value="" id="csv_data" hidden>
+                <?php if( !empty($ledgerSheetDetailList) ) { ;?>
+                       <input width=20 size=10 class="submit" type="submit" name="csvoutput" id="csvoutput" value="CSV出力" onClick="set_value('csvoutput')">
+                <?php } ?>
+                      <input type="hidden" name="onbtn">
+                    </td>
+                </tr>
+                <tr>
+                    <th id="serchTableTitle" align="center" width="65">在庫数<br />範囲指定</th>
+                    <td id="serchTableItem" width=280>
+                        <input placeholder="開始" type="text" pattern="^(-[1-9][0-9]{0,6}|0)$|^([1-9][0-9]{0,6})$" title="半角数字で入力してください" id="amount_str" name="amount_str" size="8">
+                        <input placeholder="終了" type="text" pattern="^(-[1-9][0-9]{0,6}|0)$|^([1-9][0-9]{0,6})$" title="半角数字で入力してください" id="amount_end" name="amount_end" size="8">
+                    </td>
+                    <th id="serchTableTitle" align="center" width="65">対象在庫</th>
+                    <td id="serchTableItem" width=100>
+                        <input type="radio" id="amount_kbn"        name="amount_kbn" value="0" checked> 現在在庫<br />
+                        <input type="radio" id="amount_kbn_endmon" name="amount_kbn" value="1"> 前月末在庫
+                    </td>
+                    <th id="serchTableTitle" align="center" width="65">売単価<br />表示</th>
+                    <td id="serchTableItem" width=100>
+                        <input type="radio" id="saleprice_kbn"    name="saleprice_kbn" value="0" checked> 税込<br />
+                        <input type="radio" id="saleprice_kbn_ex" name="saleprice_kbn" value="1"> 税抜
+                    </td>                    
+                    <th id="serchTableTitle" align="center" width="65"><span id="th_bb_date_dspkbn">賞味期限</span></th>
+                    <td id="serchTableItem" width=100>
+                        <span id="td_bb_date_dspkbn">
+                            <input type="radio" id="bb_date_dspkbn_on"  name="bb_date_dspkbn" value="0" checked> 表示する<br />
+                            <input type="radio" id="bb_date_dspkbn_off" name="bb_date_dspkbn" value="1"> 表示しない
+                        </span>
+                    </td>
+                </tr>
+            </table>
+            <!-- The Modal -->
+            <div id="modal_prod" class="modal">
+                <!-- Modal content -->
+                <div class="modal-content">
+                    <?php include("../modal/View/Modalproduct.html"); ?>
+                </div>
+            </div>
+
+            <div id="modal_sect" class="modal">
+                <!-- Modal content -->
+                <div class="modal-content">
+                    <?php include("../modal/View/Modaldepartment.html"); ?>
+                </div>
+            </div>
+            
+            <div id="modal_org" class="modal">
+                <!-- Modal content -->
+                <div class="modal-content">
+                    <?php include("../modal/View/Modalorganization.html"); ?>
+                </div>
+            </div>             
+        </td>
+    </tr>
+</table>
+<!-- 固定ヘッダ -->
+<table>
+    <tr>
+        <td>
+            <!-- 水平ヘッダ 現在は固定 -->
+            <div id="header_h">
+            <table>
+                <tr>
+                    <!--
+                    <th id='viewList' align='center' width=50>No</th>
+                    -->
+                    <!-- pme add -->
+                    <th id='viewList' align='center' width=80>店舗名</th>
+                    <!-- pme add end-->
+                    <th id='viewList' align='center' width=102>商品コード</th>
+                    <th id='viewList' align='center' width=220>商品名</th>
+                    <th id='viewList' align='center' width=40>税率</th>
+                    <th id='viewList' align='center' width=80>賞味期限</th>
+                    <th id='viewList' align='center' width=80>容量</th>
+                    <th id='viewList' align='center' width=100>原単価</th>
+                    <th id='viewList' align='center' width=100>売単価</th>
+                    <th id='viewList' align='center' width=60>在庫数</th>
+                    <th id='viewList' align='center' width=70>原価金額</th>
+                    <th id='viewList' align='center' width=70>売価金額</th>
+                </tr>
+            </table>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td>
+
+            <!-- データ部分  -->
+            <div id="data">
+            <table>
+                <?php if( !empty($ledgerSheetDetailList) ) { 
+                    $row_cnt=1;?>
+                    <?php foreach ($ledgerSheetDetailList as $data ) { ?>
+                    <?php
+                        switch ($data['record_type']){
+                            case 'S':
+                                echo '<tr style="background-color:lightgrey;">';
+                                break;
+                            case 'P':
+                                echo '<tr style="background-color:lightgrey;">';
+                                break;
+                            default:
+                                echo '<tr>';
+                                break;
+                        }
+                        if($rows === end($ledgerSheetDetailList) || $data['record_type'] === 'P'){
+                            break;
+                        }                         
+                    ?>
+                    <td id='viewList' style="background-color:transparent;" align='left' width=80><?php hsc($data['abbreviated_name']);?></td>
+                    <td id='viewList' style="background-color:transparent;" align='left'   width=102><?php hsc($data['prod_cd']);?></td>
+                    <td id='viewList' style="background-color:transparent;" align='left'   width=220><?php hsc($data['prod_nm']);?></td>
+                    <td id='viewList' style="background-color:transparent;" align='left'   width=40><?php hsc($data['prod_tax']);?></td>
+                    <td id='viewList' style="background-color:transparent;" align='left' width=80><?php hsc($data['bb_date']);?></td>
+                    <td id='viewList' style="background-color:transparent;" align='left' width=80><?php hsc($data['prod_capa_nm']);?></td>
+                    <td id='viewList' style="background-color:transparent;" align='right'  width=100><?php hsc($data['costprice']);?></td>
+                    <td id='viewList' style="background-color:transparent;" align='right'  width=100><?php hsc($data['saleprice']);?></td>
+                    <td id='viewList' style="background-color:transparent;" align='right'  width=60><?php hsc($data['amount']);?></td>
+                    <td id='viewList' style="background-color:transparent;" align='right'  width=70><?php hsc($data['stock_cost_total']);?></td>
+                    <td id='viewList' style="background-color:transparent;" align='right'  width=70><?php hsc($data['stock_sale_total']);?></td>
+                </tr>
+                    <?php } ?>
+                <?php } ?>
+            </table>
+            </div>
+        </td>
+    </tr>
+    <?php   if( !empty($ledgerSheetDetailList) ) {  
+        $data = end($ledgerSheetDetailList);
+    ?>
+    <tr>
+        <td>        
+            <div id='sep'>
+                <table style="table-layout:fixed;">
+                    <tr>
+                        <th></th>
+                    </tr>
+                </table>
+            </div> 
+        </td>    
+    </tr>    
+    <tr>
+        <td>
+            <div id="footer_h">
+                <table style="table-layout:fixed;">
+                    <tr>
+                        <td id='viewList' align='left' width=80>総合計</td>
+                        <td id='viewList' align='left'   width=102></td>
+                        <td id='viewList'  align='left'   width=220></td>
+                        <td id='viewList'  align='left'   width=40></td>
+                        <td id='viewList'  align='left' width=80></td>
+                        <td id='viewList'  align='left' width=80></td>
+                        <td id='viewList'  align='right'  width=100><?php hsc($data['costprice']);?></td>
+                        <td id='viewList'  align='right'  width=100><?php hsc($data['saleprice']);?></td>
+                        <td id='viewList'  align='right'  width=60><?php hsc($data['amount']);?></td>
+                        <td id='viewList'  align='right'  width=70><?php hsc($data['stock_cost_total']);?></td>
+                        <td id='viewList'  align='right'  width=70><?php hsc($data['stock_sale_total']);?></td>                       
+                    </tr>                 
+                </table>
+            </div>
+        </td>
+    </tr>
+<?php } ?>     
+</table>
+</div>
+</form>
+<script type="text/javascript" src="../jquery/js/scrolltopcontrol2.js"></script> <!--スクロールしながらページのトップに戻る-->
+        </div><!-- /#sb-site -->
+</body>
+</html>

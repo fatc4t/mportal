@@ -1,0 +1,69 @@
+<?php
+    /**
+    * @file        給与データ出力マスタ画面(View)
+    * @author      USE R.dendo
+    * @date        2016/06/24
+    * @version     1.00
+    * @note        給与データ出力マスタ画面(一覧部分)
+    */
+?>
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-ajax">
+
+                <!-- PageMoveArea -->
+                <?php include("../FwCommon/View/PagingArea.php"); ?>
+
+                <!-- serchListArea -->
+                <?php if( $isScrollBar ) { ?>
+                    <div class="serchListArea" style="width:99%; margin:0px auto !important; overflow-y:auto; height:33px;" >
+                <?php } else { ?>
+                    <div class="serchListArea" style="width:99%; margin:0px auto !important;" >
+                <?php } ?>
+                        <input type="hidden" id="token" name="token" value="<?php hsc($TokenID); ?>">
+                        <table id="nameTable">
+                            <tr>
+                                <th width="30px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?></u><?php hsc($headerArray['payrollDataOutNoSortMark']); ?></span></th> <!-- No -->
+                                <th width="60px"><?php hsc($Log->getMsgLog('MSG_BASE_0922')); ?><?php hsc($headerArray['payrollDataOutClosingDateSortMark']); ?></th><!-- 締め年月 -->
+                                <th width="200px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?></u><?php hsc($headerArray['payrollDataOutOrganizationSortMark']); ?></span></th><!-- 組織名 -->
+                                <th width="100px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0923')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0923')); ?></u><?php hsc($headerArray['payrollDataOutClosingConditionsSortMark']); ?></span></th><!-- 締め状況 -->
+                                <th width="100px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0924')); ?>');"><u>下位組織<br>締め状況</u><?php hsc($headerArray['payrollDataOutLClosingConditionsSortMark']); ?></span></th><!-- 下部組織の締め状況 -->
+                            </tr>
+                        </table>
+                <?php if( $isScrollBar ) { ?>
+                    </div>
+                    <div class="serchListArea" style="width:99%; margin: 0px auto; overflow-y:auto; height:300px; !important;">
+                <?php } ?>
+                        <table id="nameTable" style="background-color: #ffffff">
+                            <?php foreach($payOutList as $payOut) { ?>
+                                <?php if(!$payOutSortFlag) { ?>
+                                    <?php $display_no++; ?>
+                                <?php } ?>
+                                <tr>
+                                    <td align="right" width="30px"><?php hsc($display_no); ?></td>
+                                    <td align="center" width="60px"><?php hsc(substr( $payOut['closing_date'], 0, 7)); ?></td>
+                                    <td width="200px"><?php hsc($payOut['abbreviated_name']); ?></td>
+                                        <input type="hidden" name="abbreviatedName" id="abbreviatedName" value="<?php hsc($payOut['organization_id']); ?>">
+                                        <?php
+                                            $approval = "締め未";
+                                            $beneathApproval = "締め未";
+                                            if($payOut['approval'] == 1 )
+                                            {
+                                                $approval = "締め済";
+                                            } 
+                                            if($payOut['beneathApproval'] == 1 )
+                                            {
+                                                $beneathApproval = "締め済";
+                                            } 
+                                        ?>
+                                    <td align="center" width="100px"><?php hsc($approval); ?></td>
+                                    <td align="center" width="100px"><?php hsc($beneathApproval); ?></td>
+                                </tr>
+                                <?php if($payOutSortFlag) { ?>
+                                    <?php $display_no--; ?>
+                                <?php } ?>
+
+                            <?php } ?>
+                        </table>
+                  </div><!-- /.serchListArea -->
+            </div><!-- /.jquery-replace-ajax -->

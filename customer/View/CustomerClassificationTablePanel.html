@@ -1,0 +1,70 @@
+<?php
+    /**
+     * @file      顧客分類マスタ画面(View)
+     * @author    K.Sakamoto
+     * @date      2017/07/25
+     * @version   1.00
+     * @note      顧客分類マスタ画面(一覧部分)
+     */
+?>
+            <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+            <!-- ajax差し替えエリア -->
+            <div id="jquery-replace-ajax">
+
+                <!-- PageMoveArea -->
+                <?php include("../FwCommon/View/PagingArea.php"); ?>
+
+                <!-- serchListArea -->
+            <?php if( $isScrollBar ) { ?>
+                <div class="serchListArea" style=" clear:both; width:99%; margin:0px auto !important; overflow-y:auto; height:25px;">
+            <?php } else { ?>
+                <div class="serchListArea" style=" clear:both; width:99%; margin:5px auto !important;">
+            <?php } ?>
+                    <input type="hidden" id="token" name="token" value="<?php hsc($TokenID); ?>">
+                    <table>
+                        <tr>
+                            <th width="38px"><?php hsc($Log->getMsgLog('MSG_BASE_0848')); ?></th>
+                            <th width="173px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0929')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0929')); ?></u><?php hsc($headerArray['customerTypeCodeSortMark']); ?></span></th>
+                            <th width="165px"><span onClick="setColumnInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0930')); ?>');"><u><?php hsc($Log->getMsgLog('MSG_BASE_0930')); ?></u><?php hsc($headerArray['customerTypeNameSortMark']); ?></span></th>
+                            <th width="90px"></th>
+                        </tr>
+                    </table>
+            <?php if( $isScrollBar ) { ?>
+                </div>
+                <div class="serchListArea" style="width:99%; margin: 0px auto; overflow-y:auto; height:300px; !important;">
+            <?php } ?>
+                    <table id="nameTable">
+                        <?php if( !empty($customerClassificationList) ) { ?>
+                        <?php foreach($customerClassificationList as $customerClassification) { ?>
+                            <?php $customerClassification_no++; ?>
+                            <?php if(!$customerClassificationNoSortFlag) { ?>
+                                <?php $display_no++; ?>
+                            <?php } ?>
+                            <tr>
+                                <input type="hidden" id="custTypeIdMod<?php hsc($customerClassification_no); ?>" name="customerTypeId<?php hsc($customerClassification_no); ?>" value="<?php hsc($customerClassification['cust_type_id']); ?>">
+                                <input type="hidden" id="updateTime<?php hsc($customerClassification_no); ?>" name="updateTime<?php hsc($customerClassification_no); ?>" value="<?php hsc($customerClassification['update_time']); ?>">
+                                <td align="right" width="38px" ><?php hsc($display_no); ?></td>
+                                <td id="sCode<?php hsc($customerClassification_no); ?>" width="173px" ><?php hsc($customerClassification['cust_type_cd']); ?></td>
+                                <td id="sCode-edit<?php hsc($customerClassification_no); ?>" style="display : none" align="center" width="173px" >
+                                    <?php hsc($customerClassification['cust_type_cd']); ?>    
+                                    <input type="hidden" id="custTypeCodeMod<?php hsc($customerClassification_no); ?>" name="sCode<?php hsc($customerClassification_no); ?>" value="<?php hsc($customerClassification['cust_type_cd']); ?>">
+                                </td>
+                                <td id="sCustomerClassification<?php hsc($customerClassification_no); ?>" width="165px" ><?php hsc($customerClassification['cust_type_nm']); ?></td>
+                                <td id="sCustomerClassification-edit<?php hsc($customerClassification_no); ?>" style="display : none"  align="center" width="165px" >
+                                    <input type="text" title="16<?php hsc($Log->getMsgLog('MSG_BASE_0310')); ?>" id="custTypeNmMod<?php hsc($customerClassification_no); ?>" name="sCustomerType<?php hsc($customerClassification_no); ?>" size="22" maxlength="16" value="<?php hsc($customerClassification['cust_type_nm']); ?>" class="Em" required>
+                                </td>
+                                <td align="center" width="90px" >
+                                    <?php if(empty($customerClassification['disabled'])) { ?>
+                                        <input type="button" id="edtBtn<?php hsc($customerClassification_no); ?>" value="<?php hsc($Log->getMsgLog('MSG_BASE_0801')); ?>" onclick="editRow(this)" <?php hsc($customerClassification['cor_disabled']); ?>  >
+                                        <input type="submit" id="edtBtn-mod<?php hsc($customerClassification_no); ?>" name="mod<?php hsc($customerClassification_no); ?>" style="display : none;" value="<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>')" <?php hsc($customerClassification['mod_disabled']); ?>>
+                                        <input type="button" id="edtBtn-del<?php hsc($customerClassification_no); ?>" name="del<?php hsc($customerClassification_no); ?>" style="display : none;" value="<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>')" <?php hsc($customerClassification['del_disabled']); ?>>
+                                    <?php } ?>
+                                </td>
+                            </tr>
+                            <?php if($customerClassificationNoSortFlag) { ?>
+                                <?php $display_no--; ?>
+                            <?php } ?>
+                        <?php }} ?>
+                    </table>
+                </div><!-- /.serchListArea -->
+            </div><!-- /.jquery-replace-ajax -->

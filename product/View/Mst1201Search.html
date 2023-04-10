@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>部門検索</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!--<link rel="stylesheet" href="../css/product/jquery-ui.css" >	
+        <link rel="stylesheet" href="../css/product/default.css" >	        -->
+        <style>
+            body {
+              /*font-family: MS Gothic;*/
+                background-color: whitesmoke;
+            }
+            label {
+              background-color: #0B0B61;
+              color: white;
+              font-weight: bold;
+              padding: 2px;
+              text-transform: uppercase;
+            /*font-size: 12pt;*/
+              font-size: 11pt;
+              margin: 1px;
+              display: inline-block;              
+            } 
+            .input_small2{
+                width: 8em;
+            } 
+            thead#thead_id th {
+                background-color: #0B0B61;
+                border: 1px solid #AAA;
+                color: white;
+                text-align: -webkit-center;
+                font-size: 11pt;
+            }
+            tbody#tbody_id {
+                background-color: #fff;
+                border: 1px solid #0B0B61;
+                font-size: 11pt;
+            }
+            /* organization */
+            thead#thead_id th:nth-child(2),
+            tbodytbody_id tr td:nth-child(2){
+                width: 12em;
+            }
+            /* sect_cd */
+            thead#thead_id th:nth-child(3),
+            tbodytbody_id tr td:nth-child(3){
+                width: 8em;                
+            }
+            /* sect_nm */
+            thead#thead_id th:nth-child(4),
+            tbodytbody_id tr td:nth-child(4){
+                width: 30em;                
+            }
+            /* sect_kn */
+            thead#thead_id th:nth-child(5),
+            tbodytbody_id tr td:nth-child(5){
+                width: 12em;                
+            }
+/*//ADDSTR kanderu 20201021            */
+             #back{
+              width: 80px;
+              margin-right: 2px;
+            }
+            tbody  {
+                background-color: #fff;
+                border: 1px solid #0B0B61;
+            }
+            td {
+                background-color: #fff;
+                border: 1px solid #0B0B61;
+                
+            }
+            #send_result{
+              width: 80px;
+              margin-right: 250px;
+            }
+            #btn{
+               right:3.4%;
+               margin-top:23px;
+               margin-left: 350px;
+            }
+            #tblsrc{
+          margin-bottom: -37px;
+               }
+            #sb-site{
+                max-width: 1220px;
+                margin-left: auto !important;
+                margin-right: auto !important;
+            }   
+            #cmb_ORGANIZATION_ID{
+              position: absolute;
+               width:183px;
+            }
+            #tblsrc{
+          margin-left: 350px;
+            }:
+            #data{
+              margin-top:1000px;
+            }            
+/*//ADDEND kanderu 20201021            */            
+        </style>
+        <script type="text/javascript">
+            var table_size = 30;
+            var pagenb = 0;
+            
+            var keys=[];
+            keys=["abbreviated_name","sect_cd", "sect_nm", "sect_kn"]
+            var result = "";
+            thead_nm            = ["","組織名","部門コード","部門名","部門カナ"];
+            pmst1201_sd         = '<?php echo json_encode(json_encode($mst1201_searchdata)); ?>';
+            ptypmst1201_sd      = JSON.parse(pmst1201_sd.slice(1,-1));
+            working_data        = ptypmst1201_sd;
+            var pagemaxnb = Math.ceil(ptypmst1201_sd.length/table_size)-1 ;
+            //
+            abbreviated_list    = '<?php echo json_encode(json_encode($abbreviatedNameList)); ?>';
+            A_abbreviated_list  = JSON.parse(abbreviated_list.slice(1,-1));
+
+            function fresult(e){
+                result=e.target.value;
+                //console.log(result);
+                checkboxlst=document.getElementsByName('ckbox_val');
+                //console.log(checkboxlst);
+                for(i=0;i < checkboxlst.length; i++){
+                    checkboxlst[i].checked= false;
+                }
+                document.getElementById(e.target.id).checked= true;
+            }
+            function tbodydata(data,start,nbRow){ 
+                tbod = document.getElementById("tbody_id");
+                tbod.innerHTML = '';
+                if(data.length > 0){ 
+                    if(keys.length <= 0){
+                        keys = Object.keys(data[0]);            
+                    }
+                    ilength=data.length;
+                    if(nbRow > ilength-start){
+                        nbRow=ilength-start;                        
+                    }
+                    for(i=0;i < nbRow ; i++ ){ 
+                        var trow         = tbod.insertRow(i);
+                        var ckbox        = trow.insertCell(0);
+                        var newckBox     = document.createElement('input');
+                        newckBox.type    = 'checkbox';
+                        newckBox.name    = 'ckbox_val';
+                        newckBox.id      = 'ckbox_' + i;
+//                        newckBox.value   = data[ilength-start-i-1].sect_cd;
+                        var iIdx = ilength-start-i-1;
+                        newckBox.value   = data[iIdx].organization_id + ':' + data[iIdx].sect_cd;
+                        newckBox.onclick = fresult;
+                        ckbox.appendChild(newckBox);
+                        for(j=0;j < keys.length; j++){
+                            var newcell = trow.insertCell(j+1);
+                            newcell.innerHTML = data[ilength-start-i-1][keys[j]];
+                        }
+                    }
+                }                
+            }
+
+            function datashowpage(showpage){
+                tbodydata(working_data,showpage*table_size,table_size);
+//ADDSTR 20201023 kanderu 
+//               //pagenation
+                var number =pagenb;
+                document.getElementById("pagenb").innerHTML = number;
+                var number1 =pagemaxnb;
+                document.getElementById("maxpagenb").innerHTML = number1;
+//ADDEND 20201023 kanderu 
+            }
+            function firstpage(){
+                pagenb=0;
+                document.getElementById("bt_previous").setAttribute("disabled", true);
+                document.getElementById("bt_next").removeAttribute("disabled");
+                datashowpage(pagenb);
+            }
+            function lastpage(){
+                pagenb=pagemaxnb;
+                document.getElementById("bt_previous").removeAttribute("disabled");
+                document.getElementById("bt_next").setAttribute("disabled", true);
+                datashowpage(pagenb);
+            }
+            function previous(){
+                pagenb--;
+                if(pagenb > 1){  
+                    document.getElementById("bt_previous").removeAttribute("disabled");
+                }
+                else {
+                    pagenb = 1;
+                    document.getElementById("bt_previous").setAttribute("disabled", true);
+                }
+                if(pagenb < pagemaxnb){
+                    document.getElementById("bt_next").removeAttribute("disabled");
+                }
+                else {
+                    pagenb = pagemaxnb;                    
+                    document.getElementById("bt_next").setAttribute("disabled", true);
+                }                
+                datashowpage(pagenb);
+            }
+            function next(){ 
+                pagenb++;
+                if(pagenb < pagemaxnb){
+                    document.getElementById("bt_next").removeAttribute("disabled");
+                }
+                else {
+                    pagenb = pagemaxnb;                    
+                    document.getElementById("bt_next").setAttribute("disabled", true);
+                }
+                if(pagenb > 1){  
+                    document.getElementById("bt_previous").removeAttribute("disabled");
+                }
+                else {
+                    pagenb = 0;
+                    document.getElementById("bt_previous").setAttribute("disabled", true);
+                }                
+                datashowpage(pagenb);
+            }
+             
+            function searchdata(event_id){
+                   pagenb=1;
+                var orgn_id_val = document.getElementById("cmb_ORGANIZATION_ID").value;
+                var sect_nm_val = document.getElementById("txt_SECT_NM").value;
+                var sect_kn_val = document.getElementById("txt_SECT_KN").value;
+                if(!orgn_id_val && !sect_nm_val && !sect_kn_val){
+                    working_data = ptypmst1201_sd;
+                    pagemaxnb = Math.ceil(working_data.length/table_size)-1 ;
+                    firstpage();
+                    return;
+                  pagenb=1;
+                }
+                working_data = [];
+                for(var i = 0 ; i<ptypmst1201_sd.length;i++){
+                    var j=0;
+                    if(orgn_id_val){
+                        if(!ptypmst1201_sd[i].organization_id){continue;}
+                        if(ptypmst1201_sd[i].organization_id == orgn_id_val){
+                            j=1;
+                        }
+                        else{continue;}
+                    }
+                    if(sect_nm_val){
+                        if(!ptypmst1201_sd[i].sect_nm){continue;}
+                        if(ptypmst1201_sd[i].sect_nm.indexOf(sect_nm_val) !== -1  ){
+                            j=1;
+                        }
+                        else{continue;}
+                    }
+                    if(sect_kn_val){
+                        if(!ptypmst1201_sd[i].sect_kn){continue;}
+                        if(ptypmst1201_sd[i].sect_kn.indexOf(sect_kn_val) !== -1  ){
+                            j=1;
+                        }
+                        else{continue;}
+                    }                    
+                    if(j===1){
+                        working_data.push(ptypmst1201_sd[i]);
+                    }
+                }
+                pagemaxnb = Math.ceil(working_data.length/table_size)-1 ;
+                firstpage();
+            }
+            function send_result(){
+                if (result != ""){
+                    spath = window.location.href;
+                    spath = spath.split('?'); 
+                    spath = spath[0]+'?param=Mst1201/show&sectcd='+result;
+                    window.location.replace(spath);
+                }
+            }
+          													
+
+//ADDSTR 20201023 kanderu 
+　　　　　　//ペジnumber表示する
+            window.onload = function () { 
+                pagenb=1;
+                var number =pagenb;
+               
+                document.getElementById("pagenb").innerHTML = number;
+                var number1 =pagemaxnb;
+                document.getElementById("maxpagenb").innerHTML = number1;
+            };
+//ADDEND 2020/10/21 kanderu
+            //検索画面からmain画面に戻る
+            function goBack() {
+                    spath = window.location.href;
+                    spath = spath.split('?'); 
+                    spath = spath[0]+'?param=Mst1201/show&sectcd=';
+                    window.location.replace(spath);   
+            }
+//ADDEND 2020/10/21 kanderu
+        </script>
+    </head>
+    <body>
+        
+    <!-- Site -->
+    <div id="sb-site" style="overflow: auto;">
+          <table width="312px">
+        <th id="titlesrc" style="background-color:#0B0B61; color:white; font-size:12pt; ">商品管理 ★部門マスタ★部門検索</th>
+        </table >
+<!--ADDSTR kanderu 20201021        -->   
+<!--戻るbutton-->
+        <p align=center>
+        <input type="button"  id="back" name="back" value="戻る" class="return" onclick="goBack()">
+        <button type="button" id="send_result" onclick="send_result()"  >決定</button>
+        </p>   
+<!--ADDEND kanderu 20201021        -->
+        
+        <div>
+            <label class="input_small2" for="cmb_ORGANIZATION_ID"> 組織名 </label>
+            <select id="cmb_ORGANIZATION_ID" onchange="searchdata('cmb_ORGANIZATION_ID')">
+                <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+                <?php foreach($abbreviatedNameList as $abbreviated) { ?>
+                    <option value="<?php hsc($abbreviated['organization_id']); ?>" <?php hsc($selected); ?>><?php hsc($abbreviated['abbreviated_name']); ?></option>
+                <?php } ?>
+            </select><br />
+            <label class="input_small2" for="txt_SECT_KN"> 部門名（カナ） </label><input type="text" style="width:175px;" id="txt_SECT_KN" onblur="searchdata('txt_SECT_KN')"><br />
+            <label class="input_small2" for="txt_SECT_NM"> 部門名（漢字） </label><input type="text" style="width:175px;" id="txt_SECT_NM" onblur="searchdata('txt_SECT_NM')"><br /><br />
+            <button type="button" id="bt_fisrt" onclick="firstpage()"  >先頭ページ</button><button type="button" id="bt_previous" onclick="previous()" disabled >前ページ</button>
+            <button type="button" id="bt_next" onclick="next()">次ページ</button><button type="button" id="bt_last" onclick="lastpage()"  >最終ページ</button>
+<!--                <span id="pages_number">0/0ページ</span>
+                <label id='pagenb1' ></label>/ <label id='pagenb2' ></label>-->
+<!--//ADDSTR 20201023 kanderu -->
+               <tbody onload="datashowpage(showpage)">
+                  
+               <span id="pagenb"></span>/<span id='maxpagenb' ></span>ページ
+<!--//ADDEND 20201023 kanderu -->
+     <div id="listingTable"></div>
+        </div>
+    
+        <div>
+            <table>
+                <thead id="thead_id">
+                    <tr>
+                        <th>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="tbody_id">
+                    
+                </tbody>
+            </table>
+        </div>
+       
+    </div><!-- /#sb-site -->
+        <script type="text/javascript">
+            thead = document.getElementById("thead_id");
+            thead.innerHTML = '';           
+            for(i=0;i < thead_nm.length ; i++ ){
+                field_nm            = document.createElement('th');
+                field_nm.innerHTML  = "";
+                field_nm.innerHTML  = thead_nm[i];
+                thead.appendChild(field_nm);
+            }
+            tbodydata(ptypmst1201_sd,0,table_size);
+        </script>
+    </body>
+</html>

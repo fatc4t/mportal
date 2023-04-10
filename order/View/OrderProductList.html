@@ -1,0 +1,81 @@
+
+<?php
+    /**
+     * @file        仕入発注品マスタ画面(View)
+     * @author      尉
+     * @date        2019/07/11
+     * @version     1.00
+     * @note        仕入発注品マスタ画面
+     */
+?>
+
+<!-- ajax差し替えエリア -->
+<div id="jquery-replace-ajax">
+    <?php require_once( SystemParameters::$SANITIZE_SETTING_FILE ) ?>
+    <!-- PageMoveArea -->
+    <?php include("../FwCommon/View/PagingArea.php"); ?>    	
+
+    <div id="table_id" class="serchListArea" style=" clear:both; width:815px; margin:0px auto !important;">
+        <table id="listTable1" class="listTable" style="width:800px;margin:0px auto; margin-top: 5px;">
+            <?php
+            if(!empty($orderProductList))
+            {
+            ?>
+            <thead>
+                <tr>
+                    <th style="width:50px;"></th>
+                    <th style="width:200px;">
+                        <span onClick="setColumnInfo('仕入商品CD');">
+                            <u>仕入商品CD</u>
+                            <?php hsc($headerArray['prodCdSortMark']); ?>
+                        </span>
+                    </th>
+                    <th style="width:400px;">
+                        <span onClick="setColumnInfo('仕入商品名');">
+                            <u>仕入商品名</u>
+                            <?php hsc($headerArray['prodNmSortMark']); ?>
+                        </span>
+                    </th>
+                    <th style="width:50px;"></th>
+                </tr>
+            </thead>
+        </table>
+    <?php if( $isScrollBar ) { ?>
+    </div>
+    <div class="serchListArea" style="width:830px; padding-left:12px;margin: 0px auto; overflow-y:auto; height:600px;">
+    <?php } ?>
+        <table id="listTable2" class="listTable" style="width:800px;margin:0px auto;">
+            
+            
+            <?php foreach($orderProductList as $orderProduct) { ?>
+            <?php   $orderProduct_no++;                         ?>
+            <?php   if(!$orderProductNoSortFlag) {              ?>
+            <?php       $display_no++;                          ?>
+            <?php   }                                           ?>
+            <tr>
+                <td style="width:50px;">
+                    <input type="button" value="選択" class="selected" param="<?php echo $orderProduct['pro_cd'];?>">
+                </td>
+                <td style="text-align:right;width:200px;">
+                    <?php echo $orderProduct['pro_cd'] ;?>
+                    <input type="hidden" name="prod_cd_send" value="<?php echo $orderProduct['pro_cd'];?>">
+                </td>
+                <td style="width:400px;">
+                    <?php echo $orderProduct['pro_name'];?>
+                    <input type="hidden" name="prod_nm_send" value="<?php echo $orderProduct['pro_name'];?>">
+                </td>
+                <td style="width:50px;">
+                    <input type="button" value="削除" class="deleted" param="<?php echo $orderProduct['pro_cd'];?>">
+                </td>
+            </tr>
+
+            <?php   if($orderProductNoSortFlag) {   ?>
+            <?php       $display_no--;              ?>
+            <?php   }                               ?>
+            <?php }                                 ?>
+        </table>
+    <?php
+    }
+    ?>
+    </div><!-- /.serchListArea -->
+</div><!-- /.jquery-replace-ajax -->

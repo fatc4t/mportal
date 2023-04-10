@@ -1,0 +1,228 @@
+<?php
+    /**
+     * @file      シフトフォーマットダウンロード/インポート画面 (View)
+     * @author    USE Y.Sakata
+     * @date      2016/07/30
+     * @version   1.00
+     * @note      シフトフォーマットダウンロード/インポート画面
+     */
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <?php
+            $fileNames = array( 'default.css',
+                                'common.js', 
+                                'jquery-ui.min.js', 
+                                'jquery-ui.css',
+                                'dropzone.css',
+                                'dropzone.js'
+                                 );    // cssまたはｊｓファイルを拡張子付きで配列に記述 
+
+            include("Common/HtmlHeader.php");
+        ?>
+        <!-- 年月のDatePickerを使用する為のInclude Start -->
+        <script src="../js/attendance/jquery/jquery.ui.ympicker.js" /></script>
+        <script src="../js/attendance/jquery/jquery-migrate-1.0.0.js" /></script>
+        <!-- 年月のDatePickerを使用する為のInclude End -->
+        <!-- オリジナルコンテキストメニューを使用する為のInclude Start -->
+        <script src="../js/attendance/jquery/jquery.contextmenu.r2.js" /></script>
+        <script type="text/javascript">
+            var btnInfo = null;
+            $(document).ready(function() 
+            {
+                /**
+                 * 登録/ファイルダウンロードボタンクリック
+                 */
+                $('#addForm').submit(function(event)
+                {
+                    event.preventDefault();
+                    if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0804")); ?>' )
+                    {
+                        
+                        // シフト登録
+                        document.getElementById("dialog_add").textContent='<?php hsc(SystemParameters::$NEW_DIALOG_MSG); ?>';
+                        $("#dialog_add").dialog('open');
+                    }
+                    else
+                    {
+                        //event.preventDefault();
+                        // ファイルダウンロード
+                        document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$FILE_DOWNLOAD_MSG); ?>';
+                        $("#dialog_mod").dialog('open');
+                    }
+                    
+                    //サブミット後、ページをリロードしないようにする
+                    //return false;
+                });
+            });
+
+            $(function() {
+                /*
+                 * DatePickerInisilizer
+                 * @author 2016/06/30 Y.Sugou
+                 */
+                $("#datetext").ympicker({
+                    altField: "#datetext" //リターンセットUI IDorCLASS名
+                    ,altFormat: "yy/mm" //リターン日付形式
+                    ,monthNamesShort: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"]  //カレンダー表示月形式
+                    ,showAnim: "slideDown" //表示アニメーション形式
+                    ,yearRange: "c-2:c+3" //プルダウン年範囲
+                });
+            });
+
+            /**
+             * 行情報を設定
+             */
+            function setLineInfo( thisBtnInfo )
+            {
+                btnInfo  = thisBtnInfo;
+                return false;
+            }
+            
+            /**
+             * シフト登録の設定
+             */
+            function setAddData()
+            {
+                var path = 'index.php?param=ShiftDlUp/add&home=1';
+
+                // データ更新
+                var f = document.forms['addForm'];
+                f.method = 'POST'; // method(GET or POST)を設定する
+                f.action = path; // action(遷移先URL)を設定する
+                f.submit(); // submit する
+                return true;
+            }
+
+            /**
+             * ファイルダウンロードの設定
+             */
+            function setModData()
+            {
+                var path = 'index.php?param=ShiftDlUp/download&home=1';
+
+                // POSTデータを生成
+                // エレメントを作成
+                var ele1 = document.createElement('input');
+                // データを設定
+                ele1.setAttribute('type', 'hidden');
+                ele1.setAttribute('name', 'organizationId');
+                ele1.setAttribute('id', 'organizationId');
+                ele1.setAttribute('value', $('#organizationName').val());
+                // 要素を追加
+                document.forms['addForm'].appendChild(ele1);
+
+                ele1 = document.createElement('input');
+                // データを設定
+                ele1.setAttribute('type', 'hidden');
+                ele1.setAttribute('name', 'date');
+                ele1.setAttribute('id', 'date');
+                ele1.setAttribute('value', $('#datetext').val());
+                // 要素を追加
+                document.forms['addForm'].appendChild(ele1);
+                
+                if( $('#datetext').val() != "" && $('#organizationName').val() != "" )
+                {
+                    // データ更新
+                    var f = document.forms['addForm'];
+                    f.method = 'POST'; // method(GET or POST)を設定する
+                    f.action = path; // action(遷移先URL)を設定する
+                    f.submit(); // submit する
+                    return true;
+                }
+                else
+                {
+                    alert("日付と組織名を選択してください");
+                }
+            }
+            
+            function cancel()
+            {
+                // サブミット後、ページをリロードしないようにする
+                return false;
+            }
+            
+        </script>
+        
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site">
+            <!-- パンくずリスト -->
+            <?php include("Common/Breadcrumb.php"); ?>
+            <form id="addForm" name="addForm" >
+                <input type="hidden" name="companyID" value="<?php hsc( $_SESSION['COMPANY_ID'] ); ?>">
+                
+                <!-- serchBoardArea -->
+                <div class="serchBoardArea" style="width:550px; margin:5px auto !important; background-color: #ffffff">
+                    <table>
+                        <th style="width:110px">
+                            日付<!-- 日付 -->
+                        </th>
+                        <td style="width:110px">
+                            <input type="text" id="datetext"  name="datetext" value="<?php echo $toYm; ?>" style="width:100px;" />
+                        </td>
+                        <th style="width:110px">
+                            <?php hsc($Log->getMsgLog('MSG_BASE_0854')); ?><!-- 組織名 -->
+                        </th>
+                        <td style="width:220px">
+                            <?php include("../FwCommon/View/SearchOrganizationName.php"); ?>
+                        </td>
+                    </table>
+                </div><!-- /.serchBoardArea -->
+
+                <?php
+                    // ダウンロードエラー発生時
+                    if( $messege != "MSG_BASE_0000" )
+                    {
+                ?>
+                        <p align="center"><font color="red"><?php hsc($Log->getMsgLog($messege)); ?></font></p>
+                <?php
+                    }
+                ?>
+
+                <?php
+                    // アラート発生時
+                    if( $alertMsg != '' )
+                    {
+                ?>
+                        <div class="serchBoardArea" style="width:550px; margin:5px auto !important;">
+                            <font color="red"><?php echo( $alertMsg ); ?></font>
+                        </div>
+                <?php
+                    }
+                ?>
+
+                <!-- logicButtonArea -->
+                <div class="logicButtonArea">
+                    <p align="center"> 
+                        <input type="submit" id="fileDownload" name="fileDownload" href="#" value="　<?php hsc($Log->getMsgLog('MSG_BASE_0921')); ?>" onclick="setLineInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0921')); ?>')" class="undo" style="WIDTH: 180px" <?php hsc( $btDisabled ); ?> />
+                        <br>
+                        <br>
+                    </p>
+                    <div id="uploadBase">
+                        <div id="uploadFile" class="dropzone"></div>
+                        <br>
+                        <input type="submit" id="add" name="add" href="#" value="<?php hsc($Log->getMsgLog('MSG_BASE_0804')); ?>" onclick="setLineInfo('<?php hsc($Log->getMsgLog('MSG_BASE_0804')); ?>')" class="request" style="WIDTH: 180px" <?php hsc( $btDisabled ); ?> />
+                    </div>
+                </div><!-- /.logicButtonArea -->
+            </form>
+        
+        </div><!-- /.sb-site -->
+
+        <?php include("../FwCommon/View/Dialog.php"); ?>
+    </body>
+    <script type="text/javascript" src="../js/attendance/CustumDropzoneFileOne.js" charset="Shift_JIS"></script>
+</html>

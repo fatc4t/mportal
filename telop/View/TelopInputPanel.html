@@ -1,0 +1,824 @@
+<?php
+    /**
+     * @file      テロップ入力画面(View)
+     * @author    millionet oota
+     * @date      2017/01/26
+     * @version   1.00
+     * @note      テロップ入力画面
+     */
+?>
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+    <!-- Force latest IE rendering engine or ChromeFrame if installed -->
+    <!--[if IE]>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <![endif]-->
+    <meta charset="utf-8">
+    <meta name="description" content="File Upload widget with multiple file selection, drag&amp;drop support, progress bars, validation and preview images, audio and video for jQuery. Supports cross-domain, chunked and resumable file uploads and client-side image resizing. Works with any server-side platform (PHP, Python, Ruby on Rails, Java, Node.js, Go etc.) that supports standard HTML form file uploads.">
+    <!-- Bootstrap styles -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <!-- Generic page styles -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- blueimp Gallery styles -->
+    <link rel="stylesheet" href="//blueimp.github.io/Gallery/css/blueimp-gallery.min.css">
+    <!-- CSS to style the file input field as button and adjust the Bootstrap progress bars -->
+    <link rel="stylesheet" href="css/jquery.fileupload.css">
+    <link rel="stylesheet" href="css/jquery.fileupload-ui.css">
+    <!-- CSS adjustments for browsers with JavaScript disabled -->
+    <noscript><link rel="stylesheet" href="css/jquery.fileupload-noscript.css"></noscript>
+    <noscript><link rel="stylesheet" href="css/jquery.fileupload-ui-noscript.css"></noscript>
+        
+    <?php
+        $fileNames = array( 'default.css', 'common.js', 'jquery-ui.min.js', 'jquery-ui.css' );    // cssまたはｊｓファイルを拡張子付きで配列に記述 
+        include("Common/HtmlHeader.php"); 
+    ?>
+        
+<!-- アップロード領域 -->
+<script id="template-upload" type="text/x-tmpl">
+{% for (var i=0, file; file=o.files[i]; i++) { %}
+    <tr class="template-upload fade">
+        <td>
+            <span class="preview"></span>
+        </td>
+        <td>
+            <p class="name">{%=file.name%}</p>
+            <strong class="error text-danger"></strong>
+        </td>
+        <td>
+            <p class="size">Processing...</p>
+            <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-bar progress-bar-success" style="width:0%;"></div></div>
+        </td>
+        <td>
+            {% if (!i && !o.options.autoUpload) { %}
+                <button class="btn btn-primary start" disabled>
+                    <i class="glyphicon glyphicon-upload"></i>
+                    <span>アップロード</span>
+                </button>
+            {% } %}
+            {% if (!i) { %}
+                <button class="btn btn-warning cancel">
+                    <i class="glyphicon glyphicon-ban-circle"></i>
+                    <span>キャンセル</span>
+                </button>
+            {% } %}
+        </td>
+    </tr>
+{% } %}
+</script>
+<!-- アップロード後の領域(保存後の領域) -->
+<script id="template-download" type="text/x-tmpl">
+{% for (var i=0, file; file=o.files[i]; i++) { %}
+    <tr class="template-download fade">
+        <td>
+            <span class="preview">
+                {% if (file.url) { %}
+                    <a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}" data-gallery><img src="{%=file.url%}" width="100" height="100"></a>
+                {% } %}
+            </span>
+        </td>
+        <td>
+            <p class="name">
+                {% if (file.url) { %}
+                    <a href="{%=file.url%}" title="{%=file.name%}" download="{%=file.name%}" {%=file.name?'data-gallery':''%}>{%=file.name%}</a>
+                {% } else { %}
+                    <span>{%=file.name%}</span>
+                {% } %}
+            </p>
+        </td>
+        <td>
+            <span class="size">{%=o.formatFileSize(file.size)%}</span>
+        </td>
+        <td>
+            {% if (file.deleteUrl) { %}
+                <button class="btn btn-danger delete" data-type="{%=file.deleteType%}" data-url="{%=file.deleteUrl%}"{% if (file.deleteWithCredentials) { %} data-xhr-fields='{"withCredentials":true}'{% } %}>
+                    <i class="glyphicon glyphicon-trash"></i>
+                    <span>削除</span>
+                </button>
+                <input type="checkbox" name="delete" value="1" class="toggle">
+            {% } else { %}
+                <button class="btn btn-warning cancel">
+                    <i class="glyphicon glyphicon-ban-circle"></i>
+                    <span>キャンセル</span>
+                </button>
+            {% } %}
+        </td>
+    </tr>
+{% } %}
+</script>
+
+<!-- The jQuery UI widget factory, can be omitted if jQuery UI is already included -->
+<script src="js/vendor/jquery.ui.widget.js"></script>
+<!-- The Templates plugin is included to render the upload/download listings -->
+<script src="//blueimp.github.io/JavaScript-Templates/js/tmpl.min.js"></script>
+<!-- The Load Image plugin is included for the preview images and image resizing functionality -->
+<script src="//blueimp.github.io/JavaScript-Load-Image/js/load-image.all.min.js"></script>
+<!-- The Canvas to Blob plugin is included for image resizing functionality -->
+<script src="//blueimp.github.io/JavaScript-Canvas-to-Blob/js/canvas-to-blob.min.js"></script>
+<!-- Bootstrap JS is not required, but included for the responsive demo navigation -->
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+<!-- blueimp Gallery script -->
+<script src="//blueimp.github.io/Gallery/js/jquery.blueimp-gallery.min.js"></script>
+<!-- The Iframe Transport is required for browsers without support for XHR file uploads -->
+<script src="js/jquery.iframe-transport.js"></script>
+<!-- The basic File Upload plugin -->
+<script src="js/jquery.fileupload.js"></script>
+<!-- The File Upload processing plugin -->
+<script src="js/jquery.fileupload-process.js"></script>
+<!-- The File Upload image preview & resize plugin -->
+<script src="js/jquery.fileupload-image.js"></script>
+<!-- The File Upload audio preview plugin -->
+<script src="js/jquery.fileupload-audio.js"></script>
+<!-- The File Upload video preview plugin -->
+<script src="js/jquery.fileupload-video.js"></script>
+<!-- The File Upload validation plugin -->
+<script src="js/jquery.fileupload-validate.js"></script>
+<!-- The File Upload user interface plugin -->
+<script src="js/jquery.fileupload-ui.js"></script>
+<!-- The main application script -->
+<script src="js/main.js"></script>
+<!-- The XDomainRequest Transport is included for cross-domain file deletion for IE 8 and IE 9 -->
+<!--[if (gte IE 8)&(lt IE 10)]>
+<script src="js/cors/jquery.xdr-transport.js"></script>
+<![endif]-->
+
+<script src="../js/telop/jquery/datepicker-ja.js" /></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/spectrum.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/i18n/jquery.spectrum-ja.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/spectrum.min.css">
+
+<script>
+jQuery(function($){
+  $("#picker").spectrum({
+      allowEmpty:true,
+      showInput: true,
+      containerClassName: "full-spectrum",
+      showInitial: true,
+      showPalette: true,
+      showSelectionPalette: true,
+      showAlpha: true,
+      maxPaletteSize: 10,
+      preferredFormat: "hex",
+      localStorageKey: "spectrum.demo",
+      move: function (color) {
+
+      },
+      show: function () {
+
+      },
+      beforeShow: function () {
+
+      },
+      hide: function (color) {
+
+      },
+
+      palette: [
+          ["rgb(0, 0, 0)", "rgb(67, 67, 67)", "rgb(102, 102, 102)", 
+          "rgb(204, 204, 204)", "rgb(217, 217, 217)", "rgb(255, 255, 255)"],
+          ["rgb(152, 0, 0)", "rgb(255, 0, 0)", "rgb(255, 153, 0)", "rgb(255, 255, 0)", "rgb(0, 255, 0)",
+          "rgb(0, 255, 255)", "rgb(74, 134, 232)", "rgb(0, 0, 255)", "rgb(153, 0, 255)", "rgb(255, 0, 255)"],
+          ["rgb(230, 184, 175)", "rgb(244, 204, 204)", "rgb(252, 229, 205)", "rgb(255, 242, 204)", "rgb(217, 234, 211)",
+          "rgb(208, 224, 227)", "rgb(201, 218, 248)", "rgb(207, 226, 243)", "rgb(217, 210, 233)", "rgb(234, 209, 220)",
+          "rgb(221, 126, 107)", "rgb(234, 153, 153)", "rgb(249, 203, 156)", "rgb(255, 229, 153)", "rgb(182, 215, 168)",
+          "rgb(162, 196, 201)", "rgb(164, 194, 244)", "rgb(159, 197, 232)", "rgb(180, 167, 214)", "rgb(213, 166, 189)",
+          "rgb(204, 65, 37)", "rgb(224, 102, 102)", "rgb(246, 178, 107)", "rgb(255, 217, 102)", "rgb(147, 196, 125)",
+          "rgb(118, 165, 175)", "rgb(109, 158, 235)", "rgb(111, 168, 220)", "rgb(142, 124, 195)", "rgb(194, 123, 160)",
+          "rgb(166, 28, 0)", "rgb(204, 0, 0)", "rgb(230, 145, 56)", "rgb(241, 194, 50)", "rgb(106, 168, 79)",
+          "rgb(69, 129, 142)", "rgb(60, 120, 216)", "rgb(61, 133, 198)", "rgb(103, 78, 167)", "rgb(166, 77, 121)",
+          "rgb(91, 15, 0)", "rgb(102, 0, 0)", "rgb(120, 63, 4)", "rgb(127, 96, 0)", "rgb(39, 78, 19)",
+          "rgb(12, 52, 61)", "rgb(28, 69, 135)", "rgb(7, 55, 99)", "rgb(32, 18, 77)", "rgb(76, 17, 48)"]
+      ]
+  });
+  
+  $("#picker2").spectrum({
+      allowEmpty:true,
+      showInput: true,
+      containerClassName: "full-spectrum",
+      showInitial: true,
+      showPalette: true,
+      showSelectionPalette: true,
+      showAlpha: true,
+      maxPaletteSize: 10,
+      preferredFormat: "hex",
+      localStorageKey: "spectrum.demo",
+      move: function (color) {
+
+      },
+      show: function () {
+
+      },
+      beforeShow: function () {
+
+      },
+      hide: function (color) {
+
+      },
+
+      palette: [
+          ["rgb(0, 0, 0)", "rgb(67, 67, 67)", "rgb(102, 102, 102)", 
+          "rgb(204, 204, 204)", "rgb(217, 217, 217)", "rgb(255, 255, 255)"],
+          ["rgb(152, 0, 0)", "rgb(255, 0, 0)", "rgb(255, 153, 0)", "rgb(255, 255, 0)", "rgb(0, 255, 0)",
+          "rgb(0, 255, 255)", "rgb(74, 134, 232)", "rgb(0, 0, 255)", "rgb(153, 0, 255)", "rgb(255, 0, 255)"],
+          ["rgb(230, 184, 175)", "rgb(244, 204, 204)", "rgb(252, 229, 205)", "rgb(255, 242, 204)", "rgb(217, 234, 211)",
+          "rgb(208, 224, 227)", "rgb(201, 218, 248)", "rgb(207, 226, 243)", "rgb(217, 210, 233)", "rgb(234, 209, 220)",
+          "rgb(221, 126, 107)", "rgb(234, 153, 153)", "rgb(249, 203, 156)", "rgb(255, 229, 153)", "rgb(182, 215, 168)",
+          "rgb(162, 196, 201)", "rgb(164, 194, 244)", "rgb(159, 197, 232)", "rgb(180, 167, 214)", "rgb(213, 166, 189)",
+          "rgb(204, 65, 37)", "rgb(224, 102, 102)", "rgb(246, 178, 107)", "rgb(255, 217, 102)", "rgb(147, 196, 125)",
+          "rgb(118, 165, 175)", "rgb(109, 158, 235)", "rgb(111, 168, 220)", "rgb(142, 124, 195)", "rgb(194, 123, 160)",
+          "rgb(166, 28, 0)", "rgb(204, 0, 0)", "rgb(230, 145, 56)", "rgb(241, 194, 50)", "rgb(106, 168, 79)",
+          "rgb(69, 129, 142)", "rgb(60, 120, 216)", "rgb(61, 133, 198)", "rgb(103, 78, 167)", "rgb(166, 77, 121)",
+          "rgb(91, 15, 0)", "rgb(102, 0, 0)", "rgb(120, 63, 4)", "rgb(127, 96, 0)", "rgb(39, 78, 19)",
+          "rgb(12, 52, 61)", "rgb(28, 69, 135)", "rgb(7, 55, 99)", "rgb(32, 18, 77)", "rgb(76, 17, 48)"]
+      ]
+  });
+});
+</script>
+    
+        <script type="text/javascript">
+            var lineInfo = null;
+            var btnInfo  = null;
+            var appCnt = 0;
+            
+            $(document).ready(function() 
+            {
+
+                /**
+                 * 削除ボタン押下時処理
+                 */
+                $('#del').click(function()
+                {
+                    event.preventDefault();
+
+                    document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$DELETE_DIALOG_MSG); ?>';
+                    $("#dialog_mod").dialog('open');
+
+                    // サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+            
+                /**
+                 * 戻るボタン押下時処理
+                 */
+                $('#back').click(function()
+                {
+                    // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                    var data = {
+                                  back : $('#back').val(),
+                                  searchContents : $('#searchContents').val(),
+                                  searchlinkUrl : $('#searchlinkUrl').val(),
+                                  searchSAppStartDate : $('#minApplicationStartDate').val(),
+                                  searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                               }
+                    var path = 'index.php?param=Telop/show&home=1';
+
+                    // データ更新
+                    setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+                    // サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+                // 登録系ボタン押下時
+                $('#fileupload').submit(function(event)
+                {
+                    event.preventDefault();
+
+                    if(btnInfo !== '<?php hsc($Log->getMsgLog("MSG_BASE_0803")); ?>')
+                    {
+                        if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0800")); ?>')
+                        {
+                            // 一覧画面新規作成ボタンから遷移してきた場合
+                            document.getElementById("dialog_add").textContent='<?php hsc(SystemParameters::$NEW_DIALOG_MSG); ?>';
+                            $("#dialog_add").dialog('open');
+                        
+                        }
+                        else if(btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>')
+                        {
+                            document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$UPDATE_DIALOG_MSG); ?>';
+                            $("#dialog_mod").dialog('open');
+                        }
+                    }
+                    else
+                    {
+                        document.getElementById("dialog_mod").textContent='<?php hsc(SystemParameters::$DELETE_DIALOG_MSG); ?>';
+                        $("#dialog_mod").dialog('open');
+                    }
+
+                    //サブミット後、ページをリロードしないようにする
+                    return false;
+                });
+
+            });
+
+            /**
+             * 新規作成データの設定
+             */
+            function setAddData()
+            {
+
+                var linkUnderlineCheck = 0;
+                var flashingCheck = 0;
+                var boldCheck = 0;
+                var scrollCheckCheck = 0;
+                var scrollLoop = 0;
+                var scrollAmount = 0;
+                var picker2Spectrum = "";
+                
+                // チェックボックスの値を取得
+                if(document.getElementById("link_underline").checked){
+                    linkUnderlineCheck = 1;
+                }
+                
+                if(document.getElementById("flashing").checked){
+                    flashingCheck = 1;
+                }
+
+                if(document.getElementById("bold").checked){
+                    boldCheck = 1;
+                }
+        
+                if(document.getElementById("scroll_check").checked){
+                    scrollCheckCheck = 1;
+                }
+                
+                if($('#scroll_loop').val() != ""){
+                    scrollLoop = $('#scroll_loop').val();
+                }
+
+                if($('#scroll_amount').val() != ""){
+                    scrollAmount = $('#scroll_amount').val();
+                }
+                
+                if($("#picker2").spectrum('get') != null){
+                    picker2Spectrum = $("#picker2").spectrum('get').toHexString();
+                }
+        
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              searchContents : $('#searchContents').val(),
+                              searchlinkUrl : $('#searchlinkUrl').val(),
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              token : $('#token').val(),
+                              thumbnailId : $('#thumbnailId').val(),
+                              oldThumbnailId : $('#oldThumbnailId').val(),
+                              contents : $('#contents').val(),
+                              link_url : $('#link_url').val(),
+                              link_underline : linkUnderlineCheck,
+                              picker : $("#picker").spectrum('get').toHexString(),
+                              size : $('#size').val(),
+                              scroll_check : scrollCheckCheck,
+                              scroll_direction : $('#scroll_direction').val(),
+                              scroll_behavior : $('#scroll_behavior').val(),
+                              scroll_loop : scrollLoop,
+                              scroll_amount : scrollAmount,
+                              flashing : flashingCheck,
+                              bold : boldCheck,
+                              font : $('#font').val(),
+                              centering : $('#centering').val(),
+                              background_color : $('#background_color').val(),
+                              picker2 : picker2Spectrum,
+                              applicationStartDate : $('#applicationStartDate').val(),
+                              applicationEndDate : $('#applicationEndDate').val(),
+                           };
+                var path = 'index.php?param=Telop/add&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+            }
+
+            /**
+             * データ更新の設定
+             */
+            function setModData()
+            {
+                if( btnInfo === '<?php hsc($Log->getMsgLog("MSG_BASE_0802")); ?>' )
+                {
+                    path = 'index.php?param=Telop/mod&home=1';
+                }
+                else
+                {
+                    path = 'index.php?param=Telop/del&home=1';
+                }
+                
+                var linkUnderlineCheck = 0;
+                var flashingCheck = 0;
+                var boldCheck = 0;
+                var scrollCheckCheck = 0;
+                var scrollLoop = 0;
+                var scrollAmount = 0;
+                var picker2Spectrum = "";
+                
+                // チェックボックスの値を取得
+                if(document.getElementById("link_underline").checked){
+                    linkUnderlineCheck = 1;
+                }
+                
+                if(document.getElementById("flashing").checked){
+                    flashingCheck = 1;
+                }
+
+                if(document.getElementById("bold").checked){
+                    boldCheck = 1;
+                }
+        
+                if(document.getElementById("scroll_check").checked){
+                    scrollCheckCheck = 1;
+                }
+        
+                if($('#scroll_loop').val() != ""){
+                    scrollLoop = $('#scroll_loop').val();
+                }
+
+                if($('#scroll_amount').val() != ""){
+                    scrollAmount = $('#scroll_amount').val();
+                }
+                
+                if($("#picker2").spectrum('get') != null){
+                    picker2Spectrum = $("#picker2").spectrum('get').toHexString();
+                }
+                
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              searchContents : $('#searchContents').val(),
+                              searchlinkUrl : $('#searchlinkUrl').val(),
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              token : $('#token').val(),
+                              thumbnailId : $('#thumbnailId').val(),
+                              oldThumbnailId : $('#oldThumbnailId').val(),
+                              telopID : $('#telopID').val(),
+                              contents : $('#contents').val(),
+                              link_url : $('#link_url').val(),
+                              link_underline : linkUnderlineCheck,
+                              picker : $("#picker").spectrum('get').toHexString(),
+                              size : $('#size').val(),
+                              scroll_check : scrollCheckCheck,
+                              scroll_direction : $('#scroll_direction').val(),
+                              scroll_behavior : $('#scroll_behavior').val(),
+                              scroll_loop : scrollLoop,
+                              scroll_amount : scrollAmount,
+                              flashing : flashingCheck,
+                              bold : boldCheck,
+                              font : $('#font').val(),
+                              centering : $('#centering').val(),
+                              background_color : $('#background_color').val(),
+                              picker2 : picker2Spectrum,
+                              applicationStartDate : $('#applicationStartDate').val(),
+                              applicationEndDate : $('#applicationEndDate').val(),
+                              updateTime : $('#updateTime').val(),
+                           };
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+            }
+
+            /**
+             * 更新キャンセル
+             */
+            function cancel()
+            {
+                var data = null;
+                var path = '';
+
+                // POSTメソッドで送るデータを定義します var data = {パラメータ名 : 値};
+                var data = {
+                              searchContents : $('#searchContents').val(),
+                              searchlinkUrl : $('#searchlinkUrl').val(),
+                              searchSAppStartDate : $('#minApplicationStartDate').val(),
+                              searchEAppStartDate : $('#maxApplicationStartDate').val(),
+                              token : $('#token').val(),
+                              thumbnailId : $('#thumbnailId').val(),
+                              oldThumbnailId : $('#oldThumbnailId').val(),
+                              telopID : $('#telopID').val()
+                              
+                            }
+                var path = 'index.php?param=Telop/show&home=1';
+
+                // データ更新
+                setDataForAjax( data, path, 'ajaxScreenUpdate' );
+
+                // サブミット後、ページをリロードしないようにする
+                return false;
+            }
+
+            /**
+             * 行情報を設定
+             */
+            function setLineInfo(thisLineInfo, thisBtnInfo)
+            {
+                lineInfo = thisLineInfo;
+                btnInfo  = thisBtnInfo;
+                return true;
+            }
+
+            /**
+             * 遷移先の設定
+             */
+            function moveRedirect()
+            {
+                cancel();
+            }
+            
+            /**
+             *  DatePickerを設定
+             */
+            $(function()
+            {
+                $( "#applicationStartDate, #applicationEndDate" ).datepicker({
+                    showButtonPanel: true,
+                    dateFormat: 'yy/mm/dd',
+                });
+            });
+            
+        </script>
+    </head>
+    <body>
+<?php 
+if( isset($_GET['home']) ) {
+    if( "1" ==  $_GET['home'] ){
+        include("../home/View/Common/PageHeader.php");
+    }else{
+        include("Common/PageHeader.php");
+    }
+}else{
+        include("Common/PageHeader.php");
+}
+?>
+        <!-- Site -->
+        <div id="sb-site">
+            <!-- パンくずリスト -->
+            <?php include("Common/Breadcrumb.php"); ?>
+            
+            <!-- serchButtonArea -->
+            <div class="logicButtonArea">
+                <p align=center>
+                    <input type="button" id="back" name="back" value="戻る" class="return" data-href="index.php?param=Telop/show&home=1">
+                </p>
+            </div><!-- /.serchButtonArea -->
+
+            <!-- serchEditArea -->
+            <form id="fileupload" name="fileupload" method="POST" enctype="multipart/form-data">
+                <!-- 以下、hiddenの値は修正/削除時の条件に使用 -->
+                <input type="hidden" id="token" name="token" value="<?php hsc($TokenID); ?>">
+                <input type="hidden" id="thumbnailId" name="thumbnailId" value="<?php hsc($thumbnailId); ?>">
+                <input type="hidden" id="oldThumbnailId" name="oldThumbnailId" value="<?php hsc($oldThumbnailId); ?>">
+                <input type="hidden" id="file" name="file" value="<?php hsc($file); ?>">
+                <input type="hidden" id="telopID" name="telopID" value="<?php hsc($telopDataList['telop_id']); ?>">
+                <input type="hidden" id="updateTime" name="updateTime" value="<?php hsc($telopDataList['update_time']); ?>">
+                <!-- 以下、hiddenの値は一覧表の検索条件保持のため、使用 -->
+                <input type="hidden" id="searchContents" name="searchContents" value="<?php hsc($_POST['searchContents']); ?>">
+                <input type="hidden" id="searchlinkUrl" name="searchlinkUrl" value="<?php hsc($_POST['searchlinkUrl']); ?>">
+                <input type="hidden" id="minApplicationStartDate" name="minApplicationStartDate" value="<?php hsc($_POST['searchSAppStartDate']); ?>">
+                <input type="hidden" id="maxApplicationStartDate" name="maxApplicationStartDate" value="<?php hsc($_POST['searchEAppStartDate']); ?>">
+                <div class="serchEditArea">
+                    <div style="width:920px; margin:0 auto;">
+                        <table width="100%">
+                            <tbody>
+                                <tr>
+                                    <td width="120px" style="border-style:none;"></td>
+                                    <td width="800px" style="border-style:none;"></td>
+                                </tr>
+                                <tr>
+                                    <th>適用日</th>
+                                    <td style="background-color: #ffffff">
+                                        <input type="text" name="applicationStartDate" id="applicationStartDate" style="width:80px" pattern="\d{4}/\d{2}/\d{2}" title="<?php hsc($Log->getMsgLog('MSG_BASE_0305')); ?>" value="<?php hsc($telopDataList['application_start_date']); ?>">
+                                        　～　
+                                        <input type="text" name="applicationEndDate" id="applicationEndDate" style="width:80px" pattern="\d{4}/\d{2}/\d{2}" title="<?php hsc($Log->getMsgLog('MSG_BASE_0305')); ?>" value="<?php hsc($telopDataList['application_end_date']); ?>">
+                                </tr>
+                                <tr><td style="border-style:none;"></td></tr>
+                                <tr>
+                                    <th>内容</th>
+                                    <td style="background-color: #ffffff"><input type="text" title="内容" id="contents" name="contents" style="width: 792px" value="<?php hsc($telopDataList['contents']); ?>" class="Em" required></td>
+                                </tr>
+                                <tr><td style="border-style:none;"></td></tr>
+                                <tr>
+                                    <th>リンク</th>
+                                    <td style="background-color: #ffffff"><input type="text" title="リンク" id="link_url" name="link_url" style="width: 792px" value="<?php hsc($telopDataList['link_url']); ?>" class="Em"></td>
+                                </tr>
+                                <tr><td style="border-style:none;"></td></tr>
+                                <tr>
+                                    <th>オプション</th>
+                                    <td style="background-color: #ffffff">
+                                        <?php $luChecked = ""; ?>
+                                        <?php if (!empty($telopDataList['link_underline'])) { ?>
+                                            <?php $luChecked = "checked"; ?>
+                                        <?php } ?>
+                                        <?php $fChecked = ""; ?>
+                                        <?php if (!empty($telopDataList['flashing'])) { ?>
+                                            <?php $fChecked = "checked"; ?>
+                                        <?php } ?>
+                                        <?php $bChecked = ""; ?>
+                                        <?php if (!empty($telopDataList['bold'])) { ?>
+                                            <?php $bChecked = "checked"; ?>
+                                        <?php } ?>
+                                        <div><label><input type="checkbox" id="link_underline" name="link_underline" value="<?php hsc($telopDataList['link_underline']); ?>" <?php hsc($luChecked); ?>>リンクの下線を消す</label>&nbsp;&nbsp;&nbsp;
+                                             <label><input type="checkbox" id="flashing" name="flashing" value="<?php hsc($telopDataList['flashing']); ?>" <?php hsc($fChecked); ?> >点滅させる</label>&nbsp;&nbsp;&nbsp;
+                                             <label><input type="checkbox" id="bold" name="bold" value="<?php hsc($telopDataList['bold']); ?>" <?php hsc($bChecked); ?> >太字にする</label>&nbsp;&nbsp;&nbsp;
+                                        </div>
+                                        <div><label>　文字の色を変える</label>&nbsp;&nbsp;&nbsp;
+                                             <label>　文字サイズを変える</label>&nbsp;&nbsp;&nbsp;
+                                             <label>　フォントを変える</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                             <label>　文字を寄せる</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                        </div>
+                                        <div>　<input type="color" id="picker" value="<?php hsc($telopDataList['color']); ?>">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <?php if (!empty($telopDataList['size'])) { 
+                                                          ${"sSelected_".$telopDataList['size']} = "selected";
+                                                } ?>
+                                             　<select name="size" id="size">
+                                                    <option value="1" <?php hsc($sSelected_1); ?>>サイズ1</option>
+                                                    <option value="2" <?php hsc($sSelected_2); ?>>サイズ2</option>
+                                                    <option value="3" <?php hsc($sSelected_3); ?>>サイズ3</option>
+                                                    <option value="4" <?php hsc($sSelected_4); ?>>サイズ4</option>
+                                                    <option value="5" <?php hsc($sSelected_5); ?>>サイズ5</option>
+                                                    <option value="6" <?php hsc($sSelected_6); ?>>サイズ6</option>
+                                                    <option value="7" <?php hsc($sSelected_7); ?>>サイズ7</option>
+                                                    <option value="8" <?php hsc($sSelected_8); ?>>サイズ8</option>
+                                                </select>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <?php if (!empty($telopDataList['font'])) {
+                                                          ${"fSelected_".$telopDataList['font']} = "selected";
+                                                } ?>
+                                                <select name="font" id="font">
+                                                    <option value="1" <?php hsc($fSelected_1); ?>>sans-serif (ゴシック体)</option>
+                                                    <option value="2" <?php hsc($fSelected_2); ?>>serif (明朝体)</option>
+                                                    <option value="3" <?php hsc($fSelected_3); ?>>monospace (等幅)</option>
+                                                    <option value="4" <?php hsc($fSelected_4); ?>>cursive (筆記体)</option>
+                                                    <option value="5" <?php hsc($fSelected_5); ?>>fantasy (装飾文字系)</option>
+                                                    <option value="6" <?php hsc($fSelected_6); ?>>ＭＳ ゴシック</option>
+                                                    <option value="7" <?php hsc($fSelected_7); ?>>ＭＳ Ｐゴシック</option>
+                                                    <option value="8" <?php hsc($fSelected_8); ?>>MS UI Gothic</option>
+                                                    <option value="9" <?php hsc($fSelected_9); ?>>ＭＳ 明朝</option>
+                                                    <option value="10" <?php hsc($fSelected_10); ?>>ＭＳ Ｐ明朝</option>
+                                                    <option value="11" <?php hsc($fSelected_11); ?>>メイリオ</option>
+                                                    <option value="12" <?php hsc($fSelected_12); ?>>メイリオUI</option>
+                                                    <option value="13" <?php hsc($fSelected_13); ?>>游ゴシック</option>
+                                                    <option value="14" <?php hsc($fSelected_14); ?>>游ゴシックUI</option>
+                                                    <option value="15" <?php hsc($fSelected_15); ?>>游明朝</option>
+                                                    <option value="16" <?php hsc($fSelected_16); ?>>HGPｺﾞｼｯｸE</option>
+                                                    <option value="17" <?php hsc($fSelected_17); ?>>HGP明朝E</option>
+                                                    <option value="18" <?php hsc($fSelected_18); ?>>HGP教科書体</option>
+                                                    <option value="19" <?php hsc($fSelected_19); ?>>HGP行書体</option>
+                                                    <option value="20" <?php hsc($fSelected_20); ?>>HGP創英ﾌﾟﾚｾﾞﾝｽEB</option>
+                                                    <option value="21" <?php hsc($fSelected_21); ?>>HGP創英角ｺﾞｼｯｸUB</option>
+                                                    <option value="22" <?php hsc($fSelected_22); ?>>HGP創英角ﾎﾟｯﾌﾟ体</option>
+                                                    <option value="23" <?php hsc($fSelected_23); ?>>HG丸ｺﾞｼｯｸM-PRO</option>
+                                                    <option value="24" <?php hsc($fSelected_24); ?>>HG正楷書体-PRO</option>
+                                                    <option value="25" <?php hsc($fSelected_25); ?>>Arial</option>
+                                                    <option value="26" <?php hsc($fSelected_26); ?>>Helvetica</option>
+                                                    <option value="27" <?php hsc($fSelected_27); ?>>Times New Roman</option>
+                                                    <option value="28" <?php hsc($fSelected_28); ?>>Georgia</option>
+                                                    <option value="29" <?php hsc($fSelected_29); ?>>Tahoma</option>
+                                                    <option value="30" <?php hsc($fSelected_30); ?>>Verdana</option>
+                                                    <option value="31" <?php hsc($fSelected_31); ?>>Lucida Sans</option>
+                                                    <option value="32" <?php hsc($fSelected_32); ?>>Lucida Console</option>
+                                                    <option value="33" <?php hsc($fSelected_33); ?>>Courier</option>
+                                                    <option value="34" <?php hsc($fSelected_34); ?>>Courier New</option>
+                                                    <option value="35" <?php hsc($fSelected_35); ?>>Consolas</option>
+                                                    <option value="36" <?php hsc($fSelected_36); ?>>Impact</option>
+                                                    <option value="37" <?php hsc($fSelected_37); ?>>Arial Black</option>
+                                                    <option value="38" <?php hsc($fSelected_38); ?>>Comic Sans MS</option>
+                                                </select>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <?php if (!empty($telopDataList['centering'])) {
+                                                          ${"cSelected_".$telopDataList['centering']} = "selected";
+                                                } ?>
+                                                <select id="centering" name="centering">
+                                                    <option value="left" <?php hsc($cSelected_left); ?>>左寄せにする</option>
+                                                    <option value="center" <?php hsc($cSelected_center); ?>>中央寄せにする</option>
+                                                    <option value="right" <?php hsc($cSelected_right); ?>>右寄せにする</option>
+                                                </select>
+                                </div>
+                                        
+                                <?php $sChecked = ""; ?>
+                                <?php if (!empty($telopDataList['scroll_check'])) { ?>
+                                    <?php $sChecked = "checked"; ?>
+                                <?php } ?>
+                                <div><label onclick="return 1"><input type="checkbox" id="scroll_check" name="scroll_check" value="<?php hsc($telopDataList['scroll_check']); ?>" <?php hsc($sChecked); ?>>スクロールさせる</label></div>
+        			<div>&nbsp;&nbsp;&nbsp;スクロールする方向
+                                     &nbsp;&nbsp;&nbsp;流れ方
+                                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;スクロール回数
+                                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;スクロール距離(スピード)
+                                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;背景色
+                                </div>
+                                <div>&nbsp;&nbsp;
+                                    <?php if (!empty($telopDataList['scroll_direction'])) {
+                                              ${"sdSelected_".$telopDataList['scroll_direction']} = "selected";
+                                    } ?>
+                                    <select name="scroll_direction" id="scroll_direction">
+                                        <option value="left" <?php hsc($sdSelected_left); ?>>右から左</option>
+                                        <option value="right" <?php hsc($sdSelected_right); ?>>左から右</option>
+                                        <option value="down" <?php hsc($sdSelected_down); ?>>上から下</option>
+                                        <option value="up" <?php hsc($sdSelected_up); ?>>下から上</option>
+                                    </select>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                    <?php if (!empty($telopDataList['scroll_behavior'])) {
+                                              ${"sbSelected_".$telopDataList['scroll_behavior']} = "selected";
+                                    } ?>
+                                    <select name="scroll_behavior" id="scroll_behavior">
+                                        <option value="scroll" <?php hsc($sbSelected_scroll); ?>>通常</option>
+                                        <option value="slide" <?php hsc($sbSelected_slide); ?>>端で止まる</option>
+                                        <option value="alternate" <?php hsc($sbSelected_alternate); ?>>往復</option>
+                                    </select>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                    <input type="text" name="scroll_loop" id="scroll_loop" size="4" value="<?php hsc($telopDataList['scroll_loop']); ?>"> 回&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                    <input type="text" name="scroll_amount" id="scroll_amount" size="4" value="<?php hsc($telopDataList['scroll_amount']); ?>">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                    <input type="text" id="picker2" value="<?php hsc($telopDataList['background_color']); ?>">
+                                </div>
+                                
+                               </tr>
+                                <tr><td style="border-style:none;"></td></tr>
+                            </tbody>
+                        </table>
+
+                        <table width="100%" id="thumbnailTable">
+                            <tbody id="thumbnailTbody">
+                                <tr>
+                                    <th width="120px">アイコン</th>
+                                    <td width="800px">
+                                        <div style="background-color: #ffffff">
+                                            <!-- Redirect browsers with JavaScript disabled to the origin page -->
+                                            <noscript><input type="hidden" name="redirect" value="https://blueimp.github.io/jQuery-File-Upload/"></noscript>
+                                            <!-- The fileupload-buttonbar contains buttons to add/delete files and start/cancel the upload -->
+                                            <div class="row fileupload-buttonbar">
+                                                <div class="col-lg-7">
+                                                    <!-- The fileinput-button span is used to style the file input field as button -->
+                                                    <span class="btn btn-success fileinput-button">
+                                                        <i class="glyphicon glyphicon-plus"></i>
+                                                        <span>ファイル追加</span>
+                                                        <input type="file" name="files[]" multiple>
+                                                    </span>
+<!--                                                    <button type="submit" class="btn btn-primary start">
+                                                        <i class="glyphicon glyphicon-upload"></i>
+                                                        <span>全てアップロード</span>
+                                                    </button>
+                                                    <button type="reset" class="btn btn-warning cancel">
+                                                        <i class="glyphicon glyphicon-ban-circle"></i>
+                                                        <span>全てキャンセル</span>
+                                                    </button>
+                                                    <button type="button" class="btn btn-danger delete">
+                                                        <i class="glyphicon glyphicon-trash"></i>
+                                                        <span>全て削除</span>
+                                                    </button>
+-->
+                                                    <input type="checkbox" class="toggle">
+                                                    <!-- The global file processing state -->
+                                                    <span class="fileupload-process"></span>
+                                                </div>
+                                                <!-- The global progress state -->
+                                                <div class="col-lg-5 fileupload-progress fade">
+                                                    <!-- The global progress bar -->
+                                                    <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+                                                        <div class="progress-bar progress-bar-success" style="width:0%;"></div>
+                                                    </div>
+                                                    <!-- The extended global progress state -->
+                                                    <div class="progress-extended">&nbsp;</div>
+                                                </div>
+                                            </div>
+                                            <!-- The table listing the files available for upload/download -->
+                                            <table role="presentation" class="table table-striped" style="width:600px" align=left><tbody class="files"></tbody></table>
+                                            <br>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tr>
+                                <td style="border-style:none;"></td>
+                            </tr>
+                        </table>
+
+                    </div><!-- /. width:65% -->
+                </div><!-- /.serchEditArea -->
+                <input type="hidden" id="btnid" name="btnid" value=""/>
+
+                <!-- logicButtonArea -->
+                <div class="logicButtonArea">
+                    <p align=center>
+                        <?php $add_disabled = ""; ?>
+                        <?php if (!empty($_POST['disabledID'])) { ?>
+                            <?php $add_disabled = "disabled"; ?>
+                            <?php $del_disabled = "disabled"; ?>
+                        <?php } ?>
+                        <?php if($CorrectionFlag) { ?>
+                            <input type="submit" id="del" name="del" value="<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0803')); ?>')" class="delete" <?php hsc($del_disabled); ?>>
+                            <input type="submit" id="newadd" name="newadd" value="<?php hsc($Log->getMsgLog('MSG_BASE_0805')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0800')); ?>')" class="add" <?php hsc($add_disabled); ?>>
+                            <input type="submit" id="mod" name="mod" value="<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0802')); ?>')" class="update" <?php hsc($add_disabled); ?>>
+                        <?php } else { ?>
+                            <input type="submit" id="add" name="add" value="　<?php hsc($Log->getMsgLog('MSG_BASE_0805')); ?>" onclick="setLineInfo(this, '<?php hsc($Log->getMsgLog('MSG_BASE_0800')); ?>')" class="add" <?php hsc($add_disabled); ?>>
+                        <?php } ?>
+                    </p>
+                </div><!-- /.logicButtonArea -->
+            </form>
+
+        </div><!-- /#sb-site -->
+        
+        <div id="jquery-replace-ajax">
+            
+        </div><!-- /#jquery-replace-ajax -->
+
+        <?php include("../FwCommon/View/Dialog.php"); ?>
+    <script>
+       $('#fileupload').fileupload({
+            autoUpload: true
+        });
+    </script>
+    </body>
+</html>

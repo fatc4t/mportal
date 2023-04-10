@@ -1,0 +1,127 @@
+<?php
+    
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <script type="text/javascript"> 
+            
+            function chf(frm){
+                //   var file = document.getElementById("filename");
+                files = $("#filename")[0].files;
+                if(files.length === 0){
+                    alert('CSVファイルを選択してください！');
+                    return false;
+                }else{
+                    var kakunin = confirm('※店舗情報を含んだCSVファイルを実行します。よろしいですか？');
+                    if(kakunin ===true){ 
+                        loading_message.innerHTML = '発注データを取込中.....';
+                        modal_loading.hidden = false;
+                        if( 1 < window.location.search.length ){
+                            
+                            // 最初の1文字 (?記号) を除いた文字列を取得する
+                            var query = window.location.search.substring(1);
+                            var action = frm.action.split('?');
+                            // 検索以外の機能実行後だった場合、パラメータを補正する
+                            if (1 < action.length) {
+                                frm.action = action[0];
+                            }
+                            // クエリの区切り記号 (&) で文字列を配列に分割する
+                            var parameters = query.split('&');
+                            if (frm.onbtn.value == 'zikkou') {
+                                frm.target = '_self';
+                                if (1 < parameters.length) {
+                                    frm.action += '?param=mail/initial&home=1';
+                                } else {
+                                    frm.action += '?param=mail/show';
+                                }
+                            }
+                        }
+                        
+                    } else {
+                        return false;
+                    }
+                }
+            }
+            /*
+             *  イベント制御用
+             *
+             */
+            function set_value(s_val) {
+                
+                var checkBox = document.getElementById("jr");
+                var checkBox1 = document.getElementById("fuji");
+                var checkBox2 = document.getElementById("withs");
+                var checkBox3 = document.getElementById("prod");
+                var checkBox4 = document.getElementById("jaiko");
+                
+                if (checkBox.checked === true){
+                    document.getElementById("jr").value = 'jrkusuri';
+                }
+                if (checkBox1.checked === true){
+                    document.getElementById("fuji").value = 'fuji';
+                }
+                if (checkBox2.checked === true){
+                    document.getElementById("withs").value = 'withs';
+                }
+                if (checkBox3.checked === true){
+                    document.getElementById("prod").value = 'prod';
+                }
+                if (checkBox4.checked === true){
+                    document.getElementById("jaiko").value = 'jaiko';
+                }
+                document.serchForm.onbtn.value = s_val;
+            }
+        </script>
+        
+    </head>
+    <body>
+        <!-- Site -->
+        <div id="sb-site">
+            <!-- パンくずリスト -->
+            
+            <form name="serchForm" id="serchForm" action="/mail/index.php" method="post" onsubmit="return chf(this)" enctype="multipart/form-data">
+                <!-- serchBoardArea -->
+                <div class="serchBoardArea">
+                    <table id="serchTable">
+                        
+                        <tr>
+                            <td id="serchTableItem">
+                                <input type="checkbox" name="prod" id="prod" />PROD<br />
+                               
+                            </td>
+                                <td id="serchTableItem">
+                                                            
+                                <input type="checkbox" name="jaiko" id="jaiko" />JAIKO<br />
+                            </td>
+                        </tr>
+                        <tr>    
+                            <td id="serchTableItem">
+                                <input type="checkbox" name="jr" id="jr" /> JR<br />
+                            </td>
+                            <td id="serchTableItem">
+                                <input type="checkbox" name="fuji" id="fuji" />FUJI<br />
+                            </td>
+                            <td id="serchTableItem">
+                                <input type="checkbox" name="withs" id="withs" />WITHS<br />
+                            </td>
+                            
+                        </tr>
+                        
+                    </table>
+                    <!--                    <button type="button" id="bt_csv" onclick="csv()">CSV</button>-->
+                    <input  class="submit" type="submit" name="zikkou" id="zikkou" value="CSV" onClick="set_value('zikkou')"><input type="hidden" name="onbtn"> 
+                </div>
+                <!-- /.serchBoardArea -->
+                    
+                <!-- serchButtonArea -->
+                <div class="serchButtonArea">
+                </div>
+                <!-- /.serchButtonArea -->
+            </form>
+            
+            
+        </div><!-- /#sb-site -->
+        
+    </body>
+</html>
