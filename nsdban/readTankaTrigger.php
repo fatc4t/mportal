@@ -25,6 +25,7 @@
 try {
     
     require_once("nsdban_Functions.php");
+    $space = str_pad('',5);
 	
 	readTANKADatafile(); //タイミングの為にファイルを分ける
 

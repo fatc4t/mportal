@@ -180,7 +180,7 @@ function readVANDatafile()
 
     try {
 
-        print_r("-function PHP---inside");exit;
+        
         //NSDBAN チェック
         $sql_nsd_schema = "";
         $sql_nsd_schema .= "SELECT                          ";
@@ -193,7 +193,7 @@ function readVANDatafile()
         //FOR TESTING IN LOCALHOST-----------------------------------------
 
         $nsd_schema_list = getList($sql_nsd_schema);
-        //print_r(count($nsd_schema_list));exit;
+        
 
         date_default_timezone_set('Asia/Tokyo');
         $currentdate = date('ymdHis');
@@ -201,7 +201,7 @@ function readVANDatafile()
         $format = "SHNINF";
         $logname = $format . "_" . $currentdate;
 
-        $file_name = "shohn.370"; //-----------------------------------FILENAME
+        $file_name = "shohn.103"; //-----------------------------------FILENAME
         $path = "/var/www/nsdban/shohin_recv/";
 
 
@@ -342,7 +342,7 @@ function readTANKADatafile()
 
     try {
 
-        print_r("--inside read TANKA DATAFILE");exit;
+        
         //NSDBAN チェック
         $sql_nsd_schema = "";
         $sql_nsd_schema .= "SELECT                          ";
@@ -354,7 +354,7 @@ function readTANKADatafile()
         //FOR TESTING IN LOCALHOST-----------------------------------------
 
         $nsd_schema_list = getList($sql_nsd_schema);
-        //print_r(count($nsd_schema_list));exit;
+        
 
 
 
@@ -533,9 +533,9 @@ function readTANKADatafile()
                 // 処理完了ログ出力
                 error_log($j . "　件、完了。" . "\n", 3, $log_path);
             }
-            //print_r("---------INSERT 完了");
+            
             fclose($fp);
-            //exit;
+            
 
             if (file_exists($tankaReadfile) === true) {
                 chown($tankaReadfile, 'apache');
@@ -787,10 +787,8 @@ function update_nsdban_trn1602($schema, $hideseq, $org_id, $line_no, $ord_amount
     $sql .= " and   TRN1602.HIDESEQ         = " . $hideseq; // レコード番号
     $sql .= " and   TRN1602.LINE_NO         = " . $line_no; // 行番号
 
-    print_r("--UPDATE TRN1602:<br>");
-    print_r($sql."<br>");
-    print_r("---------------------------------------<br>");
-    //sqlExec($sql);
+  
+    sqlExec($sql);
 }
 
 //**************************************************************************
@@ -817,14 +815,8 @@ function update_nsdban_trn1601($schema, $hideseq, $org_id)
     $query .= "       ,VAN_DATA_DATE          = " . "'" . date('YmdHis') . "'"; // VANデータ作成日時
     $query .= " where  TRN1601.ORGANIZATION_ID = " . $org_id; // 店舗コード        
     $query .= " and    TRN1601.HIDESEQ         = " . $hideseq; // レコード番号
-    //print_r($query); exit;
 
-
-    // print_r("--UPDATE TRN1601:<br>");
-    // print_r($query."<br>");
-    // print_r("---------------------------------------<br>");
-
-    //sqlExec($query);
+    sqlExec($query);
 }
 
 //**************************************************************************

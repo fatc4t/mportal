@@ -119,7 +119,7 @@ try {
 
     $rows_schemas = getList($sql_schema);
 
-   print_r($rows_schemas);exit;
+   
     
     // 企業名初期化
     $schema = "";
